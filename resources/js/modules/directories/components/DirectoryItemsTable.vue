@@ -164,9 +164,9 @@ defineExpose({ reload: () => ctx.loadItems(props.versionId), clearFiltersAndRelo
                         <col v-if="canDelete" class="w-10" />
                         <col v-for="f in schemaFields" :key="f.key" />
                     </colgroup>
-                    <TableHeader class="sticky top-0 z-10 bg-background [&_tr]:bg-background">
+                    <TableHeader class="sticky top-0 z-20 bg-background [&_tr]:bg-background">
                         <TableRow>
-                            <TableHead v-if="canDelete" class="w-10 pr-0">
+                            <TableHead v-if="canDelete" class="sticky left-0 z-20 w-10 bg-background pr-0 shadow-[1px_0_0_rgba(148,163,184,0.25)]">
                                 <button
                                     type="button"
                                     class="flex size-4 items-center justify-center rounded border transition"
@@ -218,10 +218,13 @@ defineExpose({ reload: () => ctx.loadItems(props.versionId), clearFiltersAndRelo
                                 <tr
                                     :ref="measureElement"
                                     :data-index="vRow.index"
-                                    class="border-b transition-colors hover:bg-muted/50"
+                                    class="group/row border-b transition-colors hover:bg-muted/50"
                                     :class="[ctx.selectedIds.value.has(node.id) ? 'bg-primary/5' : '', isOtherRow(node.id) ? 'bg-muted/30 text-muted-foreground italic' : '']"
                                 >
-                                    <TableCell v-if="canDelete" class="pr-0">
+                                    <TableCell
+                                        v-if="canDelete"
+                                        class="sticky left-0 z-10 bg-background shadow-[1px_0_0_rgba(148,163,184,0.18)] transition-colors group-hover/row:bg-muted/50"
+                                    >
                                         <button
                                             v-if="!isOtherRow(node.id)"
                                             type="button"
@@ -305,7 +308,7 @@ defineExpose({ reload: () => ctx.loadItems(props.versionId), clearFiltersAndRelo
 
             <div
                 v-if="canScrollLeft"
-                class="absolute inset-y-0 left-1 z-20 flex w-10 items-center justify-start pl-1 opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100"
+                class="absolute inset-y-0 left-7 z-20 flex w-10 items-center justify-start pl-1 opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100"
                 @mouseenter="startScroll('left')"
                 @mouseleave="stopScroll"
             >
@@ -319,7 +322,7 @@ defineExpose({ reload: () => ctx.loadItems(props.versionId), clearFiltersAndRelo
             </div>
             <div
                 v-if="canScrollRight"
-                class="pointer-events-none absolute inset-y-0 right-1 z-20 flex w-12 items-center justify-end opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100"
+                class="pointer-events-none absolute inset-y-0 right-5 z-20 flex w-12 items-center justify-end opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100"
                 @mouseenter="startScroll('right')"
                 @mouseleave="stopScroll"
             >
@@ -400,3 +403,16 @@ defineExpose({ reload: () => ctx.loadItems(props.versionId), clearFiltersAndRelo
         </DialogContent>
     </Dialog>
 </template>
+
+<style scoped>
+/*
+  shadcn <Table> оборачивает <table> в собственный контейнер с overflow-x-auto.
+  Из-за этого горизонтальный скролл «съедается» внутренним контейнером и не
+  доходит до scrollParent — стрелки прокрутки (и общий скролл по X) не работают.
+  Отключаем внутренний overflow, чтобы оба направления скроллились на одном
+  scrollParent — как в SurveyDirectoryTableField.
+*/
+:deep([data-slot='table-container']) {
+    overflow-x: visible;
+}
+</style>
