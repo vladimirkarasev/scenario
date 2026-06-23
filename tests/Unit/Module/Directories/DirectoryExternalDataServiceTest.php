@@ -190,7 +190,7 @@ final class DirectoryExternalDataServiceTest extends TestCase
         return Directory::query()->create(array_merge([
             'project_id' => $project->id,
             'name' => 'Test Directory',
-            'slug' => 'test-dir-' . uniqid(),
+            'slug' => 'test-dir-'.uniqid(),
             'source_type' => 'external',
             'api_config_json' => ['proxy_uuid' => null],
         ], $attrs));
@@ -208,7 +208,7 @@ final class DirectoryExternalDataServiceTest extends TestCase
         ]);
     }
 
-    /** @param array<string, mixed> $responseBody */
+    /** @param  array<string, mixed>  $responseBody */
     private function makeEndpoint(string $uuid, array $responseBody): ProxyEndpoint
     {
         $this->app->instance(StubProxyHandler::class, new StubProxyHandler($responseBody));
@@ -216,7 +216,7 @@ final class DirectoryExternalDataServiceTest extends TestCase
         return ProxyEndpoint::query()->create([
             'uuid' => $uuid,
             'name' => 'Test Endpoint',
-            'code' => 'test-' . $uuid,
+            'code' => 'test-'.$uuid,
             'handler_class' => StubProxyHandler::class,
             'is_active' => true,
         ]);

@@ -163,8 +163,8 @@ final class DirectoryVersionServiceTest extends TestCase
 
         return Directory::query()->create([
             'project_id' => $project->id,
-            'name' => 'Dir ' . uniqid(),
-            'slug' => 'dir-' . uniqid(),
+            'name' => 'Dir '.uniqid(),
+            'slug' => 'dir-'.uniqid(),
             'source_type' => 'manual',
         ]);
     }

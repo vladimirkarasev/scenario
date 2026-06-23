@@ -48,7 +48,8 @@ final class ProjectUserRegisterRequest extends FormRequest
             email: $this->filled('email') ? $this->string('email')->toString() : null,
             name: $this->string('name')->toString(),
             externalId: $this->filled('external_id') ? $this->string('external_id')->toString() : null,
-            roles: array_values(array_map(static fn (mixed $r): string => is_string($r) ? $r : '', $this->array('roles'))),
+            roles: array_values(array_map(static fn(mixed $r): string => is_string($r) ? $r : '', $this->array('roles'))
+            ),
             group: $groupData,
         );
     }

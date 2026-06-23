@@ -10,8 +10,10 @@ use Module\Proxy\ProxyHandler;
 
 final class StubProxyHandler extends ProxyHandler
 {
-    /** @param array<string, mixed> $responseBody */
-    public function __construct(private readonly array $responseBody = []) {}
+    /** @param  array<string, mixed>  $responseBody */
+    public function __construct(private readonly array $responseBody = [])
+    {
+    }
 
     public function fields(): iterable
     {

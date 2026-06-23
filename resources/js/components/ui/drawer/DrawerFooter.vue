@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,9 +12,9 @@ const props = defineProps({
 
 <template>
   <div
-    data-slot="drawer-footer"
-    :class="cn('gap-2 p-4 mt-auto flex flex-col', props.class)"
+      data-slot="drawer-footer"
+      :class="cn('gap-2 p-4 mt-auto flex flex-col', props.class)"
   >
-    <slot />
+    <slot/>
   </div>
 </template>

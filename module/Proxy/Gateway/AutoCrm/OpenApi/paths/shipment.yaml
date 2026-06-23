@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - shipment'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: shipment
+  - name: shipment
     description: 'Управление отгрузками'
 paths:
   /logistic/shipment:
@@ -22,14 +18,12 @@ paths:
       description: 'Получение списка отгрузок'
       summary: 'Получение списка отгрузок'
       parameters:
-        -
-          name: request_id
+        - name: request_id
           in: query
           description: 'ID заявки в ТК'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус (1 - Заявлено, 2 - Принято, 3 - Отгружено, 4 - Доставлено, 5 - Передано в ТК, 6 - Запланировано, 7 - Удалена)'
           schema:
@@ -42,8 +36,7 @@ paths:
               - 5
               - 6
               - 7
-        -
-          name: delivery_type
+        - name: delivery_type
           in: query
           description: 'Тип отгрузки (1 - Дилерская, 2 - Перемещение, 3 - Самовывоз)'
           schema:
@@ -52,14 +45,12 @@ paths:
               - 1
               - 2
               - 3
-        -
-          name: export_document_number
+        - name: export_document_number
           in: query
           description: 'номер документа'
           schema:
             type: 'integer      -'
-        -
-          name: export_document_type
+        - name: export_document_type
           in: query
           description: 'Тип документа (1 - Экспедиторская расписка, 2 - Поручение экспедитору, 3 - Поручение экспедитору ТК)'
           schema:
@@ -68,8 +59,7 @@ paths:
               - 1
               - 2
               - 3
-        -
-          name: page
+        - name: page
           in: query
           type: integer
           schema:
@@ -85,7 +75,7 @@ paths:
                   $ref: '#/components/schemas/Shipment'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - shipment
@@ -106,7 +96,7 @@ paths:
                 $ref: '#/components/schemas/Shipment'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/logistic/shipment/{id}':
     get:
       tags:
@@ -114,8 +104,7 @@ paths:
       summary: 'Получение отгрузки по ID'
       description: 'Получение отгрузки по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id отгрузки'
           required: true
@@ -130,7 +119,7 @@ paths:
                 $ref: '#/components/schemas/Shipment'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -143,8 +132,7 @@ paths:
       description: 'Обновление данных отгрузок по id'
       summary: 'Обновление данных отгрузок по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: ID
           schema:
@@ -161,7 +149,7 @@ paths:
           description: 'отгрузка успешно изменена'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

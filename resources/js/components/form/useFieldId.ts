@@ -1,4 +1,4 @@
-import { computed, type ComputedRef } from 'vue'
+import {computed, type ComputedRef} from 'vue'
 
 function randomString(): string {
     return Math.random().toString(36).slice(2, 8)

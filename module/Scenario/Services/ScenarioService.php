@@ -17,7 +17,8 @@ final readonly class ScenarioService
         private CatalogService $catalogService,
         private ScenarioRepository $scenarios,
         private CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     /** @return array<int, array<string, mixed>> */
     public function items(): array
@@ -41,7 +42,13 @@ final readonly class ScenarioService
     /** @return array<string, mixed> */
     public function update(ScenarioData $data, Scenario $scenario): array
     {
-        $scenario = $this->scenarios->update($scenario, $data->toAttributes(), $data->actorId, $data->categoryIds, $data->groupIds);
+        $scenario = $this->scenarios->update(
+            $scenario,
+            $data->toAttributes(),
+            $data->actorId,
+            $data->categoryIds,
+            $data->groupIds
+        );
         $this->scenarios->loadPayloadRelations($scenario);
 
         return $this->catalogService->scenarioPayload($scenario);

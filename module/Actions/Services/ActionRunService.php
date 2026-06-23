@@ -13,14 +13,15 @@ final class ActionRunService
 {
     public function __construct(
         private readonly ActionRunRepository $runs,
-    ) {}
+    ) {
+    }
 
     /** @return array<int, array<string, mixed>> */
     public function items(ActionRunIndexData $filters): array
     {
         return $this->runs
             ->latestWithAction($filters)
-            ->map(fn (ActionRun $run): array => $this->payload($run))
+            ->map(fn(ActionRun $run): array => $this->payload($run))
             ->values()
             ->all();
     }

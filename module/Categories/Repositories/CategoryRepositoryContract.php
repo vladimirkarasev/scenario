@@ -16,21 +16,21 @@ interface CategoryRepositoryContract
     public function withRelations(): Collection;
 
     /**
-     * @param  class-string              $modelClass
+     * @param  class-string  $modelClass
      * @return Collection<int, Category>
      */
     public function forModel(string $modelClass, ?string $projectId = null): Collection;
 
     /**
-     * @param  class-string              $modelClass
+     * @param  class-string  $modelClass
      * @return Collection<int, Category>
      */
     public function forModelByParent(string $modelClass, ?string $parentId, ?string $projectId = null): Collection;
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes, ?int $actorId): Category;
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Category $category, array $attributes, ?int $actorId): Category;
 
     public function delete(Category $category): void;

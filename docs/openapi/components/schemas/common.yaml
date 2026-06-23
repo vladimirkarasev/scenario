@@ -14,7 +14,7 @@ Actor:
 
 JsonApiCollection:
   type: object
-  required: [data]
+  required: [ data ]
   properties:
     data:
       type: array
@@ -28,11 +28,11 @@ JsonApiCollection:
 
 JsonApiResourceEnvelope:
   type: object
-  required: [data]
+  required: [ data ]
   properties:
     data:
       type: object
-      required: [id, type, attributes]
+      required: [ id, type, attributes ]
       properties:
         id:
           type: string
@@ -45,7 +45,7 @@ JsonApiResourceEnvelope:
 
 Pagination:
   type: object
-  required: [current_page, last_page, per_page, total]
+  required: [ current_page, last_page, per_page, total ]
   properties:
     current_page:
       type: integer

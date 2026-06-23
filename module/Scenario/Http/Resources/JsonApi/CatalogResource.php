@@ -48,9 +48,9 @@ final class CatalogResource extends JsonApiResource
         return [
             'path' => [
                 'data' => array_map(
-                    static fn (array $category): array => [
+                    static fn(array $category): array => [
                         'type' => 'category',
-                        'id' => (string) $category['id'],
+                        'id' => (string)$category['id'],
                         'meta' => [
                             'name' => $category['name'],
                         ],
@@ -82,27 +82,31 @@ final class CatalogResource extends JsonApiResource
     }
 
     /**
-     * @param  array<int|string, mixed>              $path
+     * @param  array<int|string, mixed>  $path
      * @return list<array{id: string, name: string}>
      */
     private function normalizePath(array $path): array
     {
-        return array_values(array_filter(array_map(
-            static function (mixed $item): ?array {
-                if (! is_array($item) || ! isset($item['id'], $item['name'])) {
-                    return null;
-                }
+        return array_values(
+            array_filter(
+                array_map(
+                    static function (mixed $item): ?array {
+                        if (!is_array($item) || !isset($item['id'], $item['name'])) {
+                            return null;
+                        }
 
-                $id = $item['id'];
-                $name = $item['name'];
+                        $id = $item['id'];
+                        $name = $item['name'];
 
-                if (! is_scalar($id) || ! is_scalar($name)) {
-                    return null;
-                }
+                        if (!is_scalar($id) || !is_scalar($name)) {
+                            return null;
+                        }
 
-                return ['id' => (string) $id, 'name' => (string) $name];
-            },
-            $path,
-        )));
+                        return ['id' => (string)$id, 'name' => (string)$name];
+                    },
+                    $path,
+                )
+            )
+        );
     }
 }

@@ -192,8 +192,8 @@ final class DirectoryVersionControllerTest extends TestCase
             ->patchJson("/api/directories/{$directory->id}/versions/{$v2->id}/activate")
             ->assertOk();
 
-        $this->assertTrue((bool) $v2->fresh()->is_active);
-        $this->assertFalse((bool) $v1->fresh()->is_active);
+        $this->assertTrue((bool)$v2->fresh()->is_active);
+        $this->assertFalse((bool)$v1->fresh()->is_active);
     }
 
     /**
@@ -341,13 +341,17 @@ final class DirectoryVersionControllerTest extends TestCase
         ]);
     }
 
-    /** @param array<int, array<string, mixed>> $schema */
-    private function makeVersion(Directory $directory, bool $isActive = false, int $versionNumber = 0, array $schema = []): DirectoryVersion
-    {
+    /** @param  array<int, array<string, mixed>>  $schema */
+    private function makeVersion(
+        Directory $directory,
+        bool $isActive = false,
+        int $versionNumber = 0,
+        array $schema = []
+    ): DirectoryVersion {
         if ($versionNumber === 0) {
-            $versionNumber = (int) DirectoryVersion::query()
-                ->where('directory_id', $directory->id)
-                ->max('version_number') + 1;
+            $versionNumber = (int)DirectoryVersion::query()
+                    ->where('directory_id', $directory->id)
+                    ->max('version_number') + 1;
         }
 
         return DirectoryVersion::query()->create([

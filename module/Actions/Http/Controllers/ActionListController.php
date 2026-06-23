@@ -15,7 +15,8 @@ final class ActionListController extends Controller
 {
     public function __construct(
         private readonly ActionService $actionService,
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): AnonymousResourceCollection
     {

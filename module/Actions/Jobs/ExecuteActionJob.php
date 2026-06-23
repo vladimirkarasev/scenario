@@ -27,8 +27,8 @@ final class ExecuteActionJob implements ShouldQueue
     public int $tries;
 
     /**
-     * @param array<string, mixed> $input
-     * @param array<int, int>      $backoff
+     * @param  array<string, mixed>  $input
+     * @param  array<int, int>  $backoff
      */
     public function __construct(
         private readonly string $actionId,
@@ -76,6 +76,6 @@ final class ExecuteActionJob implements ShouldQueue
 
     private function stringOrNull(mixed $value): ?string
     {
-        return is_scalar($value) && (string) $value !== '' ? (string) $value : null;
+        return is_scalar($value) && (string)$value !== '' ? (string)$value : null;
     }
 }

@@ -1,5 +1,5 @@
-import { getJson } from '@/lib/http'
-import type { ActionTypeMeta } from '@/modules/actions/types/action'
+import {getJson} from '@/lib/http'
+import type {ActionTypeMeta} from '@/modules/actions/types/action'
 
 export const actionTypeRepository = {
     async list(): Promise<ActionTypeMeta[]> {

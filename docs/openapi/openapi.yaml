@@ -10,7 +10,7 @@ servers:
     description: Основной сервер
 
 security:
-  - BearerAuth: []
+  - BearerAuth: [ ]
 
 x-tagGroups:
   - name: Модуль «Сценарии»

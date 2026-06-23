@@ -21,10 +21,11 @@ final readonly class DirectoryImportRowProcessor
         private DirectoryImport $directoryImportModel,
         private DirectoryItemRepository $items,
         private DirectoryImportPayloadNormalizer $normalizer,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param  Collection<int, array<string, mixed>>                                                 $rows
+     * @param  Collection<int, array<string, mixed>>  $rows
      * @return array{failed_rows: int, row_errors: array<int, string>, processed_keys: list<string>}
      *
      * @throws \Throwable
@@ -68,9 +69,9 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null>               $prepared
-     * @param Collection<string, array<string, mixed>> $fields
-     * @param Collection<int, string>                  $mappedFieldKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<string, array<string, mixed>>  $fields
+     * @param  Collection<int, string>  $mappedFieldKeys
      *
      * @throws \Throwable
      */
@@ -91,9 +92,9 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null>               $prepared
-     * @param Collection<string, array<string, mixed>> $fields
-     * @param Collection<int, string>                  $mappedFieldKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<string, array<string, mixed>>  $fields
+     * @param  Collection<int, string>  $mappedFieldKeys
      */
     private function validateRow(
         array $prepared,
@@ -106,11 +107,11 @@ final readonly class DirectoryImportRowProcessor
             ->mapWithKeys(static function (array $field, string $fieldKey) use ($mappedFieldKeys): array {
                 $fieldRules = is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'];
                 $baseRules = collect($fieldRules)
-                    ->reject(static fn (mixed $rule): bool => $rule === 'required')
+                    ->reject(static fn(mixed $rule): bool => $rule === 'required')
                     ->values()
                     ->all();
 
-                if (! $mappedFieldKeys->contains($fieldKey)) {
+                if (!$mappedFieldKeys->contains($fieldKey)) {
                     return [$fieldKey => ['nullable', 'string']];
                 }
 
@@ -128,9 +129,9 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null>               $prepared
-     * @param Collection<string, array<string, mixed>> $fields
-     * @param Collection<int, string>                  $mappedFieldKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<string, array<string, mixed>>  $fields
+     * @param  Collection<int, string>  $mappedFieldKeys
      */
     private function persistRow(
         DirectoryImport $import,
@@ -166,8 +167,8 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null> $prepared
-     * @param Collection<int, string>    $mappedFieldKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<int, string>  $mappedFieldKeys
      */
     private function resolveExternalKey(
         DirectoryImport $import,
@@ -185,8 +186,8 @@ final readonly class DirectoryImportRowProcessor
     /**
      * Row number is included so duplicate data rows in the same file each get a unique key.
      *
-     * @param array<string, string|null> $prepared
-     * @param Collection<int, string>    $mappedFieldKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<int, string>  $mappedFieldKeys
      */
     private function computeRowHash(array $prepared, Collection $mappedFieldKeys, int $rowNumber): string
     {
@@ -201,7 +202,7 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null> $prepared
+     * @param  array<string, string|null>  $prepared
      */
     private function resolveItem(DirectoryImport $import, array $prepared, ?string $externalKey): ?DirectoryItem
     {
@@ -217,7 +218,7 @@ final readonly class DirectoryImportRowProcessor
             }
         }
 
-        if (! $this->addsNew($import)) {
+        if (!$this->addsNew($import)) {
             return null;
         }
 
@@ -238,8 +239,8 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * @param array<string, string|null> $prepared
-     * @param array<int, string>         $searchableKeys
+     * @param  array<string, string|null>  $prepared
+     * @param  array<int, string>  $searchableKeys
      */
     private function buildSearchText(array $prepared, array $searchableKeys = []): string
     {
@@ -248,14 +249,14 @@ final readonly class DirectoryImportRowProcessor
         }
 
         return collect($prepared)
-            ->filter(static fn (mixed $value): bool => is_scalar($value) && filled((string) $value))
-            ->map(static fn (mixed $value): string => Str::lower(trim((string) $value)))
+            ->filter(static fn(mixed $value): bool => is_scalar($value) && filled((string)$value))
+            ->map(static fn(mixed $value): string => Str::lower(trim((string)$value)))
             ->implode(' ');
     }
 
     /**
-     * @param  array<string, string|null>               $prepared
-     * @param  Collection<string, array<string, mixed>> $fields
+     * @param  array<string, string|null>  $prepared
+     * @param  Collection<string, array<string, mixed>>  $fields
      * @return array<string, mixed>
      */
     private function castRowData(array $prepared, Collection $fields): array
@@ -263,7 +264,7 @@ final readonly class DirectoryImportRowProcessor
         return $fields
             ->mapWithKeys(static function (array $field, string $key) use ($prepared): array {
                 $rawValue = $prepared[$key] ?? null;
-                $value = $rawValue ?? (is_scalar($field['default'] ?? null) ? (string) $field['default'] : null);
+                $value = $rawValue ?? (is_scalar($field['default'] ?? null) ? (string)$field['default'] : null);
 
                 if ($value === null || $value === '') {
                     return [$key => $value];
@@ -271,9 +272,9 @@ final readonly class DirectoryImportRowProcessor
 
                 return [
                     $key => match ($field['type'] ?? 'string') {
-                        'integer' => is_numeric($value) ? (int) $value : 0,
-                        'float' => is_numeric($value) ? (float) $value : 0.0,
-                        'boolean' => filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool) $value,
+                        'integer' => is_numeric($value) ? (int)$value : 0,
+                        'float' => is_numeric($value) ? (float)$value : 0.0,
+                        'boolean' => filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? (bool)$value,
                         'json' => json_decode($value, true),
                         default => $value,
                     },

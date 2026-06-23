@@ -19,7 +19,8 @@ final class UserGroupsController extends Controller
 {
     public function __construct(
         private readonly UserGroupService $service,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): AnonymousResourceCollection
     {

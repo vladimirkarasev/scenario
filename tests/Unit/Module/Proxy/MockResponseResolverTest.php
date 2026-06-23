@@ -98,7 +98,7 @@ final class MockResponseResolverTest extends TestCase
         $this->assertSame(418, $response->statusCode);
     }
 
-    /** @param array<int, array<string, mixed>> $mocks */
+    /** @param  array<int, array<string, mixed>>  $mocks */
     private function makeEndpoint(array $mocks): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([

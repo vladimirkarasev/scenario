@@ -1,11 +1,11 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import { DialogDescription, useForwardProps } from "reka-ui";
-import { cn } from "@/lib/utils";
+import {reactiveOmit} from "@vueuse/core";
+import {DialogDescription, useForwardProps} from "reka-ui";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -20,15 +20,15 @@ const forwardedProps = useForwardProps(delegatedProps);
 
 <template>
   <DialogDescription
-    data-slot="dialog-description"
-    v-bind="forwardedProps"
-    :class="
+      data-slot="dialog-description"
+      v-bind="forwardedProps"
+      :class="
       cn(
         'text-muted-foreground *:[a]:hover:text-foreground text-sm *:[a]:underline *:[a]:underline-offset-3',
         props.class,
       )
     "
   >
-    <slot />
+    <slot/>
   </DialogDescription>
 </template>

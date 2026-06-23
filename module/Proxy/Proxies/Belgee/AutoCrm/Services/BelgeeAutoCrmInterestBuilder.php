@@ -37,7 +37,7 @@ final readonly class BelgeeAutoCrmInterestBuilder
                 'request_id' => $proxyContext->requestId(),
                 'endpoint_code' => $proxyContext->endpoint->code,
             ],
-        ], static fn (mixed $value): bool => $value !== null && $value !== ''));
+        ], static fn(mixed $value): bool => $value !== null && $value !== ''));
     }
 
     private function id(mixed $value): int|string|null
@@ -47,7 +47,7 @@ final readonly class BelgeeAutoCrmInterestBuilder
         }
 
         if (is_string($value) && $value !== '') {
-            return ctype_digit($value) ? (int) $value : $value;
+            return ctype_digit($value) ? (int)$value : $value;
         }
 
         return null;
@@ -57,13 +57,13 @@ final readonly class BelgeeAutoCrmInterestBuilder
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];
 
-        return (string) ($parts[0] ?? 'Belgee');
+        return (string)($parts[0] ?? 'Belgee');
     }
 
     private function lastName(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];
 
-        return (string) ($parts[1] ?? 'Lead');
+        return (string)($parts[1] ?? 'Lead');
     }
 }

@@ -1,9 +1,9 @@
 start:
   post:
-    tags: [Запуск]
+    tags: [ Запуск ]
     summary: Запустить сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Создаёт новый прогон (`ScenarioRun`) и автоматически продвигает его до
       первого интерактивного узла. Возвращает ID прогона, который затем
@@ -24,7 +24,7 @@ start:
           application/json:
             schema:
               type: object
-              required: [id]
+              required: [ id ]
               properties:
                 id:
                   type: string
@@ -39,10 +39,10 @@ start:
 
 jump:
   post:
-    tags: [Запуск]
+    tags: [ Запуск ]
     summary: Перейти к следующему узлу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Принимает пользовательский ввод для текущего узла и продвигает прогон
       вперёд до следующего интерактивного узла. Возвращает полный payload

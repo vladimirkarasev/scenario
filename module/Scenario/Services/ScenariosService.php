@@ -13,7 +13,8 @@ final readonly class ScenariosService
 {
     public function __construct(
         private CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     /** @return LengthAwarePaginator<int, Scenario> */
     public function paginate(ScenarioIndexData $filters): LengthAwarePaginator

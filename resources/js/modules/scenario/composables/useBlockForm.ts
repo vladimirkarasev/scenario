@@ -1,54 +1,54 @@
-import { computed, reactive, watch } from 'vue'
-import { z } from 'zod'
-import type { Ref } from 'vue'
-import type { SurveyBlock } from '@/modules/scenario/lib/scenario-player-types'
-import type { ValidationRule } from '@/modules/scenario/lib/scenario-block-fields'
+import {computed, reactive, watch} from 'vue'
+import {z} from 'zod'
+import type {Ref} from 'vue'
+import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
+import type {ValidationRule} from '@/modules/scenario/lib/scenario-block-fields'
 
 const TYPE_LABELS: Record<string, string> = {
-    string:    'строка',
-    number:    'число',
-    bigint:    'число',
-    boolean:   'логическое значение',
-    date:      'дата',
-    array:     'список',
-    object:    'объект',
-    null:      'null',
+    string: 'строка',
+    number: 'число',
+    bigint: 'число',
+    boolean: 'логическое значение',
+    date: 'дата',
+    array: 'список',
+    object: 'объект',
+    null: 'null',
     undefined: 'значение',
-    nan:       'число',
+    nan: 'число',
 }
 
 z.setErrorMap((issue, ctx) => {
     switch (issue.code) {
         case z.ZodIssueCode.invalid_type: {
             if (issue.received === 'undefined' || issue.received === 'null') {
-                return { message: 'Поле обязательно для заполнения' }
+                return {message: 'Поле обязательно для заполнения'}
             }
             const expected = TYPE_LABELS[issue.expected] ?? issue.expected
             const received = TYPE_LABELS[issue.received] ?? issue.received
-            return { message: `Ожидается ${expected}, получено ${received}` }
+            return {message: `Ожидается ${expected}, получено ${received}`}
         }
         case z.ZodIssueCode.too_small:
-            if (issue.type === 'string' && Number(issue.minimum) === 1) return { message: 'Поле обязательно для заполнения' }
-            if (issue.type === 'string')                                 return { message: `Минимум ${issue.minimum} символов` }
-            if (issue.type === 'array')                                  return { message: `Минимум ${issue.minimum} элементов` }
-            return { message: `Минимальное значение: ${issue.minimum}` }
+            if (issue.type === 'string' && Number(issue.minimum) === 1) return {message: 'Поле обязательно для заполнения'}
+            if (issue.type === 'string') return {message: `Минимум ${issue.minimum} символов`}
+            if (issue.type === 'array') return {message: `Минимум ${issue.minimum} элементов`}
+            return {message: `Минимальное значение: ${issue.minimum}`}
         case z.ZodIssueCode.too_big:
-            if (issue.type === 'string') return { message: `Максимум ${issue.maximum} символов` }
-            if (issue.type === 'array')  return { message: `Максимум ${issue.maximum} элементов` }
-            return { message: `Максимальное значение: ${issue.maximum}` }
+            if (issue.type === 'string') return {message: `Максимум ${issue.maximum} символов`}
+            if (issue.type === 'array') return {message: `Максимум ${issue.maximum} элементов`}
+            return {message: `Максимальное значение: ${issue.maximum}`}
         case z.ZodIssueCode.invalid_string:
-            if (issue.validation === 'email') return { message: 'Введите корректный email адрес' }
-            if (issue.validation === 'url')   return { message: 'Введите корректный URL' }
-            if (issue.validation === 'regex') return { message: 'Неверный формат' }
-            return { message: 'Неверный формат строки' }
+            if (issue.validation === 'email') return {message: 'Введите корректный email адрес'}
+            if (issue.validation === 'url') return {message: 'Введите корректный URL'}
+            if (issue.validation === 'regex') return {message: 'Неверный формат'}
+            return {message: 'Неверный формат строки'}
         case z.ZodIssueCode.invalid_enum_value:
-            return { message: 'Недопустимое значение' }
+            return {message: 'Недопустимое значение'}
         case z.ZodIssueCode.invalid_union:
-            return { message: 'Неверное значение' }
+            return {message: 'Неверное значение'}
         case z.ZodIssueCode.invalid_literal:
-            return { message: 'Неверное значение' }
+            return {message: 'Неверное значение'}
         default:
-            return { message: ctx.defaultError }
+            return {message: ctx.defaultError}
     }
 })
 
@@ -79,7 +79,10 @@ function applyStringRules(base: z.ZodString, rules: ValidationRule[]): z.ZodStri
         else if (rule.type === 'maxLength' && Number(rule.value) > 0)
             s = s.max(Number(rule.value), rule.message || `Максимум ${rule.value} символов`)
         else if (rule.type === 'pattern' && rule.value)
-            try { s = s.regex(new RegExp(rule.value), rule.message || 'Неверный формат') } catch { /* skip */ }
+            try {
+                s = s.regex(new RegExp(rule.value), rule.message || 'Неверный формат')
+            } catch { /* skip */
+            }
     }
     return s
 }
@@ -92,7 +95,7 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
 
     if (type === 'checkbox') {
         return required
-            ? z.literal(true, { errorMap: () => ({ message: 'Поле обязательно для заполнения' }) })
+            ? z.literal(true, {errorMap: () => ({message: 'Поле обязательно для заполнения'})})
             : z.boolean().nullable().optional()
     }
 
@@ -114,9 +117,9 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
             .superRefine((val, ctx) => {
                 const n = Number(val)
                 if (minVal !== null && Number.isFinite(minVal) && n < minVal)
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Минимальное значение: ${minVal}` })
+                    ctx.addIssue({code: z.ZodIssueCode.custom, message: `Минимальное значение: ${minVal}`})
                 if (maxVal !== null && Number.isFinite(maxVal) && n > maxVal)
-                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Максимальное значение: ${maxVal}` })
+                    ctx.addIssue({code: z.ZodIssueCode.custom, message: `Максимальное значение: ${maxVal}`})
             })
         return required ? base : base.or(z.literal('')).nullable().optional()
     }
@@ -136,10 +139,10 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
 
     if (type === 'directory_list') {
         const shape = z.object({
-            id:           z.string(),
-            label:        z.string(),
-            data:         z.record(z.string(), z.union([z.string(), z.null()])),
-            parent_id:    z.union([z.string(), z.null()]),
+            id: z.string(),
+            label: z.string(),
+            data: z.record(z.string(), z.union([z.string(), z.null()])),
+            parent_id: z.union([z.string(), z.null()]),
             external_key: z.string(),
         })
         if (p.multiple) {
@@ -160,10 +163,10 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
 
     if (type === 'directory_table') {
         const shape = z.object({
-            id:           z.string(),
-            label:        z.string(),
-            data:         z.record(z.string(), z.union([z.string(), z.null()])),
-            parent_id:    z.union([z.string(), z.null()]),
+            id: z.string(),
+            label: z.string(),
+            data: z.record(z.string(), z.union([z.string(), z.null()])),
+            parent_id: z.union([z.string(), z.null()]),
             external_key: z.string(),
         })
         if (p.multiple) {
@@ -183,7 +186,7 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
     }
 
     if (type === 'select') {
-        const shape = z.object({ value: z.string(), label: z.string() })
+        const shape = z.object({value: z.string(), label: z.string()})
         if (p.multiple) {
             const arrItem = z.union([shape, z.string()])  // legacy strings tolerated
             return required
@@ -202,9 +205,9 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
 
     if (type === 'phone') {
         const phoneObject = z.object({
-            country:   z.string(),
+            country: z.string(),
             formatted: z.string(),
-            original:  z.string(),
+            original: z.string(),
         })
         if (required) {
             return z.union([
@@ -254,7 +257,8 @@ export function useBlockForm(
         if (!key || typeof window === 'undefined') return
         try {
             window.localStorage.setItem(key, JSON.stringify(data))
-        } catch { /* quota / disabled */ }
+        } catch { /* quota / disabled */
+        }
     }
 
     function clearDraft(): void {
@@ -262,7 +266,8 @@ export function useBlockForm(
         if (!key || typeof window === 'undefined') return
         try {
             window.localStorage.removeItem(key)
-        } catch { /* ignore */ }
+        } catch { /* ignore */
+        }
     }
 
     watch(
@@ -288,7 +293,7 @@ export function useBlockForm(
                 }
             }
         },
-        { immediate: true },
+        {immediate: true},
     )
 
     if (fieldErrors) {
@@ -316,8 +321,8 @@ export function useBlockForm(
             }
         }
 
-        saveDraft({ ...data })
-    }, { deep: true })
+        saveDraft({...data})
+    }, {deep: true})
 
     function validate(): boolean {
         Object.keys(errors).forEach((k) => delete errors[k])
@@ -334,11 +339,11 @@ export function useBlockForm(
 
     function submit(callback: (data: Record<string, unknown>) => void): void {
         if (validate()) {
-            const snapshot = { ...formData }
+            const snapshot = {...formData}
             clearDraft()
             callback(snapshot)
         }
     }
 
-    return { formData, errors, validate, submit }
+    return {formData, errors, validate, submit}
 }

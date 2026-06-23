@@ -1,7 +1,15 @@
-import { computed, ref } from 'vue'
-import type { ScenarioRunPayload, ScenarioRunStep, ScenarioTimelineEntry } from '@/modules/scenario/lib/scenario-player-types'
-import { scenarioRunRepository } from '@/modules/scenario/repositories/scenarioRunRepository'
-import { HttpValidationError } from '@/lib/http'
+import {computed, ref} from 'vue'
+import type {Subscription} from 'centrifuge'
+import type {
+    ActionStageStatus,
+    ScenarioRunMessage,
+    ScenarioRunPayload,
+    ScenarioRunStep,
+    ScenarioTimelineEntry,
+} from '@/modules/scenario/lib/scenario-player-types'
+import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
+import {subscribeTo, unsubscribeFrom} from '@/composables/useCentrifugo'
+import {HttpValidationError} from '@/lib/http'
 
 interface CreateRunOptions {
     scenarioId: string
@@ -15,6 +23,13 @@ export function useScenarioPlayer() {
     const fieldErrors = ref<Record<string, string[]>>({})
     const run = ref<ScenarioRunPayload | null>(null)
     const timeline = ref<ScenarioTimelineEntry[]>([])
+
+    // Состояние pipeline активной action-ноды (wait_for_result): code => статус стадии.
+    const actionStages = ref<Record<string, ActionStageStatus>>({})
+    const pipelineFailed = ref(false)
+
+    let sub: Subscription | null = null
+    let subscribedRunId: string | null = null
 
     const completed = computed(() => run.value?.status === 'completed')
     const failed = computed(() => run.value?.status === 'failed')
@@ -71,19 +86,19 @@ export function useScenarioPlayer() {
         const existingIdx = refreshed.findIndex((e) => e.key === entryKey)
         if (existingIdx !== -1) {
             timeline.value = [
-                ...refreshed.slice(0, existingIdx).map((e) => ({ ...e, status: 'past' as const })),
-                { ...refreshed[existingIdx], ...updatedEntry, status: 'current' as const },
+                ...refreshed.slice(0, existingIdx).map((e) => ({...e, status: 'past' as const})),
+                {...refreshed[existingIdx], ...updatedEntry, status: 'current' as const},
             ]
             return
         }
 
         timeline.value = [
-            ...refreshed.map((e) => ({ ...e, status: 'past' as const })),
-            { key: entryKey, ...updatedEntry, status: 'current' as const },
+            ...refreshed.map((e) => ({...e, status: 'past' as const})),
+            {key: entryKey, ...updatedEntry, status: 'current' as const},
         ]
     }
 
-    const VISIBLE_NODE_TYPES = ['block', 'condition']
+    const VISIBLE_NODE_TYPES = ['block', 'condition', 'action']
 
     function buildTimelineFromSteps(nextRun: ScenarioRunPayload): void {
         const existingKeys = new Set(timeline.value.map((e) => e.key))
@@ -117,6 +132,7 @@ export function useScenarioPlayer() {
         run.value = nextRun
         const isFirstLoad = timeline.value.length === 0
         syncTimeline(nextRun)
+        syncActionPipeline(nextRun)
 
         // При первой загрузке (resume активного run-а, completed/failed) — восстанавливаем историю шагов
         if (!isJumping && isFirstLoad && nextRun) {
@@ -124,11 +140,73 @@ export function useScenarioPlayer() {
         }
     }
 
-    function unsubscribe(): void {
-        // placeholder for future WebSocket unsubscribe
+    // Сидирует/сбрасывает pipeline-стадии при смене текущей ноды. Уже известные статусы стадий
+    // сохраняются (live-обновления по WS не затираются повторным run_updated).
+    function syncActionPipeline(nextRun: ScenarioRunPayload | null): void {
+        const r = nextRun?.rendered as {
+            type?: string
+            stages?: { code: string }[]
+            results?: Record<string, ActionStageStatus>
+            failed?: boolean
+        } | null
+
+        if (r?.type === 'action') {
+            // Приоритет: live-статус из памяти > сохранённый на сервере (после перезагрузки) > pending.
+            const persisted = r.results ?? {}
+            const next: Record<string, ActionStageStatus> = {}
+            for (const stage of r.stages ?? []) {
+                next[stage.code] = actionStages.value[stage.code] ?? persisted[stage.code] ?? 'pending'
+            }
+            actionStages.value = next
+            pipelineFailed.value = Boolean(r.failed)
+            return
+        }
+
+        actionStages.value = {}
+        pipelineFailed.value = false
     }
 
-    async function createRun({ scenarioId, scenarioVersionId, context: ctx }: CreateRunOptions) {
+    function onMessage(msg: ScenarioRunMessage): void {
+        switch (msg.type) {
+            case 'run_updated':
+                setRun(msg.run)
+                break
+            case 'action_started':
+                actionStages.value = {...actionStages.value, [msg.code]: 'running'}
+                break
+            case 'action_completed':
+                actionStages.value = {...actionStages.value, [msg.code]: 'success'}
+                break
+            case 'action_failed':
+                actionStages.value = {...actionStages.value, [msg.code]: 'failed'}
+                pipelineFailed.value = true
+                break
+        }
+    }
+
+    async function subscribe(runId: string): Promise<void> {
+        if (subscribedRunId === runId && sub) return
+        await unsubscribe()
+        subscribedRunId = runId
+        try {
+            sub = await subscribeTo<ScenarioRunMessage>(`scenario-run:${runId}`, onMessage)
+        } catch {
+            subscribedRunId = null
+        }
+    }
+
+    async function unsubscribe(): Promise<void> {
+        if (sub) {
+            try {
+                await unsubscribeFrom(sub)
+            } catch { /* ignore */
+            }
+            sub = null
+        }
+        subscribedRunId = null
+    }
+
+    async function createRun({scenarioId, scenarioVersionId, context: ctx}: CreateRunOptions) {
         loading.value = true
         error.value = ''
         timeline.value = []
@@ -180,6 +258,24 @@ export function useScenarioPlayer() {
         }
     }
 
+    async function retryAction() {
+        if (!run.value) return
+        // Сбрасываем локальные статусы, чтобы pipeline пересеялся из серверного состояния
+        // (успешные стадии останутся, повторяемые — снова pending → running по WS).
+        actionStages.value = {}
+        pipelineFailed.value = false
+        loading.value = true
+        error.value = ''
+        try {
+            const payload = await scenarioRunRepository.retryAction(run.value.id)
+            setRun(payload)
+        } catch (e: unknown) {
+            error.value = e instanceof Error ? e.message : String(e)
+        } finally {
+            loading.value = false
+        }
+    }
+
     async function jumpTo(nodeId: string) {
         if (!run.value) return
         loading.value = true
@@ -210,10 +306,14 @@ export function useScenarioPlayer() {
         currentTimeline,
         completed,
         failed,
+        actionStages,
+        pipelineFailed,
         createRun,
         loadRun,
         continueRun,
+        retryAction,
         jumpTo,
+        subscribe,
         unsubscribe,
     }
 }

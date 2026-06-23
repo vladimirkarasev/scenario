@@ -1,9 +1,9 @@
 <script setup>
-import { cn } from "@/lib/utils";
-import { inputGroupAddonVariants } from ".";
+import {cn} from "@/lib/utils";
+import {inputGroupAddonVariants} from ".";
 
 const props = defineProps({
-  align: { type: null, required: false, default: "inline-start" },
+  align: {type: null, required: false, default: "inline-start"},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -25,12 +25,12 @@ function handleInputGroupAddonClick(e) {
 
 <template>
   <div
-    role="group"
-    data-slot="input-group-addon"
-    :data-align="props.align"
-    :class="cn(inputGroupAddonVariants({ align: props.align }), props.class)"
-    @click="handleInputGroupAddonClick"
+      role="group"
+      data-slot="input-group-addon"
+      :data-align="props.align"
+      :class="cn(inputGroupAddonVariants({ align: props.align }), props.class)"
+      @click="handleInputGroupAddonClick"
   >
-    <slot />
+    <slot/>
   </div>
 </template>

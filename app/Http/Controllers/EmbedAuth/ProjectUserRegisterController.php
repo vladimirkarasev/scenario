@@ -16,7 +16,8 @@ final class ProjectUserRegisterController extends Controller
     public function __construct(
         private readonly EmbedAuthUserService $userService,
         private readonly EmbedAuthTokenService $tokenService,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ProjectUserRegisterRequest $request, string $projectUuid): JsonResponse
     {
@@ -26,11 +27,11 @@ final class ProjectUserRegisterController extends Controller
             return response()->json(['message' => 'Project not found.'], 404);
         }
 
-        if (! $project->is_active) {
+        if (!$project->is_active) {
             return response()->json(['message' => 'Project is not active.'], 422);
         }
 
-        if (! $this->authorizeSecret($request, $project)) {
+        if (!$this->authorizeSecret($request, $project)) {
             return response()->json(['message' => 'Unauthorized.'], 401);
         }
 

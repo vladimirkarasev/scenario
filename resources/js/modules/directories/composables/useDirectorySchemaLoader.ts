@@ -1,6 +1,6 @@
-import { ref, watch, onMounted, type Ref } from 'vue'
-import { directoryRepository } from '@/modules/directories/repositories/directoryRepository'
-import type { DirectorySchemaField, DirectoryVersion } from '@/modules/directories/types/directory'
+import {ref, watch, onMounted, type Ref} from 'vue'
+import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
+import type {DirectorySchemaField, DirectoryVersion} from '@/modules/directories/types/directory'
 
 export function useDirectorySchemaLoader(
     directoryIdRef: Ref<string>,
@@ -8,8 +8,8 @@ export function useDirectorySchemaLoader(
     onAutoVersion: (id: string) => void,
 ) {
     const directoryName = ref('')
-    const versions      = ref<DirectoryVersion[]>([])
-    const schemaFields  = ref<DirectorySchemaField[]>([])
+    const versions = ref<DirectoryVersion[]>([])
+    const schemaFields = ref<DirectorySchemaField[]>([])
 
     function versionLabel(v: DirectoryVersion): string {
         const base = v.code ? `${v.code} (v${v.version_number})` : `v${v.version_number}`
@@ -27,14 +27,15 @@ export function useDirectorySchemaLoader(
                 directoryRepository.versions(id),
             ])
             directoryName.value = dirRes.item.name
-            versions.value      = verRes.items
-            schemaFields.value  = schemaForVersionId(versionIdRef.value)
+            versions.value = verRes.items
+            schemaFields.value = schemaForVersionId(versionIdRef.value)
 
             if (!versionIdRef.value) {
                 const active = verRes.items.find((v) => v.is_active)
                 if (active) onAutoVersion(String(active.id))
             }
-        } catch { /* silent */ }
+        } catch { /* silent */
+        }
     }
 
     onMounted(() => {
@@ -43,12 +44,16 @@ export function useDirectorySchemaLoader(
 
     watch(directoryIdRef, (id) => {
         if (id) void loadDirectory(id)
-        else { directoryName.value = ''; versions.value = []; schemaFields.value = [] }
+        else {
+            directoryName.value = '';
+            versions.value = [];
+            schemaFields.value = []
+        }
     })
 
     watch(versionIdRef, (id) => {
         schemaFields.value = schemaForVersionId(id)
     })
 
-    return { directoryName, versions, schemaFields, versionLabel }
+    return {directoryName, versions, schemaFields, versionLabel}
 }

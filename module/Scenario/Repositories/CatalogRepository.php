@@ -14,8 +14,12 @@ final class CatalogRepository
      * @param  list<string>|null  $visibleByGroupIds
      * @return LengthAwarePaginator<int, CatalogItemRow>
      */
-    public function paginate(?string $parentId, ?string $query = null, bool $hasParentFilter = false, ?array $visibleByGroupIds = null): LengthAwarePaginator
-    {
+    public function paginate(
+        ?string $parentId,
+        ?string $query = null,
+        bool $hasParentFilter = false,
+        ?array $visibleByGroupIds = null
+    ): LengthAwarePaginator {
         $builder = CategoryBuilder::query()
             ->activeOnly()
             ->search($query)
@@ -29,7 +33,7 @@ final class CatalogRepository
             return $builder->paginate();
         }
 
-        if (! $hasSearch || $hasParentFilter) {
+        if (!$hasSearch || $hasParentFilter) {
             $builder->filterByParentId($parentId);
         }
 

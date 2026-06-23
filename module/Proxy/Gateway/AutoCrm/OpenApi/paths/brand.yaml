@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - brand'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: brand
+  - name: brand
     description: 'Управление брендами'
 paths:
   /brand:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка брендов'
       description: 'Получение списка брендов'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,7 +34,7 @@ paths:
                   $ref: '#/components/schemas/Brand'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/brand/{id}':
     get:
       tags:
@@ -47,8 +42,7 @@ paths:
       summary: 'Получение бренда по ID'
       description: 'Получение бренда по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id бренда'
           required: true
@@ -63,7 +57,7 @@ paths:
                 $ref: '#/components/schemas/Brand'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

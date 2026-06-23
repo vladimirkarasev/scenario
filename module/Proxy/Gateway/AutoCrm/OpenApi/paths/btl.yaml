@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - btl'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: btl
+  - name: btl
     description: 'Управление BTL мероприятиями'
 paths:
   /btl:
@@ -22,47 +18,40 @@ paths:
       summary: 'Получение списка BTL мероприятий'
       description: 'Получение списка BTL мероприятий с возможностью фильтрации по различным параметрам'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID мероприятия'
           schema:
             type: integer
-        -
-          name: brand_id
+        - name: brand_id
           in: query
           description: 'ID бренда'
           schema:
             type: integer
-        -
-          name: model_alias_id
+        - name: model_alias_id
           in: query
           description: 'ID алиаса модели'
           schema:
             type: integer
-        -
-          name: date_from
+        - name: date_from
           in: query
           description: 'Дата начала мероприятия "с" в формате YYYY-MM-DD'
           schema:
             type: string
             format: date
-        -
-          name: date_to
+        - name: date_to
           in: query
           description: 'Дата окончания мероприятия "до" в формате YYYY-MM-DD'
           schema:
             type: string
             format: date
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
             default: 1
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Дополнительные поля для включения в ответ (dealers,requestTypes,brand,schedules,slots,links,model_aliases,settings,description,image,additionalImages)'
           schema:
@@ -92,10 +81,10 @@ paths:
                         type: integer
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         403:
           description: 'Недостаточно прав доступа'
-          content: {  }
+          content: { }
   '/btl/{id}':
     get:
       tags:
@@ -103,15 +92,13 @@ paths:
       summary: 'Получение BTL мероприятия по ID'
       description: 'Получение конкретного BTL мероприятия по его идентификатору'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID BTL мероприятия'
           required: true
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Дополнительные поля для включения в ответ (dealers,requestTypes,brand,schedules,slots,links,model_aliases,settings,description,image,additionalImages)'
           schema:
@@ -125,10 +112,10 @@ paths:
                 $ref: '#/components/schemas/BTL'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         403:
           description: 'Недостаточно прав доступа'
-          content: {  }
+          content: { }
         404:
           description: 'BTL мероприятие не найдено'
-          content: {  }
+          content: { }

@@ -11,7 +11,7 @@ use Module\Scenario\QueryBuilders\CategoryBuilder;
 final class CatalogItemsQueryBuilder
 {
     /**
-     * @param  Collection<int, string>|null      $activeCategoryIds
+     * @param  Collection<int, string>|null  $activeCategoryIds
      * @return Collection<int, CatalogItemRow>
      */
     public function get(?string $folderId, ?Collection $activeCategoryIds = null): Collection

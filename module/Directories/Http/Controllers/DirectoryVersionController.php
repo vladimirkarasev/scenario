@@ -20,7 +20,8 @@ final class DirectoryVersionController extends Controller
     public function __construct(
         private readonly DirectoryVersionService $versionService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request, Directory $directory): AnonymousResourceCollection
     {
@@ -59,8 +60,11 @@ final class DirectoryVersionController extends Controller
         return new JsonResponse(null, 204);
     }
 
-    public function updateSchema(Request $request, Directory $directory, DirectoryVersion $version): DirectoryVersionResource
-    {
+    public function updateSchema(
+        Request $request,
+        Directory $directory,
+        DirectoryVersion $version
+    ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
 
         $fields = collect($request->array('schema'))
@@ -73,16 +77,23 @@ final class DirectoryVersionController extends Controller
                     'name' => is_string($f['name'] ?? null) ? $f['name'] : '',
                     'type' => $type,
                     'filter_type' => is_string($f['filter_type'] ?? null) ? $f['filter_type'] : $type,
-                    'filter_multiple' => (bool) ($f['filter_multiple'] ?? false),
-                    'nullable' => (bool) ($f['nullable'] ?? true),
-                    'filterable' => (bool) ($f['filterable'] ?? false),
-                    'searchable' => (bool) ($f['searchable'] ?? false),
+                    'filter_multiple' => (bool)($f['filter_multiple'] ?? false),
+                    'nullable' => (bool)($f['nullable'] ?? true),
+                    'filterable' => (bool)($f['filterable'] ?? false),
+                    'searchable' => (bool)($f['searchable'] ?? false),
                     'filter_operator' => is_string($f['filter_operator'] ?? null) ? $f['filter_operator'] : 'contains',
-                    'filter_placeholder' => is_string($f['filter_placeholder'] ?? null) ? $f['filter_placeholder'] : null,
+                    'filter_placeholder' => is_string(
+                        $f['filter_placeholder'] ?? null
+                    ) ? $f['filter_placeholder'] : null,
                     'default' => $f['default'] ?? null,
                     'sort_order' => is_int($f['sort_order'] ?? null) ? $f['sort_order'] : 0,
                     'rules' => is_array($f['rules'] ?? null) ? $f['rules'] : [],
-                    'options' => is_array($f['options'] ?? null) ? array_values(array_filter(array_map(static fn (mixed $v): string => is_scalar($v) ? (string) $v : '', $f['options']), static fn (string $v): bool => $v !== '')) : [],
+                    'options' => is_array($f['options'] ?? null) ? array_values(
+                        array_filter(
+                            array_map(static fn(mixed $v): string => is_scalar($v) ? (string)$v : '', $f['options']),
+                            static fn(string $v): bool => $v !== ''
+                        )
+                    ) : [],
                 ];
             })
             ->values()
@@ -101,8 +112,11 @@ final class DirectoryVersionController extends Controller
         );
     }
 
-    public function updateSettings(Request $request, Directory $directory, DirectoryVersion $version): DirectoryVersionResource
-    {
+    public function updateSettings(
+        Request $request,
+        Directory $directory,
+        DirectoryVersion $version
+    ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
 
         $request->validate([
@@ -120,9 +134,9 @@ final class DirectoryVersionController extends Controller
         if ($request->has('sync_options')) {
             $raw = $request->array('sync_options');
             $syncOptions = [
-                'add_new' => (bool) ($raw['add_new'] ?? true),
-                'update_existing' => (bool) ($raw['update_existing'] ?? true),
-                'delete_unused' => (bool) ($raw['delete_unused'] ?? false),
+                'add_new' => (bool)($raw['add_new'] ?? true),
+                'update_existing' => (bool)($raw['update_existing'] ?? true),
+                'delete_unused' => (bool)($raw['delete_unused'] ?? false),
             ];
         }
 
@@ -134,13 +148,17 @@ final class DirectoryVersionController extends Controller
                 syncOptions: $syncOptions,
                 allowOther: $request->has('allow_other') ? $request->boolean('allow_other') : null,
                 otherLabel: $request->has('other_label') ? $request->str('other_label')->toString() : null,
-                otherExternalKey: $request->has('other_external_key') ? $request->str('other_external_key')->toString() : null,
+                otherExternalKey: $request->has('other_external_key') ? $request->str('other_external_key')->toString(
+                ) : null,
             ),
         );
     }
 
-    public function updateCode(Request $request, Directory $directory, DirectoryVersion $version): DirectoryVersionResource
-    {
+    public function updateCode(
+        Request $request,
+        Directory $directory,
+        DirectoryVersion $version
+    ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
 
         $request->validate([
@@ -156,8 +174,11 @@ final class DirectoryVersionController extends Controller
         );
     }
 
-    public function activate(Request $request, Directory $directory, DirectoryVersion $version): DirectoryVersionResource
-    {
+    public function activate(
+        Request $request,
+        Directory $directory,
+        DirectoryVersion $version
+    ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
 
         return new DirectoryVersionResource(

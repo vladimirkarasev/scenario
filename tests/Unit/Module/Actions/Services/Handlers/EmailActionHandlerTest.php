@@ -83,10 +83,10 @@ final class EmailActionHandlerTest extends TestCase
 
         $this->assertSame(ActionRunStatus::Failed, $result->status);
         $this->assertSame('proxy', $result->output['transport']);
-        $this->assertStringContainsString('не реализован', (string) $result->error);
+        $this->assertStringContainsString('не реализован', (string)$result->error);
     }
 
-    /** @param array<string, mixed> $config */
+    /** @param  array<string, mixed>  $config */
     private function emailAction(array $config): Action
     {
         return Action::query()->create([

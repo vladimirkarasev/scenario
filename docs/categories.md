@@ -1,24 +1,27 @@
 # Categories module
 
-Модуль `module/Categories/` — общий механизм категоризации для любых моделей приложения. Категории хранятся в таблице `categories`, а привязка к конкретным моделям — в полиморфной таблице `model_has_categories`.
+Модуль `module/Categories/` — общий механизм категоризации для любых моделей приложения. Категории хранятся в таблице
+`categories`, а привязка к конкретным моделям — в полиморфной таблице `model_has_categories`.
 
 ## Таблицы
 
 ### `categories`
-| Колонка | Тип | Описание |
-|---|---|---|
-| `id` | uuid | PK |
-| `parent_id` | uuid\|null | Родительская категория (дерево) |
-| `name` | string | Уникальное название |
-| `is_active` | boolean | |
-| `created_by` / `updated_by` | int\|null | FK → users |
+
+| Колонка                     | Тип        | Описание                        |
+|-----------------------------|------------|---------------------------------|
+| `id`                        | uuid       | PK                              |
+| `parent_id`                 | uuid\|null | Родительская категория (дерево) |
+| `name`                      | string     | Уникальное название             |
+| `is_active`                 | boolean    |                                 |
+| `created_by` / `updated_by` | int\|null  | FK → users                      |
 
 ### `model_has_categories`
-| Колонка | Тип | Описание |
-|---|---|---|
-| `category_id` | uuid | FK → categories (CASCADE DELETE) |
-| `model_id` | uuid | PK модели-потребителя |
-| `model_type` | string | Полное имя класса модели |
+
+| Колонка       | Тип    | Описание                         |
+|---------------|--------|----------------------------------|
+| `category_id` | uuid   | FK → categories (CASCADE DELETE) |
+| `model_id`    | uuid   | PK модели-потребителя            |
+| `model_type`  | string | Полное имя класса модели         |
 
 PK составной: `(category_id, model_id, model_type)`.
 
@@ -26,7 +29,8 @@ PK составной: `(category_id, model_id, model_type)`.
 
 ## Архитектура: наследование контроллеров
 
-`CategoryController` — абстрактный базовый класс. Каждый модуль-потребитель создаёт свой контроллер, наследует его и указывает `modelClass()`.
+`CategoryController` — абстрактный базовый класс. Каждый модуль-потребитель создаёт свой контроллер, наследует его и
+указывает `modelClass()`.
 
 ```php
 // module/Categories/Http/Controllers/CategoryController.php
@@ -77,6 +81,7 @@ Route::prefix('api/directories/categories')
 ## Как подключить к новому модулю
 
 1. **Создать контроллер** в своём модуле:
+
 ```php
 // module/Scenario/Http/Controllers/ScenarioCategoryController.php
 final class ScenarioCategoryController extends CategoryController
@@ -89,6 +94,7 @@ final class ScenarioCategoryController extends CategoryController
 ```
 
 2. **Добавить роут** в `module/Scenario/routes/api.php`:
+
 ```php
 Route::prefix('api/scenarios/categories')
     ->name('scenarios.categories.')
@@ -102,6 +108,7 @@ Route::prefix('api/scenarios/categories')
 ```
 
 3. **Добавить relation** в модель:
+
 ```php
 // Модель должна использовать HasUuids (model_id — uuid)
 public function categories(): MorphToMany
@@ -116,15 +123,17 @@ public function categories(): MorphToMany
 ## Permissions
 
 Каждый модуль определяет свои права. Для Categories:
+
 - `CategoryPermission::Create` → `category_create`
 - `CategoryPermission::Delete` → `category_delete`
 
-Права проверяются через `$request->user()?->can('category_create')` — это идёт через `Gate::before`, поэтому администраторы проходят автоматически.
+Права проверяются через `$request->user()?->can('category_create')` — это идёт через `Gate::before`, поэтому
+администраторы проходят автоматически.
 
 ## Текущие потребители
 
-| Модуль | Контроллер | Endpoint |
-|---|---|---|
+| Модуль      | Контроллер                    | Endpoint                     |
+|-------------|-------------------------------|------------------------------|
 | Directories | `DirectoryCategoryController` | `api/directories/categories` |
 
 ## Frontend

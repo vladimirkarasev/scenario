@@ -10,16 +10,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Module\Scenario\Enums\ScenarioNodeType;
 
 /**
- * @property int                       $id
- * @property int                       $run_id
- * @property string                    $node_id
- * @property ScenarioNodeType          $node_type
+ * @property int $id
+ * @property int $run_id
+ * @property string $node_id
+ * @property ScenarioNodeType $node_type
  * @property array<string, mixed>|null $input
  * @property array<string, mixed>|null $output
- * @property Carbon|null               $entered_at
- * @property Carbon|null               $exited_at
- * @property Carbon|null               $created_at
- * @property Carbon|null               $updated_at
+ * @property Carbon|null $entered_at
+ * @property Carbon|null $exited_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read ScenarioRun|null $run
  */
 final class ScenarioRunStep extends Model

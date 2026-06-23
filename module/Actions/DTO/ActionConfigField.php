@@ -83,7 +83,7 @@ final class ActionConfigField
         return $this;
     }
 
-    /** @param list<array{value: string, label: string}> $options */
+    /** @param  list<array{value: string, label: string}>  $options */
     public function options(array $options): self
     {
         $this->options = $options;

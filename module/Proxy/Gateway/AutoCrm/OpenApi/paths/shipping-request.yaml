@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - shipping-request'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: shipping-request
+  - name: shipping-request
     description: 'Управление заявками в ТК'
 paths:
   /logistic/shipping-request:
@@ -22,20 +18,17 @@ paths:
       description: 'Получение списка заявок в ТК'
       summary: 'Получение списка заявок в ТК'
       parameters:
-        -
-          name: shipping_company_id
+        - name: shipping_company_id
           in: query
           description: 'ID ТК'
           schema:
             type: integer
-        -
-          name: delivery_type
+        - name: delivery_type
           in: query
           description: 'Тип отгрузки (1 - Дилерская, 2 - Перемещение, 3 - самовывоз)'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус (1 - Новая, 2 - Выполнена)'
           schema:
@@ -43,8 +36,7 @@ paths:
             enum:
               - 1
               - 2
-        -
-          name: page
+        - name: page
           in: query
           schema:
             type: integer
@@ -60,7 +52,7 @@ paths:
                   $ref: '#/components/schemas/ShippingCompanyRequest'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - shipping-request
@@ -81,7 +73,7 @@ paths:
                 $ref: '#/components/schemas/ShippingCompanyRequest'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/logistic/shipping-request/{id}':
     get:
       tags:
@@ -89,8 +81,7 @@ paths:
       summary: 'Получение заявки в ТК по ID'
       description: 'Получение заявки в ТК по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id заявки'
           required: true
@@ -105,7 +96,7 @@ paths:
                 $ref: '#/components/schemas/ShippingCompanyRequest'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -118,8 +109,7 @@ paths:
       description: 'Обновление заявки в ТК по ID'
       summary: 'Обновление заявки в ТК по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id заявки'
           schema:
@@ -140,7 +130,7 @@ paths:
                 $ref: '#/components/schemas/ShippingCompanyRequest'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

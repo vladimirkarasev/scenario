@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - sale-additional-service'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: sale-additional-service
+  - name: sale-additional-service
     description: 'Управление дополнительными услугами рапорта'
 paths:
   /sale-additional-service/create:
@@ -31,13 +27,13 @@ paths:
       responses:
         200:
           description: 'Услуга успешно добавлена'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
-          content: {  }
+          content: { }
   /sale-additional-service/delete:
     post:
       tags:
@@ -54,13 +50,13 @@ paths:
       responses:
         200:
           description: 'Услуга успешно удалена'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
-          content: {  }
+          content: { }
   '/sale-additional-service/{vin}':
     get:
       tags:
@@ -68,8 +64,7 @@ paths:
       summary: 'Получение списка дополнительных услуг'
       description: 'Получение списка дополнительных услуг рапорта продажи автомобиля'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: path
           description: 'VIN автомобиля в рапорте'
           required: true

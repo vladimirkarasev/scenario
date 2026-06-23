@@ -14,7 +14,8 @@ final class DirectoryDetailController extends Controller
 {
     public function __construct(
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function show(Request $request, Directory $directory): DirectoryResource
     {

@@ -20,12 +20,16 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
 
     public function __construct(
         private readonly ActionDataResolver $dataResolver,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
-        $resolvedConfig = $this->dataResolver->resolve($action->config ?? [], $this->dataResolver->contextForAction($action, $input));
+        $resolvedConfig = $this->dataResolver->resolve(
+            $action->config ?? [],
+            $this->dataResolver->contextForAction($action, $input)
+        );
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
         $columns = $this->columns($config['columns'] ?? []);
 
@@ -72,14 +76,14 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
      */
     private function columns(mixed $columns): array
     {
-        if (! is_array($columns)) {
+        if (!is_array($columns)) {
             return [];
         }
 
         $result = [];
 
         foreach ($columns as $column) {
-            if (! is_array($column)) {
+            if (!is_array($column)) {
                 continue;
             }
 
@@ -99,14 +103,14 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
      */
     private function rows(mixed $rows): array
     {
-        if (! is_array($rows)) {
+        if (!is_array($rows)) {
             return [];
         }
 
         $result = [];
 
         foreach ($rows as $row) {
-            if (! is_array($row)) {
+            if (!is_array($row)) {
                 continue;
             }
 
@@ -125,7 +129,7 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string) $key] = $value;
+            $result[(string)$key] = $value;
         }
 
         return $result;
@@ -133,10 +137,10 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string) $value : $default;
+        return is_scalar($value) ? (string)$value : $default;
     }
 
-    /** @param array<string, mixed> $config */
+    /** @param  array<string, mixed>  $config */
     private function fileName(Action $action, array $config): string
     {
         $configured = $config['file_name'] ?? null;

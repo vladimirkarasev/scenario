@@ -10,7 +10,6 @@ use Module\Scenario\DTO\ScenarioRunJumpData;
 use Module\Scenario\DTO\ScenarioStartData;
 use Module\Scenario\Enums\ScenarioNodeType;
 use Module\Scenario\Enums\ScenarioRunStatus;
-
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioRunStep;
@@ -22,6 +21,7 @@ use Module\Scenario\Repositories\ScenarioRunUserRepository;
 use Module\Scenario\Repositories\ScenarioVersionRepository;
 use Module\Scenario\Repositories\ScenarioVersionRevisionRepository;
 use Module\Scenario\Services\Nodes\NodeHandlerRegistry;
+use Module\Scenario\Services\Nodes\RetryableNodeHandler;
 
 final readonly class ScenarioPlayerService
 {
@@ -40,7 +40,8 @@ final readonly class ScenarioPlayerService
         private ScenarioRunUserRepository $users,
         private ScenarioVersionRevisionRepository $revisions,
         private VariableResolver $variableResolver,
-    ) {}
+    ) {
+    }
 
     /**
      * Плоские данные опроса: переменные из _variable_map уже подставлены,
@@ -53,7 +54,7 @@ final readonly class ScenarioPlayerService
         $context = is_array($run->context) ? $run->context : [];
         $flat = $this->variableResolver->flatten($context);
 
-        unset($flat['_player'], $flat['_variable_map']);
+        unset($flat[RunContextKeys::PLAYER], $flat[RunContextKeys::VARIABLE_MAP]);
 
         return $flat;
     }
@@ -69,7 +70,7 @@ final readonly class ScenarioPlayerService
             ),
             default => $this->versions->resolveForScenario(
                 Scenario::query()
-                    ->where('alias', (string) $data->alias)
+                    ->where('alias', (string)$data->alias)
                     ->firstOrFail(),
                 null,
             ),
@@ -138,14 +139,56 @@ final readonly class ScenarioPlayerService
     {
         $run = $this->hydrateRun($run);
 
-        if (! $this->isActive($run)) {
+        if (!$this->isActive($run)) {
             return $run;
         }
 
-        $node = $this->graphResolver->findNode($this->runVersion($run), (string) $run->current_node_id);
+        $node = $this->graphResolver->findNode($this->runVersion($run), (string)$run->current_node_id);
         $nextNodeId = $this->nodeHandlers->for($this->nodeType($node))->continueFrom($run, $node, $data);
 
         return $this->transition($run, $node, $nextNodeId, $data->input);
+    }
+
+    /**
+     * Повторить выполнение текущей action-ноды с момента ошибки (кнопка «Повторить»).
+     * Прогон остаётся на ноде; pipeline перезапускается с упавшей стадии.
+     */
+    public function retryActionNode(ScenarioRun $run): ScenarioRun
+    {
+        $run = $this->hydrateRun($run);
+
+        if (!$this->isActive($run) || $run->current_node_id === null) {
+            return $run;
+        }
+
+        $node = $this->graphResolver->findNode($this->runVersion($run), (string)$run->current_node_id);
+        $handler = $this->nodeHandlers->for($this->nodeType($node));
+
+        if ($handler instanceof RetryableNodeHandler) {
+            $handler->retry($run, $node);
+        }
+
+        return $this->hydrateRun($run);
+    }
+
+    /**
+     * Продвинуть прогон с асинхронной action-ноды к следующему узлу после завершения
+     * цепочки экшенов. Вызывается из ResumeScenarioActionNodeJob по WebSocket-завершении.
+     * Идемпотентно: если прогон уже ушёл с ноды или неактивен — ничего не делает.
+     */
+    public function resumeFromActionNode(ScenarioRun $run, string $nodeId): ScenarioRun
+    {
+        $run = $this->hydrateRun($run);
+
+        if (!$this->isActive($run) || (string)$run->current_node_id !== $nodeId) {
+            return $run;
+        }
+
+        $version = $this->runVersion($run);
+        $node = $this->graphResolver->findNode($version, $nodeId);
+        $nextNodeId = $this->graphResolver->defaultNextNodeId($version, $nodeId);
+
+        return $this->transition($run, $node, $nextNodeId, []);
     }
 
     /** Откатиться к ранее посещённому узлу, сбросив историю с этой точки. */
@@ -157,14 +200,14 @@ final readonly class ScenarioPlayerService
         $targetStep = $this->steps->latestForNode($run, $this->nodeId($node));
 
         if ($targetStep !== null) {
-            $this->steps->trimAfter($run, (int) $targetStep->id);
+            $this->steps->trimAfter($run, (int)$targetStep->id);
             $this->steps->update($targetStep, ['input' => null, 'output' => null, 'exited_at' => null]);
         } else {
             $this->stepManager->closeOpen($run, [], []);
         }
 
         $context = $run->context ?? [];
-        $context['_player'] = ['total_steps' => 0, 'visited' => []];
+        $context[RunContextKeys::PLAYER] = ['total_steps' => 0, 'visited' => []];
 
         $run->forceFill([
             'status' => ScenarioRunStatus::Active,
@@ -262,7 +305,7 @@ final readonly class ScenarioPlayerService
             $node = $this->graphResolver->findNode($version, $run->current_node_id);
             $handler = $this->nodeHandlers->for($this->nodeType($node));
 
-            if (! $this->guardAgainstLoops($run, $this->nodeId($node))) {
+            if (!$this->guardAgainstLoops($run, $this->nodeId($node))) {
                 break;
             }
 
@@ -285,6 +328,14 @@ final readonly class ScenarioPlayerService
                 continue;
             }
 
+            // Узел запустил асинхронную работу и приостановил прогон на себе
+            // (action-нода с wait_for_result ждёт завершения цепочки экшенов).
+            if ($result->pause) {
+                $this->stepManager->ensureOpen($this->hydrateRun($run), $node);
+
+                break;
+            }
+
             $run = $this->transition($run, $node, $result->nextNodeId, []);
             // Reload version: transition may have changed the scenario (e.g. via scenario_link).
             $version = $this->runVersion($run);
@@ -294,8 +345,8 @@ final readonly class ScenarioPlayerService
     }
 
     /**
-     * @param array<string, mixed> $node
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $node
+     * @param  array<string, mixed>  $input
      */
     private function transition(ScenarioRun $run, array $node, ?string $nextNodeId, array $input): ScenarioRun
     {
@@ -316,7 +367,7 @@ final readonly class ScenarioPlayerService
     {
         $context = $run->context ?? [];
 
-        $rawPlayer = $context['_player'] ?? null;
+        $rawPlayer = $context[RunContextKeys::PLAYER] ?? null;
         $player = is_array($rawPlayer) ? $rawPlayer : ['total_steps' => 0, 'visited' => []];
 
         $rawSteps = $player['total_steps'] ?? 0;
@@ -335,23 +386,23 @@ final readonly class ScenarioPlayerService
         if ($totalSteps > self::MAX_STEPS || $nodeVisits > self::MAX_VISITS_PER_NODE) {
             $run->forceFill([
                 'status' => ScenarioRunStatus::Failed,
-                'context' => [...$context, '_player' => $updatedPlayer],
+                'context' => [...$context, RunContextKeys::PLAYER => $updatedPlayer],
             ])->save();
 
             return false;
         }
 
         $run->forceFill([
-            'context' => [...$context, '_player' => $updatedPlayer],
+            'context' => [...$context, RunContextKeys::PLAYER => $updatedPlayer],
         ])->save();
 
         return true;
     }
 
     /**
-     * @param  array<string, mixed> $context
-     * @param  array<string, mixed> $userData
-     * @param  array<string, mixed> $schemaJson
+     * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $userData
+     * @param  array<string, mixed>  $schemaJson
      * @return array<string, mixed>
      */
     private function initializeContext(array $context, array $userData, array $schemaJson): array
@@ -362,14 +413,14 @@ final readonly class ScenarioPlayerService
             $base,
             $context,
             [
-                '_player' => ['total_steps' => 0, 'visited' => []],
-                '_variable_map' => $this->buildVariableMap($schemaJson),
+                RunContextKeys::PLAYER => ['total_steps' => 0, 'visited' => []],
+                RunContextKeys::VARIABLE_MAP => $this->buildVariableMap($schemaJson),
             ],
         );
     }
 
     /**
-     * @param  array<string, mixed>                $schemaJson
+     * @param  array<string, mixed>  $schemaJson
      * @return array<string, array<string, mixed>>
      */
     private function buildVariableMap(array $schemaJson): array
@@ -380,7 +431,7 @@ final readonly class ScenarioPlayerService
         $blocks = is_array($rawBlocks) ? $rawBlocks : [];
 
         foreach ($blocks as $block) {
-            if (! is_array($block)) {
+            if (!is_array($block)) {
                 continue;
             }
 
@@ -395,7 +446,7 @@ final readonly class ScenarioPlayerService
             $rawFields = isset($blockData['fields']) && is_array($blockData['fields']) ? $blockData['fields'] : [];
 
             foreach ($rawFields as $field) {
-                if (! is_array($field)) {
+                if (!is_array($field)) {
                     continue;
                 }
 
@@ -421,10 +472,16 @@ final readonly class ScenarioPlayerService
                 } elseif (in_array($fieldType, ['date', 'datetime'], true)) {
                     $entry['_format'] = isset($field['format']) && is_string($field['format']) ? $field['format'] : '';
                 } elseif (in_array($fieldType, ['directory_list', 'directory_table'], true)) {
-                    $entry['_directory_id'] = isset($field['directoryId']) && is_string($field['directoryId']) ? $field['directoryId'] : '';
-                    $entry['_version_id'] = isset($field['versionId']) && is_string($field['versionId']) ? $field['versionId'] : '';
-                    $entry['_label_template'] = isset($field['labelTemplate']) && is_string($field['labelTemplate']) ? $field['labelTemplate'] : '';
-                    $entry['_multiple'] = isset($field['multiple']) && (bool) $field['multiple'];
+                    $entry['_directory_id'] = isset($field['directoryId']) && is_string(
+                        $field['directoryId']
+                    ) ? $field['directoryId'] : '';
+                    $entry['_version_id'] = isset($field['versionId']) && is_string(
+                        $field['versionId']
+                    ) ? $field['versionId'] : '';
+                    $entry['_label_template'] = isset($field['labelTemplate']) && is_string(
+                        $field['labelTemplate']
+                    ) ? $field['labelTemplate'] : '';
+                    $entry['_multiple'] = isset($field['multiple']) && (bool)$field['multiple'];
                 }
 
                 $map[$varName] = $entry; // последний блок перезаписывает
@@ -444,7 +501,7 @@ final readonly class ScenarioPlayerService
         $run->forceFill(['current_node_id' => $nodeId])->save();
     }
 
-    /** @param array<string, mixed> $output */
+    /** @param  array<string, mixed>  $output */
     private function completeRun(ScenarioRun $run, string $nodeId, array $output = []): ScenarioRun
     {
         if ($output !== []) {
@@ -475,7 +532,7 @@ final readonly class ScenarioPlayerService
         return $run->version ?? throw new \RuntimeException('Run version is not loaded.');
     }
 
-    /** @param array<string, mixed> $node */
+    /** @param  array<string, mixed>  $node */
     private function nodeId(array $node): string
     {
         $id = $node['id'] ?? null;
@@ -483,7 +540,7 @@ final readonly class ScenarioPlayerService
         return is_string($id) ? $id : throw new \RuntimeException('Node has no id.');
     }
 
-    /** @param array<string, mixed> $node */
+    /** @param  array<string, mixed>  $node */
     private function nodeType(array $node): string
     {
         $type = $node['type'] ?? null;

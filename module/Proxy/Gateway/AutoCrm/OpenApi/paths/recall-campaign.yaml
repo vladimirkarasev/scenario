@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - recall-campaign'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: recall-campaign
+  - name: recall-campaign
     description: 'Управление отзывными кампаниями'
 paths:
   /recall-campaign:
@@ -22,38 +18,32 @@ paths:
       summary: 'Получение списка отзывных кампаний'
       description: 'Получение списка отзывных кампаний'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: Идентификатор
           schema:
             type: integer
-        -
-          name: code
+        - name: code
           in: query
           description: Код
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Наименование
           schema:
             type: string
-        -
-          name: type
+        - name: type
           in: query
           description: 'Тип (1 - Сервисная, 2 - Отзывная)'
           schema:
             type: integer
-        -
-          name: export_rosstandart
+        - name: export_rosstandart
           in: query
           description: 'Выгружать в РосСтандарт (1 - Да, 0 - Нет)'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус (1 - Активно, 2 - Удалено)'
           schema:
@@ -69,4 +59,4 @@ paths:
                   $ref: '#/components/schemas/RecallCampaign'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

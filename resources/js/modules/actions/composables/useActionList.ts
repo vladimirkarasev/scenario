@@ -1,7 +1,7 @@
-import { computed, onMounted, ref, watch } from 'vue'
-import { actionRepository } from '@/modules/actions/repositories/actionRepository'
-import { actionTypeRepository } from '@/modules/actions/repositories/actionTypeRepository'
-import type { Action, ActionTypeMeta } from '@/modules/actions/types/action'
+import {computed, onMounted, ref, watch} from 'vue'
+import {actionRepository} from '@/modules/actions/repositories/actionRepository'
+import {actionTypeRepository} from '@/modules/actions/repositories/actionTypeRepository'
+import type {Action, ActionTypeMeta} from '@/modules/actions/types/action'
 
 const PER_PAGE = 8
 
@@ -35,15 +35,19 @@ export function useActionList() {
     const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PER_PAGE)))
     const paged = computed(() => filtered.value.slice((currentPage.value - 1) * PER_PAGE, currentPage.value * PER_PAGE))
 
-    watch(search, () => { currentPage.value = 1 })
-    watch(totalPages, (n) => { if (currentPage.value > n) currentPage.value = n })
+    watch(search, () => {
+        currentPage.value = 1
+    })
+    watch(totalPages, (n) => {
+        if (currentPage.value > n) currentPage.value = n
+    })
 
     async function load(): Promise<void> {
         loading.value = true
         error.value = ''
         try {
             const [actionsRes, typesRes] = await Promise.all([
-                actionRepository.list(new URLSearchParams({ 'page[size]': '100' })),
+                actionRepository.list(new URLSearchParams({'page[size]': '100'})),
                 actionTypeRepository.list(),
             ])
             actions.value = actionsRes

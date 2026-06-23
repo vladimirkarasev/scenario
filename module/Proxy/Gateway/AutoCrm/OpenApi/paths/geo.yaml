@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - geo'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: geo
+  - name: geo
     description: 'Справочники гео'
 paths:
   /city:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка городов'
       description: 'Получение списка городов'
       parameters:
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'Идентификатор страны'
           schema:
             type: integer
-        -
-          name: region_id
+        - name: region_id
           in: query
           description: 'Идентификатор города'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/City'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/city/{id}':
     get:
       tags:
@@ -59,8 +52,7 @@ paths:
       summary: 'Получение города по ID'
       description: 'Получение города по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id города'
           required: true
@@ -75,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/City'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -89,8 +81,7 @@ paths:
       summary: 'Получение списка стран'
       description: 'Получение списка стран'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -106,7 +97,7 @@ paths:
                   $ref: '#/components/schemas/Country'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/country/{id}':
     get:
       tags:
@@ -114,8 +105,7 @@ paths:
       summary: 'Получение страны по ID'
       description: 'Получение страны по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id страны'
           required: true
@@ -130,7 +120,7 @@ paths:
                 $ref: '#/components/schemas/Country'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -144,14 +134,12 @@ paths:
       summary: 'Получение списка федеральных округов'
       description: 'Получение списка федеральных округов'
       parameters:
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'Идентификатор страны'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -167,7 +155,7 @@ paths:
                   $ref: '#/components/schemas/FederalDistrict'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/federal-district/{id}':
     get:
       tags:
@@ -175,8 +163,7 @@ paths:
       summary: 'Получение федерального округа по ID'
       description: 'Получение федерального округа по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id федерального округа'
           required: true
@@ -191,7 +178,7 @@ paths:
                 $ref: '#/components/schemas/FederalDistrict'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -205,26 +192,22 @@ paths:
       summary: 'Получение списка регионов'
       description: 'Получение списка регионов'
       parameters:
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'Идентификатор страны'
           schema:
             type: integer
-        -
-          name: federal_district_id
+        - name: federal_district_id
           in: query
           description: 'Идентификатор федерального округа'
           schema:
             type: integer
-        -
-          name: kladr_code
+        - name: kladr_code
           in: query
           description: 'Код КЛАДР'
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -240,7 +223,7 @@ paths:
                   $ref: '#/components/schemas/Region'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/region/{id}':
     get:
       tags:
@@ -248,8 +231,7 @@ paths:
       summary: 'Получение региона по ID'
       description: 'Получение региона по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id региона'
           required: true
@@ -264,7 +246,7 @@ paths:
                 $ref: '#/components/schemas/Region'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

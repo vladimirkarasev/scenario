@@ -18,7 +18,8 @@ final class UserGroupService
     public function __construct(
         private readonly UserGroupRepository $groups,
         private readonly CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     /** @return LengthAwarePaginator<int, UserGroup> */
     public function paginate(UserGroupIndexData $filters): LengthAwarePaginator

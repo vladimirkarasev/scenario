@@ -1,9 +1,9 @@
 list:
   get:
-    tags: [Опросы]
+    tags: [ Опросы ]
     summary: Список прогонов (опросов)
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Возвращает постраничный список запущенных прогонов сценариев.
       Позволяет вернуться к незавершённому опросу — достаточно взять `id`
@@ -28,7 +28,7 @@ list:
           application/json:
             schema:
               type: object
-              required: [surveys, pagination]
+              required: [ surveys, pagination ]
               properties:
                 surveys:
                   type: array
@@ -41,10 +41,10 @@ list:
 
 item:
   get:
-    tags: [Опросы]
+    tags: [ Опросы ]
     summary: Получить состояние прогона
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Возвращает полный payload прогона: текущий узел, его отрендеренное
       содержимое и историю пройденных шагов. Прогон автоматически

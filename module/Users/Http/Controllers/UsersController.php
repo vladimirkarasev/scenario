@@ -20,7 +20,8 @@ final class UsersController extends Controller
 {
     public function __construct(
         private readonly UserService $service,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): AnonymousResourceCollection
     {

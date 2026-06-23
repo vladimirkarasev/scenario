@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Module\Scenario\Services\Nodes;
+namespace Module\Scenario\Services\Nodes\End;
 
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
+use Module\Scenario\Services\Nodes\NodeAdvanceResult;
+use Module\Scenario\Services\Nodes\NodeHandlerInterface;
+use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\VariableResolver;
 
 final readonly class EndNodeHandler implements NodeHandlerInterface
@@ -15,7 +18,8 @@ final readonly class EndNodeHandler implements NodeHandlerInterface
 
     public function __construct(
         private VariableResolver $variableResolver,
-    ) {}
+    ) {
+    }
 
     public function isInteractive(array $node): bool
     {
@@ -38,7 +42,10 @@ final readonly class EndNodeHandler implements NodeHandlerInterface
 
         return [
             'type' => 'end',
-            'title' => $this->variableResolver->resolve($this->strField($data, 'title', 'Все шаги успешно пройдены'), $context),
+            'title' => $this->variableResolver->resolve(
+                $this->strField($data, 'title', 'Все шаги успешно пройдены'),
+                $context
+            ),
             'description' => $this->variableResolver->resolve($this->strField($data, 'description', ''), $context),
             'blocks' => $this->variableResolver->resolve($this->arrayField($data, 'blocks'), $context),
         ];

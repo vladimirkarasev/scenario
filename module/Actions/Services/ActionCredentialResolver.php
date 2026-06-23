@@ -12,7 +12,8 @@ final class ActionCredentialResolver
 {
     public function __construct(
         private readonly ActionCredentialRepository $credentials,
-    ) {}
+    ) {
+    }
 
     /** @return array{headers: array<string, string>, query: array<string, string>} */
     public function resolve(?int $credentialId): array
@@ -46,8 +47,8 @@ final class ActionCredentialResolver
             ActionCredentialType::Basic => [
                 'headers' => [
                     'Authorization' => 'Basic '.base64_encode(
-                        $this->stringConfig($credential, 'username').':'.($secrets['password'] ?? ''),
-                    ),
+                            $this->stringConfig($credential, 'username').':'.($secrets['password'] ?? ''),
+                        ),
                 ],
                 'query' => [],
             ],

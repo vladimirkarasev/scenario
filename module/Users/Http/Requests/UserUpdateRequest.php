@@ -24,13 +24,23 @@ final class UserUpdateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'fio' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
-            'login' => ['nullable', 'string', 'max:255',
+            'login' => [
+                'nullable',
+                'string',
+                'max:255',
                 Rule::unique('users', 'login')->ignore($user->id),
             ],
-            'external_id' => ['nullable', 'string', 'max:255',
+            'external_id' => [
+                'nullable',
+                'string',
+                'max:255',
                 Rule::unique('users', 'external_id')->ignore($user->id),
             ],
             'password' => ['nullable', 'string', 'min:8'],

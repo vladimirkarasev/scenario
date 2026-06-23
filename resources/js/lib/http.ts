@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig, type Method } from 'axios'
+import axios, {type AxiosRequestConfig, type Method} from 'axios'
 import httpClient from '@/lib/http-client'
 
 interface ErrorPayload {
@@ -77,7 +77,11 @@ export async function getJson<T = unknown>(url: string, fallbackMessage: string)
     })
 }
 
-export async function sendJson<T = unknown>(url: string, { method = 'POST', body, fallbackMessage }: SendJsonOptions): Promise<T> {
+export async function sendJson<T = unknown>(url: string, {
+    method = 'POST',
+    body,
+    fallbackMessage
+}: SendJsonOptions): Promise<T> {
     return requestJson<T>(url, fallbackMessage, {
         method,
         data: body,
@@ -95,7 +99,11 @@ export async function destroyJson(url: string, fallbackMessage: string): Promise
     return null
 }
 
-export async function sendMultipart<T = unknown>(url: string, { method = 'POST', body, fallbackMessage }: SendMultipartOptions): Promise<T> {
+export async function sendMultipart<T = unknown>(url: string, {
+    method = 'POST',
+    body,
+    fallbackMessage
+}: SendMultipartOptions): Promise<T> {
     return requestJson<T>(url, fallbackMessage, {
         method,
         data: body,

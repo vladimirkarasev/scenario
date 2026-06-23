@@ -20,7 +20,7 @@ final class MockApiTransport implements ApiTransport
         $this->responses[$this->responseKey($gatewayName, $methodKey)] = [$response];
     }
 
-    /** @param array<int, ApiGatewayResponse> $responses */
+    /** @param  array<int, ApiGatewayResponse>  $responses */
     public function fakeSequence(string $gatewayName, string $methodKey, array $responses): void
     {
         $this->responses[$this->responseKey($gatewayName, $methodKey)] = array_values($responses);
@@ -30,7 +30,7 @@ final class MockApiTransport implements ApiTransport
     {
         $key = $this->responseKey($config->name, $method->key());
 
-        if (! array_key_exists($key, $this->responses)) {
+        if (!array_key_exists($key, $this->responses)) {
             throw new ApiGatewayException("Mock response is not registered for [{$key}].");
         }
 
@@ -38,7 +38,9 @@ final class MockApiTransport implements ApiTransport
             return $this->responses[$key][0];
         }
 
-        return array_shift($this->responses[$key]) ?? throw new ApiGatewayException("Mock response sequence exhausted for [{$key}].");
+        return array_shift($this->responses[$key]) ?? throw new ApiGatewayException(
+            "Mock response sequence exhausted for [{$key}]."
+        );
     }
 
     private function responseKey(string $gatewayName, string $methodKey): string

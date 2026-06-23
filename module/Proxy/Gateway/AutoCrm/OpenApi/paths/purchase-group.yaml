@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - purchase-group'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: purchase-group
+  - name: purchase-group
     description: 'Управление типами оплаты'
 paths:
   /purchase-group:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка Типов оплаты'
       description: 'Получение списка Типов оплаты'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'id типа оплаты'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'статус типа оплаты'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/PurchaseGroup'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/purchase-group/{id}':
     get:
       tags:
@@ -59,8 +52,7 @@ paths:
       summary: 'Получение типа оплаты по ID'
       description: 'Получение типа оплаты по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id типа оплаты'
           required: true
@@ -75,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/PurchaseGroup'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

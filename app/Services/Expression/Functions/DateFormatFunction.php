@@ -21,7 +21,7 @@ final readonly class DateFormatFunction implements ExpressionFunctionInterface
         $dt = CarbonParser::parse($args[0] ?? null);
         $format = $args[1] ?? null;
 
-        if ($dt === null || ! is_string($format)) {
+        if ($dt === null || !is_string($format)) {
             return '';
         }
 

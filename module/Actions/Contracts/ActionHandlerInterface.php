@@ -10,7 +10,7 @@ use Module\Actions\Models\Action;
 
 interface ActionHandlerInterface
 {
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult;
 
     /** @return iterable<ActionConfigField> */

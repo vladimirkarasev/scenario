@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - statistic'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: statistic
+  - name: statistic
     description: Отчеты
 paths:
   /statistic/manager:
@@ -22,26 +18,22 @@ paths:
       summary: 'Получение статистики по менеджерам'
       description: 'Получение статистики по менеджерам'
       parameters:
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'id дилера'
           schema:
             type: integer
-        -
-          name: from
+        - name: from
           in: query
           description: 'начальная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: to
+        - name: to
           in: query
           description: 'конечная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: is_primary
+        - name: is_primary
           in: query
           description: 'только для по первичным событиям'
           schema:
@@ -57,7 +49,7 @@ paths:
                   $ref: '#/components/schemas/StatisticManager'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   /statistic/model:
     get:
       tags:
@@ -65,26 +57,22 @@ paths:
       summary: 'Получение статистики по моделям'
       description: 'Получение статистики по моделям'
       parameters:
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'id дилера'
           schema:
             type: integer
-        -
-          name: from
+        - name: from
           in: query
           description: 'начальная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: to
+        - name: to
           in: query
           description: 'конечная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: is_primary
+        - name: is_primary
           in: query
           description: 'только для по первичным событиям'
           schema:
@@ -100,7 +88,7 @@ paths:
                   $ref: '#/components/schemas/StatisticModel'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   /statistic/sales:
     get:
       tags:
@@ -108,44 +96,37 @@ paths:
       summary: 'Отчёт по продажам'
       description: 'Отчёт по продажам'
       parameters:
-        -
-          name: dealerId
+        - name: dealerId
           in: query
           description: 'id дилера'
           schema:
             type: integer
-        -
-          name: distributorId
+        - name: distributorId
           in: query
           description: 'id дистрибьютора'
           schema:
             type: integer
-        -
-          name: dateFrom
+        - name: dateFrom
           in: query
           description: 'начальная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: dateTo
+        - name: dateTo
           in: query
           description: 'конечная дата в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: clientType
+        - name: clientType
           in: query
           description: 'Тип клиента (0 - Физическое лицо, 1 - Юридическое лицо)'
           schema:
             type: integer
-        -
-          name: statisticType
+        - name: statisticType
           in: query
           description: 'Получение статистики (manual - Вручную, api - API)'
           schema:
             type: string
-        -
-          name: 'brandId[]'
+        - name: 'brandId[]'
           in: query
           description: Бренд
           style: form
@@ -154,8 +135,7 @@ paths:
             type: array
             items:
               type: integer
-        -
-          name: 'modelId[]'
+        - name: 'modelId[]'
           in: query
           description: Модель
           style: form
@@ -175,4 +155,4 @@ paths:
                   $ref: '#/components/schemas/SaleReportByDayModel'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

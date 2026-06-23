@@ -35,9 +35,9 @@ final class ScenarioRepository
     }
 
     /**
-     * @param array<string, mixed> $attributes
-     * @param list<string>         $categoryIds
-     * @param list<string>         $groupIds
+     * @param  array<string, mixed>  $attributes
+     * @param  list<string>  $categoryIds
+     * @param  list<string>  $groupIds
      */
     public function create(array $attributes, ?int $actorId, array $categoryIds, array $groupIds = []): Scenario
     {
@@ -52,12 +52,17 @@ final class ScenarioRepository
     }
 
     /**
-     * @param array<string, mixed> $attributes
-     * @param list<string>         $categoryIds
-     * @param list<string>         $groupIds
+     * @param  array<string, mixed>  $attributes
+     * @param  list<string>  $categoryIds
+     * @param  list<string>  $groupIds
      */
-    public function update(Scenario $scenario, array $attributes, ?int $actorId, array $categoryIds, array $groupIds = []): Scenario
-    {
+    public function update(
+        Scenario $scenario,
+        array $attributes,
+        ?int $actorId,
+        array $categoryIds,
+        array $groupIds = []
+    ): Scenario {
         $scenario->fill($attributes);
         $scenario->updated_by = $actorId;
         $scenario->save();
@@ -73,7 +78,9 @@ final class ScenarioRepository
             $scenario->load('versions.revisions');
 
             $copy = new Scenario($scenario->only([
-                'project_id', 'description', 'tags',
+                'project_id',
+                'description',
+                'tags',
             ]));
             $copy->name = $scenario->name.' (копия)';
             $copy->alias = null;
@@ -84,8 +91,8 @@ final class ScenarioRepository
 
             /** @var list<string> $categoryIds */
             $categoryIds = $scenario->categories->pluck('id')
-                ->map(static fn (mixed $id): string => is_string($id) ? $id : '')
-                ->filter(static fn (string $id): bool => $id !== '')
+                ->map(static fn(mixed $id): string => is_string($id) ? $id : '')
+                ->filter(static fn(string $id): bool => $id !== '')
                 ->values()
                 ->all();
             $copy->categories()->sync($this->categoryPivot($categoryIds, $copy->project_id));
@@ -93,7 +100,7 @@ final class ScenarioRepository
             $versionIdMap = [];
 
             foreach ($scenario->versions as $version) {
-                $newId = (string) Str::uuid();
+                $newId = (string)Str::uuid();
                 $versionIdMap[$version->id] = $newId;
 
                 $newVersion = ScenarioVersion::query()->create([
@@ -132,7 +139,7 @@ final class ScenarioRepository
     }
 
     /**
-     * @param  list<string>              $categoryIds
+     * @param  list<string>  $categoryIds
      * @return array<string, array<string, string|null>>
      */
     private function categoryPivot(array $categoryIds, ?string $projectId): array

@@ -30,23 +30,27 @@ final class CategoryRepository implements CategoryRepositoryContract
     }
 
     /**
-     * @param  class-string              $modelClass
+     * @param  class-string  $modelClass
      * @return Collection<int, Category>
      */
     public function forModel(string $modelClass, ?string $projectId = null): Collection
     {
         return Category::query()
             ->with(['parent'])
-            ->withCount(['children' => static function (Builder $q) use ($modelClass, $projectId): void {
-                $q->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($modelClass, $projectId): void {
-                    $sub->from('model_has_categories')
-                        ->whereColumn('model_has_categories.category_id', 'categories.id')
-                        ->where('model_has_categories.model_type', $modelClass);
-                    if ($projectId !== null) {
-                        $sub->where('model_has_categories.project_id', $projectId);
-                    }
-                });
-            }])
+            ->withCount([
+                'children' => static function (Builder $q) use ($modelClass, $projectId): void {
+                    $q->whereExists(
+                        static function (\Illuminate\Database\Query\Builder $sub) use ($modelClass, $projectId): void {
+                            $sub->from('model_has_categories')
+                                ->whereColumn('model_has_categories.category_id', 'categories.id')
+                                ->where('model_has_categories.model_type', $modelClass);
+                            if ($projectId !== null) {
+                                $sub->where('model_has_categories.project_id', $projectId);
+                            }
+                        }
+                    );
+                }
+            ])
             ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($modelClass, $projectId): void {
                 $q->from('model_has_categories')
                     ->whereColumn('model_has_categories.category_id', 'categories.id')
@@ -64,22 +68,26 @@ final class CategoryRepository implements CategoryRepositoryContract
      * $parentId = null → root categories (parent_id IS NULL).
      * $parentId = uuid → direct children of that parent.
      *
-     * @param  class-string              $modelClass
+     * @param  class-string  $modelClass
      * @return Collection<int, Category>
      */
     public function forModelByParent(string $modelClass, ?string $parentId, ?string $projectId = null): Collection
     {
         return Category::query()
-            ->withCount(['children' => static function (Builder $q) use ($modelClass, $projectId): void {
-                $q->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($modelClass, $projectId): void {
-                    $sub->from('model_has_categories')
-                        ->whereColumn('model_has_categories.category_id', 'categories.id')
-                        ->where('model_has_categories.model_type', $modelClass);
-                    if ($projectId !== null) {
-                        $sub->where('model_has_categories.project_id', $projectId);
-                    }
-                });
-            }])
+            ->withCount([
+                'children' => static function (Builder $q) use ($modelClass, $projectId): void {
+                    $q->whereExists(
+                        static function (\Illuminate\Database\Query\Builder $sub) use ($modelClass, $projectId): void {
+                            $sub->from('model_has_categories')
+                                ->whereColumn('model_has_categories.category_id', 'categories.id')
+                                ->where('model_has_categories.model_type', $modelClass);
+                            if ($projectId !== null) {
+                                $sub->where('model_has_categories.project_id', $projectId);
+                            }
+                        }
+                    );
+                }
+            ])
             ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($modelClass, $projectId): void {
                 $q->from('model_has_categories')
                     ->whereColumn('model_has_categories.category_id', 'categories.id')
@@ -88,13 +96,13 @@ final class CategoryRepository implements CategoryRepositoryContract
                     $q->where('model_has_categories.project_id', $projectId);
                 }
             })
-            ->when($parentId === null, static fn ($q) => $q->whereNull('parent_id'))
-            ->when($parentId !== null, static fn ($q) => $q->where('parent_id', $parentId))
+            ->when($parentId === null, static fn($q) => $q->whereNull('parent_id'))
+            ->when($parentId !== null, static fn($q) => $q->where('parent_id', $parentId))
             ->orderBy('name')
             ->get();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes, ?int $actorId): Category
     {
         $category = new Category($attributes);
@@ -105,7 +113,7 @@ final class CategoryRepository implements CategoryRepositoryContract
         return $category;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Category $category, array $attributes, ?int $actorId): Category
     {
         $category->fill($attributes);
@@ -126,7 +134,7 @@ final class CategoryRepository implements CategoryRepositoryContract
         return Category::query()
             ->where('parent_id', $parentId)
             ->pluck('id')
-            ->map(static fn (mixed $id): string => is_string($id) ? $id : '')
+            ->map(static fn(mixed $id): string => is_string($id) ? $id : '')
             ->values()
             ->all();
     }

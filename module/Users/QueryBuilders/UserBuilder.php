@@ -19,14 +19,14 @@ final class UserBuilder extends Builder
         }
 
         return $this->whereExists(
-            static fn (\Illuminate\Database\Query\Builder $q) => $q
+            static fn(\Illuminate\Database\Query\Builder $q) => $q
                 ->from('project_users')
                 ->whereColumn('project_users.user_id', 'users.id')
                 ->where('project_users.project_id', $projectId),
         );
     }
 
-    /** @param list<string> $groupIds */
+    /** @param  list<string>  $groupIds */
     public function forGroups(array $groupIds): static
     {
         if ($groupIds === []) {
@@ -35,11 +35,11 @@ final class UserBuilder extends Builder
 
         return $this->whereHas(
             'groups',
-            static fn (Builder $q) => $q->whereIn('user_groups.id', $groupIds),
+            static fn(Builder $q) => $q->whereIn('user_groups.id', $groupIds),
         );
     }
 
-    /** @param list<string> $roleIds */
+    /** @param  list<string>  $roleIds */
     public function forRoles(array $roleIds): static
     {
         if ($roleIds === []) {
@@ -48,7 +48,7 @@ final class UserBuilder extends Builder
 
         return $this->whereHas(
             'roles',
-            static fn (Builder $q) => $q->whereIn('roles.id', $roleIds),
+            static fn(Builder $q) => $q->whereIn('roles.id', $roleIds),
         );
     }
 

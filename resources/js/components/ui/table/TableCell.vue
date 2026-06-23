@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,14 +12,14 @@ const props = defineProps({
 
 <template>
   <td
-    data-slot="table-cell"
-    :class="
+      data-slot="table-cell"
+      :class="
       cn(
         'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0',
         props.class,
       )
     "
   >
-    <slot />
+    <slot/>
   </td>
 </template>

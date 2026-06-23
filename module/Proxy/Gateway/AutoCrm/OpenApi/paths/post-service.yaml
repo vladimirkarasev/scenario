@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - post-service'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: post-service
+  - name: post-service
     description: 'Получение списка постов'
 paths:
   /service/post-service:
@@ -22,32 +18,27 @@ paths:
       description: 'Получение списка постов'
       summary: 'Получение списка постов'
       parameters:
-        -
-          name: name
+        - name: name
           in: query
           description: Наименование
           schema:
             type: string
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: Дилер
           schema:
             type: string
-        -
-          name: type
+        - name: type
           in: query
           description: Тип
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: Статус
           schema:
             type: integer
-        -
-          name: show_in_schedule
+        - name: show_in_schedule
           in: query
           description: 'Показывать в журнале записи'
           schema:
@@ -63,7 +54,7 @@ paths:
                   $ref: '#/components/schemas/PostService'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/service/post-service/{id}':
     get:
       tags:
@@ -71,8 +62,7 @@ paths:
       description: 'Получение поста по ID'
       summary: 'Получение поста по ID'
       parameters:
-        -
-          in: path
+        - in: path
           name: id
           description: 'id поста'
           schema:
@@ -87,7 +77,7 @@ paths:
                 $ref: '#/components/schemas/PostService'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

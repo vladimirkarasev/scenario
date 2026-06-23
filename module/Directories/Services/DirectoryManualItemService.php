@@ -21,7 +21,8 @@ final class DirectoryManualItemService
     public function __construct(
         private readonly DirectoryItemRepository $items,
         private readonly DirectoryRepository $directories,
-    ) {}
+    ) {
+    }
 
     /** @return array<string, mixed> */
     public function create(Directory $directory, DirectoryManualItemData $data): array
@@ -43,15 +44,17 @@ final class DirectoryManualItemService
 
         $externalKey = $data->externalKey ?? ($matchBy !== null ? ($values[$matchBy] ?? null) : null);
 
-        $item = $directory->getConnection()->transaction(function () use ($version, $values, $data, $externalKey, $searchableKeys): DirectoryItem {
-            return $this->items->create([
-                'directory_version_id' => $version->id,
-                'parent_id' => $data->parentId,
-                'external_key' => $externalKey,
-                'search_text' => $this->buildSearchText($values, $searchableKeys),
-                'data_json' => $values,
-            ]);
-        });
+        $item = $directory->getConnection()->transaction(
+            function () use ($version, $values, $data, $externalKey, $searchableKeys): DirectoryItem {
+                return $this->items->create([
+                    'directory_version_id' => $version->id,
+                    'parent_id' => $data->parentId,
+                    'external_key' => $externalKey,
+                    'search_text' => $this->buildSearchText($values, $searchableKeys),
+                    'data_json' => $values,
+                ]);
+            }
+        );
 
         DirectoryCache::forgetDirectory($directory->id);
 
@@ -81,8 +84,8 @@ final class DirectoryManualItemService
     }
 
     /**
-     * @param  array<string, mixed>                     $values
-     * @param  Collection<string, array<string, mixed>> $fields
+     * @param  array<string, mixed>  $values
+     * @param  Collection<string, array<string, mixed>>  $fields
      * @return array<string, string|null>
      */
     private function normalizeValues(array $values, Collection $fields): array
@@ -99,7 +102,7 @@ final class DirectoryManualItemService
             }
 
             $normalized[$fieldKey] = is_scalar($value)
-                ? trim((string) $value) ?: null
+                ? trim((string)$value) ?: null
                 : (json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null);
         }
 
@@ -107,14 +110,18 @@ final class DirectoryManualItemService
     }
 
     /**
-     * @param array<string, string|null>               $values
-     * @param Collection<string, array<string, mixed>> $fields
+     * @param  array<string, string|null>  $values
+     * @param  Collection<string, array<string, mixed>>  $fields
      */
-    private function validateValues(array $values, Collection $fields, DirectoryVersion $version, ?string $matchBy): void
-    {
+    private function validateValues(
+        array $values,
+        Collection $fields,
+        DirectoryVersion $version,
+        ?string $matchBy
+    ): void {
         /** @var array<string, array<int, string>> $rules */
         $rules = $fields
-            ->mapWithKeys(static fn (array $field, string $fieldKey): array => [
+            ->mapWithKeys(static fn(array $field, string $fieldKey): array => [
                 $fieldKey => $field['rules'] ?? ['nullable', 'string'],
             ])
             ->all();
@@ -122,17 +129,19 @@ final class DirectoryManualItemService
         $validator = Validator::make($values, $rules);
 
         if ($matchBy !== null) {
-            $validator->after(function (\Illuminate\Validation\Validator $validator) use ($values, $version, $matchBy): void {
-                $externalKey = $values[$matchBy] ?? null;
+            $validator->after(
+                function (\Illuminate\Validation\Validator $validator) use ($values, $version, $matchBy): void {
+                    $externalKey = $values[$matchBy] ?? null;
 
-                if ($externalKey === null) {
-                    return;
-                }
+                    if ($externalKey === null) {
+                        return;
+                    }
 
-                if ($this->items->externalKeyExists($version, $externalKey)) {
-                    $validator->errors()->add($matchBy, 'Элемент с таким ключом уже существует в этой версии.');
+                    if ($this->items->externalKeyExists($version, $externalKey)) {
+                        $validator->errors()->add($matchBy, 'Элемент с таким ключом уже существует в этой версии.');
+                    }
                 }
-            });
+            );
         }
 
         if ($validator->fails()) {
@@ -141,8 +150,8 @@ final class DirectoryManualItemService
     }
 
     /**
-     * @param array<string, string|null> $values
-     * @param array<int, string>         $searchableKeys
+     * @param  array<string, string|null>  $values
+     * @param  array<int, string>  $searchableKeys
      */
     private function buildSearchText(array $values, array $searchableKeys = []): string
     {
@@ -151,8 +160,8 @@ final class DirectoryManualItemService
         }
 
         return collect($values)
-            ->filter(static fn (mixed $value): bool => is_scalar($value) && filled((string) $value))
-            ->map(static fn (mixed $value): string => Str::lower(trim((string) $value)))
+            ->filter(static fn(mixed $value): bool => is_scalar($value) && filled((string)$value))
+            ->map(static fn(mixed $value): string => Str::lower(trim((string)$value)))
             ->implode(' ');
     }
 }

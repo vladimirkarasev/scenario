@@ -9,7 +9,7 @@ use Module\Directories\Models\DirectoryImportSchedule;
 
 final class DirectoryImportScheduleRepository
 {
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function upsertForDirectory(string $directoryId, array $attributes): DirectoryImportSchedule
     {
         return DirectoryImportSchedule::query()->updateOrCreate(
@@ -38,7 +38,7 @@ final class DirectoryImportScheduleRepository
             ->first();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(DirectoryImportSchedule $schedule, array $attributes): DirectoryImportSchedule
     {
         $schedule->forceFill($attributes)->save();

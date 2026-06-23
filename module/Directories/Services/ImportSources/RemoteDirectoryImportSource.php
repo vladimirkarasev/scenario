@@ -39,11 +39,11 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
     {
         $config = $import->remote_config_json;
         $startPageRaw = $config['start_page'] ?? null;
-        $page = max(1, is_int($startPageRaw) ? $startPageRaw : (is_numeric($startPageRaw) ? (int) $startPageRaw : 1));
+        $page = max(1, is_int($startPageRaw) ? $startPageRaw : (is_numeric($startPageRaw) ? (int)$startPageRaw : 1));
         $perPageRaw = $config['per_page'] ?? null;
         $perPage = max(
             1,
-            is_int($perPageRaw) ? $perPageRaw : (is_numeric($perPageRaw) ? (int) $perPageRaw : $import->chunk_size),
+            is_int($perPageRaw) ? $perPageRaw : (is_numeric($perPageRaw) ? (int)$perPageRaw : $import->chunk_size),
         );
         $baseRowNumber = 2;
 
@@ -55,10 +55,10 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
 
             $authType = is_string($config['auth_type'] ?? null) ? $config['auth_type'] : 'none';
             $client = match ($authType) {
-                'bearer' => $client->withToken(is_scalar($t = data_get($config, 'auth.token')) ? (string) $t : ''),
+                'bearer' => $client->withToken(is_scalar($t = data_get($config, 'auth.token')) ? (string)$t : ''),
                 'basic' => $client->withBasicAuth(
-                    is_scalar($u = data_get($config, 'auth.username')) ? (string) $u : '',
-                    is_scalar($p = data_get($config, 'auth.password')) ? (string) $p : '',
+                    is_scalar($u = data_get($config, 'auth.username')) ? (string)$u : '',
+                    is_scalar($p = data_get($config, 'auth.password')) ? (string)$p : '',
                 ),
                 default => $client,
             };
@@ -71,12 +71,12 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
                 ...$configQuery,
                 $pageParam => $page,
                 $perPageParam => $perPage,
-            ], static fn (mixed $value): bool => $value !== null);
+            ], static fn(mixed $value): bool => $value !== null);
 
             if ($authType === 'api_key' && filled(data_get($config, 'auth.key'))) {
                 $authKey = data_get($config, 'auth.key');
                 $authValue = data_get($config, 'auth.value');
-                $query[is_scalar($authKey) ? (string) $authKey : ''] = is_scalar($authValue) ? (string) $authValue : '';
+                $query[is_scalar($authKey) ? (string)$authKey : ''] = is_scalar($authValue) ? (string)$authValue : '';
             }
 
             $method = strtoupper(is_string($config['method'] ?? null) ? $config['method'] : 'GET');
@@ -88,7 +88,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
 
             $payload = $response->json();
 
-            if (! is_array($payload)) {
+            if (!is_array($payload)) {
                 throw new DirectoryImportException('Remote API must return a JSON object or array.');
             }
 
@@ -96,7 +96,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
             $perPagePath = is_string($config['per_page_path'] ?? null) ? $config['per_page_path'] : '';
             $items = $this->extractRemoteItems($payload, $itemsPath);
             $resolvedPerPage = $this->resolveResponseValue($response, $payload, $perPagePath);
-            $effectivePerPage = is_numeric($resolvedPerPage) ? max(1, (int) $resolvedPerPage) : $perPage;
+            $effectivePerPage = is_numeric($resolvedPerPage) ? max(1, (int)$resolvedPerPage) : $perPage;
 
             if ($items->isEmpty()) {
                 break;
@@ -104,7 +104,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
 
             $importChunk($import->id, $items, $baseRowNumber);
 
-            if (! $this->hasRemoteNextPage($payload, $items->count(), $page, $effectivePerPage)) {
+            if (!$this->hasRemoteNextPage($payload, $items->count(), $page, $effectivePerPage)) {
                 break;
             }
 
@@ -114,11 +114,11 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
     }
 
     /**
-     * @param  array<string, mixed> $remote
+     * @param  array<string, mixed>  $remote
      * @return array<string, mixed>
      */
     /**
-     * @param  array<string, mixed> $remote
+     * @param  array<string, mixed>  $remote
      * @return array<string, mixed>
      */
     private function normalizeRemoteConfig(array $remote, int $chunkSize): array
@@ -126,16 +126,16 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
         /** @var array<string, mixed> $headers */
         $headers = collect(is_array($remote['headers'] ?? null) ? $remote['headers'] : [])
             ->mapWithKeys(
-                static fn (mixed $value, mixed $key): array => [(string) $key => is_scalar($value) ? (string) $value : ''],
+                static fn(mixed $value, mixed $key): array => [(string)$key => is_scalar($value) ? (string)$value : ''],
             )
             ->all();
         /** @var array<string, mixed> $query */
         $query = collect(is_array($remote['query'] ?? null) ? $remote['query'] : [])
             ->mapWithKeys(
-                static fn (mixed $value, mixed $key): array => [
-                    (string) $key => is_scalar(
+                static fn(mixed $value, mixed $key): array => [
+                    (string)$key => is_scalar(
                         $value,
-                    ) ? (string) $value : $value,
+                    ) ? (string)$value : $value,
                 ],
             )
             ->all();
@@ -160,7 +160,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
     }
 
     /**
-     * @param  array<string, mixed>|array<int, mixed> $payload
+     * @param  array<string, mixed>|array<int, mixed>  $payload
      * @return Collection<int, array<string, mixed>>
      */
     private function extractRemoteItems(array $payload, string $itemsPath): Collection
@@ -169,22 +169,22 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
             ? data_get($payload, $itemsPath, $payload)
             : $payload;
 
-        if (! is_array($items)) {
+        if (!is_array($items)) {
             throw new DirectoryImportException('Remote items path must point to an array.');
         }
 
         $filtered = collect($items)
-            ->filter(static fn (mixed $row): bool => is_array($row))
+            ->filter(static fn(mixed $row): bool => is_array($row))
             ->values();
 
         /** @var Collection<int, array<string, mixed>> $result */
-        $result = $filtered->map(static fn (mixed $row): array => (array) $row);
+        $result = $filtered->map(static fn(mixed $row): array => (array)$row);
 
         return $result;
     }
 
     /**
-     * @param array<string, mixed>|array<int, mixed> $payload
+     * @param  array<string, mixed>|array<int, mixed>  $payload
      */
     private function hasRemoteNextPage(array $payload, int $itemsCount, int $page, int $perPage): bool
     {
@@ -192,7 +192,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
         $currentPage = data_get($payload, 'current_page') ?? data_get($payload, 'meta.current_page') ?? $page;
 
         if (is_numeric($lastPage) && is_numeric($currentPage)) {
-            return (int) $currentPage < (int) $lastPage;
+            return (int)$currentPage < (int)$lastPage;
         }
 
         $nextLink = data_get($payload, 'next_page_url') ?? data_get($payload, 'links.next');
@@ -210,7 +210,7 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
      * - data.per_page
      * - meta.per_page
      *
-     * @param array<string, mixed>|array<int, mixed> $payload
+     * @param  array<string, mixed>|array<int, mixed>  $payload
      */
     private function resolveResponseValue(Response $response, array $payload, string $path): mixed
     {

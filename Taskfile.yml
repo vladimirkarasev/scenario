@@ -54,6 +54,12 @@ tasks:
     cmds:
       - "{{.COMPOSE}} exec {{.APP_SERVICE}} supervisorctl status laravel-queue"
 
+  reload:
+    desc: Reload application code (Octane workers + queue workers) after PHP changes
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan octane:reload"
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan queue:restart"
+
   composer:
     desc: Run Composer inside Laravel container
     cmds:

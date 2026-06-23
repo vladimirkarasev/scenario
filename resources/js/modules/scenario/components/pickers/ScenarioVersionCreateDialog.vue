@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { router } from '@inertiajs/vue3'
-import { toast } from 'vue-sonner'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { scenarioVersionRepository } from '@/modules/scenario/repositories/scenarioVersionRepository'
+import {ref, watch} from 'vue'
+import {router} from '@inertiajs/vue3'
+import {toast} from 'vue-sonner'
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog'
+import {Button} from '@/components/ui/button'
+import {Label} from '@/components/ui/label'
+import {Input} from '@/components/ui/input'
+import {scenarioVersionRepository} from '@/modules/scenario/repositories/scenarioVersionRepository'
 
 const props = defineProps<{
   open: boolean
@@ -42,7 +42,7 @@ async function submit() {
     const version = await scenarioVersionRepository.create(props.scenarioId, {
       name: trimmed,
       status: 'draft',
-      schema_json: { format: 'scenario-flow', version: 1, viewport: { x: 0, y: 0, zoom: 1 }, blocks: [], connections: [] },
+      schema_json: {format: 'scenario-flow', version: 1, viewport: {x: 0, y: 0, zoom: 1}, blocks: [], connections: []},
       input_fields: [],
     })
     emit('update:open', false)
@@ -70,14 +70,14 @@ async function submit() {
         <div class="space-y-1.5">
           <Label for="version-name">Название <span class="text-red-500">*</span></Label>
           <Input
-            id="version-name"
-            v-model="name"
-            placeholder="v2"
-            autofocus
-            required
-            :class="error ? 'border-red-300' : ''"
-            @keydown.enter.prevent="submit"
-            @input="error = null"
+              id="version-name"
+              v-model="name"
+              placeholder="v2"
+              autofocus
+              required
+              :class="error ? 'border-red-300' : ''"
+              @keydown.enter.prevent="submit"
+              @input="error = null"
           />
           <p v-if="error" class="text-[12px] text-red-600">{{ error }}</p>
         </div>

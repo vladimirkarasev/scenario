@@ -21,15 +21,20 @@ final class DirectoryRepository
     }
 
     /**
-     * @param  string[]                             $categoryIds
+     * @param  string[]  $categoryIds
      * @return LengthAwarePaginator<int, Directory>
      */
-    public function paginateForProject(Project $project, int $page, int $perPage, array $categoryIds = [], bool $uncategorized = false): LengthAwarePaginator
-    {
+    public function paginateForProject(
+        Project $project,
+        int $page,
+        int $perPage,
+        array $categoryIds = [],
+        bool $uncategorized = false
+    ): LengthAwarePaginator {
         $q = $this->listQuery($project);
 
         if ($categoryIds !== []) {
-            $q->whereHas('categories', static fn (Builder $sub) => $sub->whereIn('categories.id', $categoryIds));
+            $q->whereHas('categories', static fn(Builder $sub) => $sub->whereIn('categories.id', $categoryIds));
         } elseif ($uncategorized) {
             $q->whereDoesntHave('categories');
         }
@@ -37,13 +42,13 @@ final class DirectoryRepository
         return $q->paginate(perPage: $perPage, page: $page);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): Directory
     {
         return Directory::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Directory $directory, array $attributes): Directory
     {
         $directory->fill($attributes);
@@ -57,9 +62,9 @@ final class DirectoryRepository
         return $directory->load([
             'categories',
             'activeVersion',
-            'versions' => fn (Relation $q) => $q->withCount(['items', 'imports'])->orderByDesc('version_number'),
+            'versions' => fn(Relation $q) => $q->withCount(['items', 'imports'])->orderByDesc('version_number'),
             'latestVersion',
-            'imports' => fn (Relation $q) => $q->latest()->limit(20),
+            'imports' => fn(Relation $q) => $q->latest()->limit(20),
             'importSchedule',
         ]);
     }
@@ -81,9 +86,12 @@ final class DirectoryRepository
             ]);
     }
 
-    /** @param array<int, array<string, mixed>> $fields */
-    public function createInitialVersion(Directory $directory, array $fields, string $sourceType = 'manual'): DirectoryVersion
-    {
+    /** @param  array<int, array<string, mixed>>  $fields */
+    public function createInitialVersion(
+        Directory $directory,
+        array $fields,
+        string $sourceType = 'manual'
+    ): DirectoryVersion {
         return $directory->versions()->create([
             'version_number' => 1,
             'status' => 'draft',
@@ -124,7 +132,7 @@ final class DirectoryRepository
                 'categories',
                 'activeVersion',
                 'latestVersion',
-                'imports' => fn (Relation $q) => $q->latest()->limit(5),
+                'imports' => fn(Relation $q) => $q->latest()->limit(5),
                 'importSchedule',
             ])
             ->withCount('versions')

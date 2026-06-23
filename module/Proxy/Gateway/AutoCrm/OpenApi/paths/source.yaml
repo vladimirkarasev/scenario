@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - source'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: source
+  - name: source
     description: 'Управление источниками'
 paths:
   /source:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка источников'
       description: 'Получение списка источников'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: parent_id
+        - name: parent_id
           in: query
           description: 'ID родительского источника'
           schema:
@@ -45,4 +39,4 @@ paths:
                   $ref: '#/components/schemas/Source'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

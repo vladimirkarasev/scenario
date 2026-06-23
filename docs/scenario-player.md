@@ -13,21 +13,21 @@
 ## Структура файлов
 
 - Backend:
-  - `module/Scenario/Enums`
-  - `module/Scenario/Models`
-  - `module/Scenario/DTO`
-  - `module/Scenario/Services`
-  - `module/Scenario/Http/Controllers/ScenarioRunController.php`
-  - `module/Scenario/routes/api.php`
+    - `module/Scenario/Enums`
+    - `module/Scenario/Models`
+    - `module/Scenario/DTO`
+    - `module/Scenario/Services`
+    - `module/Scenario/Http/Controllers/ScenarioRunController.php`
+    - `module/Scenario/routes/api.php`
 - Frontend:
-  - `resources/js/Pages/ScenarioPlayer.vue`
-  - `resources/js/components/ScenarioPlayer.vue`
-  - `resources/js/components/BlockRenderer.vue`
-  - `resources/js/components/ConditionRenderer.vue`
-  - `resources/js/components/GutenbergBlockRenderer.vue`
-  - `resources/js/composables/useScenarioPlayer.ts`
-  - `resources/js/lib/scenario-player-types.ts`
-  - `resources/js/lib/scenario-player-variables.ts`
+    - `resources/js/Pages/ScenarioPlayer.vue`
+    - `resources/js/components/ScenarioPlayer.vue`
+    - `resources/js/components/BlockRenderer.vue`
+    - `resources/js/components/ConditionRenderer.vue`
+    - `resources/js/components/GutenbergBlockRenderer.vue`
+    - `resources/js/composables/useScenarioPlayer.ts`
+    - `resources/js/lib/scenario-player-types.ts`
+    - `resources/js/lib/scenario-player-variables.ts`
 
 ## Пример snapshot graph JSON
 
@@ -116,6 +116,6 @@
 - Controller: `DashboardController::playScenario()`
 - Page: `resources/js/Pages/ScenarioPlayer.vue`
 - Player сам создаёт run через `POST /api/scenario-runs` и дальше ходит в:
-  - `GET /api/scenario-runs/{run}`
-  - `POST /api/scenario-runs/{run}/continue`
-  - `POST /api/scenario-runs/{run}/jump`
+    - `GET /api/scenario-runs/{run}`
+    - `POST /api/scenario-runs/{run}/continue`
+    - `POST /api/scenario-runs/{run}/jump`

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - incadea'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: incadea
+  - name: incadea
     description: Incadea
 paths:
   /incadea:
@@ -22,33 +18,28 @@ paths:
       summary: 'Получение истории изменений автомобилей на складе'
       description: 'Получение истории изменений автомобилей на складе'
       parameters:
-        -
-          name: vehicle_receipt_date_changed
+        - name: vehicle_receipt_date_changed
           in: query
           description: 'Дата прихода на склад изменена (0 - Нет, 1 - Да)'
           schema:
             type: integer
-        -
-          name: updated_since
+        - name: updated_since
           in: query
           description: 'Дата изменения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
           schema:
             type: string
-        -
-          name: updated_till
+        - name: updated_till
           in: query
           description: 'Дата изменения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус(active - Новая, deleted - Удалена, error - Ошибка, progress - В процессе, all - Все)'
           schema:
             type: string
             default: active
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -64,7 +55,7 @@ paths:
                   $ref: '#/components/schemas/Incadea'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/incadea/{id}':
     put:
       tags:
@@ -72,8 +63,7 @@ paths:
       summary: 'Изменение записи об изменении автомобиля по ID'
       description: 'Изменение записи об изменении автомобиля по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -89,10 +79,10 @@ paths:
       responses:
         200:
           description: 'Успешное изменение по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -105,8 +95,7 @@ paths:
       summary: 'Удаление записи об изменении автомобиля по ID'
       description: 'Удаление записи об изменении автомобиля по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -115,10 +104,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

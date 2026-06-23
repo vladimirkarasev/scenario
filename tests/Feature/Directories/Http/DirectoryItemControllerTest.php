@@ -41,7 +41,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Alpha']);
         $this->makeItem($version, ['name' => 'Beta']);
 
@@ -58,8 +58,8 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $v1        = $this->makeVersion($directory, isActive: true, versionNumber: 1);
-        $v2        = $this->makeVersion($directory, isActive: false, versionNumber: 2);
+        $v1 = $this->makeVersion($directory, isActive: true, versionNumber: 1);
+        $v2 = $this->makeVersion($directory, isActive: false, versionNumber: 2);
         $this->makeItem($v1, ['name' => 'Item V1']);
         $this->makeItem($v2, ['name' => 'Item V2']);
 
@@ -131,7 +131,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true, schema: [
+        $version = $this->makeVersion($directory, isActive: true, schema: [
             ['key' => 'name', 'name' => 'Name', 'type' => 'string'],
         ]);
         $item = $this->makeItem($version, ['name' => 'Старое']);
@@ -156,8 +156,8 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
-        $item      = $this->makeItem($version);
+        $version = $this->makeVersion($directory, isActive: true);
+        $item = $this->makeItem($version);
 
         $this->actingAs($user)
             ->deleteJson("/api/directories/{$directory->id}/items/{$item->id}")
@@ -177,10 +177,10 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
-        $a         = $this->makeItem($version);
-        $b         = $this->makeItem($version);
-        $c         = $this->makeItem($version);
+        $version = $this->makeVersion($directory, isActive: true);
+        $a = $this->makeItem($version);
+        $b = $this->makeItem($version);
+        $c = $this->makeItem($version);
 
         $this->actingAs($user)
             ->deleteJson("/api/directories/{$directory->id}/items", [
@@ -200,8 +200,8 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
-        $item      = $this->makeItem($version);
+        $version = $this->makeVersion($directory, isActive: true);
+        $item = $this->makeItem($version);
 
         $this->actingAs($user)
             ->deleteJson("/api/directories/{$directory->id}/items", ['ids' => []])
@@ -221,13 +221,13 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
-        $item      = $this->makeItem($version, ['name' => 'Alpha', 'code' => 'A1']);
+        $version = $this->makeVersion($directory, isActive: true);
+        $item = $this->makeItem($version, ['name' => 'Alpha', 'code' => 'A1']);
 
         $this->actingAs($user)
             ->getJson("/api/directories/{$directory->id}/items")
             ->assertOk()
-            ->assertJsonPath('data.0.id', (string) $item->id)
+            ->assertJsonPath('data.0.id', (string)$item->id)
             ->assertJsonPath('data.0.type', 'directory-item')
             ->assertJsonStructure(['data' => [['id', 'type', 'attributes']]])
             ->assertJsonPath('data.0.attributes.data.name', 'Alpha')
@@ -241,16 +241,18 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version);
 
         $this->actingAs($user)
             ->getJson("/api/directories/{$directory->id}/items")
             ->assertOk()
             ->assertJsonStructure([
-                'data' => [[
-                    'attributes' => ['parent_id', 'external_key', 'data', 'created_at'],
-                ]],
+                'data' => [
+                    [
+                        'attributes' => ['parent_id', 'external_key', 'data', 'created_at'],
+                    ]
+                ],
             ]);
     }
 
@@ -279,7 +281,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Alpha', 'code' => 'A1', 'level' => '3']);
 
         $response = $this->actingAs($user)
@@ -301,7 +303,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Beta', 'code' => 'B2', 'level' => '1']);
 
         $response = $this->actingAs($user)
@@ -322,7 +324,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Gamma', 'code' => 'G3', 'level' => '2']);
 
         $response = $this->actingAs($user)
@@ -343,7 +345,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Delta']);
 
         $response = $this->actingAs($user)
@@ -360,7 +362,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Epsilon', 'code' => 'E5']);
 
         $response = $this->actingAs($user)
@@ -385,7 +387,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItemWithSearchText($version, ['name' => 'Иванов Иван'], 'Иванов Иван');
         $this->makeItemWithSearchText($version, ['name' => 'Петров Пётр'], 'Петров Пётр');
 
@@ -403,7 +405,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItemWithSearchText($version, ['name' => 'Сидоров'], 'Сидоров');
 
         $this->actingAs($user)
@@ -419,7 +421,7 @@ final class DirectoryItemControllerTest extends TestCase
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory($project);
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItemWithSearchText($version, ['name' => 'Москва'], 'Москва');
         $this->makeItemWithSearchText($version, ['name' => 'Казань'], 'Казань');
 
@@ -437,9 +439,9 @@ final class DirectoryItemControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $user    = User::factory()->create([
+        $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -453,9 +455,9 @@ final class DirectoryItemControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'      => 'Project ' . Str::random(4),
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
     }
@@ -463,43 +465,47 @@ final class DirectoryItemControllerTest extends TestCase
     private function makeDirectory(Project $project): Directory
     {
         return Directory::query()->create([
-            'project_id'  => $project->id,
-            'name'        => 'Directory ' . Str::random(4),
-            'slug'        => 'dir-' . Str::random(6),
+            'project_id' => $project->id,
+            'name' => 'Directory '.Str::random(4),
+            'slug' => 'dir-'.Str::random(6),
             'source_type' => 'manual',
         ]);
     }
 
-    /** @param array<int, array<string, mixed>> $schema */
-    private function makeVersion(Directory $directory, bool $isActive = false, int $versionNumber = 1, array $schema = []): DirectoryVersion
-    {
+    /** @param  array<int, array<string, mixed>>  $schema */
+    private function makeVersion(
+        Directory $directory,
+        bool $isActive = false,
+        int $versionNumber = 1,
+        array $schema = []
+    ): DirectoryVersion {
         return DirectoryVersion::query()->create([
-            'directory_id'   => $directory->id,
+            'directory_id' => $directory->id,
             'version_number' => $versionNumber,
-            'is_active'      => $isActive,
-            'source_type'    => 'manual',
-            'status'         => $isActive ? 'active' : 'draft',
-            'schema_json'    => $schema,
+            'is_active' => $isActive,
+            'source_type' => 'manual',
+            'status' => $isActive ? 'active' : 'draft',
+            'schema_json' => $schema,
         ]);
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     private function makeItem(DirectoryVersion $version, array $data = []): DirectoryItem
     {
         return DirectoryItem::query()->create([
             'directory_version_id' => $version->id,
-            'data_json'            => $data,
-            'search_text'          => implode(' ', array_values($data)),
+            'data_json' => $data,
+            'search_text' => implode(' ', array_values($data)),
         ]);
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     private function makeItemWithSearchText(DirectoryVersion $version, array $data, string $searchText): DirectoryItem
     {
         return DirectoryItem::query()->create([
             'directory_version_id' => $version->id,
-            'data_json'            => $data,
-            'search_text'          => $searchText,
+            'data_json' => $data,
+            'search_text' => $searchText,
         ]);
     }
 }

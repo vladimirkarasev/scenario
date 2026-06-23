@@ -18,7 +18,8 @@ final class DirectoryApiSyncController extends Controller
     public function __construct(
         private readonly DictionaryApiSyncService $syncService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function store(Request $request, Directory $directory): JsonResponse
     {
@@ -32,9 +33,9 @@ final class DirectoryApiSyncController extends Controller
         $options = null;
         if ($request->hasAny(['add_new', 'update_existing', 'delete_unused'])) {
             $options = new DirectoryImportOptions(
-                addNew: (bool) $request->input('add_new', true),
-                updateExisting: (bool) $request->input('update_existing', true),
-                deleteUnused: (bool) $request->input('delete_unused', true),
+                addNew: (bool)$request->input('add_new', true),
+                updateExisting: (bool)$request->input('update_existing', true),
+                deleteUnused: (bool)$request->input('delete_unused', true),
             );
         }
 

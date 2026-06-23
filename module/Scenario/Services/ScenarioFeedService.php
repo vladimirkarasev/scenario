@@ -27,7 +27,7 @@ final readonly class ScenarioFeedService
         $countsByStatus = $this->countsByStatus($projectId, $data);
 
         $total = $foldersTotal + $itemsTotal;
-        $lastPage = max(1, (int) ceil($total / $data->perPage));
+        $lastPage = max(1, (int)ceil($total / $data->perPage));
         $offset = ($data->page - 1) * $data->perPage;
 
         $folderOffset = min($offset, $foldersTotal);
@@ -64,7 +64,7 @@ final readonly class ScenarioFeedService
      */
     private function countsByStatus(?string $projectId, ScenarioFeedData $data): array
     {
-        $base = fn (?string $status): ScenarioFeedData => new ScenarioFeedData(
+        $base = fn(?string $status): ScenarioFeedData => new ScenarioFeedData(
             parentSet: $data->parentSet,
             parentId: $data->parentId,
             search: $data->search,
@@ -91,8 +91,11 @@ final readonly class ScenarioFeedService
     private function foldersQuery(?string $projectId, ScenarioFeedData $data): Builder
     {
         return Category::query()
-            ->when($data->parentSet && $data->parentId === null, static fn (Builder $q) => $q->whereNull('parent_id'))
-            ->when($data->parentSet && $data->parentId !== null, static fn (Builder $q) => $q->where('parent_id', $data->parentId))
+            ->when($data->parentSet && $data->parentId === null, static fn(Builder $q) => $q->whereNull('parent_id'))
+            ->when(
+                $data->parentSet && $data->parentId !== null,
+                static fn(Builder $q) => $q->where('parent_id', $data->parentId)
+            )
             ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($projectId): void {
                 $q->from('model_has_categories')
                     ->whereColumn('model_has_categories.category_id', 'categories.id')
@@ -103,7 +106,10 @@ final readonly class ScenarioFeedService
             })
             ->when(
                 $data->search !== null,
-                static fn (Builder $q) => $q->whereRaw('LOWER(categories.name) like ?', ['%'.mb_strtolower((string) $data->search).'%']),
+                static fn(Builder $q) => $q->whereRaw(
+                    'LOWER(categories.name) like ?',
+                    ['%'.mb_strtolower((string)$data->search).'%']
+                ),
             )
             ->orderBy('name');
     }
@@ -112,30 +118,30 @@ final readonly class ScenarioFeedService
     private function itemsQuery(?string $projectId, ScenarioFeedData $data): Builder
     {
         return Scenario::query()
-            ->when($projectId !== null, static fn (Builder $q) => $q->where('project_id', $projectId))
+            ->when($projectId !== null, static fn(Builder $q) => $q->where('project_id', $projectId))
             ->when(
                 $data->parentSet && $data->parentId !== null,
-                static fn (Builder $q) => $q->whereHas(
+                static fn(Builder $q) => $q->whereHas(
                     'categories',
-                    static fn (Builder $sub) => $sub->where('categories.id', $data->parentId),
+                    static fn(Builder $sub) => $sub->where('categories.id', $data->parentId),
                 ),
             )
             ->when(
                 $data->parentSet && $data->parentId === null,
-                static fn (Builder $q) => $q->whereDoesntHave('categories'),
+                static fn(Builder $q) => $q->whereDoesntHave('categories'),
             )
             ->when(
                 $data->status !== null,
-                static fn (Builder $q) => $q->where('scenarios.status', $data->status),
+                static fn(Builder $q) => $q->where('scenarios.status', $data->status),
             )
             ->when(
                 $data->excludeScenarioId !== null,
-                static fn (Builder $q) => $q->where('scenarios.id', '!=', $data->excludeScenarioId),
+                static fn(Builder $q) => $q->where('scenarios.id', '!=', $data->excludeScenarioId),
             )
             ->when(
                 $data->search !== null,
                 static function (Builder $q) use ($data): void {
-                    $like = '%'.mb_strtolower((string) $data->search).'%';
+                    $like = '%'.mb_strtolower((string)$data->search).'%';
                     $q->where(static function (Builder $w) use ($like): void {
                         $w->whereRaw('LOWER(scenarios.name) like ?', [$like])
                             ->orWhereRaw('LOWER(scenarios.description) like ?', [$like])
@@ -150,21 +156,23 @@ final readonly class ScenarioFeedService
     private function loadFolders(?string $projectId, ScenarioFeedData $data, int $offset, int $take): array
     {
         $rows = $this->foldersQuery($projectId, $data)
-            ->withCount(['children' => static function (Builder $q) use ($projectId): void {
-                $q->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($projectId): void {
-                    $sub->from('model_has_categories')
-                        ->whereColumn('model_has_categories.category_id', 'categories.id')
-                        ->where('model_has_categories.model_type', Scenario::class);
-                    if ($projectId !== null) {
-                        $sub->where('model_has_categories.project_id', $projectId);
-                    }
-                });
-            }])
+            ->withCount([
+                'children' => static function (Builder $q) use ($projectId): void {
+                    $q->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($projectId): void {
+                        $sub->from('model_has_categories')
+                            ->whereColumn('model_has_categories.category_id', 'categories.id')
+                            ->where('model_has_categories.model_type', Scenario::class);
+                        if ($projectId !== null) {
+                            $sub->where('model_has_categories.project_id', $projectId);
+                        }
+                    });
+                }
+            ])
             ->offset($offset)
             ->limit($take)
             ->get();
 
-        return $rows->map(fn (Category $c): array => [
+        return $rows->map(fn(Category $c): array => [
             'type' => 'folder',
             'id' => $c->id,
             'name' => $c->name,
@@ -185,7 +193,7 @@ final readonly class ScenarioFeedService
             ->limit($take)
             ->get();
 
-        return $rows->map(fn (Scenario $s): array => [
+        return $rows->map(fn(Scenario $s): array => [
             'type' => 'scenario',
             'id' => $s->id,
             'name' => $s->name,

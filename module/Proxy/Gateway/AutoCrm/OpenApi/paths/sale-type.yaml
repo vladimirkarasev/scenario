@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - sale-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: sale-type
+  - name: sale-type
     description: 'Типы продажи'
 paths:
   /sale-type:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка типов продажи'
       description: 'Получение списка типов продажи'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,7 +34,7 @@ paths:
                   $ref: '#/components/schemas/SaleType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/sale-type/{id}':
     get:
       tags:
@@ -47,8 +42,7 @@ paths:
       summary: 'Получение типа продажи по ID'
       description: 'Получение типа продажи по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id типа продажи'
           required: true
@@ -63,7 +57,7 @@ paths:
                 $ref: '#/components/schemas/SaleType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

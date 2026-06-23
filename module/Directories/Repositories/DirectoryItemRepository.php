@@ -12,7 +12,7 @@ use Module\Directories\Models\DirectoryVersion;
 final class DirectoryItemRepository
 {
     /**
-     * @param  array<string, array<string, mixed>> $filters
+     * @param  array<string, array<string, mixed>>  $filters
      * @return Collection<int, DirectoryItem>
      */
     public function latestForVersion(
@@ -30,7 +30,7 @@ final class DirectoryItemRepository
         }
 
         foreach ($filters as $key => $filter) {
-            if (! preg_match('/^[a-z0-9_]+$/i', $key)) {
+            if (!preg_match('/^[a-z0-9_]+$/i', $key)) {
                 continue;
             }
 
@@ -56,13 +56,13 @@ final class DirectoryItemRepository
             ->get();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): DirectoryItem
     {
         return DirectoryItem::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(DirectoryItem $item, array $attributes): DirectoryItem
     {
         $item->fill($attributes);
@@ -76,8 +76,11 @@ final class DirectoryItemRepository
         $item->delete();
     }
 
-    public function externalKeyExists(DirectoryVersion $version, string $externalKey, ?DirectoryItem $ignoreItem = null): bool
-    {
+    public function externalKeyExists(
+        DirectoryVersion $version,
+        string $externalKey,
+        ?DirectoryItem $ignoreItem = null
+    ): bool {
         $query = DirectoryItem::query()
             ->where('directory_version_id', $version->id)
             ->where('external_key', $externalKey);
@@ -112,7 +115,7 @@ final class DirectoryItemRepository
             ->delete();
     }
 
-    /** @param list<string> $keepExternalKeys */
+    /** @param  list<string>  $keepExternalKeys */
     public function deleteMissingExternalKeysForVersion(int $versionId, array $keepExternalKeys): int
     {
         if ($keepExternalKeys === []) {
@@ -128,12 +131,12 @@ final class DirectoryItemRepository
         return is_int($deleted) ? $deleted : 0;
     }
 
-    /** @param array<int, int> $ids */
+    /** @param  array<int, int>  $ids */
     public function bulkDeleteForDirectory(string $directoryId, array $ids): void
     {
         DirectoryItem::query()
             ->whereIn('id', $ids)
-            ->whereHas('version', static fn ($q) => $q->where('directory_id', $directoryId))
+            ->whereHas('version', static fn($q) => $q->where('directory_id', $directoryId))
             ->delete();
     }
 
@@ -165,8 +168,8 @@ final class DirectoryItemRepository
     }
 
     /**
-     * @param Builder<DirectoryItem> $query
-     * @param array<string, mixed>   $filter
+     * @param  Builder<DirectoryItem>  $query
+     * @param  array<string, mixed>  $filter
      */
     private function applyFilter(Builder $query, string $key, array $filter): void
     {
@@ -201,8 +204,8 @@ final class DirectoryItemRepository
     }
 
     /**
-     * @param Builder<DirectoryItem> $query
-     * @param list<string>           $values
+     * @param  Builder<DirectoryItem>  $query
+     * @param  list<string>  $values
      */
     private function applyMultiListFilter(Builder $query, string $key, array $values): void
     {
@@ -220,7 +223,7 @@ final class DirectoryItemRepository
         });
     }
 
-    /** @param Builder<DirectoryItem> $query */
+    /** @param  Builder<DirectoryItem>  $query */
     private function applyStringFilter(Builder $query, string $key, string $operator, string $value): void
     {
         match ($operator) {
@@ -230,32 +233,37 @@ final class DirectoryItemRepository
         };
     }
 
-    /** @param Builder<DirectoryItem> $query */
-    private function applyIntegerFilter(Builder $query, string $key, string $operator, string $value, ?string $valueTo): void
-    {
-        if (! is_numeric($value)) {
+    /** @param  Builder<DirectoryItem>  $query */
+    private function applyIntegerFilter(
+        Builder $query,
+        string $key,
+        string $operator,
+        string $value,
+        ?string $valueTo
+    ): void {
+        if (!is_numeric($value)) {
             return;
         }
 
         match ($operator) {
-            'gt' => $query->whereRaw('(data_json->>?)::bigint > ?', [$key, (int) $value]),
-            'lt' => $query->whereRaw('(data_json->>?)::bigint < ?', [$key, (int) $value]),
+            'gt' => $query->whereRaw('(data_json->>?)::bigint > ?', [$key, (int)$value]),
+            'lt' => $query->whereRaw('(data_json->>?)::bigint < ?', [$key, (int)$value]),
             'between' => $valueTo !== null && is_numeric($valueTo)
-                ? $query->whereRaw('(data_json->>?)::bigint >= ?', [$key, (int) $value])
-                    ->whereRaw('(data_json->>?)::bigint <= ?', [$key, (int) $valueTo])
-                : $query->whereRaw('(data_json->>?)::bigint = ?', [$key, (int) $value]),
-            default => $query->whereRaw('(data_json->>?)::bigint = ?', [$key, (int) $value]),
+                ? $query->whereRaw('(data_json->>?)::bigint >= ?', [$key, (int)$value])
+                    ->whereRaw('(data_json->>?)::bigint <= ?', [$key, (int)$valueTo])
+                : $query->whereRaw('(data_json->>?)::bigint = ?', [$key, (int)$value]),
+            default => $query->whereRaw('(data_json->>?)::bigint = ?', [$key, (int)$value]),
         };
     }
 
-    /** @param Builder<DirectoryItem> $query */
+    /** @param  Builder<DirectoryItem>  $query */
     private function applyBooleanFilter(Builder $query, string $key, string $value): void
     {
         $boolVal = in_array($value, ['true', '1'], true) ? 'true' : 'false';
         $query->whereRaw('data_json->>? = ?', [$key, $boolVal]);
     }
 
-    /** @param Builder<DirectoryItem> $query */
+    /** @param  Builder<DirectoryItem>  $query */
     private function applyListFilter(Builder $query, string $key, string $value): void
     {
         // Match both new JSON-array format '["a","b"]' and legacy plain string 'a'.
@@ -266,9 +274,15 @@ final class DirectoryItemRepository
         });
     }
 
-    /** @param Builder<DirectoryItem> $query */
-    private function applyDateFilter(Builder $query, string $key, string $operator, string $value, ?string $valueTo, string $castType): void
-    {
+    /** @param  Builder<DirectoryItem>  $query */
+    private function applyDateFilter(
+        Builder $query,
+        string $key,
+        string $operator,
+        string $value,
+        ?string $valueTo,
+        string $castType
+    ): void {
         $cast = $castType === 'timestamp' ? 'timestamp' : 'date';
 
         if ($operator === 'before') {

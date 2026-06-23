@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Module\Scenario\Services\Nodes;
 
 use Module\Scenario\Enums\ScenarioNodeType;
+use Module\Scenario\Services\Nodes\Action\ActionNodeHandler;
+use Module\Scenario\Services\Nodes\Block\BlockNodeHandler;
+use Module\Scenario\Services\Nodes\Condition\ConditionNodeHandler;
+use Module\Scenario\Services\Nodes\End\EndNodeHandler;
+use Module\Scenario\Services\Nodes\ScenarioLink\ScenarioLinkNodeHandler;
 
 final readonly class NodeHandlerRegistry
 {
@@ -15,7 +20,8 @@ final readonly class NodeHandlerRegistry
         private EndNodeHandler $end,
         private ScenarioLinkNodeHandler $scenarioLink,
         private DefaultNodeHandler $default,
-    ) {}
+    ) {
+    }
 
     public function for(string $type): NodeHandlerInterface
     {

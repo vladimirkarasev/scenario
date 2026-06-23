@@ -13,7 +13,7 @@ final class ProxyFieldBoolean extends ProxyField
         $this->rules(['boolean']);
     }
 
-    /** @param bool $value */
+    /** @param  bool  $value */
     public function default(mixed $value): static
     {
         return parent::default($value);

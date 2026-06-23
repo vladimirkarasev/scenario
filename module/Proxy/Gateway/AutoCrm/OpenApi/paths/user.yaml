@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - user'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: user
+  - name: user
     description: 'Управление пользователями'
 paths:
   /user:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка пользователей'
       description: 'Получение списка активных пользователей'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'Поиск пользователя по ID'
           schema:
             type: integer
-        -
-          name: positionCode
+        - name: positionCode
           in: query
           description: 'Поиск пользователя по коду должности'
           schema:
             type: string
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Получение дополнительных полей\nphotoUrl - Ссылка на фото сотрудника, email - Email пользователя positions - Список должностей пользователя dealer_code - Код дилера"
           schema:
@@ -51,4 +44,4 @@ paths:
                   $ref: '#/components/schemas/User'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

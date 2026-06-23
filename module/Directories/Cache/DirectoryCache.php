@@ -15,7 +15,7 @@ final class DirectoryCache
     /**
      * @template T
      *
-     * @param  \Closure(): T $callback
+     * @param  \Closure(): T  $callback
      * @return T
      */
     public static function rememberList(string $projectId, \Closure $callback): mixed
@@ -26,7 +26,7 @@ final class DirectoryCache
     /**
      * @template T
      *
-     * @param  \Closure(): T $callback
+     * @param  \Closure(): T  $callback
      * @return T
      */
     public static function rememberDetail(string $directoryId, \Closure $callback): mixed

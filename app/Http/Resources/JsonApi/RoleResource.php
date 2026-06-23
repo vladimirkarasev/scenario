@@ -18,7 +18,7 @@ final class RoleResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string) $this->id;
+        return (string)$this->id;
     }
 
     public function toType(Request $request): string

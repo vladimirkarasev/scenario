@@ -16,14 +16,18 @@ final class CustomActionHandler implements ActionHandlerInterface
 
     public function __construct(
         private readonly ActionDataResolver $dataResolver,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
         return ActionResult::success([
             'message' => 'Custom action handler placeholder executed.',
-            'config' => $this->dataResolver->resolve($action->config ?? [], $this->dataResolver->contextForAction($action, $input)),
+            'config' => $this->dataResolver->resolve(
+                $action->config ?? [],
+                $this->dataResolver->contextForAction($action, $input)
+            ),
             'input' => $input,
         ]);
     }

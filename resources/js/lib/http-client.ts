@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { toast } from 'vue-sonner'
-import { redirectToPartner } from '@/lib/auth-redirect'
+import {toast} from 'vue-sonner'
+import {redirectToPartner} from '@/lib/auth-redirect'
 
 const httpClient = axios.create({
     headers: {
@@ -64,9 +64,9 @@ httpClient.interceptors.response.use(
         isRefreshing = true
 
         try {
-            const { data } = await axios.post<{ access_token: string; refresh_token: string }>(
+            const {data} = await axios.post<{ access_token: string; refresh_token: string }>(
                 '/api/embed/auth/refresh',
-                { refresh_token: refreshToken },
+                {refresh_token: refreshToken},
             )
 
             sessionStorage.setItem('access_token', data.access_token)

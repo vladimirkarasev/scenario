@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - stage'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: stage
+  - name: stage
     description: 'Управление этапами лида'
 paths:
   /lms/stage/finish:
@@ -22,8 +18,7 @@ paths:
       summary: 'Завершение этапа лида'
       description: 'Завершение этапа лида'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'id этапа лида'
           required: true
@@ -45,7 +40,7 @@ paths:
                 $ref: '#/components/schemas/Stage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -59,8 +54,7 @@ paths:
       summary: 'Получение этапа лида по ID'
       description: 'Получение этапа лида по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID этапа'
           required: true
@@ -75,7 +69,7 @@ paths:
                 $ref: '#/components/schemas/Stage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

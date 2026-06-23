@@ -9,8 +9,8 @@ use InvalidArgumentException;
 final readonly class ApiGatewayConfig
 {
     /**
-     * @param array<string, mixed> $auth
-     * @param array<string, mixed> $headers
+     * @param  array<string, mixed>  $auth
+     * @param  array<string, mixed>  $headers
      */
     public function __construct(
         public string $name,
@@ -20,15 +20,16 @@ final readonly class ApiGatewayConfig
         public bool $mock = false,
         public array $auth = ['type' => 'none'],
         public array $headers = [],
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $config */
+    /** @param  array<string, mixed>  $config */
     public static function fromArray(string $name, array $config): self
     {
         $rawAuth = $config['auth'] ?? ['type' => 'none'];
         $rawHeaders = $config['headers'] ?? [];
 
-        if (! is_array($rawAuth) || ! is_array($rawHeaders)) {
+        if (!is_array($rawAuth) || !is_array($rawHeaders)) {
             throw new InvalidArgumentException('Gateway auth and headers config must be arrays.');
         }
 
@@ -38,10 +39,10 @@ final readonly class ApiGatewayConfig
 
         return new self(
             name: $name,
-            baseUri: is_scalar($baseUri) ? (string) $baseUri : '',
-            timeout: is_numeric($timeout) ? (float) $timeout : 10.0,
-            connectTimeout: is_numeric($connectTimeout) ? (float) $connectTimeout : 5.0,
-            mock: (bool) ($config['mock'] ?? false),
+            baseUri: is_scalar($baseUri) ? (string)$baseUri : '',
+            timeout: is_numeric($timeout) ? (float)$timeout : 10.0,
+            connectTimeout: is_numeric($connectTimeout) ? (float)$connectTimeout : 5.0,
+            mock: (bool)($config['mock'] ?? false),
             auth: self::toStringKeyed($rawAuth),
             headers: self::toStringKeyed($rawHeaders),
         );
@@ -55,7 +56,7 @@ final readonly class ApiGatewayConfig
     {
         $result = [];
         foreach ($array as $key => $value) {
-            $result[(string) $key] = $value;
+            $result[(string)$key] = $value;
         }
 
         return $result;

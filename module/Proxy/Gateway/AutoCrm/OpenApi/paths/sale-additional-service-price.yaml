@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - sale-additional-service-price'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: sale-additional-service-price
+  - name: sale-additional-service-price
     description: 'Управление стоимостью дополнительных услуг'
 paths:
   /sale-additional-service-price:
@@ -22,56 +18,47 @@ paths:
       summary: 'Получение списка групп стоимостей дополнительных услуг'
       description: 'Получение списка групп стоимостей дополнительных услуг'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID группы'
           schema:
             type: integer
-        -
-          name: serviceId
+        - name: serviceId
           in: query
           description: 'ID услуги'
           schema:
             type: integer
-        -
-          name: brandId
+        - name: brandId
           in: query
           description: 'ID бренда'
           schema:
             type: integer
-        -
-          name: modelId
+        - name: modelId
           in: query
           description: 'ID модели'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус группы (1 - Активный, 2 - Удалено). По умолчанию только активные.'
           schema:
             type: integer
-        -
-          name: startDate
+        - name: startDate
           in: query
           description: 'Дата начала действия стоимости, формат DD.MM.YYYY'
           schema:
             type: string
-        -
-          name: endDate
+        - name: endDate
           in: query
           description: 'Дата окончания действия стоимости, формат DD.MM.YYYY'
           schema:
             type: string
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Получение дополнительных полей, можно передать несколько значений через запятую\n* pricesNamed - список стоимостей по автомобилю с названиями параметров авто вместо их ID"
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -87,7 +74,7 @@ paths:
                   $ref: '#/components/schemas/SaleAdditionalServicePriceGroup'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/sale-additional-service-price/{id}':
     get:
       tags:
@@ -95,15 +82,13 @@ paths:
       summary: 'Получение группы стоимостей дополнительной услуги по ID'
       description: 'Получение группы стоимостей дополнительной услуги по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID группы'
           required: true
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Получение дополнительных полей, можно передать несколько значений через запятую\n* pricesNamed - список стоимостей по автомобилю с названиями параметров авто вместо их ID"
           schema:
@@ -117,7 +102,7 @@ paths:
                 $ref: '#/components/schemas/SaleAdditionalServicePriceGroup'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

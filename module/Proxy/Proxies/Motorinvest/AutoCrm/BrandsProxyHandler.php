@@ -12,13 +12,15 @@ use Module\Proxy\Proxies\Base\AutoCrm\BrandsProxyHandler as BaseBrandsProxyHandl
 
 final class BrandsProxyHandler extends BaseBrandsProxyHandler
 {
-    public function __construct(private readonly MotorinvestAutoCrmGateway $autoCrm) {}
+    public function __construct(private readonly MotorinvestAutoCrmGateway $autoCrm)
+    {
+    }
 
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         $brands = $this->autoCrm->brands();
 
-        $items = array_map(static fn (AutoCrmData $brand): array => [
+        $items = array_map(static fn(AutoCrmData $brand): array => [
             'id' => $brand->id(),
             'name' => $brand->get('name'),
         ], $brands);

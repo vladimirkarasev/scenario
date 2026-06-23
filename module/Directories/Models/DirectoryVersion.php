@@ -10,20 +10,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int                                                                   $id
- * @property string                                                                $directory_id
- * @property int                                                                   $version_number
- * @property string|null                                                           $code
- * @property string|null                                                           $status
- * @property bool                                                                  $is_active
- * @property string                                                                $source_type
+ * @property int $id
+ * @property string $directory_id
+ * @property int $version_number
+ * @property string|null $code
+ * @property string|null $status
+ * @property bool $is_active
+ * @property string $source_type
  * @property array{add_new: bool, update_existing: bool, delete_unused: bool}|null $sync_options
- * @property bool                                                                  $allow_other
- * @property string|null                                                           $other_label
- * @property string|null                                                           $other_external_key
- * @property array<int, array<string, mixed>>                                      $schema_json
- * @property int|null                                                              $source_import_id
- * @property array<string, mixed>|null                                             $source_metadata_json
+ * @property bool $allow_other
+ * @property string|null $other_label
+ * @property string|null $other_external_key
+ * @property array<int, array<string, mixed>> $schema_json
+ * @property int|null $source_import_id
+ * @property array<string, mixed>|null $source_metadata_json
  * @property-read int|null $items_count
  * @property-read int|null $imports_count
  */

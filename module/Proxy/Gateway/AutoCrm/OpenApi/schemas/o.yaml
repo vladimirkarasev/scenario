@@ -28,10 +28,8 @@ components:
           description: 'ID клиента'
         common_client_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID клиента'
         date:
           type: string
@@ -39,10 +37,8 @@ components:
           description: Дата
         vin:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: VIN
         total_amount:
           type: number
@@ -58,100 +54,74 @@ components:
           description: 'Внешний ID статуса'
         payment_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа оплаты'
         payment_method_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID способа оплаты'
         payment_status_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID статуса оплаты'
         payment_status_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID статуса оплаты'
         delivery_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа доставки'
         delivery_method_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID способа доставки'
         delivery_address:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Адрес доставки'
         delivery_amount:
           oneOf:
-            -
-              type: number
-            -
-              type: 'null'
+            - type: number
+            - type: 'null'
           description: 'Сумма доставки'
         type:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
         external_service:
           type: integer
           description: 'Идентификатор внешней системы, из которой пришёл заказ'
         source:
           oneOf:
-            -
-              type: integer
+            - type: integer
               enum:
                 - 1
                 - 2
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
         check_number:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Номер чека'
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Комментарий
         email:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Email
         positions:
           type: array
@@ -184,10 +154,8 @@ components:
           description: Дата
         vin:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: VIN
         total_amount:
           type: number
@@ -200,76 +168,56 @@ components:
           description: 'ID статуса'
         payment_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа оплаты'
         payment_status_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID статуса оплаты'
         delivery_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа доставки'
         delivery_address:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Адрес доставки'
         delivery_amount:
           oneOf:
-            -
-              type: number
-            -
-              type: 'null'
+            - type: number
+            - type: 'null'
           description: 'Сумма доставки'
         type:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
         source:
           oneOf:
-            -
-              type: integer
+            - type: integer
               enum:
                 - 1
                 - 2
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
         check_number:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Номер чека'
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Комментарий
         email:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Email
         positions:
           type: array
@@ -305,19 +253,15 @@ components:
           description: Сумма
         action_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата действия'
         expiry_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата окончания'
       description: 'Позиция заказа'
     OrderPositionForm:
@@ -340,19 +284,15 @@ components:
           description: Сумма
         action_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата действия'
         expiry_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата окончания'
       description: 'Позиция заказа'
     OrderReceipt:

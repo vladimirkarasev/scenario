@@ -15,8 +15,11 @@ final class ActionRunRepository
     {
         return ActionRun::query()
             ->with('action')
-            ->when($filters->status !== null, static fn ($query): mixed => $query->where('status', $filters->status))
-            ->when($filters->actionId !== null, static fn ($query): mixed => $query->where('action_id', $filters->actionId))
+            ->when($filters->status !== null, static fn($query): mixed => $query->where('status', $filters->status))
+            ->when(
+                $filters->actionId !== null,
+                static fn($query): mixed => $query->where('action_id', $filters->actionId)
+            )
             ->latest()
             ->limit($filters->limit)
             ->get();

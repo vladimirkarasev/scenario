@@ -76,7 +76,7 @@ final class UpsertDirectoryImportScheduleRequest extends FormRequest
                 $matchBy = $this->input('match_by');
                 $matchBy = is_string($matchBy) ? $matchBy : null;
 
-                if ($matchBy !== null && ! $fieldKeys->contains($matchBy)) {
+                if ($matchBy !== null && !$fieldKeys->contains($matchBy)) {
                     $validator->errors()->add(
                         'match_by',
                         'The match_by field must reference one of the declared fields.'

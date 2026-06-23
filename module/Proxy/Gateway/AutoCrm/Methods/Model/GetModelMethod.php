@@ -28,6 +28,6 @@ final readonly class GetModelMethod extends AutoCrmShowMethod
     {
         return array_filter([
             'expand' => $this->expand,
-        ], static fn (mixed $value): bool => $value !== null);
+        ], static fn(mixed $value): bool => $value !== null);
     }
 }

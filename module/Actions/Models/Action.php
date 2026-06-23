@@ -14,21 +14,21 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 
 /**
- * @property string                                $id
- * @property string                                $name
- * @property string                                $key
- * @property string                                $code
- * @property string|null                           $description
- * @property string                                $type
- * @property bool                                  $is_active
- * @property array<string, mixed>|null             $config
- * @property array<string, mixed>|null             $schema
- * @property array<string, mixed>|null             $ui_schema
+ * @property string $id
+ * @property string $name
+ * @property string $key
+ * @property string $code
+ * @property string|null $description
+ * @property string $type
+ * @property bool $is_active
+ * @property array<string, mixed>|null $config
+ * @property array<string, mixed>|null $schema
+ * @property array<string, mixed>|null $ui_schema
  * @property array<int, array<string, mixed>>|null $input_fields
- * @property Carbon|null                           $created_at
- * @property Carbon|null                           $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Collection<int, ActionRun> $runs
- * @property-read ActionSchedule|null        $schedule
+ * @property-read ActionSchedule|null $schedule
  */
 final class Action extends Model
 {

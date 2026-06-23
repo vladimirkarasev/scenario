@@ -14,7 +14,8 @@ final class EmbedAuthExchangeController extends Controller
 {
     public function __construct(
         private readonly EmbedAuthTokenService $tokenService,
-    ) {}
+    ) {
+    }
 
     public function __invoke(EmbedAuthExchangeRequest $request): JsonResponse
     {

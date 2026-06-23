@@ -21,7 +21,8 @@ final class DirectoryImportController extends Controller
     public function __construct(
         private readonly ImportService $importService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request, Directory $directory): AnonymousResourceCollection
     {
@@ -35,13 +36,13 @@ final class DirectoryImportController extends Controller
             ->latest();
 
         if ($versionId = $request->query('version_id')) {
-            $query->where('directory_version_id', (int) $versionId);
+            $query->where('directory_version_id', (int)$versionId);
         }
 
         $imports = $query->paginate(50);
 
         return DirectoryImportResource::collection(
-            $imports->map(fn (DirectoryImport $import): array => $this->directoryService->importPayload($import),
+            $imports->map(fn(DirectoryImport $import): array => $this->directoryService->importPayload($import),
             )->values()->all(),
         )->additional([
             'meta' => [

@@ -9,7 +9,7 @@ use Module\Actions\Models\ActionSchedule;
 
 final class ActionScheduleRepository
 {
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function upsertForAction(string $actionId, array $attributes): ActionSchedule
     {
         return ActionSchedule::query()->updateOrCreate(
@@ -38,7 +38,7 @@ final class ActionScheduleRepository
             ->first();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(ActionSchedule $schedule, array $attributes): ActionSchedule
     {
         $schedule->forceFill($attributes)->save();

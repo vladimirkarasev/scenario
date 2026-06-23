@@ -26,7 +26,8 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
     public function __construct(
         private readonly CategoryRepositoryContract $repository,
         private readonly CacheRepository $cache,
-    ) {}
+    ) {
+    }
 
     /** @return Collection<int, Category> */
     public function forModel(string $modelClass, ?string $projectId = null): Collection
@@ -34,7 +35,7 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
         return $this->remember(
             'forModel',
             [$modelClass, $projectId],
-            fn (): Collection => $this->repository->forModel($modelClass, $projectId),
+            fn(): Collection => $this->repository->forModel($modelClass, $projectId),
         );
     }
 
@@ -44,7 +45,7 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
         return $this->remember(
             'forModelByParent',
             [$modelClass, $parentId, $projectId],
-            fn (): Collection => $this->repository->forModelByParent($modelClass, $parentId, $projectId),
+            fn(): Collection => $this->repository->forModelByParent($modelClass, $parentId, $projectId),
         );
     }
 
@@ -76,7 +77,7 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
         return $this->repository->loadRelations($category);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes, ?int $actorId): Category
     {
         $category = $this->repository->create($attributes, $actorId);
@@ -85,7 +86,7 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
         return $category;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Category $category, array $attributes, ?int $actorId): Category
     {
         $updated = $this->repository->update($category, $attributes, $actorId);
@@ -104,21 +105,21 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
      * Кешируем «сырые» атрибуты моделей (примитивы), а не сами Eloquent-объекты —
      * это надёжно при любом драйвере кеша. На чтении регидрируем в модели.
      *
-     * @param  list<string|null>                    $parts
-     * @param  Closure(): Collection<int, Category> $resolver
+     * @param  list<string|null>  $parts
+     * @param  Closure(): Collection<int, Category>  $resolver
      * @return Collection<int, Category>
      */
     private function remember(string $method, array $parts, Closure $resolver): Collection
     {
-        $signature = md5(implode('|', array_map(static fn (?string $p): string => $p ?? 'null', $parts)));
+        $signature = md5(implode('|', array_map(static fn(?string $p): string => $p ?? 'null', $parts)));
         $key = sprintf('categories:%d:%s:%s', $this->version(), $method, $signature);
 
         /** @var list<array<string, mixed>> $rows */
         $rows = $this->cache->remember(
             $key,
             self::TTL,
-            static fn (): array => $resolver()
-                ->map(static fn (Category $category): array => $category->getAttributes())
+            static fn(): array => $resolver()
+                ->map(static fn(Category $category): array => $category->getAttributes())
                 ->values()
                 ->all(),
         );
@@ -130,7 +131,7 @@ final class CachedCategoryRepository implements CategoryRepositoryContract
     {
         $version = $this->cache->get(self::VERSION_KEY, 1);
 
-        return is_numeric($version) ? (int) $version : 1;
+        return is_numeric($version) ? (int)$version : 1;
     }
 
     private function flush(): void

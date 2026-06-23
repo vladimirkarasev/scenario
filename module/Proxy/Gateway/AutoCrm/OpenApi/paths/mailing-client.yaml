@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - mailing-client'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: mailing-client
+  - name: mailing-client
     description: 'Письма по e-mail рассылкам'
 paths:
   /mailing/client:
@@ -22,32 +18,27 @@ paths:
       summary: 'Получение списка писем почтовой рассылки'
       description: 'Получение списка писем почтовой рассылки'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID письма'
           schema:
             type: integer
-        -
-          name: broadcast_id
+        - name: broadcast_id
           in: query
           description: 'ID рассылки'
           schema:
             type: integer
-        -
-          name: client_id
+        - name: client_id
           in: query
           description: 'ID клиента дилера'
           schema:
             type: integer
-        -
-          name: common_client_id
+        - name: common_client_id
           in: query
           description: 'ID клиента дистрибьютора'
           schema:
             type: integer
-        -
-          name: object_type
+        - name: object_type
           in: query
           description: 'Тип сообщения'
           schema:
@@ -59,20 +50,17 @@ paths:
               - 4
               - 5
             description: '1 - Массовая рассылка, 2 - Триггерная рассылка, 3 - Комментарий к лиду, 4 - Опрос, 5 - Анкета'
-        -
-          name: createdSince
+        - name: createdSince
           in: query
           description: 'Дата создания с (ГГГГ-ММ-ДД)'
           schema:
             type: string
-        -
-          name: createdTill
+        - name: createdTill
           in: query
           description: 'Дата создания по (ГГГГ-ММ-ДД)'
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -88,7 +76,7 @@ paths:
                   $ref: '#/components/schemas/MailClient'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/mailing/client/{id}':
     get:
       tags:
@@ -96,8 +84,7 @@ paths:
       summary: 'Получение письма по ID'
       description: 'Получение письма по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID письма'
           required: true
@@ -112,7 +99,7 @@ paths:
                 $ref: '#/components/schemas/MailClient'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

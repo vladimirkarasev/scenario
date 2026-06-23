@@ -1,6 +1,6 @@
-import { computed, onMounted, ref } from 'vue'
-import { actionRunRepository } from '@/modules/actions/repositories/actionRunRepository'
-import type { ActionRun } from '@/modules/actions/types/action'
+import {computed, onMounted, ref} from 'vue'
+import {actionRunRepository} from '@/modules/actions/repositories/actionRunRepository'
+import type {ActionRun} from '@/modules/actions/types/action'
 
 export type RunStatusFilter = 'all' | 'success' | 'failed' | 'skipped' | 'running'
 
@@ -15,7 +15,7 @@ export function useActionRunList() {
         loading.value = true
         error.value = ''
         try {
-            runs.value = await actionRunRepository.list(new URLSearchParams({ 'page[size]': '200' }))
+            runs.value = await actionRunRepository.list(new URLSearchParams({'page[size]': '200'}))
         } catch (e: unknown) {
             error.value = e instanceof Error ? e.message : String(e)
         } finally {
@@ -44,5 +44,5 @@ export function useActionRunList() {
 
     onMounted(load)
 
-    return { runs, loading, error, search, statusFilter, filtered, counts, load }
+    return {runs, loading, error, search, statusFilter, filtered, counts, load}
 }

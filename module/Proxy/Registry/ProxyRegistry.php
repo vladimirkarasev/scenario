@@ -11,7 +11,9 @@ use Module\Proxy\Registry\Test\TestProxyRegistry;
 
 final class ProxyRegistry
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /** @return Generator<int, ProxyEndpointDefinition, mixed, void> */
     public static function all(): Generator

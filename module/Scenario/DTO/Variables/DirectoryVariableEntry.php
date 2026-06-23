@@ -8,7 +8,7 @@ namespace Module\Scenario\DTO\Variables;
 final readonly class DirectoryVariableEntry implements VariableEntryInterface
 {
     /**
-     * @param 'directory_list'|'directory_table' $fieldType
+     * @param  'directory_list'|'directory_table'  $fieldType
      */
     public function __construct(
         private string $blockId,
@@ -18,7 +18,8 @@ final readonly class DirectoryVariableEntry implements VariableEntryInterface
         private string $versionId,
         private string $labelTemplate,
         private bool $multiple,
-    ) {}
+    ) {
+    }
 
     public function blockId(): string
     {

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - stock-balance-item'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: stock-balance-item
+  - name: stock-balance-item
     description: 'Управление строками отчетов по складским остаткам'
 paths:
   /service/stock-balance-item:
@@ -43,7 +39,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -59,8 +55,7 @@ paths:
       summary: 'Изменение строки отчета по складским остаткам'
       description: 'Изменение строки отчета по складским остаткам'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id строки отчета по складским остаткам'
           required: true
@@ -82,7 +77,7 @@ paths:
                 $ref: '#/components/schemas/StockBalanceItem'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -95,8 +90,7 @@ paths:
       summary: 'Удаление строки отчета по складским остаткам по ID'
       description: 'Удаление строки отчета по складским остаткам по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id строки отчета по складским остаткам'
           required: true
@@ -111,7 +105,7 @@ paths:
                 $ref: '#/components/schemas/StockBalanceItem'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

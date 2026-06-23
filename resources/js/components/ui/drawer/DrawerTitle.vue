@@ -1,11 +1,11 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import { DrawerTitle } from "vaul-vue";
-import { cn } from "@/lib/utils";
+import {reactiveOmit} from "@vueuse/core";
+import {DrawerTitle} from "vaul-vue";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -18,12 +18,12 @@ const delegatedProps = reactiveOmit(props, "class");
 
 <template>
   <DrawerTitle
-    data-slot="drawer-title"
-    v-bind="delegatedProps"
-    :class="
+      data-slot="drawer-title"
+      v-bind="delegatedProps"
+      :class="
       cn('text-foreground text-base font-medium cn-font-heading', props.class)
     "
   >
-    <slot />
+    <slot/>
   </DrawerTitle>
 </template>

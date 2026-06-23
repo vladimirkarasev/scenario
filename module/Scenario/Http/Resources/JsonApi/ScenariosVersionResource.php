@@ -26,19 +26,19 @@ final class ScenariosVersionResource extends JsonApiResource
     {
         return [
             'scenario_id' => $this->scenario_id,
-            'name'        => $this->name,
-            'status'      => $this->status,
+            'name' => $this->name,
+            'status' => $this->status,
             'schema_json' => $this->whenLoaded(
                 'latestRevision',
-                fn () => $this->latestRevision->schema_json ?? new \stdClass(),
+                fn() => $this->latestRevision->schema_json ?? new \stdClass(),
                 new \stdClass(),
             ),
-            'created_at'  => $this->created_at?->toIso8601String(),
-            'updated_at'  => $this->updated_at?->toIso8601String(),
-            'revisions'   => $this->whenLoaded(
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+            'revisions' => $this->whenLoaded(
                 'revisions',
-                fn () => $this->revisions->map(fn (ScenarioVersionRevision $r) => [
-                    'id'         => $r->id,
+                fn() => $this->revisions->map(fn(ScenarioVersionRevision $r) => [
+                    'id' => $r->id,
                     'created_at' => $r->created_at?->toIso8601String(),
                 ])->values()->all(),
                 [],

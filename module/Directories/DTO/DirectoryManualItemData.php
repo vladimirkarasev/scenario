@@ -8,13 +8,14 @@ use Illuminate\Http\Request;
 
 final readonly class DirectoryManualItemData
 {
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     public function __construct(
         public array $data,
         public ?string $matchBy,
         public ?int $parentId,
         public ?string $externalKey = null,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {

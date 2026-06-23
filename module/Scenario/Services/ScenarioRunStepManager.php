@@ -12,17 +12,22 @@ final readonly class ScenarioRunStepManager
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private ScenarioRunStepRepository $steps,
-    ) {}
+    ) {
+    }
 
     /**
      * Создаёт открытый шаг для узла, если его ещё нет.
      *
-     * @param array<string, mixed> $node
+     * @param  array<string, mixed>  $node
      */
     public function ensureOpen(ScenarioRun $run, array $node): void
     {
-        $nodeId = isset($node['id']) && is_string($node['id']) ? $node['id'] : throw new \RuntimeException('Node has no id.');
-        $nodeType = isset($node['type']) && is_string($node['type']) ? $node['type'] : throw new \RuntimeException('Node has no type.');
+        $nodeId = isset($node['id']) && is_string($node['id']) ? $node['id'] : throw new \RuntimeException(
+            'Node has no id.'
+        );
+        $nodeType = isset($node['type']) && is_string($node['type']) ? $node['type'] : throw new \RuntimeException(
+            'Node has no type.'
+        );
 
         $existing = $this->steps->openForNode($run, $nodeId);
 
@@ -40,13 +45,17 @@ final readonly class ScenarioRunStepManager
     /**
      * Создаёт завершённый шаг для неинтерактивного узла.
      *
-     * @param array<string, mixed> $node
-     * @param array<string, mixed> $output
+     * @param  array<string, mixed>  $node
+     * @param  array<string, mixed>  $output
      */
     public function createAuto(ScenarioRun $run, array $node, array $output): void
     {
-        $nodeId = isset($node['id']) && is_string($node['id']) ? $node['id'] : throw new \RuntimeException('Node has no id.');
-        $nodeType = isset($node['type']) && is_string($node['type']) ? $node['type'] : throw new \RuntimeException('Node has no type.');
+        $nodeId = isset($node['id']) && is_string($node['id']) ? $node['id'] : throw new \RuntimeException(
+            'Node has no id.'
+        );
+        $nodeType = isset($node['type']) && is_string($node['type']) ? $node['type'] : throw new \RuntimeException(
+            'Node has no type.'
+        );
 
         $this->steps->create($run, [
             'node_id' => $nodeId,
@@ -60,8 +69,8 @@ final readonly class ScenarioRunStepManager
     /**
      * Закрывает текущий открытый шаг, создавая его если не существует.
      *
-     * @param array<string, mixed> $input
-     * @param array<string, mixed> $output
+     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed>  $output
      */
     public function closeOpen(ScenarioRun $run, array $input, array $output): void
     {

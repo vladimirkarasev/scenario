@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-vehicle-photo'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-vehicle-photo
+  - name: warehouse-vehicle-photo
     description: 'Управление фотографиями автомобилей'
 paths:
   /warehouse/vehicle-photo/create:
@@ -22,8 +18,7 @@ paths:
       summary: 'Загрузить фото (base64 или url)'
       description: 'Загрузить фото (base64 или url)'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'VIN автомобиля'
           required: true
@@ -45,7 +40,7 @@ paths:
                 $ref: '#/components/schemas/VehiclePhotoForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -59,8 +54,7 @@ paths:
       summary: 'Удалить фото по его ID'
       description: 'Удалить фото по его ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID фото'
           required: true
@@ -69,13 +63,13 @@ paths:
       responses:
         200:
           description: 'Фото удалено'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
-          content: {  }
+          content: { }
   /warehouse/vehicle-photo/update:
     patch:
       tags:
@@ -83,8 +77,7 @@ paths:
       summary: 'Изменить фото по его ID'
       description: 'Изменить фото по его ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID фото'
           required: true
@@ -106,7 +99,7 @@ paths:
                 $ref: '#/components/schemas/VehiclePhotoForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
-          content: {  }
+          content: { }

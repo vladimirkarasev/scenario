@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-base'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-base
+  - name: warehouse-base
     description: 'Управление расшифровками баз (MPV)'
 paths:
   /warehouse/base/with-last-price:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка баз'
       description: 'Получение списка баз'
       parameters:
-        -
-          name: brand_id
+        - name: brand_id
           in: query
           description: 'ID бренда'
           schema:
             type: integer
-        -
-          name: no_translated
+        - name: no_translated
           in: query
           description: 'Признак расшифрованности базы'
           schema:
@@ -37,8 +31,7 @@ paths:
             enum:
               - translated
               - not-translated
-        -
-          name: is_actual
+        - name: is_actual
           in: query
           description: 'Признак актуальности'
           schema:
@@ -57,4 +50,4 @@ paths:
                   $ref: '#/components/schemas/VehicleBaseWithPrice'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

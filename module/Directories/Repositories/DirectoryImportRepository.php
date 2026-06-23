@@ -8,7 +8,7 @@ use Module\Directories\Models\DirectoryImport;
 
 final class DirectoryImportRepository
 {
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): DirectoryImport
     {
         return DirectoryImport::query()->create($attributes);
@@ -38,7 +38,7 @@ final class DirectoryImportRepository
         return DirectoryImport::query()->find($id);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(DirectoryImport $import, array $attributes): DirectoryImport
     {
         $import->forceFill($attributes)->save();

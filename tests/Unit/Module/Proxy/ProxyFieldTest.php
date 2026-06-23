@@ -73,9 +73,9 @@ final class ProxyFieldTest extends TestCase
     public function test_filter_key_defaults_to_field_key_and_can_be_overridden(): void
     {
         $defaultKey = ProxyField::make('city_id')->filterable();
-        $customKey  = ProxyField::make('city_id')->filterable('filter_city');
+        $customKey = ProxyField::make('city_id')->filterable('filter_city');
 
-        $this->assertSame('city_id',     $defaultKey->filterKey());
+        $this->assertSame('city_id', $defaultKey->filterKey());
         $this->assertSame('filter_city', $customKey->filterKey());
     }
 
@@ -94,7 +94,7 @@ final class ProxyFieldTest extends TestCase
      */
     public function test_rules_accept_array_and_pipe_string_format(): void
     {
-        $withArray  = ProxyField::make('email')->rules(['nullable', 'email', 'max:255']);
+        $withArray = ProxyField::make('email')->rules(['nullable', 'email', 'max:255']);
         $withString = ProxyField::make('email')->rules('nullable|email|max:255');
 
         $this->assertSame(['nullable', 'email', 'max:255'], $withArray->validationRules());
@@ -116,14 +116,14 @@ final class ProxyFieldTest extends TestCase
 
         $data = $field->toArray();
 
-        $this->assertSame('phone',              $data['key']);
-        $this->assertSame('Телефон',            $data['label']);
-        $this->assertSame('payload.phone',      $data['source']);
+        $this->assertSame('phone', $data['key']);
+        $this->assertSame('Телефон', $data['label']);
+        $this->assertSame('payload.phone', $data['source']);
         $this->assertTrue($data['required']);
         $this->assertFalse($data['nullable']);
-        $this->assertSame('+79990000000',        $data['example']);
+        $this->assertSame('+79990000000', $data['example']);
         $this->assertTrue($data['filterable']);
-        $this->assertSame('phone',              $data['filter_key']);
+        $this->assertSame('phone', $data['filter_key']);
     }
 
     /**

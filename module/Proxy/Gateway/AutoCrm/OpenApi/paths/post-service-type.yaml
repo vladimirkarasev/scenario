@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - post-service-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: post-service-type
+  - name: post-service-type
     description: 'Получение списка типов постов'
 paths:
   /service/post-service-type:
@@ -22,14 +18,12 @@ paths:
       description: 'Получение списка типов постов'
       summary: 'Получение списка типов постов'
       parameters:
-        -
-          name: name
+        - name: name
           in: query
           description: Наименование
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: Статус
           schema:
@@ -45,7 +39,7 @@ paths:
                   $ref: '#/components/schemas/PostServiceType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/service/post-service-type/{id}':
     get:
       tags:
@@ -53,8 +47,7 @@ paths:
       description: 'Получение типа поста по ID'
       summary: 'Получение типа поста по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID типа поста'
           schema:
@@ -69,7 +62,7 @@ paths:
                 $ref: '#/components/schemas/PostServiceType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

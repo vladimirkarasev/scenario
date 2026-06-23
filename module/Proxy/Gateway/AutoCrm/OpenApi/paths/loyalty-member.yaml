@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - loyalty-member'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: loyalty-member
+  - name: loyalty-member
     description: 'Участники программ лояльности'
 paths:
   /loyalty/member:
@@ -22,26 +18,22 @@ paths:
       summary: 'Получить список участников программ лояльности'
       description: 'Получить список участников программ лояльности'
       parameters:
-        -
-          name: client_id
+        - name: client_id
           in: query
           description: 'id клиента дилера'
           schema:
             type: integer
-        -
-          name: phone
+        - name: phone
           in: query
           description: 'телефон клиента дилера'
           schema:
             type: string
-        -
-          name: program_id
+        - name: program_id
           in: query
           description: 'id программы лояльности'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Получение дополнительных полей, можно передать несколько значений через запятую coupons - Купоны участника vehicles - Машины участника privateBenefits — бонусы участника'
           schema:
@@ -57,7 +49,7 @@ paths:
                   $ref: '#/components/schemas/LoyaltyMember'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -86,7 +78,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberCreate'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -116,7 +108,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberVehicleCreate'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -132,21 +124,18 @@ paths:
       summary: 'Получить список заявок на верификацию автомобилей участника программы лояльности'
       description: 'Получить список заявок на верификацию автомобилей участника программы лояльности'
       parameters:
-        -
-          name: member_id
+        - name: member_id
           in: query
           description: 'ID участника программы лояльности'
           required: true
           schema:
             type: integer
-        -
-          name: result_id
+        - name: result_id
           in: query
           description: 'ID результата верификации'
           schema:
             type: integer
-        -
-          name: task_stage_slug
+        - name: task_stage_slug
           in: query
           description: 'Псевдоним этапа задачи'
           schema:
@@ -162,7 +151,7 @@ paths:
                   $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -191,7 +180,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -207,8 +196,7 @@ paths:
       summary: 'Получить данные верификации автомобиля участника программы лояльности добавлена по id'
       description: 'Получить данные верификации автомобиля участника программы лояльности добавлена по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id верификации'
           required: true
@@ -223,7 +211,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -237,8 +225,7 @@ paths:
       summary: 'Изменить автомобиль участника программы лояльности'
       description: 'Изменить автомобиль участника программы лояльности'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id автомобиля участника программы лояльности'
           required: true
@@ -259,7 +246,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberVehicleUpdate'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -275,15 +262,13 @@ paths:
       summary: 'Получить данные участника программы лояльности по id'
       description: 'Получить данные участника программы лояльности по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id участника'
           required: true
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Получение дополнительных полей, можно передать несколько значений через запятую coupons - Купоны участника vehicles - Машины участника privateBenefits — бонусы участника'
           schema:
@@ -299,7 +284,7 @@ paths:
                   $ref: '#/components/schemas/LoyaltyMember'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -312,8 +297,7 @@ paths:
       summary: 'Изменить данные участника программы лояльности по id'
       description: 'Изменить данные участника программы лояльности по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id участника'
           required: true
@@ -336,7 +320,7 @@ paths:
                   $ref: '#/components/schemas/LoyaltyMember'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -349,8 +333,7 @@ paths:
       summary: 'Удаление участника программы лояльности по id'
       description: 'Удаление участника программы лояльности по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -359,10 +342,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -376,8 +359,7 @@ paths:
       summary: 'Добавление внешнего события участнику программы лояльности'
       description: 'Добавление внешнего события участнику программы лояльности'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id участника программы лояльности'
           required: true
@@ -398,7 +380,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberExternalEvent'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -414,8 +396,7 @@ paths:
       summary: 'Изменение преимуществ участника программы лояльности'
       description: 'Изменение преимуществ участника программы лояльности'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id участника программы лояльности'
           required: true
@@ -436,7 +417,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyMemberPrivateBenefit'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:

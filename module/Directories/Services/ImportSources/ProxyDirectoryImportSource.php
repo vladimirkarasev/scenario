@@ -18,7 +18,8 @@ final class ProxyDirectoryImportSource implements DirectoryImportSource
     public function __construct(
         private readonly ProxyExecutor $proxyExecutor,
         private readonly ProxyContextFactory $contextFactory,
-    ) {}
+    ) {
+    }
 
     public function type(): DirectoryImportSourceType
     {
@@ -49,7 +50,7 @@ final class ProxyDirectoryImportSource implements DirectoryImportSource
         $config = $import->remote_config_json;
         $proxyEndpointId = $config['proxy_endpoint_id'] ?? null;
 
-        if (! is_int($proxyEndpointId)) {
+        if (!is_int($proxyEndpointId)) {
             throw new DirectoryImportException('Proxy endpoint ID is missing from import config.');
         }
 
@@ -79,7 +80,7 @@ final class ProxyDirectoryImportSource implements DirectoryImportSource
             }
 
             /** @var Collection<int, array<string, mixed>> $rows */
-            $rows = collect($items)->map(static fn (mixed $item): array => is_array($item) ? $item : []);
+            $rows = collect($items)->map(static fn(mixed $item): array => is_array($item) ? $item : []);
 
             $importChunk($import->id, $rows, $baseRowNumber);
             $baseRowNumber += $rows->count();
@@ -97,7 +98,7 @@ final class ProxyDirectoryImportSource implements DirectoryImportSource
      * Извлекает массив элементов из тела ответа. Поддерживает наиболее
      * распространённые варианты: `items` и `data`.
      *
-     * @param  array<string, mixed> $body
+     * @param  array<string, mixed>  $body
      * @return array<int, mixed>
      */
     private function extractItems(array $body): array

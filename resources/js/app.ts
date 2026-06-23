@@ -5,14 +5,14 @@ import '@vue-flow/core/dist/theme-default.css';
 import '@vue-flow/controls/dist/style.css';
 import '@vue-flow/minimap/dist/style.css';
 
-import { createInertiaApp, router } from '@inertiajs/vue3';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, defineComponent, h } from 'vue';
-import { createPinia } from 'pinia';
-import { ZiggyVue } from '../../vendor/tightenco/ziggy';
-import { Toaster } from 'vue-sonner';
+import {createInertiaApp, router} from '@inertiajs/vue3';
+import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
+import {createApp, defineComponent, h} from 'vue';
+import {createPinia} from 'pinia';
+import {ZiggyVue} from '../../vendor/tightenco/ziggy';
+import {Toaster} from 'vue-sonner';
 import 'vue-sonner/style.css';
-import { useAuthStore } from '@/stores/auth';
+import {useAuthStore} from '@/stores/auth';
 import PrimeVue from 'primevue/config';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -28,11 +28,11 @@ createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')) as any,
-    setup({ el, App, props, plugin }) {
+    setup({el, App, props, plugin}) {
         const pinia = createPinia();
 
         const Root = defineComponent({
-            render: () => [h(App, props), h(Toaster, { position: 'bottom-right', richColors: true })],
+            render: () => [h(App, props), h(Toaster, {position: 'bottom-right', richColors: true})],
         });
 
         const app = createApp(Root)

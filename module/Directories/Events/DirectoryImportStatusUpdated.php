@@ -18,18 +18,19 @@ final readonly class DirectoryImportStatusUpdated
         public int $importedRows,
         public int $failedRows,
         public ?string $errorMessage,
-    ) {}
+    ) {
+    }
 
     public static function fromImport(DirectoryImport $import): self
     {
         return new self(
             importId: $import->id,
-            directoryId: (string) $import->directory_id,
-            directoryVersionId: $import->directory_version_id === null ? null : (int) $import->directory_version_id,
-            status: (string) $import->status,
-            processedRows: (int) $import->processed_rows,
-            importedRows: (int) $import->imported_rows,
-            failedRows: (int) $import->failed_rows,
+            directoryId: (string)$import->directory_id,
+            directoryVersionId: $import->directory_version_id === null ? null : (int)$import->directory_version_id,
+            status: (string)$import->status,
+            processedRows: (int)$import->processed_rows,
+            importedRows: (int)$import->imported_rows,
+            failedRows: (int)$import->failed_rows,
             errorMessage: $import->error_message,
         );
     }

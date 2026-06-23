@@ -16,9 +16,9 @@ enum ScenarioPermission: string implements PermissionEnum
     public function label(): string
     {
         return match ($this) {
-            self::View     => 'Просмотр',
-            self::Create   => 'Создание/Редактирование',
-            self::Delete   => 'Удаление',
+            self::View => 'Просмотр',
+            self::Create => 'Создание/Редактирование',
+            self::Delete => 'Удаление',
             self::Dispatch => 'Запуск опроса у пользователя',
         };
     }

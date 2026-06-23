@@ -14,7 +14,8 @@ final readonly class ProjectData
         public string $host,
         public string $sharedSecret,
         public bool $isActive,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {

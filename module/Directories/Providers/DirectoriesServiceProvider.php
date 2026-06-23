@@ -42,27 +42,27 @@ final class DirectoriesServiceProvider extends ServiceProvider
     {
         $handler = $this->app->make(ExceptionHandler::class);
 
-        $handler->renderable(fn (DirectoryException $e) => new JsonResponse(
+        $handler->renderable(fn(DirectoryException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
         ));
 
-        $handler->renderable(fn (DirectoryVersionException $e) => new JsonResponse(
+        $handler->renderable(fn(DirectoryVersionException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
         ));
 
-        $handler->renderable(fn (DirectoryItemException $e) => new JsonResponse(
+        $handler->renderable(fn(DirectoryItemException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
         ));
 
-        $handler->renderable(fn (DictionaryApiSyncException $e) => new JsonResponse(
+        $handler->renderable(fn(DictionaryApiSyncException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
         ));
 
-        $handler->renderable(fn (DirectoryExternalException $e) => new JsonResponse(
+        $handler->renderable(fn(DirectoryExternalException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
         ));

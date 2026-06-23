@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - recall-campaign-vin'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: recall-campaign-vin
+  - name: recall-campaign-vin
     description: 'Управление VIN номерами отзывных кампаний'
 paths:
   /recall-campaign-vin:
@@ -22,50 +18,42 @@ paths:
       summary: 'Получение списка VIN номеров отзывных кампаний'
       description: 'Получение списка VIN номеров отзывных кампаний'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: VIN
           schema:
             type: string
-        -
-          name: revocable_campaign_id
+        - name: revocable_campaign_id
           in: query
           description: 'Идентификатор кампании'
           schema:
             type: integer
-        -
-          name: complaint_code
+        - name: complaint_code
           in: query
           description: 'Номер рекламации'
           schema:
             type: string
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'Идентификатор дилера'
           schema:
             type: integer
-        -
-          name: isCompleted
+        - name: isCompleted
           in: query
           description: 'Выполнена (1 - Да, 2 - Нет)'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Параметр позволяющий получить в ответе связные данные (recallCampaign,dealer,vehicle)'
           schema:
             type: string
-        -
-          name: repairedFrom
+        - name: repairedFrom
           in: query
           description: 'Дата выполнения С (формат dd.mm.yyyy, пример - 01.01.2010)'
           schema:
             type: string
-        -
-          name: repairedTo
+        - name: repairedTo
           in: query
           description: 'Дата выполнения ПО (формат dd.mm.yyyy, пример - 01.01.2010)'
           schema:
@@ -81,7 +69,7 @@ paths:
                   $ref: '#/components/schemas/RecallCampaignVin'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/recall-campaign-vin/{vin}':
     get:
       tags:
@@ -89,8 +77,7 @@ paths:
       summary: 'Получение информации о VIN номере и о отзывных кампаниях к которым он относится'
       description: 'Получение информации о VIN номере и о отзывных кампаниях к которым он относится'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: path
           description: VIN
           required: true
@@ -113,4 +100,4 @@ paths:
                       $ref: '#/components/schemas/RecallCampaignVin'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

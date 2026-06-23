@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - service-stock-invoices'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: service-stock-invoices
+  - name: service-stock-invoices
     description: 'Управление списками счетов'
 paths:
   /service/invoice:
@@ -218,8 +214,7 @@ paths:
       summary: 'Получение всех линий счета заказа'
       description: 'Получение всех линий счета заказа'
       parameters:
-        -
-          name: parent_id
+        - name: parent_id
           in: path
           description: 'Ид связи счета/заказа (InvoiceOrder)'
           required: true
@@ -236,7 +231,7 @@ paths:
                   $ref: '#/components/schemas/InvoiceOrderItem'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -249,8 +244,7 @@ paths:
       summary: 'Добавить линию заказа в счета к заказу'
       description: 'Добавить линию заказа в счета к заказу'
       parameters:
-        -
-          name: parent_id
+        - name: parent_id
           in: path
           description: 'Ид связи счета/заказа (InvoiceOrder)'
           required: true
@@ -272,7 +266,7 @@ paths:
                 $ref: '#/components/schemas/InvoiceOrderItem'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -286,8 +280,7 @@ paths:
       summary: 'Получение всех линий счета заказа'
       description: 'Получение всех линий счета заказа'
       parameters:
-        -
-          name: invoice_id
+        - name: invoice_id
           in: path
           description: 'id счета'
           required: true
@@ -304,7 +297,7 @@ paths:
                   $ref: '#/components/schemas/InvoiceOrder'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -317,8 +310,7 @@ paths:
       summary: 'Прикрепить заказ к счету'
       description: 'Прикрепить заказ к счету'
       parameters:
-        -
-          name: invoice_id
+        - name: invoice_id
           in: path
           description: 'id счета'
           required: true
@@ -342,7 +334,7 @@ paths:
                   $ref: '#/components/schemas/InvoiceOrder'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -355,8 +347,7 @@ paths:
       summary: 'Очистить все связи счета с заказами'
       description: 'Удаляет все связи (InvoiceOrder) для указанного invoice_id'
       parameters:
-        -
-          name: invoice_id
+        - name: invoice_id
           in: path
           description: 'id счета'
           required: true
@@ -365,10 +356,10 @@ paths:
       responses:
         204:
           description: 'Успешно удалено'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -382,15 +373,13 @@ paths:
       summary: 'Удалить прикрепленный заказ в счете'
       description: 'Удалить прикрепленный заказ в счете'
       parameters:
-        -
-          name: invoice_id
+        - name: invoice_id
           in: path
           description: 'id счета'
           required: true
           schema:
             type: integer
-        -
-          name: order_id
+        - name: order_id
           in: path
           description: 'id заказа'
           required: true
@@ -414,7 +403,7 @@ paths:
                   $ref: '#/components/schemas/InvoiceOrder'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -428,8 +417,7 @@ paths:
       summary: 'Get view of invoices'
       description: 'Returns a view of invoices'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id отчета по складским остаткам'
           required: true
@@ -510,8 +498,7 @@ paths:
       summary: 'update a invoice'
       description: 'update invoice'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -636,8 +623,7 @@ paths:
       summary: 'update a invoice payment status'
       description: 'update invoice payment status'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true

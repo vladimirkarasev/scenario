@@ -1,6 +1,6 @@
 VersionResource:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -67,7 +67,7 @@ VersionItem:
 
 VersionRequest:
   type: object
-  required: [schema_json]
+  required: [ schema_json ]
   properties:
     name:
       type: string
@@ -85,12 +85,12 @@ VersionRequest:
         nodes:
           - id: node_start
             type: start
-            data: {}
-        edges: []
+            data: { }
+        edges: [ ]
 
 VersionStatus:
   type: string
-  enum: [draft, active, archived]
+  enum: [ draft, active, archived ]
   description: >
     - `draft` — черновик, не виден пользователям
     - `active` — активная версия

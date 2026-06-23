@@ -23,13 +23,13 @@ final class UserGroupRepository
             ->paginate($filters->perPage, ['*'], 'page[number]');
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): UserGroup
     {
         return UserGroup::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(UserGroup $group, array $attributes): UserGroup
     {
         $group->update($attributes);

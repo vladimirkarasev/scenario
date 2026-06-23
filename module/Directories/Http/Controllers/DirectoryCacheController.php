@@ -16,7 +16,8 @@ final class DirectoryCacheController extends Controller
     public function __construct(
         private readonly DirectoryCacheService $cacheService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function warmup(Request $request, Directory $directory): JsonResponse
     {

@@ -1,4 +1,4 @@
-import { destroyJson, getJson, sendJson } from '@/lib/http'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
 
 export interface CategoryRef {
     id: string
@@ -52,7 +52,7 @@ export interface CategoryOption {
 export const categoryRepository = {
     // Лёгкая загрузка дерева для выбора: только id + name + parent_id (JSON:API sparse fieldset).
     async options(): Promise<CategoryOption[]> {
-        const qs = new URLSearchParams({ 'fields[category]': 'name,parent_id' })
+        const qs = new URLSearchParams({'fields[category]': 'name,parent_id'})
         const response = await getJson<Record<string, unknown>>(
             `/api/directories/categories?${qs}`,
             'Не удалось загрузить категории.',
@@ -72,7 +72,7 @@ export const categoryRepository = {
         const url = `/api/directories/categories${qs.toString() ? `?${qs}` : ''}`
         const response = await getJson<Record<string, unknown>>(url, 'Не удалось загрузить категории.')
         const items: CategoryRef[] = ((response.data ?? []) as JsonApiItem[]).map(normalize)
-        return { items }
+        return {items}
     },
 
     async create(payload: { name: string; parent_id: string | null; is_active: boolean }): Promise<CategoryRef> {
@@ -83,7 +83,11 @@ export const categoryRepository = {
         return normalize(response.data as JsonApiItem)
     },
 
-    async update(id: string, payload: { name: string; parent_id: string | null; is_active: boolean }): Promise<CategoryRef> {
+    async update(id: string, payload: {
+        name: string;
+        parent_id: string | null;
+        is_active: boolean
+    }): Promise<CategoryRef> {
         const response = await sendJson<Record<string, unknown>>(`/api/directories/categories/${id}`, {
             method: 'PUT',
             body: payload,

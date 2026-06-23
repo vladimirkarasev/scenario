@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - poll-filling'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: poll-filling
+  - name: poll-filling
     description: 'Опросы клиентов'
 paths:
   /client-service/poll-filling/count:
@@ -39,7 +35,7 @@ paths:
                   $ref: '#/components/schemas/PollFillingCountResponse'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -70,7 +66,7 @@ paths:
                 $ref: '#/components/schemas/PollFillingReportResponse'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -101,7 +97,7 @@ paths:
                 $ref: '#/components/schemas/PollFillingReportConsolidatedResponse'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:

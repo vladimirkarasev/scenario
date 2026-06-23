@@ -1,15 +1,15 @@
 collection:
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Список выполнений actions
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: filter[status]
         in: query
         schema:
           type: string
-          enum: [running, success, failed, skipped]
+          enum: [ running, success, failed, skipped ]
       - name: filter[action_id]
         in: query
         schema:
@@ -27,10 +27,10 @@ collection:
 
 completed:
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Список успешно выполненных задач
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: filter[action_id]
         in: query
@@ -49,10 +49,10 @@ completed:
 
 failed:
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Список задач с ошибкой
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: filter[action_id]
         in: query

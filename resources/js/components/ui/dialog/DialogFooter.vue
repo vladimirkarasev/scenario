@@ -1,7 +1,7 @@
 <script setup>
-import { DialogClose } from "reka-ui";
-import { cn } from "@/lib/utils";
-import { Button } from '@/components/ui/button';
+import {DialogClose} from "reka-ui";
+import {cn} from "@/lib/utils";
+import {Button} from '@/components/ui/button';
 
 const props = defineProps({
   class: {
@@ -9,23 +9,23 @@ const props = defineProps({
     required: false,
     skipCheck: true,
   },
-  showCloseButton: { type: Boolean, required: false, default: false },
+  showCloseButton: {type: Boolean, required: false, default: false},
 });
 </script>
 
 <template>
   <div
-    data-slot="dialog-footer"
-    :class="
+      data-slot="dialog-footer"
+      :class="
       cn(
         'bg-muted/50 -mx-4 -mb-4 rounded-b-xl border-t p-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
         props.class,
       )
     "
   >
-    <slot />
+    <slot/>
     <DialogClose v-if="showCloseButton" as-child>
-      <Button variant="outline"> Close </Button>
+      <Button variant="outline"> Close</Button>
     </DialogClose>
   </div>
 </template>

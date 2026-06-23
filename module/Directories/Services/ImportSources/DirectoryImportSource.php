@@ -21,7 +21,7 @@ interface DirectoryImportSource
     public function buildPayload(DirectoryImportData $data): array;
 
     /**
-     * @param callable(int, Collection<int, array<string, mixed>>, int): void $importChunk
+     * @param  callable(int, Collection<int, array<string, mixed>>, int): void  $importChunk
      */
     public function start(DirectoryImport $import, callable $importChunk): void;
 }

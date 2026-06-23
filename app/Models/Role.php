@@ -11,7 +11,7 @@ use Spatie\Permission\PermissionRegistrar;
 /**
  * @property string|null $title
  * @property string|null $description
- * @property bool        $is_system
+ * @property bool $is_system
  */
 final class Role extends SpatieRole
 {

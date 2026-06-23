@@ -20,7 +20,7 @@ final readonly class AddTimeFunction implements ExpressionFunctionInterface
         $dt = CarbonParser::parse($args[0] ?? null);
         $duration = $args[1] ?? null;
 
-        if ($dt === null || ! is_string($duration) || $duration === '') {
+        if ($dt === null || !is_string($duration) || $duration === '') {
             return '';
         }
 

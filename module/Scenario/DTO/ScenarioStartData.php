@@ -9,8 +9,8 @@ use Module\Scenario\Http\Requests\StartScenarioRunnerRequest;
 final readonly class ScenarioStartData
 {
     /**
-     * @param array<string, mixed> $context
-     * @param array<string, mixed> $userData
+     * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $userData
      */
     public function __construct(
         public ?string $scenarioId,
@@ -18,7 +18,8 @@ final readonly class ScenarioStartData
         public ?string $alias,
         public array $context,
         public array $userData,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(StartScenarioRunnerRequest $request): self
     {
@@ -34,7 +35,7 @@ final readonly class ScenarioStartData
     /** @return array<string, mixed> */
     private static function arrayInput(mixed $value): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return [];
         }
         $result = [];

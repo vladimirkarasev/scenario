@@ -10,7 +10,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\Nodes\ConditionNodeHandler;
+use Module\Scenario\Services\Nodes\Condition\ConditionNodeHandler;
 use Tests\TestCase;
 
 final class ConditionNodeHandlerTest extends TestCase
@@ -125,15 +125,23 @@ final class ConditionNodeHandlerTest extends TestCase
     public function test_render_falls_back_to_question_title_text_in_order(): void
     {
         $nodeWithQuestion = [
-            'id' => 'node_condition', 'type' => 'condition',
-            'data' => ['question' => 'Q', 'title' => 'T', 'text' => 'X', 'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]],
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'question' => 'Q',
+                'title' => 'T',
+                'text' => 'X',
+                'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]
+            ],
         ];
         $nodeWithTitle = [
-            'id' => 'node_condition', 'type' => 'condition',
+            'id' => 'node_condition',
+            'type' => 'condition',
             'data' => ['title' => 'T', 'text' => 'X', 'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]],
         ];
         $nodeWithText = [
-            'id' => 'node_condition', 'type' => 'condition',
+            'id' => 'node_condition',
+            'type' => 'condition',
             'data' => ['text' => 'X', 'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]],
         ];
 
@@ -297,7 +305,7 @@ final class ConditionNodeHandlerTest extends TestCase
         $this->assertSame('node_a', $result->nextNodeId);
     }
 
-    /** @param array<string, mixed> $context */
+    /** @param  array<string, mixed>  $context */
     private function makeRun(array $context): ScenarioRun
     {
         return ScenarioRun::query()->create([

@@ -26,18 +26,18 @@ final class BuggregatorHandler extends AbstractProcessingHandler
     {
         $data = $record->formatted;
 
-        if (! is_string($data)) {
+        if (!is_string($data)) {
             return;
         }
 
         $socket = @fsockopen('tcp://'.$this->host, $this->port, $errno, $errstr, $this->timeout);
 
-        if (! is_resource($socket)) {
+        if (!is_resource($socket)) {
             return;
         }
 
         try {
-            stream_set_timeout($socket, (int) $this->timeout);
+            stream_set_timeout($socket, (int)$this->timeout);
             fwrite($socket, $data);
         } finally {
             fclose($socket);

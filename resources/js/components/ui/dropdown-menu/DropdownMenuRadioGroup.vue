@@ -1,10 +1,10 @@
 <script setup>
-import { DropdownMenuRadioGroup, useForwardPropsEmits } from "reka-ui";
+import {DropdownMenuRadioGroup, useForwardPropsEmits} from "reka-ui";
 
 const props = defineProps({
-  modelValue: { type: null, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  modelValue: {type: null, required: false},
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
 });
 const emits = defineEmits(["update:modelValue"]);
 
@@ -13,9 +13,9 @@ const forwarded = useForwardPropsEmits(props, emits);
 
 <template>
   <DropdownMenuRadioGroup
-    data-slot="dropdown-menu-radio-group"
-    v-bind="forwarded"
+      data-slot="dropdown-menu-radio-group"
+      v-bind="forwarded"
   >
-    <slot />
+    <slot/>
   </DropdownMenuRadioGroup>
 </template>

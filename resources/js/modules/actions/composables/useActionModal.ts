@@ -1,9 +1,16 @@
-import { reactive, ref } from 'vue'
-import { actionRepository } from '@/modules/actions/repositories/actionRepository'
-import type { Action, ActionConfigField, ActionInputField, ActionType, ActionTypeMeta, InputFieldType } from '@/modules/actions/types/action'
-import { useFormToast } from '@/composables/useFormToast'
-import { useZodForm } from '@/composables/useZodForm'
-import { actionSchema } from '@/modules/actions/schemas/actionSchema'
+import {reactive, ref} from 'vue'
+import {actionRepository} from '@/modules/actions/repositories/actionRepository'
+import type {
+    Action,
+    ActionConfigField,
+    ActionInputField,
+    ActionType,
+    ActionTypeMeta,
+    InputFieldType
+} from '@/modules/actions/types/action'
+import {useFormToast} from '@/composables/useFormToast'
+import {useZodForm} from '@/composables/useZodForm'
+import {actionSchema} from '@/modules/actions/schemas/actionSchema'
 
 function defaultByType(type: string): unknown {
     if (type === 'boolean') return false
@@ -31,7 +38,7 @@ export function useActionModal(
         deleted: 'Action удалён',
     })
 
-    const { formData: form, errors, formError, submitting, submit, reset } =
+    const {formData: form, errors, formError, submitting, submit, reset} =
         useZodForm(actionSchema, {
             name: '', key: '', code: '', description: '',
             type: 'template_file' as ActionType,
@@ -69,8 +76,8 @@ export function useActionModal(
             description: action.description ?? '',
             type: action.type,
             is_active: action.is_active,
-            config: { ...buildConfig(fieldsFor(action.type)), ...(action.config ?? {}) },
-            input_fields: action.input_fields.map(f => ({ ...f })),
+            config: {...buildConfig(fieldsFor(action.type)), ...(action.config ?? {})},
+            input_fields: action.input_fields.map(f => ({...f})),
         })
         show.value = true
     }
@@ -87,11 +94,11 @@ export function useActionModal(
     }
 
     const inputFieldTypes: { value: InputFieldType, label: string }[] = [
-        { value: 'string',  label: 'Строка' },
-        { value: 'number',  label: 'Число' },
-        { value: 'boolean', label: 'Boolean' },
-        { value: 'uuid',    label: 'UUID' },
-        { value: 'email',   label: 'Email' },
+        {value: 'string', label: 'Строка'},
+        {value: 'number', label: 'Число'},
+        {value: 'boolean', label: 'Boolean'},
+        {value: 'uuid', label: 'UUID'},
+        {value: 'email', label: 'Email'},
     ]
 
     const fieldModalOpen = ref(false)
@@ -148,7 +155,7 @@ export function useActionModal(
 
     function onTypeChange(): void {
         form.code = defaultCodeFor(form.type as ActionType)
-        const next = { ...buildConfig(fieldsFor(form.type as ActionType)), ...form.config }
+        const next = {...buildConfig(fieldsFor(form.type as ActionType)), ...form.config}
         for (const key of Object.keys(next)) {
             if (!fieldsFor(form.type as ActionType).some(f => f.key === key)) delete next[key]
         }
@@ -177,7 +184,7 @@ export function useActionModal(
                     ui_schema: {},
                     input_fields: data.input_fields
                         .filter(f => f.key)
-                        .map(f => ({ ...f, default: f.default ?? null })) as ActionInputField[],
+                        .map(f => ({...f, default: f.default ?? null})) as ActionInputField[],
                 }
                 const result = id
                     ? await actionRepository.update(id, payload)
@@ -186,11 +193,12 @@ export function useActionModal(
             })
             close()
             formToast.saved(isUpdate)
-        } catch { /* errors уже в форме */ }
+        } catch { /* errors уже в форме */
+        }
     }
 
     async function toggleActive(action: Action): Promise<Action | null> {
-        const next: Action = { ...action, is_active: !action.is_active }
+        const next: Action = {...action, is_active: !action.is_active}
         try {
             const result = await actionRepository.update(action.id, {
                 name: next.name,

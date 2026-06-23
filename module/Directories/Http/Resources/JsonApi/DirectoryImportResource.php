@@ -18,7 +18,7 @@ final class DirectoryImportResource extends JsonApiResource
     {
         $id = $this->resource['id'];
 
-        return is_scalar($id) ? (string) $id : '';
+        return is_scalar($id) ? (string)$id : '';
     }
 
     public function toType(Request $request): string

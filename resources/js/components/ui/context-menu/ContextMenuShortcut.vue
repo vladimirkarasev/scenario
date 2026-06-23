@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,14 +12,14 @@ const props = defineProps({
 
 <template>
   <span
-    data-slot="context-menu-shortcut"
-    :class="
+      data-slot="context-menu-shortcut"
+      :class="
       cn(
         'text-muted-foreground group-focus/context-menu-item:text-accent-foreground ml-auto text-xs tracking-widest',
         props.class,
       )
     "
   >
-    <slot />
+    <slot/>
   </span>
 </template>

@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Список сценариев
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: filter
         in: query
@@ -32,7 +32,7 @@ collection:
               items:
                 type: string
               description: Фильтр по тегам (любое совпадение)
-              example: [onboarding, hr]
+              example: [ onboarding, hr ]
             category_id:
               type: string
               format: uuid
@@ -58,10 +58,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Создать сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -88,10 +88,10 @@ item:
     - $ref: '../components/parameters.yaml#/ScenarioId'
 
   get:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Получить сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Сценарий
@@ -105,10 +105,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Обновить сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -133,10 +133,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Удалить сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Сценарий удалён
@@ -147,10 +147,10 @@ item:
 
 duplicate:
   post:
-    tags: [Сценарии]
+    tags: [ Сценарии ]
     summary: Дублировать сценарий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - $ref: '../components/parameters.yaml#/ScenarioId'
     responses:

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - activity'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: activity
+  - name: activity
     description: 'Управление сферами деятельности'
 paths:
   /activity:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка сфер деятельности'
       description: 'Получение списка сфер деятельности'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,7 +34,7 @@ paths:
                   $ref: '#/components/schemas/Activity'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/activity/{id}':
     get:
       tags:
@@ -47,8 +42,7 @@ paths:
       summary: 'Получение сфер деятельности по ID'
       description: 'Получение сфер деятельности по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id сферы деятельности'
           required: true
@@ -63,7 +57,7 @@ paths:
                 $ref: '#/components/schemas/Activity'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

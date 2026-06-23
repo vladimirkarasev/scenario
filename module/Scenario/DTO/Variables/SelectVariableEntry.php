@@ -8,13 +8,14 @@ namespace Module\Scenario\DTO\Variables;
 final readonly class SelectVariableEntry implements VariableEntryInterface
 {
     /**
-     * @param list<array<mixed>> $options  Статические опции [{id, value, label, parentId}, ...]
+     * @param  list<array<mixed>>  $options  Статические опции [{id, value, label, parentId}, ...]
      */
     public function __construct(
         private string $blockId,
         private string $fieldName,
         private array $options,
-    ) {}
+    ) {
+    }
 
     public function blockId(): string
     {
@@ -42,10 +43,10 @@ final readonly class SelectVariableEntry implements VariableEntryInterface
     public function toArray(): array
     {
         return [
-            '_block_id'   => $this->blockId,
+            '_block_id' => $this->blockId,
             '_field_name' => $this->fieldName,
             '_field_type' => 'select',
-            '_options'    => $this->options,
+            '_options' => $this->options,
         ];
     }
 
@@ -57,9 +58,9 @@ final readonly class SelectVariableEntry implements VariableEntryInterface
             : [];
 
         return new static(
-            blockId:   is_string($data['_block_id']   ?? null) ? $data['_block_id']   : '',
+            blockId: is_string($data['_block_id'] ?? null) ? $data['_block_id'] : '',
             fieldName: is_string($data['_field_name'] ?? null) ? $data['_field_name'] : '',
-            options:   $options,
+            options: $options,
         );
     }
 }

@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Категории]
+    tags: [ Категории ]
     summary: Список категорий
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Список категорий (JSON:API коллекция)
@@ -22,10 +22,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Категории]
+    tags: [ Категории ]
     summary: Создать категорию
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -49,10 +49,10 @@ item:
     - $ref: '../components/parameters.yaml#/CategoryId'
 
   get:
-    tags: [Категории]
+    tags: [ Категории ]
     summary: Получить категорию
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Категория
@@ -66,10 +66,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Категории]
+    tags: [ Категории ]
     summary: Обновить категорию
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -91,10 +91,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Категории]
+    tags: [ Категории ]
     summary: Удалить категорию
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Категория удалена

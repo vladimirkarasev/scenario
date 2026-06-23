@@ -7,7 +7,7 @@ namespace Module\Scenario\DTO\Variables;
 final class VariableEntryFactory
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public static function fromArray(array $data): VariableEntryInterface
     {

@@ -74,7 +74,7 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->assertSame($directory->id, $import->directory_id);
     }
 
-    /** @param array<string, mixed> $apiConfig */
+    /** @param  array<string, mixed>  $apiConfig */
     private function makeDirectory(string $sourceType, array $apiConfig = []): Directory
     {
         $project = Project::query()->create([
@@ -87,7 +87,7 @@ final class DictionaryApiSyncServiceTest extends TestCase
         return Directory::query()->create([
             'project_id' => $project->id,
             'name' => 'Test Directory',
-            'slug' => 'test-dir-' . uniqid(),
+            'slug' => 'test-dir-'.uniqid(),
             'source_type' => $sourceType,
             'api_config_json' => $apiConfig !== [] ? $apiConfig : null,
         ]);

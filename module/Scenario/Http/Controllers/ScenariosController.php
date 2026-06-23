@@ -23,7 +23,8 @@ final class ScenariosController extends Controller
     public function __construct(
         private readonly ScenarioService $scenarioService,
         private readonly CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request, ScenariosService $service): AnonymousResourceCollection
     {

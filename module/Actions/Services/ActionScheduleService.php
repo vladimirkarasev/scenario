@@ -26,12 +26,13 @@ final class ActionScheduleService
     public function __construct(
         private readonly ActionOrchestratorService $orchestrator,
         private readonly ActionScheduleRepository $schedules,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param array<string, mixed> $input
-     * @param array<string, mixed> $options
-     * @param array<string, mixed> $settings
+     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed>  $options
+     * @param  array<string, mixed>  $settings
      */
     public function upsert(
         Action $action,
@@ -75,7 +76,7 @@ final class ActionScheduleService
 
                     if (
                         $locked === null
-                        || ! $locked->enabled
+                        || !$locked->enabled
                         || $locked->next_run_at === null
                         || $locked->next_run_at->isFuture()
                     ) {
@@ -130,7 +131,7 @@ final class ActionScheduleService
 
     public function nextRunAt(ActionSchedule $schedule, ?Carbon $from = null): ?Carbon
     {
-        if ($schedule->cron === null || $schedule->cron === '' || ! CronExpression::isValidExpression($schedule->cron)) {
+        if ($schedule->cron === null || $schedule->cron === '' || !CronExpression::isValidExpression($schedule->cron)) {
             return null;
         }
 
@@ -154,7 +155,7 @@ final class ActionScheduleService
         $options = is_array($schedule->options) ? $schedule->options : [];
 
         return new RunActionsData(
-            mode: is_string($options['mode'] ?? null) ? (string) $options['mode'] : 'sequential',
+            mode: is_string($options['mode'] ?? null) ? (string)$options['mode'] : 'sequential',
             actions: $this->codeMap($options['actions'] ?? null, [$action->code => $action->id]),
             before: $this->codeMap($options['before'] ?? null),
             after: $this->codeMap($options['after'] ?? null),
@@ -166,12 +167,12 @@ final class ActionScheduleService
     }
 
     /**
-     * @param  array<string, string> $fallback
+     * @param  array<string, string>  $fallback
      * @return array<string, string>
      */
     private function codeMap(mixed $value, array $fallback = []): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return $fallback;
         }
 
@@ -179,7 +180,7 @@ final class ActionScheduleService
 
         foreach ($value as $code => $id) {
             if (is_string($code) && $code !== '' && is_scalar($id)) {
-                $result[$code] = (string) $id;
+                $result[$code] = (string)$id;
             }
         }
 
@@ -195,7 +196,7 @@ final class ActionScheduleService
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string) $key] = $value;
+            $result[(string)$key] = $value;
         }
 
         return $result;

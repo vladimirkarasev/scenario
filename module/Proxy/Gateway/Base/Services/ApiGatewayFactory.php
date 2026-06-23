@@ -16,7 +16,8 @@ final readonly class ApiGatewayFactory
         private GuzzleApiTransport $transport,
         private MockApiTransport $mockTransport,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function make(string $name = 'default'): ApiGateway
     {

@@ -1,6 +1,6 @@
-import { computed, reactive, ref } from 'vue'
-import { defineStore } from 'pinia'
-import { destroyJson, sendJson } from '@/lib/http'
+import {computed, reactive, ref} from 'vue'
+import {defineStore} from 'pinia'
+import {destroyJson, sendJson} from '@/lib/http'
 
 interface Role {
     id: number
@@ -20,7 +20,7 @@ export const useRoleManagerStore = defineStore('roleManager', () => {
     const error = ref('')
     const isDialogOpen = ref(false)
     const editingId = ref<number | null>(null)
-    const form = reactive({ name: '' })
+    const form = reactive({name: ''})
 
     const dialogTitle = computed(() => editingId.value ? 'Edit role' : 'Create role')
 
@@ -58,7 +58,7 @@ export const useRoleManagerStore = defineStore('roleManager', () => {
                     : endpoints.value!.store,
                 {
                     method: editingId.value ? 'PUT' : 'POST',
-                    body: { name: form.name },
+                    body: {name: form.name},
                     fallbackMessage: 'Failed to save role.',
                 },
             )

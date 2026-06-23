@@ -1,6 +1,6 @@
 ScenarioResource:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -74,7 +74,7 @@ ScenarioItem:
 
 ScenarioRequest:
   type: object
-  required: [name]
+  required: [ name ]
   properties:
     name:
       type: string

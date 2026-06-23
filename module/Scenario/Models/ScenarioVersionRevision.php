@@ -10,14 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property string                                $id
- * @property string                                $scenario_version_id
- * @property array<string, mixed>|null             $schema_json
+ * @property string $id
+ * @property string $scenario_version_id
+ * @property array<string, mixed>|null $schema_json
  * @property array<int, array<string, mixed>>|null $nodes_json
  * @property array<int, array<string, mixed>>|null $edges_json
  * @property array<int, array<string, mixed>>|null $input_fields
- * @property int|null                              $schema_version
- * @property Carbon|null                           $created_at
+ * @property int|null $schema_version
+ * @property Carbon|null $created_at
  * @property-read ScenarioVersion|null $version
  */
 final class ScenarioVersionRevision extends Model

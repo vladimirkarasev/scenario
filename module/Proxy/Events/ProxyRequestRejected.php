@@ -14,5 +14,6 @@ final readonly class ProxyRequestRejected
         public ProxyRequest $proxyRequest,
         public ProxyContext $context,
         public ValidationException $exception,
-    ) {}
+    ) {
+    }
 }

@@ -16,7 +16,8 @@ final readonly class ScenarioVersionService
     public function __construct(
         private CatalogService $catalogService,
         private ScenarioVersionRepository $versions,
-    ) {}
+    ) {
+    }
 
     /** @return array<string, mixed> */
     public function create(ScenarioVersionData $data, Scenario $scenario): array

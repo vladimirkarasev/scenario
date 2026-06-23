@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - vehicle-check-list'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: vehicle-check-list
+  - name: vehicle-check-list
     description: 'Данные чек-листа'
 paths:
   /vehicle-check-list:
@@ -22,44 +18,37 @@ paths:
       summary: 'Просмотр чек-листа'
       description: 'Просмотр чек-листа'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID чек-листа'
           schema:
             type: integer
-        -
-          name: program_id
+        - name: program_id
           in: query
           description: 'ID программы (6 - Honda approved)'
           schema:
             type: integer
-        -
-          name: vehicle_vin
+        - name: vehicle_vin
           in: query
           description: VIN
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус (0 - Новая, 1 - Закрыто)'
           schema:
             type: integer
-        -
-          name: is_display_showcase
+        - name: is_display_showcase
           in: query
           description: 'Только для витрины'
           schema:
             type: boolean
-        -
-          name: thumbnail_width
+        - name: thumbnail_width
           in: query
           description: "Ширина превью по умолчанию 100, 'min' = 10, 'max' = 500"
           schema:
             type: integer
-        -
-          name: thumbnail_height
+        - name: thumbnail_height
           in: query
           description: "Высота превью по умолчанию 100, 'min' = 10, 'max' = 500"
           schema:
@@ -75,7 +64,7 @@ paths:
                   $ref: '#/components/schemas/VehicleCheckList'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -1,6 +1,6 @@
-import { usePage } from '@inertiajs/vue3'
-import { Building2, ClipboardList, Database, LayoutPanelLeft, RadioTower, Users, Workflow, Zap } from 'lucide-vue-next'
-import { computed } from 'vue'
+import {usePage} from '@inertiajs/vue3'
+import {Building2, ClipboardList, Database, LayoutPanelLeft, RadioTower, Users, Workflow, Zap} from 'lucide-vue-next'
+import {computed} from 'vue'
 
 export function useDashboardNavigation() {
     const page = usePage()
@@ -56,5 +56,5 @@ export function useDashboardNavigation() {
         },
     ])
 
-    return { navigationItems }
+    return {navigationItems}
 }

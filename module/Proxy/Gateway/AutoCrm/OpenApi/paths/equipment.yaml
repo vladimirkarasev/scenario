@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - equipment'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: equipment
+  - name: equipment
     description: 'Управление комплектациями'
 paths:
   /equipment:
@@ -22,50 +18,42 @@ paths:
       summary: 'Получение списка комплектаций'
       description: 'Получение списка комплектаций'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID комплектации'
           schema:
             type: integer
-        -
-          name: serie_id
+        - name: serie_id
           in: query
           description: 'ID серии'
           schema:
             type: integer
-        -
-          name: model_id
+        - name: model_id
           in: query
           description: 'ID модели'
           schema:
             type: integer
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
             type: string
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'ID страны'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'статус комплектации 1 - только комплектации которые выпускаются (по умолчанию), 3 - комплектации, которые не выпускаются, пустое значение - все комплектации'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран * **modification_ids** - Список ID модификаций'
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -81,4 +69,4 @@ paths:
                   $ref: '#/components/schemas/Equipment'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

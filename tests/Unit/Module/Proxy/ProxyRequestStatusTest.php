@@ -17,10 +17,10 @@ final class ProxyRequestStatusTest extends TestCase
      */
     public function test_each_status_returns_correct_russian_label(): void
     {
-        $this->assertSame('Получен',   ProxyRequestStatus::Received->label());
-        $this->assertSame('Принят',    ProxyRequestStatus::Accepted->label());
-        $this->assertSame('Отклонён',  ProxyRequestStatus::Rejected->label());
-        $this->assertSame('Ошибка',    ProxyRequestStatus::Failed->label());
+        $this->assertSame('Получен', ProxyRequestStatus::Received->label());
+        $this->assertSame('Принят', ProxyRequestStatus::Accepted->label());
+        $this->assertSame('Отклонён', ProxyRequestStatus::Rejected->label());
+        $this->assertSame('Ошибка', ProxyRequestStatus::Failed->label());
         $this->assertSame('Обработан', ProxyRequestStatus::Processed->label());
     }
 
@@ -29,10 +29,10 @@ final class ProxyRequestStatusTest extends TestCase
      */
     public function test_each_status_returns_correct_tailwind_color(): void
     {
-        $this->assertSame('slate',   ProxyRequestStatus::Received->color());
-        $this->assertSame('blue',    ProxyRequestStatus::Accepted->color());
-        $this->assertSame('amber',   ProxyRequestStatus::Rejected->color());
-        $this->assertSame('red',     ProxyRequestStatus::Failed->color());
+        $this->assertSame('slate', ProxyRequestStatus::Received->color());
+        $this->assertSame('blue', ProxyRequestStatus::Accepted->color());
+        $this->assertSame('amber', ProxyRequestStatus::Rejected->color());
+        $this->assertSame('red', ProxyRequestStatus::Failed->color());
         $this->assertSame('emerald', ProxyRequestStatus::Processed->color());
     }
 

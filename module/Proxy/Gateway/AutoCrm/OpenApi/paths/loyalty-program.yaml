@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - loyalty-program'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: loyalty-program
+  - name: loyalty-program
     description: 'Программы лояльности'
 paths:
   /loyalty/program:
@@ -20,8 +16,7 @@ paths:
       tags:
         - loyalty-program
       parameters:
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Параметр, позволяющий получить в ответе связные данные (levels, levels.benefits, levels.conditions)'
           schema:
@@ -39,4 +34,4 @@ paths:
                   $ref: '#/components/schemas/LoyaltyProgram'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

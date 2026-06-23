@@ -40,7 +40,8 @@ end
 scenario_link
 ```
 
-`ScenarioGraphResolver` валидирует, что каждый node имеет поддерживаемый `type`, а `source` и `target` каждого edge указывают на существующие узлы.
+`ScenarioGraphResolver` валидирует, что каждый node имеет поддерживаемый `type`, а `source` и `target` каждого edge
+указывают на существующие узлы.
 
 ## Node Handlers
 
@@ -177,7 +178,8 @@ not_in
 
 `end` завершает запуск.
 
-Особенность текущей реализации: `EndNodeHandler` считается интерактивным, чтобы финальный экран мог быть отрендерен в payload. Когда progress доходит до `end`, `ScenarioPlayerService` переводит run в статус `completed`.
+Особенность текущей реализации: `EndNodeHandler` считается интерактивным, чтобы финальный экран мог быть отрендерен в
+payload. Когда progress доходит до `end`, `ScenarioPlayerService` переводит run в статус `completed`.
 
 ## Scenario Link Node
 
@@ -193,7 +195,8 @@ not_in
 
 ## Выражения И Переменные
 
-За выражения отвечает общий `App\Services\Expression\ExpressionService`; сценарный `VariableResolver` только подготавливает контекст переменных.
+За выражения отвечает общий `App\Services\Expression\ExpressionService`; сценарный `VariableResolver` только
+подготавливает контекст переменных.
 
 Поддерживаемые шаблонные форматы:
 

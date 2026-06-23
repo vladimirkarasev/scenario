@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - poll'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: poll
+  - name: poll
     description: Опросы
 paths:
   /client-service/poll:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка опросов'
       description: 'Получение списка опросов'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,7 +34,7 @@ paths:
                   $ref: '#/components/schemas/Poll'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/client-service/poll/{id}':
     get:
       tags:
@@ -47,8 +42,7 @@ paths:
       summary: 'Получение опроса по ID'
       description: 'Получение опроса по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id опроса'
           required: true
@@ -63,7 +57,7 @@ paths:
                 $ref: '#/components/schemas/Poll'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -77,15 +71,13 @@ paths:
       summary: 'Отчёт по CSI (Сервис)'
       description: 'Отчёт по CSI (Сервис)'
       parameters:
-        -
-          name: pollId
+        - name: pollId
           in: query
           description: 'id опроса'
           required: true
           schema:
             type: integer
-        -
-          name: 'period[]'
+        - name: 'period[]'
           in: query
           description: 'Период: (Список периодов в формате YYYY-MM)'
           style: form
@@ -95,20 +87,17 @@ paths:
             type: array
             items:
               type: string
-        -
-          name: userRole
+        - name: userRole
           in: query
           description: 'id роли'
           schema:
             type: string
-        -
-          name: userPosition
+        - name: userPosition
           in: query
           description: 'id должности'
           schema:
             type: integer
-        -
-          name: userId
+        - name: userId
           in: query
           description: 'id сотрудника'
           schema:
@@ -124,7 +113,7 @@ paths:
                   $ref: '#/components/schemas/PollReport'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

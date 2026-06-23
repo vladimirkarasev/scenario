@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Module\Scenario\Services\Nodes;
+namespace Module\Scenario\Services\Nodes\Condition;
 
 use Illuminate\Validation\ValidationException;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ConditionEvaluator;
+use Module\Scenario\Services\Nodes\NodeAdvanceResult;
+use Module\Scenario\Services\Nodes\NodeHandlerInterface;
+use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\ScenarioGraphResolver;
 use Module\Scenario\Services\VariableResolver;
 
@@ -20,7 +23,8 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
         private ScenarioGraphResolver $graphResolver,
         private VariableResolver $variableResolver,
         private ConditionEvaluator $conditionEvaluator,
-    ) {}
+    ) {
+    }
 
     public function isInteractive(array $node): bool
     {
@@ -51,7 +55,7 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
 
         $question = $this->strField($data, 'question')
             ?: $this->strField($data, 'title')
-            ?: $this->strField($data, 'text');
+                ?: $this->strField($data, 'text');
 
         return [
             'type' => 'condition',
@@ -63,13 +67,13 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param array<string, mixed> $node
+     * @param  array<string, mixed>  $node
      */
     private function resolveManualTarget(ScenarioVersion $version, array $node, ?string $selectedTargetNodeId): string
     {
         $allowed = array_column($this->manualConditionOptions($version, $node), 'targetNodeId');
 
-        if ($selectedTargetNodeId === null || ! in_array($selectedTargetNodeId, $allowed, true)) {
+        if ($selectedTargetNodeId === null || !in_array($selectedTargetNodeId, $allowed, true)) {
             throw ValidationException::withMessages([
                 'selected_target_node_id' => ['Selected manual condition target is invalid.'],
             ]);
@@ -79,7 +83,7 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<string, mixed>                                   $node
+     * @param  array<string, mixed>  $node
      * @return array<int, array{label: string, targetNodeId: string}>
      */
     private function manualConditionOptions(ScenarioVersion $version, array $node): array
@@ -91,11 +95,11 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
         $options = [];
 
         foreach ($rawOptions as $option) {
-            if (! is_array($option)) {
+            if (!is_array($option)) {
                 continue;
             }
             $targetNodeId = $option['targetNodeId'] ?? null;
-            if (! is_string($targetNodeId) || $targetNodeId === '') {
+            if (!is_string($targetNodeId) || $targetNodeId === '') {
                 continue;
             }
             $options[] = [
@@ -111,7 +115,7 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
         // Если нет явных опций — строим из conditionBranches + исходящих рёбер
         $branches = [];
         foreach ($this->arrayField($data, 'conditionBranches') as $branch) {
-            if (! is_array($branch)) {
+            if (!is_array($branch)) {
                 continue;
             }
             $branchId = $branch['id'] ?? null;
@@ -124,7 +128,7 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
 
         foreach ($this->graphResolver->outgoingEdges($version, $this->nodeId($node)) as $edge) {
             $targetNodeId = $edge['target'] ?? null;
-            if (! is_string($targetNodeId) || $targetNodeId === '') {
+            if (!is_string($targetNodeId) || $targetNodeId === '') {
                 continue;
             }
 

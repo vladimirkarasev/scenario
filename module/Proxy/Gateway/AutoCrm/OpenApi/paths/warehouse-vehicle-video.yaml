@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-vehicle-video'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-vehicle-video
+  - name: warehouse-vehicle-video
     description: 'Управление видео автомобилей'
 paths:
   /warehouse/vehicle-video/create:
@@ -22,8 +18,7 @@ paths:
       summary: 'Добавить видео'
       description: 'Добавить видео'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'VIN автомобиля'
           required: true
@@ -44,10 +39,10 @@ paths:
                 $ref: '#/components/schemas/VehicleVideoForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
-          content: {  }
+          content: { }
   /warehouse/vehicle-video/delete:
     delete:
       tags:
@@ -55,8 +50,7 @@ paths:
       summary: 'Удалить видео по его ID'
       description: 'Удалить видео по его ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID видео'
           required: true
@@ -65,10 +59,10 @@ paths:
       responses:
         200:
           description: 'Видео удалено'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
-          content: {  }
+          content: { }

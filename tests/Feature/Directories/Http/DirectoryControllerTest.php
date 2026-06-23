@@ -121,7 +121,7 @@ final class DirectoryControllerTest extends TestCase
         [$user] = $this->makeUserWithProject('directory_view');
 
         $this->actingAs($user)
-            ->getJson('/api/directories/' . Str::uuid())
+            ->getJson('/api/directories/'.Str::uuid())
             ->assertNotFound();
     }
 
@@ -138,10 +138,10 @@ final class DirectoryControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->postJson('/api/directories', [
-                'name'        => 'Новый справочник',
-                'slug'        => 'new-directory',
+                'name' => 'Новый справочник',
+                'slug' => 'new-directory',
                 'source_type' => 'manual',
-                'fields'      => [],
+                'fields' => [],
             ]);
 
         $response->assertCreated()
@@ -149,7 +149,7 @@ final class DirectoryControllerTest extends TestCase
 
         $this->assertDatabaseHas('directories', [
             'project_id' => $project->id,
-            'slug'       => 'new-directory',
+            'slug' => 'new-directory',
         ]);
     }
 
@@ -174,7 +174,10 @@ final class DirectoryControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/directories', [
-                'name' => 'Test', 'slug' => 'test', 'source_type' => 'manual', 'fields' => [],
+                'name' => 'Test',
+                'slug' => 'test',
+                'source_type' => 'manual',
+                'fields' => [],
             ])
             ->assertForbidden();
     }
@@ -193,10 +196,10 @@ final class DirectoryControllerTest extends TestCase
 
         $this->actingAs($user)
             ->putJson("/api/directories/{$directory->id}", [
-                'name'        => 'Новое',
-                'slug'        => 'new-slug',
+                'name' => 'Новое',
+                'slug' => 'new-slug',
                 'source_type' => 'manual',
-                'fields'      => [['key' => 'name', 'name' => 'Name', 'type' => 'string']],
+                'fields' => [['key' => 'name', 'name' => 'Name', 'type' => 'string']],
             ])
             ->assertOk()
             ->assertJsonPath('data.attributes.name', 'Новое');
@@ -244,9 +247,9 @@ final class DirectoryControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $user    = User::factory()->create([
+        $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -260,9 +263,9 @@ final class DirectoryControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'      => 'Project ' . Str::random(4),
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
     }
@@ -270,9 +273,9 @@ final class DirectoryControllerTest extends TestCase
     private function makeDirectory(Project $project, string $name = 'Directory', string $slug = ''): Directory
     {
         return Directory::query()->create([
-            'project_id'  => $project->id,
-            'name'        => $name,
-            'slug'        => $slug ?: 'dir-' . Str::random(6),
+            'project_id' => $project->id,
+            'name' => $name,
+            'slug' => $slug ?: 'dir-'.Str::random(6),
             'source_type' => 'manual',
         ]);
     }

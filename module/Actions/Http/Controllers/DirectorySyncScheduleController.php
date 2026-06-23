@@ -15,7 +15,8 @@ final class DirectorySyncScheduleController extends Controller
 {
     public function __construct(
         private readonly DirectorySyncScheduleService $service,
-    ) {}
+    ) {
+    }
 
     public function show(Directory $directory): JsonResponse
     {
@@ -28,7 +29,7 @@ final class DirectorySyncScheduleController extends Controller
 
         $schedule = $this->service->upsert(
             directory: $directory,
-            enabled: (bool) $validated['enabled'],
+            enabled: (bool)$validated['enabled'],
             cron: is_string($validated['cron'] ?? null) && $validated['cron'] !== '' ? $validated['cron'] : null,
             timezone: is_string($validated['timezone'] ?? null) ? $validated['timezone'] : null,
         );
@@ -46,7 +47,7 @@ final class DirectorySyncScheduleController extends Controller
     /** @return array<string, mixed>|null */
     private function payload(?ActionSchedule $schedule): ?array
     {
-        if (! $schedule instanceof ActionSchedule) {
+        if (!$schedule instanceof ActionSchedule) {
             return null;
         }
 

@@ -110,7 +110,7 @@ final class DirectoryCategoryControllerTest extends TestCase
         [$user] = $this->makeUserWithProject('directory_view');
 
         $this->actingAs($user)
-            ->getJson('/api/directories/categories/' . Str::uuid())
+            ->getJson('/api/directories/categories/'.Str::uuid())
             ->assertNotFound();
     }
 
@@ -127,7 +127,7 @@ final class DirectoryCategoryControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/directories/categories', [
-                'name'      => 'Новая категория',
+                'name' => 'Новая категория',
                 'is_active' => true,
             ])
             ->assertCreated()
@@ -146,14 +146,14 @@ final class DirectoryCategoryControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/directories/categories', [
-                'name'      => 'Дочерняя',
+                'name' => 'Дочерняя',
                 'parent_id' => $parent->id,
                 'is_active' => true,
             ])
             ->assertCreated();
 
         $this->assertDatabaseHas('categories', [
-            'name'      => 'Дочерняя',
+            'name' => 'Дочерняя',
             'parent_id' => $parent->id,
         ]);
     }
@@ -167,7 +167,7 @@ final class DirectoryCategoryControllerTest extends TestCase
 
         $response = $this->actingAs($user)
             ->postJson('/api/directories/categories', [
-                'name'      => 'Новая категория',
+                'name' => 'Новая категория',
                 'is_active' => true,
             ])
             ->assertCreated();
@@ -176,8 +176,8 @@ final class DirectoryCategoryControllerTest extends TestCase
 
         $this->assertDatabaseHas('model_has_categories', [
             'category_id' => $categoryId,
-            'model_type'  => Directory::class,
-            'project_id'  => $project->id,
+            'model_type' => Directory::class,
+            'project_id' => $project->id,
         ]);
     }
 
@@ -219,7 +219,7 @@ final class DirectoryCategoryControllerTest extends TestCase
 
         $this->actingAs($user)
             ->putJson("/api/directories/categories/{$category->id}", [
-                'name'      => 'Новое имя',
+                'name' => 'Новое имя',
                 'is_active' => true,
             ])
             ->assertOk()
@@ -268,15 +268,15 @@ final class DirectoryCategoryControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = Project::query()->create([
-            'name'      => 'Project ' . Str::random(4),
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
 
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -290,19 +290,19 @@ final class DirectoryCategoryControllerTest extends TestCase
     private function makeCategory(string $name, ?string $parentId = null, ?string $projectId = null): Category
     {
         $category = Category::query()->create([
-            'id'        => (string) Str::uuid(),
-            'name'      => $name,
+            'id' => (string)Str::uuid(),
+            'name' => $name,
             'parent_id' => $parentId,
             'is_active' => true,
         ]);
 
         DB::table('model_has_categories')->insertOrIgnore([
             'category_id' => $category->id,
-            'model_id'    => $category->id,
-            'model_type'  => Directory::class,
-            'project_id'  => $projectId,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'model_id' => $category->id,
+            'model_type' => Directory::class,
+            'project_id' => $projectId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return $category;

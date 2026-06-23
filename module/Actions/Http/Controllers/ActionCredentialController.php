@@ -16,7 +16,8 @@ final class ActionCredentialController extends Controller
 {
     public function __construct(
         private readonly ActionCredentialService $credentialService,
-    ) {}
+    ) {
+    }
 
     public function index(): JsonResponse
     {

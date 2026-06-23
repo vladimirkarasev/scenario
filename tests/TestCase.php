@@ -37,7 +37,7 @@ abstract class TestCase extends BaseTestCase
         ]);
     }
 
-    /** @param array<string, mixed> $content */
+    /** @param  array<string, mixed>  $content */
     protected function createRevision(ScenarioVersion $version, array $content = []): ScenarioVersionRevision
     {
         $latestCreatedAt = ScenarioVersionRevision::query()

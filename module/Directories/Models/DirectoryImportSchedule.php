@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property array<string, string>|null            $mapping_json
+ * @property array<string, string>|null $mapping_json
  * @property array<int, array<string, mixed>>|null $fields_json
- * @property array<string, mixed>|null             $remote_config_json
- * @property Carbon|null                           $last_run_at
- * @property Carbon|null                           $next_run_at
+ * @property array<string, mixed>|null $remote_config_json
+ * @property Carbon|null $last_run_at
+ * @property Carbon|null $next_run_at
  */
 final class DirectoryImportSchedule extends Model
 {

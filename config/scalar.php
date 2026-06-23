@@ -80,7 +80,7 @@ return [
         // 'deepSpace',
         // 'default',
         // 'kepler',
-        'laravel',
+            'laravel',
         // 'mars',
         // 'moon',
         // 'purple',

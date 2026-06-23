@@ -1,13 +1,13 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import { Primitive } from "reka-ui";
-import { cn } from "@/lib/utils";
-import { badgeVariants } from ".";
+import {reactiveOmit} from "@vueuse/core";
+import {Primitive} from "reka-ui";
+import {cn} from "@/lib/utils";
+import {badgeVariants} from ".";
 
 const props = defineProps({
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
-  variant: { type: null, required: false },
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
+  variant: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -20,11 +20,11 @@ const delegatedProps = reactiveOmit(props, "class");
 
 <template>
   <Primitive
-    data-slot="badge"
-    :data-variant="variant"
-    :class="cn(badgeVariants({ variant }), props.class)"
-    v-bind="delegatedProps"
+      data-slot="badge"
+      :data-variant="variant"
+      :class="cn(badgeVariants({ variant }), props.class)"
+      v-bind="delegatedProps"
   >
-    <slot />
+    <slot/>
   </Primitive>
 </template>

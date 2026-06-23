@@ -13,12 +13,13 @@ final class ActionExecutor
     public function __construct(
         private readonly ActionRegistry $actionRegistry,
         private readonly ActionLogger $actionLogger,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function execute(Action $action, array $input = [], int $attemptsCount = 1): ActionResult
     {
-        if (! $action->is_active) {
+        if (!$action->is_active) {
             return ActionResult::skipped('Action is disabled.');
         }
 

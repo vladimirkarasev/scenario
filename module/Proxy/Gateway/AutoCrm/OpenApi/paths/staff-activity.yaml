@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - staff-activity'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: staff-activity
+  - name: staff-activity
     description: 'Данные по активности персонала'
 paths:
   /staff/staff-activity:
@@ -22,37 +18,32 @@ paths:
       summary: 'Получение данных по активности персонала'
       description: 'Получение данных по активности персонала'
       parameters:
-        -
-          name: code
+        - name: code
           in: query
           description: 'Код ДЦ'
           required: true
           schema:
             type: string
-        -
-          name: from
+        - name: from
           in: query
           description: 'Дата с, формат ДД.ММ.ГГГГ'
           required: true
           schema:
             type: string
-        -
-          name: to
+        - name: to
           in: query
           description: 'Дата по, формат ДД.ММ.ГГГГ'
           required: true
           schema:
             type: string
-        -
-          name: 'type[]'
+        - name: 'type[]'
           in: query
           description: 'Признак типа документа (1 - Рабочие листы,  2 - Заказ-наряды)'
           schema:
             type: array
             items:
               type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -68,4 +59,4 @@ paths:
                   $ref: '#/components/schemas/StaffActivity'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

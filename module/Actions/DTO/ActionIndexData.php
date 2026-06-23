@@ -13,13 +13,14 @@ final readonly class ActionIndexData
         public ?string $type,
         public ?bool $isActive,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
         $filter = $request->array('filter');
         $pageSize = $request->input('page.size', 20);
-        $perPage = is_scalar($pageSize) ? (int) $pageSize : 20;
+        $perPage = is_scalar($pageSize) ? (int)$pageSize : 20;
 
         return new self(
             search: isset($filter['search']) && is_string($filter['search']) && $filter['search'] !== ''

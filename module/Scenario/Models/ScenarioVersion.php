@@ -14,11 +14,11 @@ use Illuminate\Support\Str;
 use Module\Projects\Models\Project;
 
 /**
- * @property string      $id
- * @property string      $scenario_id
+ * @property string $id
+ * @property string $scenario_id
  * @property string|null $project_id
  * @property string|null $name
- * @property string      $status
+ * @property string $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Project|null $project
@@ -85,8 +85,8 @@ final class ScenarioVersion extends Model
     protected static function booted(): void
     {
         self::creating(static function (ScenarioVersion $version): void {
-            if (! $version->getKey()) {
-                $version->{$version->getKeyName()} = (string) Str::uuid();
+            if (!$version->getKey()) {
+                $version->{$version->getKeyName()} = (string)Str::uuid();
             }
         });
     }

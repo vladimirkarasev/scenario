@@ -11,7 +11,7 @@ final readonly class CarbonParser
 {
     public static function parse(mixed $value): ?Carbon
     {
-        if (! is_string($value) || $value === '') {
+        if (!is_string($value) || $value === '') {
             return null;
         }
         try {

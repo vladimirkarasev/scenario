@@ -11,10 +11,10 @@ use Module\Scenario\Enums\ScenarioNodeType;
 final readonly class ScenarioVersionData
 {
     /**
-     * @param array<mixed>                     $schemaJson
-     * @param array<int, array<string, mixed>> $nodesJson
-     * @param array<int, array<string, mixed>> $edgesJson
-     * @param array<int, array<string, mixed>> $inputFields
+     * @param  array<mixed>  $schemaJson
+     * @param  array<int, array<string, mixed>>  $nodesJson
+     * @param  array<int, array<string, mixed>>  $edgesJson
+     * @param  array<int, array<string, mixed>>  $inputFields
      */
     public function __construct(
         public array $schemaJson,
@@ -26,11 +26,12 @@ final readonly class ScenarioVersionData
         public bool $hasName = false,
         public ?string $status = null,
         public bool $hasStatus = false,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
-        $schemaJson = (array) $request->input('schema_json', []);
+        $schemaJson = (array)$request->input('schema_json', []);
         $snapshot = self::normalizeSnapshot($schemaJson);
 
         return new self(
@@ -49,18 +50,18 @@ final readonly class ScenarioVersionData
     /** @return array<int, array<string, mixed>> */
     private static function normalizeInputFields(mixed $raw): array
     {
-        if (! is_array($raw)) {
+        if (!is_array($raw)) {
             return [];
         }
         $result = [];
         foreach (array_values($raw) as $item) {
-            if (! is_array($item)) {
+            if (!is_array($item)) {
                 continue;
             }
             $result[] = [
-                'key' => is_scalar($item['key'] ?? null) ? (string) $item['key'] : '',
-                'label' => is_scalar($item['label'] ?? null) ? (string) $item['label'] : '',
-                'type' => is_scalar($item['type'] ?? null) ? (string) $item['type'] : 'text',
+                'key' => is_scalar($item['key'] ?? null) ? (string)$item['key'] : '',
+                'label' => is_scalar($item['label'] ?? null) ? (string)$item['label'] : '',
+                'type' => is_scalar($item['type'] ?? null) ? (string)$item['type'] : 'text',
             ];
         }
 
@@ -96,12 +97,14 @@ final readonly class ScenarioVersionData
     }
 
     /**
-     * @param  array<array-key, mixed>                                                                                                $schemaJson
+     * @param  array<array-key, mixed>  $schemaJson
      * @return array{nodes_json: array<int, array<string, mixed>>, edges_json: array<int, array<string, mixed>>, schema_version: int}
      */
     private static function normalizeSnapshot(array $schemaJson): array
     {
-        if (isset($schemaJson['nodes'], $schemaJson['edges']) && is_array($schemaJson['nodes']) && is_array($schemaJson['edges'])) {
+        if (isset($schemaJson['nodes'], $schemaJson['edges']) && is_array($schemaJson['nodes']) && is_array(
+                $schemaJson['edges']
+            )) {
             /** @var array<int, array<string, mixed>> $nodes */
             $nodes = array_values($schemaJson['nodes']);
             /** @var array<int, array<string, mixed>> $edges */
@@ -115,7 +118,7 @@ final readonly class ScenarioVersionData
             return [
                 'nodes_json' => $nodes,
                 'edges_json' => $edges,
-                'schema_version' => is_numeric($rawVersion) ? (int) $rawVersion : 1,
+                'schema_version' => is_numeric($rawVersion) ? (int)$rawVersion : 1,
             ];
         }
 
@@ -127,8 +130,8 @@ final readonly class ScenarioVersionData
             $block = is_array($block) ? $block : [];
 
             return [
-                'id' => is_scalar($block['id'] ?? null) ? (string) $block['id'] : '',
-                'type' => is_scalar($block['type'] ?? null) ? (string) $block['type'] : ScenarioNodeType::Block->value,
+                'id' => is_scalar($block['id'] ?? null) ? (string)$block['id'] : '',
+                'type' => is_scalar($block['type'] ?? null) ? (string)$block['type'] : ScenarioNodeType::Block->value,
                 'data' => is_array($block['data'] ?? null) ? $block['data'] : [],
                 'position' => is_array($block['position'] ?? null) ? $block['position'] : ['x' => 0, 'y' => 0],
             ];
@@ -141,9 +144,9 @@ final readonly class ScenarioVersionData
             $targetBlockId = data_get($connection, 'target.blockId', '');
 
             return [
-                'id' => is_scalar($connection['id'] ?? null) ? (string) $connection['id'] : '',
-                'source' => is_scalar($sourceBlockId) ? (string) $sourceBlockId : '',
-                'target' => is_scalar($targetBlockId) ? (string) $targetBlockId : '',
+                'id' => is_scalar($connection['id'] ?? null) ? (string)$connection['id'] : '',
+                'source' => is_scalar($sourceBlockId) ? (string)$sourceBlockId : '',
+                'target' => is_scalar($targetBlockId) ? (string)$targetBlockId : '',
                 'sourceHandle' => data_get($connection, 'source.port'),
                 'targetHandle' => data_get($connection, 'target.port'),
                 'label' => data_get($connection, 'label'),
@@ -159,12 +162,12 @@ final readonly class ScenarioVersionData
         return [
             'nodes_json' => array_values($nodes),
             'edges_json' => array_values($edges),
-            'schema_version' => is_numeric($rawVersion) ? (int) $rawVersion : 1,
+            'schema_version' => is_numeric($rawVersion) ? (int)$rawVersion : 1,
         ];
     }
 
     /**
-     * @param array<int, array<string, mixed>> $nodes
+     * @param  array<int, array<string, mixed>>  $nodes
      */
     private static function validateNodes(array $nodes): void
     {
@@ -180,7 +183,7 @@ final readonly class ScenarioVersionData
     }
 
     /**
-     * @param array<int, array<string, mixed>> $edges
+     * @param  array<int, array<string, mixed>>  $edges
      */
     private static function validateEdges(array $edges): void
     {

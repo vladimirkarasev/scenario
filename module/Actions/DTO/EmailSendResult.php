@@ -11,7 +11,8 @@ final readonly class EmailSendResult
         public string $transport,
         public ?string $messageId = null,
         public ?string $error = null,
-    ) {}
+    ) {
+    }
 
     public static function sent(string $transport, ?string $messageId = null): self
     {

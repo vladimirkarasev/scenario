@@ -14,7 +14,8 @@ final class DirectoryListController extends Controller
 {
     public function __construct(
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): AnonymousResourceCollection
     {
@@ -24,10 +25,12 @@ final class DirectoryListController extends Controller
         $perPage = min(100, max(1, $request->integer('page.size', 20)));
 
         /** @var string[] $categoryIds */
-        $categoryIds = array_values(array_filter(
-            (array) $request->input('filter.category_ids', []),
-            static fn (mixed $id): bool => is_string($id) && $id !== '',
-        ));
+        $categoryIds = array_values(
+            array_filter(
+                (array)$request->input('filter.category_ids', []),
+                static fn(mixed $id): bool => is_string($id) && $id !== '',
+            )
+        );
         $uncategorized = $request->boolean('filter.uncategorized');
 
         $result = $this->directoryService->paginate($project, $page, $perPage, $categoryIds, $uncategorized);

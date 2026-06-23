@@ -684,45 +684,33 @@ components:
           description: 'ID программы лояльности'
         task_stage_slug:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Псевдоним этапа задачи'
         task_stage:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID этапа задачи'
         task_stage_name:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Этап задачи'
         result_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID результата'
         result_name:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Результат
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Комментарий для клиента'
         files:
           type: array
@@ -866,7 +854,7 @@ components:
           description: 'ID рабочего листа'
         data:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Дополнительные данные по транзакции(parts - запасные части, works - работы)'
         external_order_number:
           type: string

@@ -14,8 +14,8 @@ use Module\Scenario\Models\ScenarioVersionRevision;
 final class ScenarioVersionRepository
 {
     /**
-     * @param array<string, mixed> $metadata
-     * @param array<string, mixed> $content
+     * @param  array<string, mixed>  $metadata
+     * @param  array<string, mixed>  $content
      */
     public function create(Scenario $scenario, array $metadata, array $content): ScenarioVersion
     {
@@ -33,8 +33,8 @@ final class ScenarioVersionRepository
     }
 
     /**
-     * @param array<string, mixed> $metadata
-     * @param array<string, mixed> $content
+     * @param  array<string, mixed>  $metadata
+     * @param  array<string, mixed>  $content
      */
     public function update(ScenarioVersion $version, array $metadata, array $content): ScenarioVersion
     {
@@ -54,7 +54,7 @@ final class ScenarioVersionRepository
         $baseName = $version->name ?? ('v'.($scenario->versions()->count() + 1));
 
         $copy = ScenarioVersion::query()->create([
-            'id' => (string) Str::uuid(),
+            'id' => (string)Str::uuid(),
             'scenario_id' => $version->scenario_id,
             'project_id' => $version->project_id,
             'name' => $baseName.' (копия)',
@@ -83,7 +83,7 @@ final class ScenarioVersionRepository
         $version->delete();
     }
 
-    /** @param array<string, mixed> $content */
+    /** @param  array<string, mixed>  $content */
     public function storeRevision(ScenarioVersion $version, array $content): ScenarioVersionRevision
     {
         $latestCreatedAt = $version->revisions()
@@ -114,7 +114,7 @@ final class ScenarioVersionRepository
         return ScenarioVersion::query()
             ->whereKey($scenarioVersionId)
             ->where('scenario_id', $scenario->id)
-            ->firstOr(fn () => throw ValidationException::withMessages([
+            ->firstOr(fn() => throw ValidationException::withMessages([
                 'scenario_version_id' => ['Scenario version does not belong to the selected scenario.'],
             ]));
     }

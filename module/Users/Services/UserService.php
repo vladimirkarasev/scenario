@@ -21,7 +21,8 @@ final readonly class UserService
         private UserRepository $users,
         private CurrentProject $currentProject,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     /** @return LengthAwarePaginator<int, User> */
     public function paginate(UserIndexData $filters): LengthAwarePaginator

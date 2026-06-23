@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - esk-record-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: esk-record-type
+  - name: esk-record-type
     description: 'Типы записей ЭСК'
 paths:
   /esk-record-type:
@@ -22,26 +18,22 @@ paths:
       summary: 'Получение списка типов записей ЭСК'
       description: "Возвращает справочник типов записей ЭСК\n"
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID записи'
           schema:
             type: integer
-        -
-          name: maintenance
+        - name: maintenance
           in: query
           description: 'Номер ТО'
           schema:
             type: integer
-        -
-          name: name
+        - name: name
           in: query
           description: Наименование
           schema:
             type: string
-        -
-          name: max_period_months
+        - name: max_period_months
           in: query
           description: 'Максимальный срок проведения, месяцев'
           schema:
@@ -57,7 +49,7 @@ paths:
                   $ref: '#/components/schemas/EskRecordType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:

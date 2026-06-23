@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - model'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: model
+  - name: model
     description: 'Управление моделями'
 paths:
   /model:
@@ -22,32 +18,27 @@ paths:
       summary: 'Получение списка моделей'
       description: 'Получение списка моделей'
       parameters:
-        -
-          name: is_recent
+        - name: is_recent
           in: query
           description: 'признак активности модели 1 - только модели которые выпускаются (по умолчанию), 0 - модели, которые не выпускаются, пустое значение - все модели'
           schema:
             type: integer
-        -
-          name: name
+        - name: name
           in: query
           description: Наименование
           schema:
             type: string
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'ID страны'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран'
           schema:
@@ -63,7 +54,7 @@ paths:
                   $ref: '#/components/schemas/Model'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/model/{id}':
     get:
       tags:
@@ -71,15 +62,13 @@ paths:
       summary: 'Получение модели по ID'
       description: 'Получение модели по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id модели'
           required: true
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран'
           schema:
@@ -93,7 +82,7 @@ paths:
                 $ref: '#/components/schemas/Model'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -17,7 +17,9 @@ final readonly class EmailSenderFactory
 {
     private const RUNTIME_MAILER = 'email_account_runtime';
 
-    public function __construct(private Repository $config) {}
+    public function __construct(private Repository $config)
+    {
+    }
 
     public function forAccount(?EmailAccount $account): EmailSenderInterface
     {
@@ -50,7 +52,7 @@ final readonly class EmailSenderFactory
         return self::RUNTIME_MAILER;
     }
 
-    /** @param array<string, mixed> $settings */
+    /** @param  array<string, mixed>  $settings */
     private function str(array $settings, string $key, string $default): string
     {
         $value = $settings[$key] ?? null;
@@ -58,7 +60,7 @@ final readonly class EmailSenderFactory
         return is_string($value) && $value !== '' ? $value : $default;
     }
 
-    /** @param array<string, mixed> $settings */
+    /** @param  array<string, mixed>  $settings */
     private function nullableStr(array $settings, string $key): ?string
     {
         $value = $settings[$key] ?? null;
@@ -66,11 +68,11 @@ final readonly class EmailSenderFactory
         return is_string($value) && $value !== '' ? $value : null;
     }
 
-    /** @param array<string, mixed> $settings */
+    /** @param  array<string, mixed>  $settings */
     private function int(array $settings, string $key, int $default): int
     {
         $value = $settings[$key] ?? null;
 
-        return is_numeric($value) ? (int) $value : $default;
+        return is_numeric($value) ? (int)$value : $default;
     }
 }

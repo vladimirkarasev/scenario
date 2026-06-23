@@ -20,7 +20,8 @@ final class DirectorySyncScheduleService
 {
     public function __construct(
         private readonly ActionScheduleService $schedules,
-    ) {}
+    ) {
+    }
 
     public function findSchedule(Directory $directory): ?ActionSchedule
     {

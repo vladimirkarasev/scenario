@@ -23,10 +23,17 @@ final class UserGroupRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'alpha_dash',
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'alpha_dash',
                 Rule::unique('user_groups', 'slug')->ignore($group?->id),
             ],
-            'ext_id' => ['nullable', 'string', 'max:255',
+            'ext_id' => [
+                'nullable',
+                'string',
+                'max:255',
                 Rule::unique('user_groups', 'ext_id')->ignore($group?->id),
             ],
             'description' => ['nullable', 'string'],

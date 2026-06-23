@@ -108,7 +108,7 @@ final class UserGroupsControllerTest extends TestCase
         [$user] = $this->makeUserWithProject('group_view');
 
         $this->actingAs($user)
-            ->getJson('/api/groups/' . Str::uuid())
+            ->getJson('/api/groups/'.Str::uuid())
             ->assertNotFound();
     }
 
@@ -125,16 +125,16 @@ final class UserGroupsControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/groups', [
-                'name'      => 'Новая группа',
-                'slug'      => 'new-group',
+                'name' => 'Новая группа',
+                'slug' => 'new-group',
                 'is_active' => true,
             ])
             ->assertCreated()
             ->assertJsonPath('data.attributes.name', 'Новая группа');
 
         $this->assertDatabaseHas('user_groups', [
-            'name'    => 'Новая группа',
-            'slug'    => 'new-group',
+            'name' => 'Новая группа',
+            'slug' => 'new-group',
             'site_id' => $project->id,
         ]);
     }
@@ -242,9 +242,9 @@ final class UserGroupsControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $user    = User::factory()->create([
+        $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -258,20 +258,20 @@ final class UserGroupsControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project ' . Str::random(4),
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 
     private function makeGroup(Project $project, string $name = 'Test Group', string $slug = ''): UserGroup
     {
         return UserGroup::query()->create([
-            'name'      => $name,
-            'slug'      => $slug ?: 'group-' . Str::random(6),
-            'site_id'   => $project->id,
+            'name' => $name,
+            'slug' => $slug ?: 'group-'.Str::random(6),
+            'site_id' => $project->id,
             'is_active' => true,
         ]);
     }

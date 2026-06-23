@@ -1963,7 +1963,7 @@ components:
           description: 'Кратность заказа'
         prices:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Ключ - тип цены, Значение - Цена'
         balance_types:
           type: object
@@ -2495,10 +2495,8 @@ components:
           $ref: '#/components/schemas/StageResult'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 type: string
@@ -2548,10 +2546,8 @@ components:
           $ref: '#/components/schemas/StageResult'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 type: string

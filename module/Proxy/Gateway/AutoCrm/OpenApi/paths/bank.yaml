@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - bank'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: bank
+  - name: bank
     description: 'Управление банками'
 paths:
   /bank:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка банков'
       description: 'Получение списка банков'
       parameters:
-        -
-          name: type
+        - name: type
           in: query
           description: 'Тип банка (bank, leasing)'
           schema:
@@ -31,14 +26,12 @@ paths:
             enum:
               - bank
               - leasing
-        -
-          name: used_for_factoring
+        - name: used_for_factoring
           in: query
           description: 'Используется для факторинга (1 - Да, 0 - Нет)'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -54,7 +47,7 @@ paths:
                   $ref: '#/components/schemas/Bank'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/bank/{id}':
     get:
       tags:
@@ -62,8 +55,7 @@ paths:
       summary: 'Получение банка по ID'
       description: 'Получение банка по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id банка'
           required: true
@@ -78,7 +70,7 @@ paths:
                 $ref: '#/components/schemas/Bank'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

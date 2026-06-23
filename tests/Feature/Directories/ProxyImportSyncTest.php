@@ -78,7 +78,7 @@ final class ProxyImportSyncTest extends TestCase
             'status' => 'active',
             'source_type' => 'api',
             'schema_json' => [
-                ['key' => 'id',   'name' => 'ID',   'type' => 'string', 'rules' => ['nullable', 'string']],
+                ['key' => 'id', 'name' => 'ID', 'type' => 'string', 'rules' => ['nullable', 'string']],
                 ['key' => 'name', 'name' => 'Name', 'type' => 'string', 'rules' => ['nullable', 'string']],
             ],
         ]);
@@ -126,9 +126,9 @@ final class ProxyImportSyncTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name' => 'Project ' . Str::random(4),
-            'sitekey' => 'sk-' . Str::random(6),
-            'host' => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
             'is_active' => true,
         ]);

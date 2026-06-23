@@ -54,7 +54,8 @@ created_at
 - `nodes_json` - нормализованный список узлов;
 - `edges_json` - нормализованный список связей.
 
-`ScenarioGraphResolver::snapshot()` сначала берет `nodes_json` и `edges_json`. Если они пустые, он fallback-ом берет `schema_json.nodes` и `schema_json.edges`.
+`ScenarioGraphResolver::snapshot()` сначала берет `nodes_json` и `edges_json`. Если они пустые, он fallback-ом берет
+`schema_json.nodes` и `schema_json.edges`.
 
 ## Revisions
 

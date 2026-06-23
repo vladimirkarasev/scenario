@@ -69,7 +69,7 @@ final class StoreDirectoryImportRequest extends FormRequest
 
                 $sourceType = $this->input('source_type');
 
-                if ($sourceType === DirectoryImportSourceType::File->value && ! $this->hasFile('file')) {
+                if ($sourceType === DirectoryImportSourceType::File->value && !$this->hasFile('file')) {
                     $validator->errors()->add('file', 'Файл обязателен для импорта из Excel.');
                 }
 
@@ -94,7 +94,7 @@ final class StoreDirectoryImportRequest extends FormRequest
                 $matchBy = $this->input('match_by');
                 $matchBy = is_string($matchBy) ? $matchBy : null;
 
-                if ($matchBy !== null && ! $fieldKeys->contains($matchBy)) {
+                if ($matchBy !== null && !$fieldKeys->contains($matchBy)) {
                     $validator->errors()->add(
                         'match_by',
                         'The match_by field must reference one of the declared fields.'
@@ -120,7 +120,7 @@ final class StoreDirectoryImportRequest extends FormRequest
                 $parentKeyField = $this->input('parent_key_field');
                 $parentKeyField = is_string($parentKeyField) ? $parentKeyField : null;
 
-                if ($parentKeyField !== null && ! $fieldKeys->contains($parentKeyField)) {
+                if ($parentKeyField !== null && !$fieldKeys->contains($parentKeyField)) {
                     $validator->errors()->add(
                         'parent_key_field',
                         'The parent_key_field must reference one of the declared fields.'

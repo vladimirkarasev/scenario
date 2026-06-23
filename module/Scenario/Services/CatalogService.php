@@ -11,7 +11,9 @@ use Module\Scenario\Repositories\CatalogRepository;
 
 final readonly class CatalogService
 {
-    public function __construct(private CatalogRepository $repository) {}
+    public function __construct(private CatalogRepository $repository)
+    {
+    }
 
     /** @return LengthAwarePaginator<int, CatalogItemRow> */
     public function paginate(Request $request): LengthAwarePaginator
@@ -37,8 +39,8 @@ final readonly class CatalogService
 
         /** @var list<string> */
         return $user->groups->pluck('id')
-            ->map(static fn (mixed $v): string => is_string($v) ? $v : '')
-            ->filter(static fn (string $v): bool => $v !== '')
+            ->map(static fn(mixed $v): string => is_string($v) ? $v : '')
+            ->filter(static fn(string $v): bool => $v !== '')
             ->values()
             ->all();
     }

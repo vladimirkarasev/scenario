@@ -7,7 +7,7 @@ final class Request
     /**
      * @param  array<string, mixed>  $rules
      * @param  array<string, mixed>  $messages
-     * @param  array<string, string> $attributes
+     * @param  array<string, string>  $attributes
      * @return array<string, mixed>
      */
     public function validate(array $rules, array $messages = [], array $attributes = []): array
@@ -18,7 +18,7 @@ final class Request
     /**
      * @param  array<string, mixed>  $rules
      * @param  array<string, mixed>  $messages
-     * @param  array<string, string> $attributes
+     * @param  array<string, string>  $attributes
      * @return array<string, mixed>
      */
     public function validateWithBag(string $errorBag, array $rules, array $messages = [], array $attributes = []): array

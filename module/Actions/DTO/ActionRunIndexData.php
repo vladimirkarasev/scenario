@@ -12,7 +12,8 @@ final readonly class ActionRunIndexData
         public ?string $status,
         public ?int $actionId,
         public int $limit,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request, ?string $status = null): self
     {
@@ -21,9 +22,11 @@ final readonly class ActionRunIndexData
         $actionId = $filter['action_id'] ?? null;
 
         return new self(
-            status: $status ?? (isset($filter['status']) && is_string($filter['status']) && $filter['status'] !== '' ? $filter['status'] : null),
-            actionId: is_scalar($actionId) && (int) $actionId > 0 ? (int) $actionId : null,
-            limit: max(1, min(500, is_scalar($pageSize) ? (int) $pageSize : 100)),
+            status: $status ?? (isset($filter['status']) && is_string(
+            $filter['status']
+        ) && $filter['status'] !== '' ? $filter['status'] : null),
+            actionId: is_scalar($actionId) && (int)$actionId > 0 ? (int)$actionId : null,
+            limit: max(1, min(500, is_scalar($pageSize) ? (int)$pageSize : 100)),
         );
     }
 }

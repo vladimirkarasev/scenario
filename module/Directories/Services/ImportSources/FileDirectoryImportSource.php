@@ -30,7 +30,7 @@ final class FileDirectoryImportSource implements DirectoryImportSource
             $disk = $data->remote['file_disk'] ?? 'local';
             $path = $data->remote['file_path'] ?? null;
 
-            if (! is_string($disk) || $disk === '' || ! is_string($path) || $path === '') {
+            if (!is_string($disk) || $disk === '' || !is_string($path) || $path === '') {
                 throw new \RuntimeException('Import file path is required.');
             }
 

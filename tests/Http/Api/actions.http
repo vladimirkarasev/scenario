@@ -43,7 +43,11 @@ Content-Type: application/json
     "method": "POST",
     "retry": {
       "attempts": 3,
-      "backoff": [60, 300, 900]
+      "backoff": [
+        60,
+        300,
+        900
+      ]
     }
   }
 }
@@ -59,7 +63,10 @@ Content-Type: application/json
   "is_active": true,
   "config": {
     "execution_mode": "chain",
-    "action_ids": [{{action2Id}}, {{action3Id}}]
+    "action_ids": [
+      {{action2Id}},
+      {{action3Id}}
+    ]
   }
 }
 
@@ -74,7 +81,10 @@ Content-Type: application/json
   "is_active": true,
   "config": {
     "execution_mode": "batch",
-    "action_ids": [{{action2Id}}, {{action3Id}}]
+    "action_ids": [
+      {{action2Id}},
+      {{action3Id}}
+    ]
   }
 }
 
@@ -91,7 +101,13 @@ Content-Type: application/json
     "method": "POST",
     "retry": {
       "attempts": 5,
-      "backoff": [30, 120, 600, 1800, 3600]
+      "backoff": [
+        30,
+        120,
+        600,
+        1800,
+        3600
+      ]
     }
   }
 }

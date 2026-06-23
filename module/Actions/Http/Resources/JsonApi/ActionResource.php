@@ -18,7 +18,7 @@ final class ActionResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string) $this->id;
+        return (string)$this->id;
     }
 
     public function toType(Request $request): string
@@ -49,12 +49,12 @@ final class ActionResource extends JsonApiResource
     public function toRelationships(Request $request): array
     {
         return [
-            'runs' => fn () => [
+            'runs' => fn() => [
                 'data' => $this->relationLoaded('runs')
                     ? $this->runs()
                     : [],
             ],
-            'schedule' => fn () => [
+            'schedule' => fn() => [
                 'data' => $this->relationLoaded('schedule') && $this->schedule instanceof ActionSchedule
                     ? $this->schedule()
                     : null,

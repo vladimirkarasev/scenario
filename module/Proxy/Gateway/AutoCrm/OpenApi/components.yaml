@@ -1995,11 +1995,9 @@ components:
           readOnly: true
         entity:
           oneOf:
-            -
-              $ref: '#/components/schemas/DamageReportPartnerBase'
-            -
-              $ref: '#/components/schemas/DamageReportDealer'
-          properties: {  }
+            - $ref: '#/components/schemas/DamageReportPartnerBase'
+            - $ref: '#/components/schemas/DamageReportDealer'
+          properties: { }
           description: 'Сущность "Дилер/Склад"'
           readOnly: true
         shippingCompany:
@@ -2138,10 +2136,8 @@ components:
       properties:
         id:
           oneOf:
-            -
-              type: string
-            -
-              type: integer
+            - type: string
+            - type: integer
           description: 'ID элемента справочника'
         name:
           type: string
@@ -2300,8 +2296,7 @@ components:
         - name
       type: object
       allOf:
-        -
-          $ref: '#/components/schemas/DamageReportPartnerBase'
+        - $ref: '#/components/schemas/DamageReportPartnerBase'
       properties:
         requisites:
           type: object
@@ -2435,8 +2430,7 @@ components:
       description: 'Модель склада дистрибьютора'
     DamageReportPartnerForm:
       allOf:
-        -
-          $ref: '#/components/schemas/DamageReportPartnerBase'
+        - $ref: '#/components/schemas/DamageReportPartnerBase'
       properties:
         typeIDs:
           type: array
@@ -3177,19 +3171,15 @@ components:
             $ref: '#/components/schemas/DealerCheckList_CheckListBlock'
         action_plan:
           oneOf:
-            -
-              type: 'null'
-            -
-              $ref: '#/components/schemas/DealerCheckList_ActionPlan'
+            - type: 'null'
+            - $ref: '#/components/schemas/DealerCheckList_ActionPlan'
         chart:
           type: string
           description: 'Отчет Статистика по блокам'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 $ref: '#/components/schemas/DealerCheckList_Comment'
@@ -3314,10 +3304,8 @@ components:
           format: 'DD.MM.YYYY HH:MM:SS'
         tasks_stats:
           oneOf:
-            -
-              type: 'null'
-            -
-              $ref: '#/components/schemas/DealerCheckList_ActionPlanTasksStats'
+            - type: 'null'
+            - $ref: '#/components/schemas/DealerCheckList_ActionPlanTasksStats'
       description: 'План действий'
     DealerCheckList_ActionPlanTasksStats:
       type: object
@@ -3479,10 +3467,8 @@ components:
           description: Доказательства
         attachments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Файлы
               items:
                 $ref: '#/components/schemas/CheckListAttachment'
@@ -6886,45 +6872,33 @@ components:
           description: 'ID программы лояльности'
         task_stage_slug:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Псевдоним этапа задачи'
         task_stage:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID этапа задачи'
         task_stage_name:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Этап задачи'
         result_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID результата'
         result_name:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Результат
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Комментарий для клиента'
         files:
           type: array
@@ -7068,7 +7042,7 @@ components:
           description: 'ID рабочего листа'
         data:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Дополнительные данные по транзакции(parts - запасные части, works - работы)'
         external_order_number:
           type: string
@@ -8387,10 +8361,8 @@ components:
           description: 'ID клиента'
         common_client_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID клиента'
         date:
           type: string
@@ -8398,10 +8370,8 @@ components:
           description: Дата
         vin:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: VIN
         total_amount:
           type: number
@@ -8417,100 +8387,74 @@ components:
           description: 'Внешний ID статуса'
         payment_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа оплаты'
         payment_method_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID способа оплаты'
         payment_status_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID статуса оплаты'
         payment_status_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID статуса оплаты'
         delivery_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа доставки'
         delivery_method_external_id:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Внешний ID способа доставки'
         delivery_address:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Адрес доставки'
         delivery_amount:
           oneOf:
-            -
-              type: number
-            -
-              type: 'null'
+            - type: number
+            - type: 'null'
           description: 'Сумма доставки'
         type:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
         external_service:
           type: integer
           description: 'Идентификатор внешней системы, из которой пришёл заказ'
         source:
           oneOf:
-            -
-              type: integer
+            - type: integer
               enum:
                 - 1
                 - 2
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
         check_number:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Номер чека'
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Комментарий
         email:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Email
         positions:
           type: array
@@ -8543,10 +8487,8 @@ components:
           description: Дата
         vin:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: VIN
         total_amount:
           type: number
@@ -8559,76 +8501,56 @@ components:
           description: 'ID статуса'
         payment_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа оплаты'
         payment_status_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID статуса оплаты'
         delivery_method_id:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'ID способа доставки'
         delivery_address:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Адрес доставки'
         delivery_amount:
           oneOf:
-            -
-              type: number
-            -
-              type: 'null'
+            - type: number
+            - type: 'null'
           description: 'Сумма доставки'
         type:
           oneOf:
-            -
-              type: integer
-            -
-              type: 'null'
+            - type: integer
+            - type: 'null'
           description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
         source:
           oneOf:
-            -
-              type: integer
+            - type: integer
               enum:
                 - 1
                 - 2
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
         check_number:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: 'Номер чека'
         comment:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Комментарий
         email:
           oneOf:
-            -
-              type: string
-            -
-              type: 'null'
+            - type: string
+            - type: 'null'
           description: Email
         positions:
           type: array
@@ -8664,19 +8586,15 @@ components:
           description: Сумма
         action_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата действия'
         expiry_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата окончания'
       description: 'Позиция заказа'
     OrderPositionForm:
@@ -8699,19 +8617,15 @@ components:
           description: Сумма
         action_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата действия'
         expiry_date:
           oneOf:
-            -
-              type: string
+            - type: string
               format: date
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Дата окончания'
       description: 'Позиция заказа'
     OrderReceipt:
@@ -9176,16 +9090,12 @@ components:
       description: 'Модель загрузки результата проверки скана согласия на обработку персональных данных'
     PersonalDataAgreementEventWithAppealStatus:
       allOf:
-        -
-          $ref: '#/components/schemas/PersonalDataAgreementEvent'
-        -
-          properties:
+        - $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        - properties:
             appeal_status:
               oneOf:
-                -
-                  type: string
-                -
-                  type: 'null'
+                - type: string
+                - type: 'null'
               description: 'Статус апелляции'
     PersonalDataAgreementPhone:
       type: object
@@ -9394,7 +9304,7 @@ components:
       properties:
         data:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Данные ответов на вопросы'
         scheduledAt:
           type: string
@@ -11255,10 +11165,8 @@ components:
           description: 'процент до'
         distributor_id:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: integer
+            - type: 'null'
+            - type: integer
           description: 'идентификатор дистрибьютора'
     RequestBuy:
       type: object
@@ -11312,18 +11220,14 @@ components:
           description: 'идентификатор звонка'
         transcription:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: string
+            - type: 'null'
+            - type: string
           description: 'транскрибация (распознанный текст) звонка'
         check_list:
           description: 'результаты проверки чек-листа'
           oneOf:
-            -
-              type: 'null'
-            -
-              type: object
+            - type: 'null'
+            - type: object
               properties:
                 id:
                   type: int
@@ -11354,16 +11258,12 @@ components:
                   description: 'финальная оценка пройдена'
                 assessment:
                   oneOf:
-                    -
-                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
-                    -
-                      type: 'null'
+                    - $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    - type: 'null'
                 distributorAssessment:
                   oneOf:
-                    -
-                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
-                    -
-                      type: 'null'
+                    - $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    - type: 'null'
                 surveys:
                   type: array
                   description: 'пункты по результатам проверки чек-листа'
@@ -11381,10 +11281,8 @@ components:
                         description: 'идентификатор вопроса'
                       kpi_answer:
                         oneOf:
-                          -
-                            type: int
-                          -
-                            type: 'null'
+                          - type: int
+                          - type: 'null'
                         description: 'оценка в KPI'
                       text:
                         type: string
@@ -11398,17 +11296,13 @@ components:
         call_result:
           description: 'итоги звонка'
           oneOf:
-            -
-              type: 'null'
-            -
-              type: string
+            - type: 'null'
+            - type: string
         qualification:
           description: квалификация
           oneOf:
-            -
-              type: 'null'
-            -
-              type: object
+            - type: 'null'
+            - type: object
               properties:
                 is_dissatisfied:
                   description: 'клиент выразил недовольство'
@@ -11943,7 +11837,7 @@ components:
           description: Статус
         settings:
           type: object
-          properties: {  }
+          properties: { }
           description: 'доп. настройки, используется в отчётах'
         created_by:
           type: integer
@@ -14366,7 +14260,7 @@ components:
           description: 'Кратность заказа'
         prices:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Ключ - тип цены, Значение - Цена'
         balance_types:
           type: object
@@ -14898,10 +14792,8 @@ components:
           $ref: '#/components/schemas/StageResult'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 type: string
@@ -14951,10 +14843,8 @@ components:
           $ref: '#/components/schemas/StageResult'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 type: string
@@ -15774,23 +15664,19 @@ components:
           description: 'Дата окончания действия'
         maxSumFromDealer:
           oneOf:
-            -
-              type: object
+            - type: object
               properties:
                 value:
                   oneOf:
-                    -
-                      type: number
-                    -
-                      type: 'null'
+                    - type: number
+                    - type: 'null'
                   description: 'Макс. размер доп. скидки от дилера'
                 ids:
                   type: array
                   description: 'Список id скидок'
                   items:
                     type: integer
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Макс. размер доп. скидки от дилера'
         sumFromDealers:
           type: array
@@ -15802,10 +15688,8 @@ components:
                 description: 'id дилера'
               sum:
                 oneOf:
-                  -
-                    type: number
-                  -
-                    type: 'null'
+                  - type: number
+                  - type: 'null'
                 description: 'Размер доп. скидки от дилера'
           description: 'Размеры доп. скидок от дилеров'
         created_at:
@@ -16340,18 +16224,16 @@ components:
           description: 'Опции (можно получить больше информации указав expand)'
           items:
             oneOf:
-              -
-                type: array
+              - type: array
                 items:
                   type: string
-              -
-                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+              - $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'
@@ -16780,18 +16662,16 @@ components:
           description: 'Опции (можно получить больше информации указав expand)'
           items:
             oneOf:
-              -
-                type: array
+              - type: array
                 items:
                   type: string
-              -
-                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+              - $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'
@@ -17016,23 +16896,19 @@ components:
             $ref: '#/components/schemas/SupportProgram'
         maxSumFromDealer:
           oneOf:
-            -
-              type: object
+            - type: object
               properties:
                 value:
                   oneOf:
-                    -
-                      type: number
-                    -
-                      type: 'null'
+                    - type: number
+                    - type: 'null'
                   description: 'Макс. размер доп. скидки от дилера'
                 ids:
                   type: array
                   description: 'Список id скидок'
                   items:
                     type: integer
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Макс. размер доп. скидки от дилера'
         sumFromDealers:
           type: array
@@ -17044,10 +16920,8 @@ components:
                 description: 'id дилера'
               sum:
                 oneOf:
-                  -
-                    type: number
-                  -
-                    type: 'null'
+                  - type: number
+                  - type: 'null'
                 description: 'Размер доп. скидки от дилера'
           description: 'Размеры доп. скидок от дилеров'
       description: 'Модель мотивационной программы автомобиля'
@@ -17395,13 +17269,13 @@ components:
           description: Опции
           items:
             type: object
-            properties: {  }
+            properties: { }
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'

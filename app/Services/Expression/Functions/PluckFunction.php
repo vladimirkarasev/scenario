@@ -26,7 +26,7 @@ final readonly class PluckFunction implements ExpressionFunctionInterface
         $items = $args[0] ?? null;
         $path = $args[1] ?? null;
 
-        if (! is_string($path) || $path === '') {
+        if (!is_string($path) || $path === '') {
             return [];
         }
 
@@ -38,7 +38,7 @@ final readonly class PluckFunction implements ExpressionFunctionInterface
         } elseif (is_object($items)) {
             $items = [$items];
         } elseif (is_array($items)) {
-            if (! array_is_list($items)) {
+            if (!array_is_list($items)) {
                 $items = [$items];
             }
         } else {

@@ -35,11 +35,13 @@ final class ActionRunServiceTest extends TestCase
             'finished_at' => now(),
         ]);
 
-        $items = app(ActionRunService::class)->items(new ActionRunIndexData(
-            status: ActionRunStatus::Failed->value,
-            actionId: null,
-            limit: 100,
-        ));
+        $items = app(ActionRunService::class)->items(
+            new ActionRunIndexData(
+                status: ActionRunStatus::Failed->value,
+                actionId: null,
+                limit: 100,
+            )
+        );
 
         $this->assertCount(1, $items);
         $this->assertSame('failed', $items[0]['status']);

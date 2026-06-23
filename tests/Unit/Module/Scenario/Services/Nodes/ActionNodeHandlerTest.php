@@ -13,7 +13,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\Nodes\ActionNodeHandler;
+use Module\Scenario\Services\Nodes\Action\ActionNodeHandler;
 use Tests\TestCase;
 
 final class ActionNodeHandlerTest extends TestCase
@@ -113,7 +113,7 @@ final class ActionNodeHandlerTest extends TestCase
             $actionId = $reflection->getProperty('actionId')->getValue($job);
             $context = $reflection->getProperty('context')->getValue($job);
 
-            if ($actionId !== self::ACTION_A || ! is_array($context)) {
+            if ($actionId !== self::ACTION_A || !is_array($context)) {
                 return false;
             }
 
@@ -121,7 +121,7 @@ final class ActionNodeHandlerTest extends TestCase
 
             return is_array($tpl)
                 && ($tpl['to'] ?? null) === 'a@example.com'
-                && ($context['scenario_run_id'] ?? null) === (string) $this->run->id;
+                && ($context['scenario_run_id'] ?? null) === (string)$this->run->id;
         });
     }
 
@@ -216,23 +216,9 @@ final class ActionNodeHandlerTest extends TestCase
         Bus::assertDispatched(ChainStepJob::class);
     }
 
-    public function test_wait_for_result_executes_sync_and_writes_output_to_context(): void
+    public function test_wait_for_result_dispatches_async_pipeline_and_pauses(): void
     {
-        $action = Action::query()->create([
-            'name' => 'Send email',
-            'key' => 'send-email',
-            'code' => 'send_email',
-            'type' => 'email',
-            'is_active' => true,
-            'config' => [
-                'to' => 'client@example.com',
-                'subject' => 'Привет',
-                'body_text' => 'Тело письма',
-            ],
-            'schema' => [],
-            'ui_schema' => [],
-            'input_fields' => [],
-        ]);
+        Bus::fake();
 
         $node = [
             'id' => 'node_action',
@@ -240,20 +226,32 @@ final class ActionNodeHandlerTest extends TestCase
             'data' => [
                 'wait_for_result' => true,
                 'action_items' => [
-                    ['code' => 'send_email', 'action_id' => $action->id, 'input' => []],
+                    ['code' => 'send_email', 'action_id' => self::ACTION_A, 'input' => []],
                 ],
             ],
         ];
 
         $result = $this->handler->advance($this->run, $node);
 
-        $this->assertSame('node_next', $result->nextNodeId);
+        // Прогон паузится на ноде (ждём завершения цепочки по WS), не продвигается.
+        $this->assertNull($result->nextNodeId);
+        $this->assertTrue($result->pause);
 
+        // Цепочка задиспатчена с scenario_node_id — это включает pipeline по WS и авто-резюм.
+        Bus::assertDispatched(ChainStepJob::class, function (ChainStepJob $job): bool {
+            $reflection = new \ReflectionClass($job);
+            $nodeId = $reflection->getProperty('scenarioNodeId')->getValue($job);
+            $context = $reflection->getProperty('context')->getValue($job);
+
+            return $nodeId === 'node_action'
+                && is_array($context)
+                && ($context['scenario_node_id'] ?? null) === 'node_action';
+        });
+
+        // Нода помечена running, синхронно результат НЕ записан.
         $context = $this->run->fresh()->context;
-        $this->assertArrayHasKey('send_email', $context);
-        $this->assertSame('success', $context['send_email']['status']);
-        $this->assertSame('Привет', $context['send_email']['result']['subject']);
-        $this->assertSame(['client@example.com'], $context['send_email']['result']['to']);
+        $this->assertSame('running', $context['_action_runs']['node_action'] ?? null);
+        $this->assertArrayNotHasKey('send_email', $context);
     }
 
     public function test_async_path_does_not_write_result_to_context(): void

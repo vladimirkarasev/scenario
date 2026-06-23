@@ -16,10 +16,11 @@ final readonly class DirectoryExternalDataService
     public function __construct(
         private ProxyExecutor $proxyExecutor,
         private ProxyContextFactory $contextFactory,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param  array<string, mixed> $query
+     * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
     public function activeData(Directory $directory, array $query = []): array
@@ -93,12 +94,12 @@ final readonly class DirectoryExternalDataService
     }
 
     /**
-     * @param  array<string, string>            $fieldMapping
+     * @param  array<string, string>  $fieldMapping
      * @return array<int, array<string, mixed>>
      */
     private function applyMapping(mixed $items, array $fieldMapping): array
     {
-        if (! is_array($items)) {
+        if (!is_array($items)) {
             return [];
         }
 

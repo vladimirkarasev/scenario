@@ -17,12 +17,12 @@ use Module\Groups\Models\UserGroup;
 use Module\Scenario\Models\Scenario;
 
 /**
- * @property string      $id
+ * @property string $id
  * @property string|null $parent_id
- * @property string      $name
- * @property bool        $is_active
- * @property int|null    $created_by
- * @property int|null    $updated_by
+ * @property string $name
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int|null $scenarios_count

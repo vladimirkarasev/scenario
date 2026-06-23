@@ -19,7 +19,8 @@ use Maatwebsite\Excel\Events\ImportFailed;
 use Module\Directories\Services\ImportService;
 use Throwable;
 
-final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToCollection, WithChunkReading, WithEvents, WithHeadingRow
+final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToCollection, WithChunkReading, WithEvents,
+                                            WithHeadingRow
 {
     use Importable;
     use RemembersChunkOffset;
@@ -28,9 +29,10 @@ final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToColle
         private readonly int $directoryImportId,
         private readonly int $chunkSize,
         private readonly Container $container,
-    ) {}
+    ) {
+    }
 
-    /** @param Collection<int, mixed> $collection */
+    /** @param  Collection<int, mixed>  $collection */
     public function collection(Collection $collection): void
     {
         $baseRowNumber = $this->headingRow() + 1 + $this->getChunkOffset();
@@ -59,7 +61,7 @@ final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToColle
     public function registerEvents(): array
     {
         return [
-            AfterImport::class => fn (): bool => $this->importService()->complete($this->directoryImportId),
+            AfterImport::class => fn(): bool => $this->importService()->complete($this->directoryImportId),
             ImportFailed::class => function (ImportFailed $event): void {
                 $this->importService()->fail(
                     directoryImportId: $this->directoryImportId,

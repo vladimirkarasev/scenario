@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,14 +12,14 @@ const props = defineProps({
 
 <template>
   <div
-    data-slot="card-title"
-    :class="
+      data-slot="card-title"
+      :class="
       cn(
         'text-base leading-snug font-medium group-data-[size=sm]/card:text-sm cn-font-heading',
         props.class,
       )
     "
   >
-    <slot />
+    <slot/>
   </div>
 </template>

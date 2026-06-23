@@ -1,6 +1,6 @@
-import { computed, reactive, ref } from 'vue'
-import { defineStore } from 'pinia'
-import { destroyJson, getJson, sendJson } from '@/lib/http'
+import {computed, reactive, ref} from 'vue'
+import {defineStore} from 'pinia'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
 
 interface Action {
     id: number
@@ -26,17 +26,17 @@ const DEFAULT_ACTION_CONFIG = {
     url: 'https://api.example.com/webhook',
     method: 'POST',
     credential_id: null,
-    headers: { 'X-Source': 'admin-panel' },
+    headers: {'X-Source': 'admin-panel'},
     query: {},
     body_type: 'json',
-    body: { user_id: '{{ user.id }}', email: '{{ user.email }}' },
+    body: {user_id: '{{ user.id }}', email: '{{ user.email }}'},
     timeout: 15,
     retry_count: 0,
 }
 
 const DEFAULT_ACTION_SCHEMA = {
     type: 'object',
-    properties: { user: { type: 'object' } },
+    properties: {user: {type: 'object'}},
 }
 
 export const useActionManagerStore = defineStore('actionManager', () => {
@@ -71,7 +71,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
     })
 
     const executionForm = reactive({
-        inputText: JSON.stringify({ user: { id: 42, email: 'user@example.com' } }, null, 2),
+        inputText: JSON.stringify({user: {id: 42, email: 'user@example.com'}}, null, 2),
     })
 
     const actionDialogTitle = computed(() => editingActionId.value ? 'Edit action' : 'Create action')
@@ -157,7 +157,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
     function openExecuteDialog(item: Action): void {
         executingActionId.value = item.id
         executionForm.inputText = JSON.stringify({
-            user: { id: 42, email: 'user@example.com' },
+            user: {id: 42, email: 'user@example.com'},
             action_key: item.key,
         }, null, 2)
         error.value = ''
@@ -289,7 +289,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
 
         try {
             const payload = await sendJson<Record<string, unknown>>(`/api/actions/${executingActionId.value}/execute`, {
-                body: { input: parseJson(executionForm.inputText, 'Execution input') },
+                body: {input: parseJson(executionForm.inputText, 'Execution input')},
                 fallbackMessage: 'Failed to execute action.',
             })
 

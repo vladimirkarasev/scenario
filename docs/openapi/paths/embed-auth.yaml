@@ -1,6 +1,6 @@
 user-register:
   post:
-    tags: [Регистрация]
+    tags: [ Регистрация ]
     summary: Регистрация / обновление пользователя проекта
     description: >
       Находит пользователя по `external_id` → `email` → `login` (в порядке
@@ -9,7 +9,7 @@ user-register:
       (TTL 5 минут). Endpoint вызывается **backend-системой клиента**,
       авторизация — `shared_secret` проекта.
     security:
-      - SharedSecretAuth: []
+      - SharedSecretAuth: [ ]
     parameters:
       - name: projectUuid
         in: path
@@ -55,7 +55,7 @@ user-register:
 
 exchange:
   post:
-    tags: [Авторизация iframe]
+    tags: [ Авторизация iframe ]
     summary: Обмен launch-токена на access + refresh токены
     description: >
       Принимает одноразовый `iframe_launch_token`, полученный через
@@ -64,7 +64,7 @@ exchange:
       пользователь состоит в проекте; заголовок `Origin` совпадает
       с `project.host` (если задан). Помечает токен использованным,
       создаёт Sanctum access-токен (TTL 30 мин) и refresh-токен (TTL 7 дней).
-    security: []
+    security: [ ]
     requestBody:
       required: true
       content:
@@ -101,13 +101,13 @@ exchange:
 
 refresh:
   post:
-    tags: [Авторизация iframe]
+    tags: [ Авторизация iframe ]
     summary: Обновление access-токена (token rotation)
     description: >
       Принимает действующий `refresh_token`. Отзывает старый access-токен,
       создаёт новые access и refresh токены (ротация). Старый refresh-токен
       помечается отозванным и повторно использован быть не может.
-    security: []
+    security: [ ]
     requestBody:
       required: true
       content:
@@ -144,13 +144,13 @@ refresh:
 
 logout:
   post:
-    tags: [Авторизация iframe]
+    tags: [ Авторизация iframe ]
     summary: Завершение iframe-сессии
     description: >
       Отзывает текущий Sanctum access-токен и связанный с ним refresh-токен.
       Требует `Authorization: Bearer {access_token}`.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Сессия завершена

@@ -14,7 +14,8 @@ final class ActionsRunController extends Controller
 {
     public function __construct(
         private readonly ActionOrchestratorService $orchestrator,
-    ) {}
+    ) {
+    }
 
     public function __invoke(RunActionsRequest $request): JsonResponse
     {

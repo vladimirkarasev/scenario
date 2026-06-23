@@ -249,7 +249,7 @@ final class ScenariosControllerTest extends TestCase
         $user = $this->makeUser('scenario_view');
 
         $this->actingAs($user)
-            ->getJson('/api/scenarios/' . Str::uuid())
+            ->getJson('/api/scenarios/'.Str::uuid())
             ->assertNotFound();
     }
 
@@ -279,7 +279,7 @@ final class ScenariosControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/scenarios', [
-                'name'      => 'Новый сценарий',
+                'name' => 'Новый сценарий',
                 'is_active' => true,
             ])
             ->assertStatus(201)
@@ -326,7 +326,7 @@ final class ScenariosControllerTest extends TestCase
 
         $this->actingAs($user)
             ->putJson("/api/scenarios/{$scenario->id}", [
-                'name'      => 'Новое',
+                'name' => 'Новое',
                 'is_active' => true,
             ])
             ->assertOk()
@@ -444,7 +444,7 @@ final class ScenariosControllerTest extends TestCase
             ->assertStatus(201);
 
         $this->assertDatabaseHas('scenarios', [
-            'name'       => 'С проектом',
+            'name' => 'С проектом',
             'project_id' => $project->id,
         ]);
     }
@@ -456,7 +456,9 @@ final class ScenariosControllerTest extends TestCase
     {
         [$user] = $this->makeUserWithProject('scenario_view');
         $otherProject = $this->makeProject();
-        $scenario = Scenario::query()->create(['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]);
+        $scenario = Scenario::query()->create(
+            ['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]
+        );
 
         $this->actingAs($user)
             ->getJson("/api/scenarios/{$scenario->id}")
@@ -470,7 +472,9 @@ final class ScenariosControllerTest extends TestCase
     {
         [$user] = $this->makeUserWithProject('scenario_create');
         $otherProject = $this->makeProject();
-        $scenario = Scenario::query()->create(['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]);
+        $scenario = Scenario::query()->create(
+            ['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]
+        );
 
         $this->actingAs($user)
             ->putJson("/api/scenarios/{$scenario->id}", ['name' => 'Взлом', 'is_active' => true])
@@ -484,7 +488,9 @@ final class ScenariosControllerTest extends TestCase
     {
         [$user] = $this->makeUserWithProject('scenario_delete');
         $otherProject = $this->makeProject();
-        $scenario = Scenario::query()->create(['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]);
+        $scenario = Scenario::query()->create(
+            ['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]
+        );
 
         $this->actingAs($user)
             ->deleteJson("/api/scenarios/{$scenario->id}")
@@ -498,7 +504,9 @@ final class ScenariosControllerTest extends TestCase
     {
         [$user] = $this->makeUserWithProject('scenario_create');
         $otherProject = $this->makeProject();
-        $scenario = Scenario::query()->create(['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]);
+        $scenario = Scenario::query()->create(
+            ['name' => 'Чужой', 'is_active' => true, 'project_id' => $otherProject->id]
+        );
 
         $this->actingAs($user)
             ->postJson("/api/scenarios/{$scenario->id}/duplicate")
@@ -528,7 +536,7 @@ final class ScenariosControllerTest extends TestCase
 
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -542,9 +550,9 @@ final class ScenariosControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'      => 'Project ' . Str::random(4),
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
     }
@@ -552,17 +560,17 @@ final class ScenariosControllerTest extends TestCase
     private function makeActiveScenario(string $name, ?string $projectId = null): Scenario
     {
         $scenario = Scenario::query()->create([
-            'name'       => $name,
-            'is_active'  => true,
+            'name' => $name,
+            'is_active' => true,
             'project_id' => $projectId,
         ]);
 
         // Observer сам установит scenario.status=active и active_version_id
         ScenarioVersion::query()->create([
-            'id'          => (string) Str::uuid(),
+            'id' => (string)Str::uuid(),
             'scenario_id' => $scenario->id,
-            'project_id'  => $projectId,
-            'status'      => 'active',
+            'project_id' => $projectId,
+            'status' => 'active',
         ]);
 
         return $scenario->fresh();

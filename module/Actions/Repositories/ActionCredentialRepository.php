@@ -26,13 +26,13 @@ final class ActionCredentialRepository
         return ActionCredential::query()->find($id);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): ActionCredential
     {
         return ActionCredential::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(ActionCredential $credential, array $attributes): ActionCredential
     {
         $credential->fill($attributes);

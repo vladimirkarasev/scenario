@@ -14,7 +14,7 @@ final readonly class Duration
         $result = [];
         foreach ($matches as $m) {
             $unit = strtolower($m[2]);
-            $result[$unit] = ($result[$unit] ?? 0) + (int) $m[1];
+            $result[$unit] = ($result[$unit] ?? 0) + (int)$m[1];
         }
 
         return $result;

@@ -13,5 +13,6 @@ final readonly class ProxyRequestFailed
         public ProxyRequest $proxyRequest,
         public ProxyContext $context,
         public \Throwable $exception,
-    ) {}
+    ) {
+    }
 }

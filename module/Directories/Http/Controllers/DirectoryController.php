@@ -17,7 +17,8 @@ final class DirectoryController extends Controller
 {
     public function __construct(
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function store(DirectoryRequest $request): JsonResponse
     {

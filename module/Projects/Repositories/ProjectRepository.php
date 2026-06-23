@@ -17,13 +17,13 @@ final class ProjectRepository
             ->paginate($perPage, ['*'], 'page[number]');
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): Project
     {
         return Project::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Project $project, array $attributes): Project
     {
         $project->fill($attributes);

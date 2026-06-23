@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - spare-reference'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: spare-reference
+  - name: spare-reference
     description: 'Управление запчастями'
 paths:
   /spare-reference:
@@ -22,21 +18,18 @@ paths:
       summary: 'Получение списка запчастей'
       description: 'Получение списка запчастей'
       parameters:
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Параметр позволяющий получить в ответе связные данные. Можно передать несколько значений через запятую.\nДоступные значения: - priceType - Типы цен - replaces - Заменяемые запчасти - filePhotos - Фото - group_ids - ИД групп - sub_group_ids - ИД подгрупп - balance_types - Остатки по типам запчастей (режим \"Указывать для типа цены ЗЧ\", требует настройку в конфигураторе) - balance_warehouses_only - Остатки по складам без типов (режим \"Указывать для склада\", требует настройку в конфигураторе) - balance_warehouses - Остатки по типам и складам (режим \"Указывать для типа цены ЗЧ/Склада\", требует настройку в конфигураторе)\nПримечание: Поля балансов зависят от настройки \"Способ передачи остатков на складах дистрибьютора\" в конфигураторе. В ответе будет присутствовать только одно поле, соответствующее текущему режиму настройки."
           schema:
             type: string
             example: 'priceType,replaces,balance_types'
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: type_id
+        - name: type_id
           in: query
           description: 'Тип (1 — запчасть, 2 — аксессуар)'
           schema:
@@ -44,14 +37,12 @@ paths:
             enum:
               - 1
               - 2
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: manufacturer_ids
+        - name: manufacturer_ids
           in: query
           description: 'Фильтр по производителям ЗЧ (массив ID производителей)'
           schema:
@@ -69,7 +60,7 @@ paths:
                   $ref: '#/components/schemas/SpareReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - spare-reference
@@ -91,7 +82,7 @@ paths:
                 $ref: '#/components/schemas/SpareReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -105,8 +96,7 @@ paths:
       summary: 'Передача информации о поставке ЗЧ'
       description: 'Передача информации о поставке ЗЧ'
       parameters:
-        -
-          name: article
+        - name: article
           in: path
           description: 'Артикул запчасти'
           required: true
@@ -134,7 +124,7 @@ paths:
                 $ref: '#/components/schemas/SpareReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -166,7 +156,7 @@ paths:
                 $ref: '#/components/schemas/SpareReferenceFile'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/spare-reference/{article}':
     get:
       tags:
@@ -174,15 +164,13 @@ paths:
       summary: 'Просмотр запчасти'
       description: 'Просмотр запчасти'
       parameters:
-        -
-          name: article
+        - name: article
           in: path
           description: 'Артикул запчасти'
           required: true
           schema:
             type: string
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Параметр позволяющий получить в ответе связные данные. Можно передать несколько значений через запятую.\nДоступные значения: - priceType - Типы цен - replaces - Заменяемые запчасти - filePhotos - Фото - group_ids - ИД групп - sub_group_ids - ИД подгрупп - balance_types - Остатки по типам запчастей (режим \"Указывать для типа цены ЗЧ\", требует настройку в конфигураторе) - balance_warehouses_only - Остатки по складам без типов (режим \"Указывать для склада\", требует настройку в конфигураторе) - balance_warehouses - Остатки по типам и складам (режим \"Указывать для типа цены ЗЧ/Склада\", требует настройку в конфигураторе)\nПримечание: Поля балансов зависят от настройки \"Способ передачи остатков на складах дистрибьютора\" в конфигураторе. В ответе будет присутствовать только одно поле, соответствующее текущему режиму настройки."
           schema:
@@ -197,7 +185,7 @@ paths:
                 $ref: '#/components/schemas/SpareReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -210,8 +198,7 @@ paths:
       summary: 'Редактирование запчасти'
       description: 'Редактирование запчасти'
       parameters:
-        -
-          name: article
+        - name: article
           in: path
           description: 'Артикул запчасти'
           required: true
@@ -233,7 +220,7 @@ paths:
                 $ref: '#/components/schemas/SpareReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - personal-data-agreement-document-upload'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: personal-data-agreement-document-upload
+  - name: personal-data-agreement-document-upload
     description: 'Загрузка скана согласия на обработку ПД'
 paths:
   /personal-data-agreement/document/upload:

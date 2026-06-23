@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - entity-log'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: entity-log
+  - name: entity-log
     description: 'Mysales лог'
 paths:
   /entity-log:
@@ -22,25 +18,21 @@ paths:
       summary: 'Получение списка измененных сущностей'
       description: 'Получение списка измененных сущностей'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           schema:
             type: integer
-        -
-          name: entity_type
+        - name: entity_type
           in: query
           description: 'Тип сущности'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус записи'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -56,7 +48,7 @@ paths:
                   $ref: '#/components/schemas/EntityLog'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/entity-log/{id}':
     get:
       tags:
@@ -64,8 +56,7 @@ paths:
       summary: 'Получение записи из лога по ID'
       description: 'Получение записи из лога по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id записи'
           required: true
@@ -80,7 +71,7 @@ paths:
                 $ref: '#/components/schemas/EntityLog'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -93,8 +84,7 @@ paths:
       summary: 'Изменение записи'
       description: 'Изменение записи'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id записи'
           required: true
@@ -116,7 +106,7 @@ paths:
                 $ref: '#/components/schemas/EntityLog'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

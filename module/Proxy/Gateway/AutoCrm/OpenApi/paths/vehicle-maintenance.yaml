@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - vehicle-maintenance'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: vehicle-maintenance
+  - name: vehicle-maintenance
     description: 'Получение данных о выполнении ТО'
 paths:
   /vehicle-maintenance:
@@ -22,22 +18,19 @@ paths:
       summary: 'Получение данных о прохождении ТО по VIN'
       description: "Возвращает записи ТО по VIN: дата прохождения ТО, дилер, номер заказ-наряда, пробег, а также информацию о типе записи ЭСК (наименование, номер ТО, максимальный срок проведения). Возвращаются только те записи, у которых есть связь с типом записи ЭСК из справочника /service/esk-record-type.\n"
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'VIN автомобиля'
           required: true
           schema:
             type: string
-        -
-          name: dateFrom
+        - name: dateFrom
           in: query
           description: 'Дата начала периода (фильтр по дате прохождения ТО)'
           schema:
             type: string
             format: date
-        -
-          name: dateTo
+        - name: dateTo
           in: query
           description: 'Дата окончания периода (фильтр по дате прохождения ТО)'
           schema:
@@ -54,7 +47,7 @@ paths:
                   $ref: '#/components/schemas/VehicleMaintenanceItem'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Автомобиль по VIN не найден'
           content:

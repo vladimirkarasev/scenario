@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - distributor'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: distributor
+  - name: distributor
     description: 'Управление дистрибьюторами'
 paths:
   /distributor:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка дистрибьюторов'
       description: 'Получение списка дистрибьюторов'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: name
+        - name: name
           in: query
           description: 'Наименование дистрибьютора (LIKE-поиск)'
           schema:
             $ref: '#/components/schemas/Distributor/properties/name'
-        -
-          name: 'country_id[]'
+        - name: 'country_id[]'
           in: query
           description: 'ID страны'
           schema:
@@ -53,7 +46,7 @@ paths:
                   $ref: '#/components/schemas/Distributor'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/distributor/{id}':
     get:
       tags:
@@ -61,8 +54,7 @@ paths:
       summary: 'Получение дистрибьютора по ID'
       description: 'Получение дистрибьютора по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID дистрибьютора'
           required: true
@@ -77,7 +69,7 @@ paths:
                 $ref: '#/components/schemas/Distributor'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -1,71 +1,73 @@
-import { useUrlSearchParams } from '@vueuse/core'
-import { computed, onMounted, ref, watch } from 'vue'
-import { userRepository } from '@/modules/users/repositories/userRepository'
-import type { User, UsersPage } from '@/modules/users/types/user'
+import {useUrlSearchParams} from '@vueuse/core'
+import {computed, onMounted, ref, watch} from 'vue'
+import {userRepository} from '@/modules/users/repositories/userRepository'
+import type {User, UsersPage} from '@/modules/users/types/user'
 
 export type UserListParams = {
-  'filter[search]'?: string | string[]
-  'page[number]'?: string | string[]
-  'filter[group_ids][]'?: string | string[]
-  'filter[role_ids][]'?: string | string[]
+    'filter[search]'?: string | string[]
+    'page[number]'?: string | string[]
+    'filter[group_ids][]'?: string | string[]
+    'filter[role_ids][]'?: string | string[]
 }
 
 function toArr(v: string | string[] | undefined): string[] {
-  if (!v) return []
-  return Array.isArray(v) ? v : [v]
+    if (!v) return []
+    return Array.isArray(v) ? v : [v]
 }
 
 export function useUserList() {
-  const params = useUrlSearchParams<UserListParams>('history', { removeNullishValues: true })
-  const loading = ref(false)
-  const users   = ref<User[]>([])
-  const meta    = ref<UsersPage['meta']>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
+    const params = useUrlSearchParams<UserListParams>('history', {removeNullishValues: true})
+    const loading = ref(false)
+    const users = ref<User[]>([])
+    const meta = ref<UsersPage['meta']>({current_page: 1, last_page: 1, per_page: 15, total: 0})
 
-  async function load(): Promise<void> {
-    loading.value = true
-    try {
-      const qs = new URLSearchParams(window.location.search)
-      qs.set('per_page', '15')
-      if (!qs.has('page[number]')) qs.set('page[number]', '1')
-      const result = await userRepository.list(qs)
-      users.value = result.data
-      meta.value  = result.meta
-    } catch { /* silent */ }
-    finally { loading.value = false }
-  }
+    async function load(): Promise<void> {
+        loading.value = true
+        try {
+            const qs = new URLSearchParams(window.location.search)
+            qs.set('per_page', '15')
+            if (!qs.has('page[number]')) qs.set('page[number]', '1')
+            const result = await userRepository.list(qs)
+            users.value = result.data
+            meta.value = result.meta
+        } catch { /* silent */
+        } finally {
+            loading.value = false
+        }
+    }
 
-  const search = computed({
-    get: () => toArr(params['filter[search]'])[0] ?? '',
-    set: (v: string) => {
-      params['filter[search]'] = v || undefined
-      params['page[number]']   = undefined
-    },
-  })
+    const search = computed({
+        get: () => toArr(params['filter[search]'])[0] ?? '',
+        set: (v: string) => {
+            params['filter[search]'] = v || undefined
+            params['page[number]'] = undefined
+        },
+    })
 
-  const page = computed({
-    get: () => Number(toArr(params['page[number]'])[0]) || 1,
-    set: (v: number) => {
-      params['page[number]'] = v > 1 ? String(v) : undefined
-    },
-  })
+    const page = computed({
+        get: () => Number(toArr(params['page[number]'])[0]) || 1,
+        set: (v: number) => {
+            params['page[number]'] = v > 1 ? String(v) : undefined
+        },
+    })
 
-  let searchTimer: ReturnType<typeof setTimeout> | null = null
-  watch(() => params['filter[search]'], () => {
-    if (searchTimer) clearTimeout(searchTimer)
-    searchTimer = setTimeout(() => {
-      if (params['page[number]'] !== undefined) {
-        params['page[number]'] = undefined  // triggers page watcher → load()
-      } else {
-        load()
-      }
-    }, 300)
-  })
-  watch(
-    [() => params['page[number]'], () => params['filter[group_ids][]'], () => params['filter[role_ids][]']],
-    load,
-    { deep: true },
-  )
-  onMounted(load)
+    let searchTimer: ReturnType<typeof setTimeout> | null = null
+    watch(() => params['filter[search]'], () => {
+        if (searchTimer) clearTimeout(searchTimer)
+        searchTimer = setTimeout(() => {
+            if (params['page[number]'] !== undefined) {
+                params['page[number]'] = undefined  // triggers page watcher → load()
+            } else {
+                load()
+            }
+        }, 300)
+    })
+    watch(
+        [() => params['page[number]'], () => params['filter[group_ids][]'], () => params['filter[role_ids][]']],
+        load,
+        {deep: true},
+    )
+    onMounted(load)
 
-  return { params, search, page, loading, users, meta, load }
+    return {params, search, page, loading, users, meta, load}
 }

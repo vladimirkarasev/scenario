@@ -41,6 +41,24 @@ export interface ScenarioRenderedEnd {
     blocks: SurveyBlock[]
 }
 
+export interface ActionStage {
+    code: string
+    name: string
+}
+
+export type ActionStageStatus = 'pending' | 'running' | 'success' | 'failed'
+
+export interface ScenarioRenderedAction {
+    type: 'action'
+    data: Record<string, unknown>
+    wait_for_result: boolean
+    stages: ActionStage[]
+    // Сохранённые на сервере статусы стадий (code => статус) — чтобы после перезагрузки
+    // pipeline показывал реальное состояние, а не «выполняется».
+    results: Record<string, ActionStageStatus>
+    failed?: boolean
+}
+
 export interface ScenarioRunStep {
     id: number
     node_id: string
@@ -78,3 +96,38 @@ export interface ScenarioTimelineEntry {
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
     context: Record<string, unknown>
 }
+
+// ── WebSocket-сообщения канала scenario-run:{id} ────────────────────────────────
+// Все сообщения дискриминируются по `type` (расширяемо: позже добавятся file_* и др.).
+
+export interface RunUpdatedMessage {
+    type: 'run_updated'
+    run: ScenarioRunPayload
+}
+
+export interface ActionStartedMessage {
+    type: 'action_started'
+    action_id: string
+    code: string
+}
+
+export interface ActionCompletedMessage {
+    type: 'action_completed'
+    action_id: string
+    code: string
+    status: string
+    output: Record<string, unknown> | null
+}
+
+export interface ActionFailedMessage {
+    type: 'action_failed'
+    action_id: string
+    code: string
+    error: string | null
+}
+
+export type ScenarioRunMessage =
+    | RunUpdatedMessage
+    | ActionStartedMessage
+    | ActionCompletedMessage
+    | ActionFailedMessage

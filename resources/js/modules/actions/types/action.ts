@@ -64,11 +64,11 @@ export interface CronPreset {
 }
 
 export const CRON_PRESETS: CronPreset[] = [
-    { label: 'Каждую минуту', cron: '* * * * *' },
-    { label: 'Каждый час',    cron: '0 * * * *' },
-    { label: 'Ежедневно 9:00', cron: '0 9 * * *' },
-    { label: 'По понедельникам 9:00', cron: '0 9 * * 1' },
-    { label: '1-го числа месяца 9:00', cron: '0 9 1 * *' },
+    {label: 'Каждую минуту', cron: '* * * * *'},
+    {label: 'Каждый час', cron: '0 * * * *'},
+    {label: 'Ежедневно 9:00', cron: '0 9 * * *'},
+    {label: 'По понедельникам 9:00', cron: '0 9 * * 1'},
+    {label: '1-го числа месяца 9:00', cron: '0 9 1 * *'},
 ]
 
 export interface ActionRun {

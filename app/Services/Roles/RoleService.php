@@ -17,7 +17,7 @@ final class RoleService
         return Role::query()
             ->withCount('users')
             ->with('permissions')
-            ->when($search, static fn ($q) => $q->where(static fn ($q) => $q
+            ->when($search, static fn($q) => $q->where(static fn($q) => $q
                 ->where('name', 'ilike', "%{$search}%")
                 ->orWhere('title', 'ilike', "%{$search}%")))
             ->orderBy('name')

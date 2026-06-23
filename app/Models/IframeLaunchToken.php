@@ -10,16 +10,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Module\Projects\Models\Project;
 
 /**
- * @property int         $id
- * @property int         $user_id
- * @property string      $project_id
- * @property string      $token_hash
- * @property string      $allowed_origin
- * @property Carbon      $expires_at
+ * @property int $id
+ * @property int $user_id
+ * @property string $project_id
+ * @property string $token_hash
+ * @property string $allowed_origin
+ * @property Carbon $expires_at
  * @property Carbon|null $used_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User    $user
+ * @property-read User $user
  * @property-read Project $project
  */
 final class IframeLaunchToken extends Model

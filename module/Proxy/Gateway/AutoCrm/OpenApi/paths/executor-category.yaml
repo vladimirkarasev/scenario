@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - executor-category'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: executor-category
+  - name: executor-category
     description: 'Управление категориями исполнителей'
 paths:
   /lms/executor-category:
@@ -22,18 +18,15 @@ paths:
       summary: 'Получение списка категорий исполнителей'
       description: 'Получение списка категорий исполнителей'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           schema:
             type: integer
-        -
-          name: code
+        - name: code
           in: query
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -49,7 +42,7 @@ paths:
                   $ref: '#/components/schemas/ExecutorCategory'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/lms/executor-category/{id}':
     get:
       tags:
@@ -57,8 +50,7 @@ paths:
       summary: 'Получение категории исполнителя по ID'
       description: 'Получение категории исполнителя по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id категории исполнителя'
           required: true
@@ -73,7 +65,7 @@ paths:
                 $ref: '#/components/schemas/ExecutorCategory'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

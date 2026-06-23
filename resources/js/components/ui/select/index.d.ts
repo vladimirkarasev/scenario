@@ -1,4 +1,4 @@
-import type { DefineComponent } from 'vue'
+import type {DefineComponent} from 'vue'
 
 export const Select: DefineComponent
 export const SelectContent: DefineComponent

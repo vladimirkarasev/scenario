@@ -16,7 +16,8 @@ final class ScenarioFeedController extends Controller
     public function __construct(
         private readonly ScenarioFeedService $feed,
         private readonly CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ScenarioFeedRequest $request): JsonResponse
     {

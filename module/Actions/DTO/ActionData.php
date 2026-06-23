@@ -10,10 +10,10 @@ use Module\Actions\Models\Action;
 final readonly class ActionData
 {
     /**
-     * @param array<string, mixed>|null  $config
-     * @param array<string, mixed>|null  $schema
-     * @param array<string, mixed>|null  $uiSchema
-     * @param list<array<string, mixed>> $inputFields
+     * @param  array<string, mixed>|null  $config
+     * @param  array<string, mixed>|null  $schema
+     * @param  array<string, mixed>|null  $uiSchema
+     * @param  list<array<string, mixed>>  $inputFields
      */
     public function __construct(
         public string $name,
@@ -27,7 +27,8 @@ final readonly class ActionData
         public ?array $uiSchema,
         public array $inputFields,
         public bool $canManageActions,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request, ?Action $action = null): self
     {
@@ -66,20 +67,20 @@ final readonly class ActionData
     /** @return list<array<string, mixed>> */
     private static function inputFieldsList(mixed $value): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return [];
         }
 
         $result = [];
 
         foreach ($value as $item) {
-            if (! is_array($item)) {
+            if (!is_array($item)) {
                 continue;
             }
 
             $key = $item['key'] ?? null;
 
-            if (! is_string($key) || $key === '') {
+            if (!is_string($key) || $key === '') {
                 continue;
             }
 
@@ -92,14 +93,14 @@ final readonly class ActionData
     /** @return array<string, mixed>|null */
     private static function stringKeyedArray(mixed $value): ?array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return null;
         }
 
         $result = [];
 
         foreach ($value as $key => $item) {
-            $result[(string) $key] = $item;
+            $result[(string)$key] = $item;
         }
 
         return $result;

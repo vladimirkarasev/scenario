@@ -19,19 +19,22 @@ final class HttpRequestActionHandler implements ActionHandlerInterface
     public function __construct(
         private readonly ActionDataResolver $dataResolver,
         private readonly ActionCredentialResolver $credentialResolver,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
         $resolvedConfig = $this->dataResolver->resolveActionConfig($action, $input);
         $credentialId = $resolvedConfig['credential_id'] ?? null;
-        $resolvedCredentials = $this->credentialResolver->resolve(is_numeric($credentialId) ? (int) $credentialId : null);
+        $resolvedCredentials = $this->credentialResolver->resolve(
+            is_numeric($credentialId) ? (int)$credentialId : null
+        );
 
-        $method = strtoupper(is_string($resolvedConfig['method'] ?? null) ? (string) $resolvedConfig['method'] : 'POST');
+        $method = strtoupper(is_string($resolvedConfig['method'] ?? null) ? (string)$resolvedConfig['method'] : 'POST');
         $url = $resolvedConfig['url'] ?? null;
 
-        if (! is_string($url) || $url === '') {
+        if (!is_string($url) || $url === '') {
             return ActionResult::failed('Action config url is required.');
         }
 
@@ -41,8 +44,8 @@ final class HttpRequestActionHandler implements ActionHandlerInterface
         $timeout = $resolvedConfig['timeout'] ?? 15;
         $retryCount = $resolvedConfig['retry_count'] ?? 0;
 
-        $request = Http::timeout(is_numeric($timeout) ? (int) $timeout : 15)
-            ->retry(is_numeric($retryCount) ? (int) $retryCount : 0, 250)
+        $request = Http::timeout(is_numeric($timeout) ? (int)$timeout : 15)
+            ->retry(is_numeric($retryCount) ? (int)$retryCount : 0, 250)
             ->withHeaders([
                 ...$resolvedCredentials['headers'],
                 ...$headers,
@@ -54,12 +57,18 @@ final class HttpRequestActionHandler implements ActionHandlerInterface
         ];
 
         $body = $resolvedConfig['body'] ?? [];
-        $bodyType = is_string($resolvedConfig['body_type'] ?? null) ? (string) $resolvedConfig['body_type'] : 'json';
-        $contentType = is_string($resolvedConfig['content_type'] ?? null) ? (string) $resolvedConfig['content_type'] : 'text/plain';
+        $bodyType = is_string($resolvedConfig['body_type'] ?? null) ? (string)$resolvedConfig['body_type'] : 'json';
+        $contentType = is_string(
+            $resolvedConfig['content_type'] ?? null
+        ) ? (string)$resolvedConfig['content_type'] : 'text/plain';
 
         $response = match ($bodyType) {
             'form' => $request->asForm()->send($method, $url, ['query' => $query, 'form_params' => $body]),
-            'raw' => $request->withBody(is_scalar($body) ? (string) $body : '', $contentType)->send($method, $url, ['query' => $query]),
+            'raw' => $request->withBody(is_scalar($body) ? (string)$body : '', $contentType)->send(
+                $method,
+                $url,
+                ['query' => $query]
+            ),
             default => $request->send($method, $url, ['query' => $query, 'json' => $body]),
         };
 

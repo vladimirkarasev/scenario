@@ -14,7 +14,8 @@ final readonly class UserGroupData
         public ?string $extId,
         public ?string $description,
         public bool $isActive,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
@@ -23,7 +24,7 @@ final readonly class UserGroupData
             slug: $request->string('slug')->toString(),
             extId: $request->filled('ext_id') ? $request->string('ext_id')->toString() : null,
             description: $request->filled('description') ? $request->string('description')->toString() : null,
-            isActive: (bool) $request->boolean('is_active', true),
+            isActive: (bool)$request->boolean('is_active', true),
         );
     }
 }

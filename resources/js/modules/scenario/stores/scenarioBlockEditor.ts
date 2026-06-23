@@ -1,8 +1,17 @@
-import { computed, ref } from 'vue'
-import { defineStore } from 'pinia'
-import { createScenarioBlockField, type BlockField, type BlockFieldType } from '@/modules/scenario/lib/scenario-block-fields'
-import { cloneScenarioFlowDocument, normalizeScenarioFlowDocument, type ScenarioBlock, type ScenarioFlowDocument } from '@/modules/scenario/lib/scenario-flow-document'
-import { loadScenarioVersionDraft } from '@/modules/scenario/lib/scenario-version-draft'
+import {computed, ref} from 'vue'
+import {defineStore} from 'pinia'
+import {
+    createScenarioBlockField,
+    type BlockField,
+    type BlockFieldType
+} from '@/modules/scenario/lib/scenario-block-fields'
+import {
+    cloneScenarioFlowDocument,
+    normalizeScenarioFlowDocument,
+    type ScenarioBlock,
+    type ScenarioFlowDocument
+} from '@/modules/scenario/lib/scenario-flow-document'
+import {loadScenarioVersionDraft} from '@/modules/scenario/lib/scenario-version-draft'
 
 export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', () => {
     const scenarioId = ref<string | null>(null)
@@ -28,7 +37,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
     }
 
     function currentDraftKey() {
-        return { scenarioId: scenarioId.value, versionId: versionId.value }
+        return {scenarioId: scenarioId.value, versionId: versionId.value}
     }
 
     function hydrateBlockDraft(): void {
@@ -62,11 +71,11 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
                 versionDocument.value = normalizeScenarioFlowDocument({
                     format: 'scenario-flow',
                     version: 1,
-                    viewport: { x: 0, y: 0, zoom: 1 },
+                    viewport: {x: 0, y: 0, zoom: 1},
                     blocks: [{
                         id: blockId.value,
                         type: 'block',
-                        position: { x: 0, y: 0 },
+                        position: {x: 0, y: 0},
                         data: {
                             title: 'Блок',
                             variable: blockId.value,
@@ -106,7 +115,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
 
         blockDraft.value = {
             ...blockDraft.value,
-            data: { ...blockDraft.value.data, ...patch },
+            data: {...blockDraft.value.data, ...patch},
         }
     }
 
@@ -173,7 +182,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         const [field] = fields.splice(index, 1)
         fields.splice(targetIndex, 0, field)
 
-        blockDraft.value = { ...blockDraft.value, data: { ...blockDraft.value.data, fields } }
+        blockDraft.value = {...blockDraft.value, data: {...blockDraft.value.data, fields}}
     }
 
     function moveFieldToIndex(fieldId: string, targetIndex: number): void {
@@ -187,7 +196,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         const [field] = fields.splice(sourceIndex, 1)
         fields.splice(targetIndex, 0, field)
 
-        blockDraft.value = { ...blockDraft.value, data: { ...blockDraft.value.data, fields } }
+        blockDraft.value = {...blockDraft.value, data: {...blockDraft.value.data, fields}}
     }
 
     async function save(onSaved?: (newVersionId: string) => void): Promise<void> {

@@ -20,12 +20,13 @@ final class DirectoryImportScheduleService
     public function __construct(
         private readonly ImportService $importService,
         private readonly DirectoryImportScheduleRepository $schedules,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param array<string, string>            $mapping
-     * @param array<int, array<string, mixed>> $fields
-     * @param array<string, mixed>             $remote
+     * @param  array<string, string>  $mapping
+     * @param  array<int, array<string, mixed>>  $fields
+     * @param  array<string, mixed>  $remote
      */
     public function upsert(
         Directory $directory,
@@ -72,7 +73,7 @@ final class DirectoryImportScheduleService
 
                     if (
                         $locked === null
-                        || ! $locked->enabled
+                        || !$locked->enabled
                         || $locked->next_run_at === null
                         || $locked->next_run_at->isFuture()
                     ) {
@@ -90,22 +91,24 @@ final class DirectoryImportScheduleService
                     $matchBy = is_string($locked->match_by) ? $locked->match_by : null;
                     $options = DirectoryImportOptions::forMode($mode);
 
-                    $this->importService->queue(new DirectoryImportData(
-                        directory: $locked->directory()->firstOrFail(),
-                        file: null,
-                        mode: DirectoryImportMode::from($mode),
-                        sourceType: DirectoryImportSourceType::Remote,
-                        mapping: $mapping,
-                        fields: $fields,
-                        remote: $remote,
-                        matchBy: $matchBy,
-                        parentKeyField: null,
-                        chunkSize: $chunkSize,
-                        activate: true,
-                        options: $options,
-                        uploadedBy: null,
-                        versionId: null,
-                    ));
+                    $this->importService->queue(
+                        new DirectoryImportData(
+                            directory: $locked->directory()->firstOrFail(),
+                            file: null,
+                            mode: DirectoryImportMode::from($mode),
+                            sourceType: DirectoryImportSourceType::Remote,
+                            mapping: $mapping,
+                            fields: $fields,
+                            remote: $remote,
+                            matchBy: $matchBy,
+                            parentKeyField: null,
+                            chunkSize: $chunkSize,
+                            activate: true,
+                            options: $options,
+                            uploadedBy: null,
+                            versionId: null,
+                        )
+                    );
 
                     $now = now();
 
@@ -154,7 +157,7 @@ final class DirectoryImportScheduleService
         $runAt = is_string($schedule->run_at) ? $schedule->run_at : '00:00';
         [$hours, $minutes] = array_pad(explode(':', $runAt), 2, '0');
 
-        $next = $current->copy()->setTime((int) $hours, (int) $minutes, 0);
+        $next = $current->copy()->setTime((int)$hours, (int)$minutes, 0);
 
         if ($next->lessThanOrEqualTo($current)) {
             $next->addDay();
@@ -164,7 +167,7 @@ final class DirectoryImportScheduleService
     }
 
     /**
-     * @param  array<string, string> $mapping
+     * @param  array<string, string>  $mapping
      * @return array<string, string>
      */
     private function normalizeMapping(array $mapping): array
@@ -181,13 +184,13 @@ final class DirectoryImportScheduleService
     }
 
     /**
-     * @param  array<int, array<string, mixed>> $fields
+     * @param  array<int, array<string, mixed>>  $fields
      * @return array<int, array<string, mixed>>
      */
     private function normalizeFields(array $fields): array
     {
         return collect($fields)
-            ->map(static fn (array $field): array => [
+            ->map(static fn(array $field): array => [
                 'key' => is_string($field['key'] ?? null) ? $field['key'] : '',
                 'name' => is_string($field['name'] ?? null) ? $field['name'] : '',
                 'rules' => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
@@ -197,29 +200,39 @@ final class DirectoryImportScheduleService
     }
 
     /**
-     * @param  array<string, mixed> $remote
+     * @param  array<string, mixed>  $remote
      * @return array<string, mixed>
      */
     /**
-     * @param  array<string, mixed> $remote
+     * @param  array<string, mixed>  $remote
      * @return array<string, mixed>
      */
     private function normalizeRemoteConfig(array $remote, int $chunkSize): array
     {
         /** @var array<string, mixed> $headers */
         $headers = collect(is_array($remote['headers'] ?? null) ? $remote['headers'] : [])
-            ->mapWithKeys(static fn (mixed $value, mixed $key): array => [(string) $key => is_scalar($value) ? (string) $value : ''])
+            ->mapWithKeys(
+                static fn(mixed $value, mixed $key): array => [(string)$key => is_scalar($value) ? (string)$value : '']
+            )
             ->all();
         /** @var array<string, mixed> $query */
         $query = collect(is_array($remote['query'] ?? null) ? $remote['query'] : [])
-            ->mapWithKeys(static fn (mixed $value, mixed $key): array => [(string) $key => is_scalar($value) ? (string) $value : $value])
+            ->mapWithKeys(
+                static fn(mixed $value, mixed $key): array => [
+                    (string)$key => is_scalar(
+                        $value
+                    ) ? (string)$value : $value
+                ]
+            )
             ->all();
 
         return [
             'url' => trim(is_string($remote['url'] ?? null) ? $remote['url'] : ''),
             'items_path' => trim(is_string($remote['items_path'] ?? null) ? $remote['items_path'] : 'data'),
             'page_param' => trim(is_string($remote['page_param'] ?? null) ? $remote['page_param'] : 'page'),
-            'per_page_param' => trim(is_string($remote['per_page_param'] ?? null) ? $remote['per_page_param'] : 'per_page'),
+            'per_page_param' => trim(
+                is_string($remote['per_page_param'] ?? null) ? $remote['per_page_param'] : 'per_page'
+            ),
             'per_page' => max(1, is_int($remote['per_page'] ?? null) ? $remote['per_page'] : $chunkSize),
             'per_page_path' => trim(is_string($remote['per_page_path'] ?? null) ? $remote['per_page_path'] : ''),
             'start_page' => max(1, is_int($remote['start_page'] ?? null) ? $remote['start_page'] : 1),

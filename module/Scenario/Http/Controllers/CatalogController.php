@@ -12,7 +12,9 @@ use Module\Scenario\Services\CatalogService;
 
 final class CatalogController extends Controller
 {
-    public function __construct(private readonly CatalogService $catalogService) {}
+    public function __construct(private readonly CatalogService $catalogService)
+    {
+    }
 
     public function index(Request $request): AnonymousResourceCollection
     {

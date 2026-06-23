@@ -15,7 +15,8 @@ final class DirectoryImportSettingsController extends Controller
 {
     public function __construct(
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function update(Request $request, Directory $directory): JsonResponse
     {
@@ -38,7 +39,10 @@ final class DirectoryImportSettingsController extends Controller
 
         $existing = is_array($directory->import_settings_json) ? $directory->import_settings_json : [];
         $directory->forceFill([
-            'import_settings_json' => array_merge($existing, array_filter($validated, static fn (mixed $v): bool => $v !== null)),
+            'import_settings_json' => array_merge(
+                $existing,
+                array_filter($validated, static fn(mixed $v): bool => $v !== null)
+            ),
         ])->save();
 
         DirectoryCache::forgetDirectory($directory->id);

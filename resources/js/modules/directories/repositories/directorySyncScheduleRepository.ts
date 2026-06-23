@@ -1,4 +1,4 @@
-import { destroyJson, getJson, sendJson } from '@/lib/http'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
 
 export interface DirectorySyncSchedule {
     enabled: boolean

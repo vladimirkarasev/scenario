@@ -8,7 +8,7 @@ use Module\Scenario\Models\ScenarioRun;
 
 final class ScenarioRunRepository
 {
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): ScenarioRun
     {
         return ScenarioRun::query()->create($attributes);

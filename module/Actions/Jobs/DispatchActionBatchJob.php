@@ -22,11 +22,11 @@ final class DispatchActionBatchJob implements ShouldQueue
     use SerializesModels;
 
     /**
-     * @param array<int, string>   $actionIds
-     * @param array<string, mixed> $input
-     * @param array<int, int>      $backoff
-     * @param array<int, string>   $afterActionIds
-     * @param array<int, string>   $failedActionIds
+     * @param  array<int, string>  $actionIds
+     * @param  array<string, mixed>  $input
+     * @param  array<int, int>  $backoff
+     * @param  array<int, string>  $afterActionIds
+     * @param  array<int, string>  $failedActionIds
      */
     public function __construct(
         private readonly array $actionIds,
@@ -36,7 +36,8 @@ final class DispatchActionBatchJob implements ShouldQueue
         private readonly array $afterActionIds = [],
         private readonly array $failedActionIds = [],
         private readonly ?string $scenarioRunId = null,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
@@ -93,7 +94,7 @@ final class DispatchActionBatchJob implements ShouldQueue
     }
 
     /**
-     * @param  array<int, string>           $actionIds
+     * @param  array<int, string>  $actionIds
      * @return array<int, ExecuteActionJob>
      */
     private function jobs(array $actionIds): array
@@ -108,9 +109,9 @@ final class DispatchActionBatchJob implements ShouldQueue
     }
 
     /**
-     * @param array<int, string>   $actionIds
-     * @param array<string, mixed> $input
-     * @param array<int, int>      $backoff
+     * @param  array<int, string>  $actionIds
+     * @param  array<string, mixed>  $input
+     * @param  array<int, int>  $backoff
      */
     private static function dispatchJobs(array $actionIds, array $input, int $tries, array $backoff): void
     {

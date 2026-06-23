@@ -843,10 +843,8 @@ components:
           description: 'процент до'
         distributor_id:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: integer
+            - type: 'null'
+            - type: integer
           description: 'идентификатор дистрибьютора'
     RequestBuy:
       type: object
@@ -900,18 +898,14 @@ components:
           description: 'идентификатор звонка'
         transcription:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: string
+            - type: 'null'
+            - type: string
           description: 'транскрибация (распознанный текст) звонка'
         check_list:
           description: 'результаты проверки чек-листа'
           oneOf:
-            -
-              type: 'null'
-            -
-              type: object
+            - type: 'null'
+            - type: object
               properties:
                 id:
                   type: int
@@ -942,16 +936,12 @@ components:
                   description: 'финальная оценка пройдена'
                 assessment:
                   oneOf:
-                    -
-                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
-                    -
-                      type: 'null'
+                    - $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    - type: 'null'
                 distributorAssessment:
                   oneOf:
-                    -
-                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
-                    -
-                      type: 'null'
+                    - $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    - type: 'null'
                 surveys:
                   type: array
                   description: 'пункты по результатам проверки чек-листа'
@@ -969,10 +959,8 @@ components:
                         description: 'идентификатор вопроса'
                       kpi_answer:
                         oneOf:
-                          -
-                            type: int
-                          -
-                            type: 'null'
+                          - type: int
+                          - type: 'null'
                         description: 'оценка в KPI'
                       text:
                         type: string
@@ -986,17 +974,13 @@ components:
         call_result:
           description: 'итоги звонка'
           oneOf:
-            -
-              type: 'null'
-            -
-              type: string
+            - type: 'null'
+            - type: string
         qualification:
           description: квалификация
           oneOf:
-            -
-              type: 'null'
-            -
-              type: object
+            - type: 'null'
+            - type: object
               properties:
                 is_dissatisfied:
                   description: 'клиент выразил недовольство'
@@ -1531,7 +1515,7 @@ components:
           description: Статус
         settings:
           type: object
-          properties: {  }
+          properties: { }
           description: 'доп. настройки, используется в отчётах'
         created_by:
           type: integer

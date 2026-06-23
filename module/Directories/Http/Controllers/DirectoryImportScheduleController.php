@@ -16,10 +16,13 @@ final class DirectoryImportScheduleController extends Controller
     public function __construct(
         private readonly DirectoryImportScheduleService $scheduleService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
-    public function upsert(UpsertDirectoryImportScheduleRequest $request, Directory $directory): DirectoryImportScheduleResource
-    {
+    public function upsert(
+        UpsertDirectoryImportScheduleRequest $request,
+        Directory $directory
+    ): DirectoryImportScheduleResource {
         $this->directoryService->ensureProjectAccess(
             $directory,
             $this->directoryService->currentProjectForUser($request->user()),
@@ -37,7 +40,7 @@ final class DirectoryImportScheduleController extends Controller
 
         $schedule = $this->scheduleService->upsert(
             directory: $directory,
-            enabled: (bool) ($validated['enabled'] ?? false),
+            enabled: (bool)($validated['enabled'] ?? false),
             frequency: is_string($validated['frequency'] ?? null) ? $validated['frequency'] : 'daily',
             runAt: is_string($validated['run_at'] ?? null) ? $validated['run_at'] : '00:00',
             timezone: is_string($validated['timezone'] ?? null) ? $validated['timezone'] : null,

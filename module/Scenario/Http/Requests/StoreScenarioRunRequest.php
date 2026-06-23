@@ -28,7 +28,7 @@ final class StoreScenarioRunRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v): void {
-            if (! $this->filled('scenario_id') && ! $this->filled('scenario_version_id')) {
+            if (!$this->filled('scenario_id') && !$this->filled('scenario_version_id')) {
                 $v->errors()->add('scenario_id', 'Необходимо передать scenario_id или scenario_version_id.');
             }
         });

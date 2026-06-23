@@ -10,7 +10,7 @@ final readonly class Scalar
     {
         return match (true) {
             is_string($v) => $v,
-            is_int($v), is_float($v) => (string) $v,
+            is_int($v), is_float($v) => (string)$v,
             is_bool($v) => $v ? 'true' : 'false',
             default => '',
         };

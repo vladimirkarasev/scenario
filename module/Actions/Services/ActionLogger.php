@@ -12,7 +12,7 @@ use Module\Actions\Models\ActionRun;
 
 final class ActionLogger
 {
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function start(Action $action, array $input = [], int $attemptsCount = 1): ActionRun
     {
         return ActionRun::query()->create([
@@ -34,7 +34,7 @@ final class ActionLogger
             'output' => $result->output,
             'error' => $result->error,
             'finished_at' => $finishedAt,
-            'duration_ms' => (int) round(max(0, $startedAt->diffInMilliseconds($finishedAt))),
+            'duration_ms' => (int)round(max(0, $startedAt->diffInMilliseconds($finishedAt))),
         ])->save();
 
         return $run;

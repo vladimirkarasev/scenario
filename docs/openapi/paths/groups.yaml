@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Список групп
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: search
         in: query
@@ -34,10 +34,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Создать группу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -67,10 +67,10 @@ item:
         format: uuid
 
   get:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Получить группу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Группа
@@ -84,10 +84,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Обновить группу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -109,10 +109,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Удалить группу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Группа удалена

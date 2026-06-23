@@ -1,6 +1,6 @@
 ProjectResource:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -45,7 +45,7 @@ ProjectAttributes:
 
 ProjectRequest:
   type: object
-  required: [name, sitekey, host, shared_secret, is_active]
+  required: [ name, sitekey, host, shared_secret, is_active ]
   properties:
     name:
       type: string

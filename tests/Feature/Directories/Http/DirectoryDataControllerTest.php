@@ -41,7 +41,7 @@ final class DirectoryDataControllerTest extends TestCase
     {
         [$user] = $this->makeUserWithProject('directory_view');
         $directory = $this->makeDirectory(slug: 'test-catalog');
-        $version   = $this->makeVersion($directory, isActive: true);
+        $version = $this->makeVersion($directory, isActive: true);
         $this->makeItem($version, ['name' => 'Alpha']);
         $this->makeItem($version, ['name' => 'Beta']);
 
@@ -147,15 +147,15 @@ final class DirectoryDataControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = Project::query()->create([
-            'name'      => 'Project ' . Str::random(4),
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
 
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -169,16 +169,16 @@ final class DirectoryDataControllerTest extends TestCase
     private function makeDirectory(string $slug = ''): Directory
     {
         $project = Project::query()->create([
-            'name'      => 'Project',
-            'sitekey'   => 'sk-' . Str::random(6),
-            'host'      => Str::random(4) . '.local',
+            'name' => 'Project',
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'is_active' => true,
         ]);
 
         return Directory::query()->create([
-            'project_id'  => $project->id,
-            'name'        => 'Directory',
-            'slug'        => $slug ?: 'dir-' . Str::random(6),
+            'project_id' => $project->id,
+            'name' => 'Directory',
+            'slug' => $slug ?: 'dir-'.Str::random(6),
             'source_type' => 'manual',
         ]);
     }
@@ -186,22 +186,22 @@ final class DirectoryDataControllerTest extends TestCase
     private function makeVersion(Directory $directory, bool $isActive = false): DirectoryVersion
     {
         return DirectoryVersion::query()->create([
-            'directory_id'   => $directory->id,
+            'directory_id' => $directory->id,
             'version_number' => 1,
-            'is_active'      => $isActive,
-            'source_type'    => 'manual',
-            'status'         => $isActive ? 'active' : 'draft',
-            'schema_json'    => [['key' => 'name', 'name' => 'Name', 'type' => 'string']],
+            'is_active' => $isActive,
+            'source_type' => 'manual',
+            'status' => $isActive ? 'active' : 'draft',
+            'schema_json' => [['key' => 'name', 'name' => 'Name', 'type' => 'string']],
         ]);
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     private function makeItem(DirectoryVersion $version, array $data = []): DirectoryItem
     {
         return DirectoryItem::query()->create([
             'directory_version_id' => $version->id,
-            'data_json'            => $data,
-            'search_text'          => implode(' ', array_values($data)),
+            'data_json' => $data,
+            'search_text' => implode(' ', array_values($data)),
         ]);
     }
 }

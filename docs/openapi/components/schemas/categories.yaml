@@ -1,6 +1,6 @@
 CategoryResource:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -59,7 +59,7 @@ CategoryAttributes:
 
 CategoryRequest:
   type: object
-  required: [name, is_active]
+  required: [ name, is_active ]
   properties:
     parent_id:
       type: string

@@ -16,7 +16,7 @@ final class ScenarioBuilder extends Builder
 {
     public function activeOnly(bool $activeOnly = true): self
     {
-        if (! $activeOnly) {
+        if (!$activeOnly) {
             return $this;
         }
 
@@ -89,14 +89,16 @@ final class ScenarioBuilder extends Builder
             });
         }
 
-        return $this->whereExists(static function (\Illuminate\Database\Query\Builder $builder) use ($categoryId): void {
-            $builder
-                ->selectRaw('1')
-                ->from('model_has_categories')
-                ->whereColumn('model_has_categories.model_id', 'scenarios.id')
-                ->where('model_has_categories.category_id', $categoryId)
-                ->where('model_has_categories.model_type', Scenario::class);
-        });
+        return $this->whereExists(
+            static function (\Illuminate\Database\Query\Builder $builder) use ($categoryId): void {
+                $builder
+                    ->selectRaw('1')
+                    ->from('model_has_categories')
+                    ->whereColumn('model_has_categories.model_id', 'scenarios.id')
+                    ->where('model_has_categories.category_id', $categoryId)
+                    ->where('model_has_categories.model_type', Scenario::class);
+            }
+        );
     }
 
     public function forProject(string $projectId): self
@@ -158,8 +160,8 @@ final class ScenarioBuilder extends Builder
 
         /** @var list<string> $groupIds */
         $groupIds = $user->groups->pluck('id')
-            ->map(static fn (mixed $v): string => is_string($v) ? $v : '')
-            ->filter(static fn (string $v): bool => $v !== '')
+            ->map(static fn(mixed $v): string => is_string($v) ? $v : '')
+            ->filter(static fn(string $v): bool => $v !== '')
             ->values()
             ->all();
 

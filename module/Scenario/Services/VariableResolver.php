@@ -15,15 +15,16 @@ final readonly class VariableResolver
 {
     public function __construct(
         private ExpressionService $expressionService,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $context */
+    /** @param  array<string, mixed>  $context */
     public function resolveValue(string $expression, array $context = []): mixed
     {
         return $this->expressionService->evaluate($expression, $this->prepareContext($context));
     }
 
-    /** @param array<string, mixed> $context */
+    /** @param  array<string, mixed>  $context */
     public function resolve(mixed $value, array $context = []): mixed
     {
         return $this->expressionService->render($value, $this->prepareContext($context));
@@ -32,7 +33,7 @@ final readonly class VariableResolver
     /**
      * Развернуть плоские переменные опроса (по _variable_map) поверх raw-контекста.
      *
-     * @param  array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     public function flatten(array $context): array
@@ -41,20 +42,22 @@ final readonly class VariableResolver
     }
 
     /**
-     * @param  array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     private function prepareContext(array $context): array
     {
         /** @var array<string, array<string, mixed>> $variableMap */
-        $variableMap = is_array($context['_variable_map'] ?? null) ? $context['_variable_map'] : [];
+        $variableMap = is_array(
+            $context[RunContextKeys::VARIABLE_MAP] ?? null
+        ) ? $context[RunContextKeys::VARIABLE_MAP] : [];
 
         return $this->injectFlatVariables($context, $variableMap);
     }
 
     /**
-     * @param  array<string, mixed>                $context
-     * @param  array<string, array<string, mixed>> $variableMap
+     * @param  array<string, mixed>  $context
+     * @param  array<string, array<string, mixed>>  $variableMap
      * @return array<string, mixed>
      */
     private function injectFlatVariables(array $context, array $variableMap): array
@@ -80,7 +83,7 @@ final readonly class VariableResolver
 
     private function resolveFlatValue(mixed $rawValue, VariableEntryInterface $entry): mixed
     {
-        if (! $entry instanceof SelectVariableEntry) {
+        if (!$entry instanceof SelectVariableEntry) {
             return $rawValue;
         }
 
@@ -95,7 +98,7 @@ final readonly class VariableResolver
         return $this->selectLabels($rawValue, $entry);
     }
 
-    /** @param list<mixed> $value */
+    /** @param  list<mixed>  $value */
     private function isListOfSelectShapes(array $value): bool
     {
         if ($value === []) {
@@ -103,7 +106,7 @@ final readonly class VariableResolver
         }
 
         foreach ($value as $item) {
-            if (! SelectShape::matches($item)) {
+            if (!SelectShape::matches($item)) {
                 return false;
             }
         }
@@ -122,17 +125,19 @@ final readonly class VariableResolver
         $labelMap = $this->buildLabelMap($options);
 
         if (is_array($rawValue)) {
-            return array_values(array_map(
-                static function (mixed $value) use ($labelMap): string {
-                    $key = is_string($value) ? $value : (is_scalar($value) ? (string) $value : '');
+            return array_values(
+                array_map(
+                    static function (mixed $value) use ($labelMap): string {
+                        $key = is_string($value) ? $value : (is_scalar($value) ? (string)$value : '');
 
-                    return $labelMap[$key] ?? $key;
-                },
-                $rawValue,
-            ));
+                        return $labelMap[$key] ?? $key;
+                    },
+                    $rawValue,
+                )
+            );
         }
 
-        if (! is_string($rawValue)) {
+        if (!is_string($rawValue)) {
             return $rawValue;
         }
 
@@ -140,7 +145,7 @@ final readonly class VariableResolver
     }
 
     /**
-     * @param  list<array<mixed>>    $options
+     * @param  list<array<mixed>>  $options
      * @return array<string, string>
      */
     private function buildLabelMap(array $options): array
@@ -150,7 +155,7 @@ final readonly class VariableResolver
         foreach ($options as $option) {
             $rawValue = $option['value'] ?? null;
             $rawLabel = $option['label'] ?? null;
-            $value = is_string($rawValue) ? $rawValue : (is_scalar($rawValue) ? (string) $rawValue : null);
+            $value = is_string($rawValue) ? $rawValue : (is_scalar($rawValue) ? (string)$rawValue : null);
             $label = is_string($rawLabel) ? $rawLabel : '';
 
             if ($value !== null && $value !== '') {

@@ -27,7 +27,7 @@ final class CategoryRepository
             ->keyBy('id');
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes, ?int $actorId): Category
     {
         $category = new Category($attributes);
@@ -38,7 +38,7 @@ final class CategoryRepository
         return $category;
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Category $category, array $attributes, ?int $actorId): Category
     {
         $category->fill($attributes);
@@ -56,11 +56,13 @@ final class CategoryRepository
     /** @return list<string> */
     public function childIds(string $parentId): array
     {
-        return array_values(Category::query()
-            ->where('parent_id', $parentId)
-            ->pluck('id')
-            ->map(static fn (mixed $id): string => is_scalar($id) ? (string) $id : '')
-            ->all());
+        return array_values(
+            Category::query()
+                ->where('parent_id', $parentId)
+                ->pluck('id')
+                ->map(static fn(mixed $id): string => is_scalar($id) ? (string)$id : '')
+                ->all()
+        );
     }
 
     public function find(string $id): ?Category

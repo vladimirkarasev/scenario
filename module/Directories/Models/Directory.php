@@ -15,22 +15,22 @@ use Illuminate\Support\Carbon;
 use Module\Projects\Models\Project;
 
 /**
- * @property string                    $id
- * @property string|null               $project_id
- * @property string|null               $name
- * @property string|null               $slug
- * @property string|null               $description
- * @property string|null               $source_type
- * @property string|null               $match_by
- * @property string|null               $default_sort
- * @property string|null               $sync_status
- * @property string|null               $sync_error
+ * @property string $id
+ * @property string|null $project_id
+ * @property string|null $name
+ * @property string|null $slug
+ * @property string|null $description
+ * @property string|null $source_type
+ * @property string|null $match_by
+ * @property string|null $default_sort
+ * @property string|null $sync_status
+ * @property string|null $sync_error
  * @property array<string, mixed>|null $api_config_json
  * @property array<string, mixed>|null $import_settings_json
- * @property Carbon|null               $last_sync_at
- * @property Carbon|null               $next_sync_at
- * @property Carbon|null               $created_at
- * @property Carbon|null               $updated_at
+ * @property Carbon|null $last_sync_at
+ * @property Carbon|null $next_sync_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read int|null $versions_count
  */
 final class Directory extends Model

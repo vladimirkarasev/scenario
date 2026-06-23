@@ -42,11 +42,9 @@ components:
           readOnly: true
         entity:
           oneOf:
-            -
-              $ref: '#/components/schemas/DamageReportPartnerBase'
-            -
-              $ref: '#/components/schemas/DamageReportDealer'
-          properties: {  }
+            - $ref: '#/components/schemas/DamageReportPartnerBase'
+            - $ref: '#/components/schemas/DamageReportDealer'
+          properties: { }
           description: 'Сущность "Дилер/Склад"'
           readOnly: true
         shippingCompany:
@@ -185,10 +183,8 @@ components:
       properties:
         id:
           oneOf:
-            -
-              type: string
-            -
-              type: integer
+            - type: string
+            - type: integer
           description: 'ID элемента справочника'
         name:
           type: string
@@ -347,8 +343,7 @@ components:
         - name
       type: object
       allOf:
-        -
-          $ref: '#/components/schemas/DamageReportPartnerBase'
+        - $ref: '#/components/schemas/DamageReportPartnerBase'
       properties:
         requisites:
           type: object
@@ -482,8 +477,7 @@ components:
       description: 'Модель склада дистрибьютора'
     DamageReportPartnerForm:
       allOf:
-        -
-          $ref: '#/components/schemas/DamageReportPartnerBase'
+        - $ref: '#/components/schemas/DamageReportPartnerBase'
       properties:
         typeIDs:
           type: array
@@ -1224,19 +1218,15 @@ components:
             $ref: '#/components/schemas/DealerCheckList_CheckListBlock'
         action_plan:
           oneOf:
-            -
-              type: 'null'
-            -
-              $ref: '#/components/schemas/DealerCheckList_ActionPlan'
+            - type: 'null'
+            - $ref: '#/components/schemas/DealerCheckList_ActionPlan'
         chart:
           type: string
           description: 'Отчет Статистика по блокам'
         comments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Комментарии
               items:
                 $ref: '#/components/schemas/DealerCheckList_Comment'
@@ -1361,10 +1351,8 @@ components:
           format: 'DD.MM.YYYY HH:MM:SS'
         tasks_stats:
           oneOf:
-            -
-              type: 'null'
-            -
-              $ref: '#/components/schemas/DealerCheckList_ActionPlanTasksStats'
+            - type: 'null'
+            - $ref: '#/components/schemas/DealerCheckList_ActionPlanTasksStats'
       description: 'План действий'
     DealerCheckList_ActionPlanTasksStats:
       type: object
@@ -1526,10 +1514,8 @@ components:
           description: Доказательства
         attachments:
           oneOf:
-            -
-              type: 'null'
-            -
-              type: array
+            - type: 'null'
+            - type: array
               description: Файлы
               items:
                 $ref: '#/components/schemas/CheckListAttachment'

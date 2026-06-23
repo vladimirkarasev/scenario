@@ -91,7 +91,7 @@ final class ProjectControllerTest extends TestCase
         $user = $this->makeUser('project_view');
 
         $this->actingAs($user)
-            ->getJson('/api/projects/' . Str::uuid())
+            ->getJson('/api/projects/'.Str::uuid())
             ->assertNotFound();
     }
 
@@ -108,11 +108,11 @@ final class ProjectControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/projects', [
-                'name'          => 'Новый проект',
-                'sitekey'       => 'sk-test001',
-                'host'          => 'test.local',
+                'name' => 'Новый проект',
+                'sitekey' => 'sk-test001',
+                'host' => 'test.local',
                 'shared_secret' => Str::random(32),
-                'is_active'     => true,
+                'is_active' => true,
             ])
             ->assertCreated()
             ->assertJsonPath('data.attributes.name', 'Новый проект');
@@ -141,11 +141,11 @@ final class ProjectControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/projects', [
-                'name'          => 'Test',
-                'sitekey'       => 'sk-test',
-                'host'          => 'test.local',
+                'name' => 'Test',
+                'sitekey' => 'sk-test',
+                'host' => 'test.local',
                 'shared_secret' => 'short',
-                'is_active'     => true,
+                'is_active' => true,
             ])
             ->assertUnprocessable();
     }
@@ -159,11 +159,11 @@ final class ProjectControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson('/api/projects', [
-                'name'          => 'Test',
-                'sitekey'       => 'sk-test',
-                'host'          => 'test.local',
+                'name' => 'Test',
+                'sitekey' => 'sk-test',
+                'host' => 'test.local',
                 'shared_secret' => Str::random(32),
-                'is_active'     => true,
+                'is_active' => true,
             ])
             ->assertForbidden();
     }
@@ -182,11 +182,11 @@ final class ProjectControllerTest extends TestCase
 
         $this->actingAs($user)
             ->putJson("/api/projects/{$project->id}", [
-                'name'          => 'Новое имя',
-                'sitekey'       => $project->sitekey,
-                'host'          => $project->host,
+                'name' => 'Новое имя',
+                'sitekey' => $project->sitekey,
+                'host' => $project->host,
                 'shared_secret' => Str::random(32),
-                'is_active'     => true,
+                'is_active' => true,
             ])
             ->assertOk()
             ->assertJsonPath('data.attributes.name', 'Новое имя');
@@ -245,11 +245,11 @@ final class ProjectControllerTest extends TestCase
     private function makeProject(string $name = 'Project'): Project
     {
         return Project::query()->create([
-            'name'          => $name,
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => $name,
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 }

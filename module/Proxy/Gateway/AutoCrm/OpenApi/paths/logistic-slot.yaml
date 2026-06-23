@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - logistic-slot'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: logistic-slot
+  - name: logistic-slot
     description: 'Управление лотами погрузки'
 paths:
   /logistic/slot:
@@ -22,32 +18,27 @@ paths:
       description: 'Получение списка лотов погрузки'
       summary: 'Получение списка лотов погрузки'
       parameters:
-        -
-          name: warehouse_id
+        - name: warehouse_id
           in: query
           description: 'ID склада отгрузки'
           schema:
             type: integer
-        -
-          name: shipping_company_id
+        - name: shipping_company_id
           in: query
           description: 'ID транспортной компании'
           schema:
             type: integer
-        -
-          name: date
+        - name: date
           in: query
           description: 'Дата формат ДД.ММ.ГГГГ'
           schema:
             type: string
-        -
-          name: route
+        - name: route
           in: query
           description: Рейс
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           type: integer
           schema:
@@ -63,7 +54,7 @@ paths:
                   $ref: '#/components/schemas/LogisticSlot'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - logistic-slot
@@ -84,7 +75,7 @@ paths:
                 $ref: '#/components/schemas/LogisticSlot'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/logistic/slot/{id}':
     get:
       tags:
@@ -92,8 +83,7 @@ paths:
       summary: 'Получение лота погрузки по ID'
       description: 'Получение лота погрузки по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id лота погрузки'
           required: true
@@ -108,7 +98,7 @@ paths:
                 $ref: '#/components/schemas/LogisticSlot'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -121,8 +111,7 @@ paths:
       description: 'Обновление лота погрузки по ID'
       summary: 'Обновление лота погрузки по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id лота погрузки'
           schema:
@@ -139,7 +128,7 @@ paths:
           description: 'лот погрузки успешно изменен'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -23,7 +23,7 @@ final class PermissionController extends Controller
             }
         }
 
-        usort($permissions, static fn (array $a, array $b): int => $a['name'] <=> $b['name']);
+        usort($permissions, static fn(array $a, array $b): int => $a['name'] <=> $b['name']);
 
         return new JsonResponse(['data' => $permissions]);
     }

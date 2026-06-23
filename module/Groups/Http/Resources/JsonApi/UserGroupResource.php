@@ -18,7 +18,7 @@ final class UserGroupResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string) $this->id;
+        return (string)$this->id;
     }
 
     public function toType(Request $request): string
@@ -45,8 +45,8 @@ final class UserGroupResource extends JsonApiResource
     public function toRelationships(Request $request): array
     {
         return [
-            'created_by' => fn () => $this->actorData($this->createdBy),
-            'updated_by' => fn () => $this->actorData($this->updatedBy),
+            'created_by' => fn() => $this->actorData($this->createdBy),
+            'updated_by' => fn() => $this->actorData($this->updatedBy),
         ];
     }
 

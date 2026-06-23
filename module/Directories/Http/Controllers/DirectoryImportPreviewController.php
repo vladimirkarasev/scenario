@@ -18,7 +18,8 @@ final class DirectoryImportPreviewController extends Controller
 {
     public function __construct(
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function store(Request $request, Directory $directory): JsonResponse
     {
@@ -67,7 +68,7 @@ final class DirectoryImportPreviewController extends Controller
                     ...$configQuery,
                     $pageParam => $startPage,
                     $perPageParam => $perPage,
-                ], static fn (mixed $value): bool => $value !== null);
+                ], static fn(mixed $value): bool => $value !== null);
 
                 $payload = Http::acceptJson()
                     ->withHeaders($headers)
@@ -79,13 +80,13 @@ final class DirectoryImportPreviewController extends Controller
                 $itemsPath = is_string($remote['items_path'] ?? null) ? $remote['items_path'] : 'data';
                 $items = data_get($payload, $itemsPath, $payload);
 
-                if (! is_array($items) || $items === []) {
+                if (!is_array($items) || $items === []) {
                     return $this->jsonApiMeta(['headers' => []]);
                 }
 
                 $first = collect($items)->first();
 
-                if (! is_array($first)) {
+                if (!is_array($first)) {
                     return $this->jsonApiError('Удалённый API должен возвращать массив объектов.', 422);
                 }
 
@@ -122,8 +123,8 @@ final class DirectoryImportPreviewController extends Controller
 
             $headers = $this->formatHeaders(
                 collect($firstRow)
-                    ->map(static fn (mixed $header): string => trim(is_scalar($header) ? (string) $header : ''))
-                    ->filter(static fn (string $header): bool => $header !== '')
+                    ->map(static fn(mixed $header): string => trim(is_scalar($header) ? (string)$header : ''))
+                    ->filter(static fn(string $header): bool => $header !== '')
                     ->values()
                     ->all(),
             );
@@ -135,7 +136,7 @@ final class DirectoryImportPreviewController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $meta
+     * @param  array<string, mixed>  $meta
      */
     private function jsonApiMeta(array $meta, int $status = 200): JsonResponse
     {
@@ -149,14 +150,14 @@ final class DirectoryImportPreviewController extends Controller
     private function jsonApiError(string $detail, int $status): JsonResponse
     {
         return new JsonResponse(
-            ['errors' => [['status' => (string) $status, 'detail' => $detail]]],
+            ['errors' => [['status' => (string)$status, 'detail' => $detail]]],
             $status,
             ['Content-Type' => 'application/vnd.api+json'],
         );
     }
 
     /**
-     * @param  array<int, string>                            $headers
+     * @param  array<int, string>  $headers
      * @return array<int, array{label: string, key: string}>
      */
     private function formatHeaders(array $headers): array
@@ -164,7 +165,7 @@ final class DirectoryImportPreviewController extends Controller
         $formatted = HeadingRowFormatter::format($headers);
 
         return collect($headers)
-            ->map(static fn (string $label, int $index): array => [
+            ->map(static fn(string $label, int $index): array => [
                 'label' => $label,
                 'key' => is_string($formatted[$index] ?? null) ? $formatted[$index] : $label,
             ])

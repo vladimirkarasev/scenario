@@ -15,13 +15,13 @@ final class ProxyFieldList extends ProxyField
         $this->type('list');
     }
 
-    /** @param string $value */
+    /** @param  string  $value */
     public function default(mixed $value): static
     {
         return parent::default($value);
     }
 
-    /** @param list<string> $values */
+    /** @param  list<string>  $values */
     public function values(array $values): static
     {
         $this->values = $values;

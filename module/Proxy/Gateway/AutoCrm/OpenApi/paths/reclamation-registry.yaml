@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - reclamation-registry'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: reclamation-registry
+  - name: reclamation-registry
     description: 'Сводные ведомости'
 paths:
   /reclamation-registry:
@@ -21,22 +17,19 @@ paths:
         - reclamation-registry
       summary: 'Получить список СВР'
       parameters:
-        -
-          name: dealer_code
+        - name: dealer_code
           in: query
           schema:
             type: string
           description: 'Код дилера для фильтрации'
-        -
-          name: month
+        - name: month
           in: query
           schema:
             type: integer
             minimum: 1
             maximum: 12
           description: 'Месяц периода'
-        -
-          name: year
+        - name: year
           in: query
           schema:
             type: integer
@@ -52,7 +45,7 @@ paths:
                   $ref: '#/components/schemas/ReclamationRegistry'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   /reclamation-registry/stages:
     get:
       tags:
@@ -69,15 +62,14 @@ paths:
                   $ref: '#/components/schemas/ReclamationRegistryStage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/reclamation-registry/{id}/workflow':
     put:
       tags:
         - reclamation-registry
       summary: 'Обновить этап workflow СВР'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           required: true
           schema:

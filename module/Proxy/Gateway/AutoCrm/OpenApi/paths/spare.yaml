@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - spare'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: spare
+  - name: spare
     description: 'Управление запчастями'
 paths:
   /spare:
@@ -32,7 +28,7 @@ paths:
                   $ref: '#/components/schemas/Spare'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/spare/{id}':
     get:
       tags:
@@ -40,8 +36,7 @@ paths:
       summary: 'Получение запчасти по ID'
       description: 'Получение запчасти по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id запчасти'
           required: true
@@ -56,7 +51,7 @@ paths:
                 $ref: '#/components/schemas/Spare'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

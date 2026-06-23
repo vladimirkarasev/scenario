@@ -13,7 +13,8 @@ final readonly class SurveysService
 {
     public function __construct(
         private ScenarioPlayerService $player,
-    ) {}
+    ) {
+    }
 
     /**
      * Список прогонов опроса с пагинацией.
@@ -36,7 +37,7 @@ final readonly class SurveysService
         $runs = $query->paginate($data->perPage);
 
         return [
-            'surveys' => $runs->map(fn (ScenarioRun $run) => $this->summarize($run))->values()->all(),
+            'surveys' => $runs->map(fn(ScenarioRun $run) => $this->summarize($run))->values()->all(),
             'pagination' => [
                 'current_page' => $runs->currentPage(),
                 'last_page' => $runs->lastPage(),

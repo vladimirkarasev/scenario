@@ -15,7 +15,9 @@ use Module\Proxy\Services\HandlerResolver;
 
 final class ProxyEndpointController extends Controller
 {
-    public function __construct(private readonly HandlerResolver $handlers) {}
+    public function __construct(private readonly HandlerResolver $handlers)
+    {
+    }
 
     public function index(Request $request): JsonResponse
     {
@@ -38,7 +40,7 @@ final class ProxyEndpointController extends Controller
 
         return new JsonResponse([
             'items' => $query->get()
-                ->map(fn (ProxyEndpoint $endpoint) => $this->payload($endpoint))
+                ->map(fn(ProxyEndpoint $endpoint) => $this->payload($endpoint))
                 ->all(),
         ]);
     }
@@ -49,7 +51,7 @@ final class ProxyEndpointController extends Controller
 
         $endpoint = ProxyEndpoint::query()->create([
             ...$data,
-            'uuid' => (string) Str::uuid(),
+            'uuid' => (string)Str::uuid(),
             'created_by' => $request->user()?->id,
         ]);
 

@@ -13,9 +13,9 @@ use Module\Directories\Models\Directory;
 final readonly class DirectoryImportData
 {
     /**
-     * @param array<string, string>            $mapping
-     * @param array<int, array<string, mixed>> $fields
-     * @param array<string, mixed>             $remote
+     * @param  array<string, string>  $mapping
+     * @param  array<int, array<string, mixed>>  $fields
+     * @param  array<string, mixed>  $remote
      */
     public function __construct(
         public Directory $directory,
@@ -32,7 +32,8 @@ final readonly class DirectoryImportData
         public DirectoryImportOptions $options,
         public ?int $uploadedBy,
         public ?int $versionId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(StoreDirectoryImportRequest $request, Directory $directory): self
     {
@@ -50,9 +51,11 @@ final readonly class DirectoryImportData
         $matchBy = is_string($validated['match_by'] ?? null) ? $validated['match_by'] : $directory->match_by;
         $parentKeyField = is_string($validated['parent_key_field'] ?? null) ? $validated['parent_key_field'] : null;
         $configDefault = config('import.default_chunk_size', 500);
-        $chunkSize = is_int($validated['chunk_size'] ?? null) ? $validated['chunk_size'] : (is_int($configDefault) ? $configDefault : 500);
+        $chunkSize = is_int($validated['chunk_size'] ?? null) ? $validated['chunk_size'] : (is_int(
+            $configDefault
+        ) ? $configDefault : 500);
         $rawVersionId = $validated['version_id'] ?? null;
-        $versionId = is_int($rawVersionId) ? $rawVersionId : (is_numeric($rawVersionId) ? (int) $rawVersionId : null);
+        $versionId = is_int($rawVersionId) ? $rawVersionId : (is_numeric($rawVersionId) ? (int)$rawVersionId : null);
         $options = DirectoryImportOptions::fromInput($validated, $mode);
 
         return new self(
@@ -66,7 +69,7 @@ final readonly class DirectoryImportData
             matchBy: $matchBy,
             parentKeyField: $parentKeyField,
             chunkSize: $chunkSize,
-            activate: (bool) ($validated['activate'] ?? true),
+            activate: (bool)($validated['activate'] ?? true),
             options: $options,
             uploadedBy: ($id = $request->user()?->getAuthIdentifier()) !== null && is_int($id) ? $id : null,
             versionId: $versionId,

@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import AppShell from '@/layouts/AppShell.vue'
 import ScenarioPlayer from '@/modules/scenario/components/player/ScenarioPlayer.vue'
-import type { ScenarioRunPayload, ScenarioRunStatus } from '@/modules/scenario/lib/scenario-player-types'
-import { scenarioRunRepository } from '@/modules/scenario/repositories/scenarioRunRepository'
-import { useStartScenarioListener } from '@/modules/scenario/composables/useStartScenarioListener'
-import type { ScenarioRunListItem } from '@/modules/scenario/types/scenario'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDashboardNavigation } from '@/composables/useDashboardNavigation'
-import { formatDateTime } from '@/lib/formatters'
-import { Head, Link, router } from '@inertiajs/vue3'
-import type { Subscription } from 'centrifuge'
-import { ChevronLeft, ChevronRight, ClipboardList, Search, X } from 'lucide-vue-next'
-import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
+import type {ScenarioRunPayload, ScenarioRunStatus} from '@/modules/scenario/lib/scenario-player-types'
+import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
+import {useStartScenarioListener} from '@/modules/scenario/composables/useStartScenarioListener'
+import type {ScenarioRunListItem} from '@/modules/scenario/types/scenario'
+import {Skeleton} from '@/components/ui/skeleton'
+import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
+import {formatDateTime} from '@/lib/formatters'
+import {Head, Link, router} from '@inertiajs/vue3'
+import type {Subscription} from 'centrifuge'
+import {ChevronLeft, ChevronRight, ClipboardList, Search, X} from 'lucide-vue-next'
+import {computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch} from 'vue'
 
 const props = defineProps<{
   initialRunId?: string | null
   initialScenarioId?: string | null
 }>()
 
-const { navigationItems } = useDashboardNavigation()
+const {navigationItems} = useDashboardNavigation()
 
 const runs = ref<ScenarioRunListItem[]>([])
 const runsTotal = ref(0)
@@ -57,9 +57,9 @@ const STATUS_PILL: Record<string, string> = {
 }
 
 const RUN_STATUS_FILTERS = [
-  { value: '', label: 'Все' },
-  { value: 'active', label: 'В процессе' },
-  { value: 'completed', label: 'Завершённые' },
+  {value: '', label: 'Все'},
+  {value: 'active', label: 'В процессе'},
+  {value: 'completed', label: 'Завершённые'},
 ]
 
 onMounted(() => {
@@ -101,7 +101,9 @@ watch(search, () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => resetRunsPagination(), 300)
 })
-onBeforeUnmount(() => { if (searchTimer) clearTimeout(searchTimer) })
+onBeforeUnmount(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 
 function setRunsStatus(status: string) {
   runsStatusFilter.value = status
@@ -114,7 +116,10 @@ function clearSearch() {
 }
 
 function resetRunsPagination() {
-  if (runsPage.value === 1) { loadRuns(); return }
+  if (runsPage.value === 1) {
+    loadRuns();
+    return
+  }
   runsPage.value = 1
 }
 
@@ -127,8 +132,14 @@ const runPageNumbers = computed(() => {
   return pages
 })
 
-function prevPage() { goToPage(runsPage.value - 1) }
-function nextPage() { goToPage(runsPage.value + 1) }
+function prevPage() {
+  goToPage(runsPage.value - 1)
+}
+
+function nextPage() {
+  goToPage(runsPage.value + 1)
+}
+
 function goToPage(page: number) {
   const target = Math.min(Math.max(1, page), totalPages.value)
   if (target !== runsPage.value) runsPage.value = target
@@ -182,24 +193,24 @@ function runStatusAt(run: ScenarioRunListItem): string {
 </script>
 
 <template>
-  <Head title="Опросы" />
+  <Head title="Опросы"/>
 
   <AppShell title="Опросы" :navigation-items="navigationItems" flush>
     <div class="flex h-full min-h-0 w-full overflow-hidden">
-<!-- ══ Left sidebar ══════════════════════════════════════════════ -->
+      <!-- ══ Left sidebar ══════════════════════════════════════════════ -->
       <aside class="flex w-72 flex-none flex-col overflow-hidden border-r border-slate-200 bg-white">
-<!-- Tab bar -->
+        <!-- Tab bar -->
         <div class="shrink-0 px-3 pt-3 pb-2">
           <div class="flex rounded-lg bg-slate-100 p-0.5">
             <Link
-              :href="route('workspace.scenarios')"
-              class="flex-1 rounded-md py-1.5 text-center text-[12px] font-semibold text-slate-500 transition-all hover:text-slate-700"
+                :href="route('workspace.scenarios')"
+                class="flex-1 rounded-md py-1.5 text-center text-[12px] font-semibold text-slate-500 transition-all hover:text-slate-700"
             >
               Сценарии
             </Link>
             <Link
-              :href="route('surveys')"
-              class="flex-1 rounded-md bg-white py-1.5 text-center text-[12px] font-semibold text-slate-900 shadow-sm"
+                :href="route('surveys')"
+                class="flex-1 rounded-md bg-white py-1.5 text-center text-[12px] font-semibold text-slate-900 shadow-sm"
             >
               Опросы
             </Link>
@@ -209,13 +220,13 @@ function runStatusAt(run: ScenarioRunListItem): string {
         <!-- Status filter pills -->
         <div class="flex gap-1 px-4 pb-3 pt-3">
           <button
-            v-for="opt in RUN_STATUS_FILTERS"
-            :key="opt.value"
-            class="h-6 rounded-full px-2.5 text-[11px] font-semibold transition-colors whitespace-nowrap"
-            :class="runsStatusFilter === opt.value
+              v-for="opt in RUN_STATUS_FILTERS"
+              :key="opt.value"
+              class="h-6 rounded-full px-2.5 text-[11px] font-semibold transition-colors whitespace-nowrap"
+              :class="runsStatusFilter === opt.value
               ? 'bg-blue-600 text-white'
               : 'bg-slate-100 text-slate-500 hover:text-slate-800'"
-            @click="setRunsStatus(opt.value)"
+              @click="setRunsStatus(opt.value)"
           >
             {{ opt.label }}
           </button>
@@ -224,32 +235,32 @@ function runStatusAt(run: ScenarioRunListItem): string {
         <!-- Search -->
         <div class="px-3 pb-3">
           <div class="relative">
-            <Search :size="14" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search :size="14" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
             <input
-              v-model="search"
-              type="text"
-              placeholder="Поиск сессий..."
-              class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-8 text-[13px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                v-model="search"
+                type="text"
+                placeholder="Поиск сессий..."
+                class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-8 text-[13px] text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             <button
-              v-if="search"
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
-              @click="clearSearch"
+                v-if="search"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+                @click="clearSearch"
             >
-              <X :size="14" />
+              <X :size="14"/>
             </button>
           </div>
         </div>
 
         <!-- Sessions list -->
         <div class="flex-1 overflow-y-auto px-3 pb-3">
-<div v-if="runsLoading" class="space-y-2">
-            <Skeleton v-for="i in 6" :key="i" class="h-[88px] w-full rounded-xl" />
+          <div v-if="runsLoading" class="space-y-2">
+            <Skeleton v-for="i in 6" :key="i" class="h-[88px] w-full rounded-xl"/>
           </div>
 
           <div v-else-if="!runs.length" class="flex flex-col items-center py-14 text-center">
             <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-              <ClipboardList :size="20" />
+              <ClipboardList :size="20"/>
             </div>
             <div class="text-[13px] font-semibold text-slate-900">Нет сессий</div>
             <div class="mt-1 text-[12px] text-slate-400">
@@ -259,21 +270,21 @@ function runStatusAt(run: ScenarioRunListItem): string {
 
           <div v-else class="flex flex-col gap-1.5">
             <button
-              v-for="run in runs"
-              :key="run.id"
-              class="w-full rounded-xl border p-3.5 text-left transition-all"
-              :class="selectedRunId === run.id
+                v-for="run in runs"
+                :key="run.id"
+                class="w-full rounded-xl border p-3.5 text-left transition-all"
+                :class="selectedRunId === run.id
                 ? 'border-blue-300 bg-blue-50/70 shadow-[0_0_0_1px_#93c5fd]'
                 : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80'"
-              @click="pickRun(run.id)"
+                @click="pickRun(run.id)"
             >
               <div class="mb-2 flex items-start justify-between gap-2">
                 <span class="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-900">
                   {{ run.scenario_name ?? `Сценарий #${run.scenario_id}` }}
                 </span>
                 <span
-                  class="inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[10px] font-semibold"
-                  :class="STATUS_PILL[run.status] ?? 'bg-slate-100 text-slate-500'"
+                    class="inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[10px] font-semibold"
+                    :class="STATUS_PILL[run.status] ?? 'bg-slate-100 text-slate-500'"
                 >
                   {{ STATUS_LABELS[run.status] ?? run.status }}
                 </span>
@@ -299,59 +310,67 @@ function runStatusAt(run: ScenarioRunListItem): string {
           </div>
           <div class="flex items-center justify-center gap-1">
             <button
-              class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
-              :disabled="runsPage === 1 || runsLoading"
-              @click="prevPage"
+                class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
+                :disabled="runsPage === 1 || runsLoading"
+                @click="prevPage"
             >
-              <ChevronLeft :size="15" />
+              <ChevronLeft :size="15"/>
             </button>
 
             <template v-if="runPageNumbers[0] > 1">
-              <button class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] text-slate-600 hover:bg-slate-100" @click="goToPage(1)">1</button>
+              <button
+                  class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] text-slate-600 hover:bg-slate-100"
+                  @click="goToPage(1)">1
+              </button>
               <span v-if="runPageNumbers[0] > 2" class="px-0.5 text-[12px] text-slate-300">…</span>
             </template>
 
             <button
-              v-for="page in runPageNumbers"
-              :key="page"
-              class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] transition"
-              :class="page === runsPage ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'"
-              :disabled="runsLoading"
-              @click="goToPage(page)"
+                v-for="page in runPageNumbers"
+                :key="page"
+                class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] transition"
+                :class="page === runsPage ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'"
+                :disabled="runsLoading"
+                @click="goToPage(page)"
             >
-{{ page }}
-</button>
+              {{ page }}
+            </button>
 
             <template v-if="runPageNumbers[runPageNumbers.length - 1] < totalPages">
-              <span v-if="runPageNumbers[runPageNumbers.length - 1] < totalPages - 1" class="px-0.5 text-[12px] text-slate-300">…</span>
-              <button class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] text-slate-600 hover:bg-slate-100" @click="goToPage(totalPages)">{{ totalPages }}</button>
+              <span v-if="runPageNumbers[runPageNumbers.length - 1] < totalPages - 1"
+                    class="px-0.5 text-[12px] text-slate-300">…</span>
+              <button
+                  class="inline-flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1 text-[12px] text-slate-600 hover:bg-slate-100"
+                  @click="goToPage(totalPages)">{{ totalPages }}
+              </button>
             </template>
 
             <button
-              class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
-              :disabled="runsPage === totalPages || runsLoading"
-              @click="nextPage"
+                class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-30"
+                :disabled="runsPage === totalPages || runsLoading"
+                @click="nextPage"
             >
-              <ChevronRight :size="15" />
+              <ChevronRight :size="15"/>
             </button>
           </div>
         </div>
-</aside>
+      </aside>
 
       <!-- ══ Right panel ═══════════════════════════════════════════════ -->
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-slate-50">
-<!-- Empty state -->
+        <!-- Empty state -->
         <div v-if="!hasSelection" class="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_1px_3px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.06)] text-slate-400">
-            <ClipboardList :size="24" />
+          <div
+              class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_1px_3px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.06)] text-slate-400">
+            <ClipboardList :size="24"/>
           </div>
           <div>
             <div class="text-[15px] font-semibold text-slate-900">Выберите сессию</div>
             <div class="mt-1 text-[13px] text-slate-500">или запустите сценарий из каталога</div>
           </div>
           <Link
-            :href="route('workspace.scenarios')"
-            class="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-5 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
+              :href="route('workspace.scenarios')"
+              class="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-5 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
           >
             Перейти к сценариям
           </Link>
@@ -368,15 +387,15 @@ function runStatusAt(run: ScenarioRunListItem): string {
                     {{ activeRun?.scenario_name ?? '…' }}
                   </span>
                   <span
-                    v-if="activeRun?.status"
-                    class="inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[10px] font-semibold"
-                    :class="STATUS_PILL[activeRun.status] ?? 'bg-slate-100 text-slate-500'"
+                      v-if="activeRun?.status"
+                      class="inline-flex h-5 shrink-0 items-center rounded-full px-2 text-[10px] font-semibold"
+                      :class="STATUS_PILL[activeRun.status] ?? 'bg-slate-100 text-slate-500'"
                   >
                     {{ STATUS_LABELS[activeRun.status] ?? activeRun.status }}
                   </span>
                   <span
-                    v-if="activeRun?.scenario_version_name"
-                    class="inline-flex h-5 shrink-0 items-center rounded border border-slate-200 bg-white px-2 font-mono text-[10px] text-slate-400"
+                      v-if="activeRun?.scenario_version_name"
+                      class="inline-flex h-5 shrink-0 items-center rounded border border-slate-200 bg-white px-2 font-mono text-[10px] text-slate-400"
                   >
                     {{ activeRun.scenario_version_name }}
                   </span>
@@ -399,16 +418,16 @@ function runStatusAt(run: ScenarioRunListItem): string {
           <div class="min-h-0 flex-1 overflow-y-auto p-6">
             <div class="mx-auto max-w-2xl">
               <ScenarioPlayer
-                :key="playerKey"
-                :scenario-id="selectedScenarioId ?? undefined"
-                :scenario-version-id="selectedScenarioVersionId ?? undefined"
-                :run-id="selectedRunId ?? undefined"
-                @update:run="onRunUpdate"
+                  :key="playerKey"
+                  :scenario-id="selectedScenarioId ?? undefined"
+                  :scenario-version-id="selectedScenarioVersionId ?? undefined"
+                  :run-id="selectedRunId ?? undefined"
+                  @update:run="onRunUpdate"
               />
             </div>
           </div>
         </template>
       </div>
-</div>
+    </div>
   </AppShell>
 </template>

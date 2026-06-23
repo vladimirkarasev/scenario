@@ -2,7 +2,8 @@
 
 ## Архитектура
 
-`Module\Proxy` — внутренний gateway-слой. Принимает входящие HTTP-запросы, нормализует данные через `fields()` handler-а, валидирует, ведёт лог жизненного цикла и вызывает `handler->handle()`.
+`Module\Proxy` — внутренний gateway-слой. Принимает входящие HTTP-запросы, нормализует данные через `fields()`
+handler-а, валидирует, ведёт лог жизненного цикла и вызывает `handler->handle()`.
 
 Поток обработки:
 
@@ -18,6 +19,7 @@ HTTP → ProxyReceiverService
 При ошибке валидации — `Event(ProxyRequestRejected)`, при исключении — `Event(ProxyRequestFailed)`.
 
 Два подписчика на события:
+
 - `LogProxyRequestStatus` — обновляет `status` и `response` в `proxy_requests`
 - `PersistProxyContext` — сохраняет снапшот контекста в `message_box` (для диагностики и восстановления после сбоев)
 
@@ -25,7 +27,9 @@ Gateway (`BaseApiGateway` и его наследники) — чистый HTTP-
 
 ## Управление эндпоинтами
 
-Записи эндпоинтов хранятся в `proxy_endpoints`. Единственная точка истины — `module/Proxy/Registry/ProxyRegistry.php`. UUID-ы зафиксированы там, поэтому каждое окружение (локальное, stage, prod) получает одинаковый UUID для одного и того же эндпоинта.
+Записи эндпоинтов хранятся в `proxy_endpoints`. Единственная точка истины — `module/Proxy/Registry/ProxyRegistry.php`.
+UUID-ы зафиксированы там, поэтому каждое окружение (локальное, stage, prod) получает одинаковый UUID для одного и того
+же эндпоинта.
 
 Чтобы добавить новый эндпоинт:
 
@@ -48,7 +52,8 @@ yield new ProxyEndpointDefinition(
 php artisan proxies:sync
 ```
 
-Команда вставляет строки, которых ещё нет, и обновляет `name`, `description`, `handler_class`, `method` для существующих. `is_active` и `config` не трогает — ими управляет оператор через UI.
+Команда вставляет строки, которых ещё нет, и обновляет `name`, `description`, `handler_class`, `method` для
+существующих. `is_active` и `config` не трогает — ими управляет оператор через UI.
 
 Включи `proxies:sync` в pipeline деплоя после `php artisan migrate`.
 
@@ -56,42 +61,46 @@ php artisan proxies:sync
 
 ## Таблицы
 
-`proxy_endpoints` — конфигурация эндпоинта: `uuid`, `name`, `code`, `is_active`, `handler_class`, `method`, `config`, метаданные владельца.
+`proxy_endpoints` — конфигурация эндпоинта: `uuid`, `name`, `code`, `is_active`, `handler_class`, `method`, `config`,
+метаданные владельца.
 
 `proxy_requests` — каждый входящий запрос:
 
-| Колонка | Тип | Описание |
-|---|---|---|
-| `id` | uuid | PK |
-| `proxy_endpoint_id` | uuid | FK на `proxy_endpoints` |
-| `request_id` | string | Внутренний UUID попытки |
-| `status` | enum | `received` → `accepted` → `processed` / `rejected` / `failed` |
-| `request` | jsonb | Входящие данные: `method`, `path`, `ip`, `user_agent`, `headers`, `query`, `payload` |
-| `normalized_data` | jsonb | Нормализованные поля после `FieldResolver` |
-| `response` | jsonb | Ответ: `{status_code, headers, body}` или `{error}` |
-| `message_box` | jsonb | Снапшот `ProxyContext` для диагностики и восстановления |
-| `received_at` | datetime | Время получения |
-| `processed_at` | datetime | Время завершения |
+| Колонка             | Тип      | Описание                                                                             |
+|---------------------|----------|--------------------------------------------------------------------------------------|
+| `id`                | uuid     | PK                                                                                   |
+| `proxy_endpoint_id` | uuid     | FK на `proxy_endpoints`                                                              |
+| `request_id`        | string   | Внутренний UUID попытки                                                              |
+| `status`            | enum     | `received` → `accepted` → `processed` / `rejected` / `failed`                        |
+| `request`           | jsonb    | Входящие данные: `method`, `path`, `ip`, `user_agent`, `headers`, `query`, `payload` |
+| `normalized_data`   | jsonb    | Нормализованные поля после `FieldResolver`                                           |
+| `response`          | jsonb    | Ответ: `{status_code, headers, body}` или `{error}`                                  |
+| `message_box`       | jsonb    | Снапшот `ProxyContext` для диагностики и восстановления                              |
+| `received_at`       | datetime | Время получения                                                                      |
+| `processed_at`      | datetime | Время завершения                                                                     |
 
 ### Статусы
 
-| Статус | Описание |
-|---|---|
-| `received` | Запрос получен и записан в БД |
-| `accepted` | Прошёл валидацию, handler начал выполнение |
-| `processed` | Handler вернул ответ без исключений |
-| `rejected` | Не прошёл валидацию |
-| `failed` | Handler бросил исключение |
+| Статус      | Описание                                   |
+|-------------|--------------------------------------------|
+| `received`  | Запрос получен и записан в БД              |
+| `accepted`  | Прошёл валидацию, handler начал выполнение |
+| `processed` | Handler вернул ответ без исключений        |
+| `rejected`  | Не прошёл валидацию                        |
+| `failed`    | Handler бросил исключение                  |
 
-`accepted` нужен для обнаружения краш-сбоев: если запрос завис в `accepted` — произошёл деплой или падение во время выполнения.
+`accepted` нужен для обнаружения краш-сбоев: если запрос завис в `accepted` — произошёл деплой или падение во время
+выполнения.
 
 ## Request ID
 
-Каждый входящий запрос получает сгенерированный внутренний UUID (`request_id`). Входящий `X-Request-Id` хранится как `external_request_id` в `message_box.meta`. В ответах всегда присутствует заголовок `X-Request-Id`.
+Каждый входящий запрос получает сгенерированный внутренний UUID (`request_id`). Входящий `X-Request-Id` хранится как
+`external_request_id` в `message_box.meta`. В ответах всегда присутствует заголовок `X-Request-Id`.
 
 ## ProxyContext
 
-`ProxyContext` — иммутабельный readonly DTO, который собирается из входящего запроса и передаётся в `handler->handle()`. Содержит все данные запроса, нормализованные поля, конфигурацию эндпоинта и системные метаданные.
+`ProxyContext` — иммутабельный readonly DTO, который собирается из входящего запроса и передаётся в `handler->handle()`.
+Содержит все данные запроса, нормализованные поля, конфигурацию эндпоинта и системные метаданные.
 
 ### Источники данных
 
@@ -148,7 +157,8 @@ $context->meta('crm_id');                    // чтение → mixed
 
 ### data vs payload
 
-`data` — предпочтительный источник. Содержит уже нормализованные значения: handler объявил поле с `source('query.utm')`, и `data('utm')` вернёт значение из query string — handler не думает, откуда пришли данные.
+`data` — предпочтительный источник. Содержит уже нормализованные значения: handler объявил поле с `source('query.utm')`,
+и `data('utm')` вернёт значение из query string — handler не думает, откуда пришли данные.
 
 `payload` — сырое тело запроса. Используй только если нужен доступ к полю, которое не объявлено через `fields()`.
 
@@ -177,9 +187,11 @@ public function handle(ProxyContext $context): ProxyResponse
 
 ## Outbound Gateway
 
-`Module\Proxy\Gateway\Base` — переиспользуемая инфраструктура исходящих HTTP-вызовов. Реализована на Guzzle. Каждая операция — отдельный method-класс, реализующий `ApiMethod`. Конфиги сервисов — в `config/proxy.php → gateways`.
+`Module\Proxy\Gateway\Base` — переиспользуемая инфраструктура исходящих HTTP-вызовов. Реализована на Guzzle. Каждая
+операция — отдельный method-класс, реализующий `ApiMethod`. Конфиги сервисов — в `config/proxy.php → gateways`.
 
-Gateway — обычный клиент. Он не знает про `ProxyContext`, события или lifecycle запроса. Handler внедряет gateway через конструктор и вызывает его методы напрямую.
+Gateway — обычный клиент. Он не знает про `ProxyContext`, события или lifecycle запроса. Handler внедряет gateway через
+конструктор и вызывает его методы напрямую.
 
 Поддерживаемые типы авторизации: `none`, `basic`, `bearer`, `headers`.
 
@@ -276,7 +288,8 @@ final readonly class MyProxyHandler extends ProxyHandler
 
 ### Вариант 3. Несколько учётных данных для одного API
 
-Когда один API используется для разных клиентов с разными ключами — наследуем gateway-класс и передаём другой `gatewayName`. Родительский класс **не должен** быть `final`.
+Когда один API используется для разных клиентов с разными ключами — наследуем gateway-класс и передаём другой
+`gatewayName`. Родительский класс **не должен** быть `final`.
 
 ```php
 final class ClientAGateway extends MyServiceGateway
@@ -305,10 +318,10 @@ final class ClientAGateway extends MyServiceGateway
 
 Встроенные:
 
-| Класс | HTTP-метод | Параметры конструктора |
-|---|---|---|
-| `GetJsonMethod` | GET | `uri`, `query[]`, `key` |
-| `PostJsonMethod` | POST | `uri`, `body[]`, `query[]`, `key` |
+| Класс            | HTTP-метод | Параметры конструктора            |
+|------------------|------------|-----------------------------------|
+| `GetJsonMethod`  | GET        | `uri`, `query[]`, `key`           |
+| `PostJsonMethod` | POST       | `uri`, `body[]`, `query[]`, `key` |
 
 `key` — строковый идентификатор вызова, нужен для mock в тестах. Если не задан — используется имя класса + URI.
 
@@ -354,7 +367,8 @@ $factory->mock()->fake('my_service', 'create-lead', new ApiGatewayResponse(201, 
 
 ## Поля handler-а
 
-Handler объявляет контракт входных данных через метод `fields()`. Поля используются для трёх целей: нормализация (маппинг из источника), валидация и документация через API.
+Handler объявляет контракт входных данных через метод `fields()`. Поля используются для трёх целей: нормализация (
+маппинг из источника), валидация и документация через API.
 
 ### API endpoints
 
@@ -395,19 +409,19 @@ GET /api/proxy/proxys/{id}/fields
 
 ### Типы полей
 
-| Класс | `type` в JSON | Особенности |
-|---|---|---|
-| `ProxyField` | (задаётся вручную) | Базовый класс |
-| `ProxyFieldString` | `string` | — |
-| `ProxyFieldInteger` | `integer` | — |
-| `ProxyFieldBoolean` | `boolean` | Добавляет правило `boolean` |
-| `ProxyFieldList` | `list` | Поддерживает `->values([...])` для допустимых значений |
-| `ProxyFieldArray` | `array` | Добавляет правило `array` |
-| `ProxyFieldArrayList` | `array_list` | Добавляет правила `array`, `list` |
-| `ProxyFieldFileUrl` | `file_url` | Строковый URL файла; правила `string`, `url`, `max:2048` |
-| `ProxyFieldFileUrlList` | `file_url_list` | Массив URL; правило `array` |
-| `ProxyFieldUpload` | `file` | Источник `files.{key}`, мультипарт |
-| `ProxyFieldUploadList` | `file_list` | Источник `files.{key}`, мультипарт |
+| Класс                   | `type` в JSON      | Особенности                                              |
+|-------------------------|--------------------|----------------------------------------------------------|
+| `ProxyField`            | (задаётся вручную) | Базовый класс                                            |
+| `ProxyFieldString`      | `string`           | —                                                        |
+| `ProxyFieldInteger`     | `integer`          | —                                                        |
+| `ProxyFieldBoolean`     | `boolean`          | Добавляет правило `boolean`                              |
+| `ProxyFieldList`        | `list`             | Поддерживает `->values([...])` для допустимых значений   |
+| `ProxyFieldArray`       | `array`            | Добавляет правило `array`                                |
+| `ProxyFieldArrayList`   | `array_list`       | Добавляет правила `array`, `list`                        |
+| `ProxyFieldFileUrl`     | `file_url`         | Строковый URL файла; правила `string`, `url`, `max:2048` |
+| `ProxyFieldFileUrlList` | `file_url_list`    | Массив URL; правило `array`                              |
+| `ProxyFieldUpload`      | `file`             | Источник `files.{key}`, мультипарт                       |
+| `ProxyFieldUploadList`  | `file_list`        | Источник `files.{key}`, мультипарт                       |
 
 ### Builder-методы
 
@@ -426,20 +440,21 @@ ProxyFieldString::make('phone')
 
 ### Source paths
 
-| Префикс | Источник |
-|---|---|
-| `payload.{path}` | тело запроса (JSON или form-data) |
-| `query.{path}` | query string |
-| `headers.{name}` | HTTP-заголовок (нижний регистр) |
-| `system.{path}` | системные метаданные (`request_id`, `ip`, `received_at`) |
-| `files.{key}` | загруженный файл (`UploadedFile`) |
+| Префикс          | Источник                                                 |
+|------------------|----------------------------------------------------------|
+| `payload.{path}` | тело запроса (JSON или form-data)                        |
+| `query.{path}`   | query string                                             |
+| `headers.{name}` | HTTP-заголовок (нижний регистр)                          |
+| `system.{path}`  | системные метаданные (`request_id`, `ip`, `received_at`) |
+| `files.{key}`    | загруженный файл (`UploadedFile`)                        |
 
 ## Безопасность HandlerResolver
 
 `HandlerResolver` проверяет handler-класс перед инстанциированием:
 
 1. Класс должен существовать (`class_exists`).
-2. Класс должен начинаться с `proxy.handler_namespace` (по умолчанию `Module\Proxy\Proxies\`) **или** быть в списке `proxy.allowed_handlers`.
+2. Класс должен начинаться с `proxy.handler_namespace` (по умолчанию `Module\Proxy\Proxies\`) **или** быть в списке
+   `proxy.allowed_handlers`.
 3. Класс должен быть наследником `ProxyHandler`.
 
 Классы за пределами доверенного namespace добавляются в `config/proxy.php`:
@@ -452,7 +467,9 @@ ProxyFieldString::make('phone')
 
 ## AutoCRM Gateway
 
-`Module\Proxy\Gateway\AutoCrm\AutoCrmGateway` — типизированный клиент AutoCRM API. Специфичные подклассы используют собственный именованный конфиг: `BelgeeAutoCrmGateway` → `proxy.gateways.belgee_autocrm`, `MotorinvestAutoCrmGateway` → `proxy.gateways.motorinvest_autocrm`.
+`Module\Proxy\Gateway\AutoCrm\AutoCrmGateway` — типизированный клиент AutoCRM API. Специфичные подклассы используют
+собственный именованный конфиг: `BelgeeAutoCrmGateway` → `proxy.gateways.belgee_autocrm`, `MotorinvestAutoCrmGateway` →
+`proxy.gateways.motorinvest_autocrm`.
 
 Доступные методы:
 

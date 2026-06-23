@@ -1,6 +1,6 @@
 UserResource:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -69,7 +69,7 @@ UserAttributes:
 
 UserStoreRequest:
   type: object
-  required: [name, email, password]
+  required: [ name, email, password ]
   properties:
     name:
       type: string
@@ -102,7 +102,7 @@ UserStoreRequest:
 
 UserUpdateRequest:
   type: object
-  required: [name, email]
+  required: [ name, email ]
   properties:
     name:
       type: string

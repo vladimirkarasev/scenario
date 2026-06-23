@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - order-reference'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: order-reference
+  - name: order-reference
     description: 'Управление заказами (Справочники)'
 paths:
   /order/reference/delivery-method:
@@ -22,20 +18,17 @@ paths:
       description: 'Получить список способов доставки'
       summary: 'Получить список способов доставки'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID способа доставки'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -67,20 +60,17 @@ paths:
       description: 'Получить список способов оплаты'
       summary: 'Получить список способов оплаты'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID способа оплаты'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -96,7 +86,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -112,20 +102,17 @@ paths:
       description: 'Получить список статусов оплаты'
       summary: 'Получить список статусов оплаты'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID статуса оплаты'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -141,7 +128,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -157,20 +144,17 @@ paths:
       description: 'Получить список причин возвратов'
       summary: 'Получить список причин возвратов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID причины возврата'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -186,7 +170,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -202,20 +186,17 @@ paths:
       description: 'Получить список статусов возвратов'
       summary: 'Получить список статусов возвратов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID статуса возврата'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -231,7 +212,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -247,20 +228,17 @@ paths:
       description: 'Получить список статусов заказов'
       summary: 'Получить список статусов заказов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID статуса заказа'
           schema:
             type: integer
-        -
-          name: external_id
+        - name: external_id
           in: query
           description: 'Внешний ID'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: Название
           schema:
@@ -276,7 +254,7 @@ paths:
                   $ref: '#/components/schemas/OrderReference'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:

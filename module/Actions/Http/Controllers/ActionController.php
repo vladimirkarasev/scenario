@@ -19,7 +19,8 @@ final class ActionController extends Controller
 {
     public function __construct(
         private readonly ActionService $actionService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): AnonymousResourceCollection
     {

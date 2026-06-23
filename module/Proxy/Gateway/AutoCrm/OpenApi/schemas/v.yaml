@@ -312,23 +312,19 @@ components:
           description: 'Дата окончания действия'
         maxSumFromDealer:
           oneOf:
-            -
-              type: object
+            - type: object
               properties:
                 value:
                   oneOf:
-                    -
-                      type: number
-                    -
-                      type: 'null'
+                    - type: number
+                    - type: 'null'
                   description: 'Макс. размер доп. скидки от дилера'
                 ids:
                   type: array
                   description: 'Список id скидок'
                   items:
                     type: integer
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Макс. размер доп. скидки от дилера'
         sumFromDealers:
           type: array
@@ -340,10 +336,8 @@ components:
                 description: 'id дилера'
               sum:
                 oneOf:
-                  -
-                    type: number
-                  -
-                    type: 'null'
+                  - type: number
+                  - type: 'null'
                 description: 'Размер доп. скидки от дилера'
           description: 'Размеры доп. скидок от дилеров'
         created_at:

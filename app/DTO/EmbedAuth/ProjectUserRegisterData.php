@@ -9,7 +9,7 @@ use Module\Groups\DTO\GroupRegistrationData;
 final readonly class ProjectUserRegisterData
 {
     /**
-     * @param list<string> $roles
+     * @param  list<string>  $roles
      */
     public function __construct(
         public string $login,
@@ -18,5 +18,6 @@ final readonly class ProjectUserRegisterData
         public ?string $externalId,
         public array $roles,
         public ?GroupRegistrationData $group = null,
-    ) {}
+    ) {
+    }
 }

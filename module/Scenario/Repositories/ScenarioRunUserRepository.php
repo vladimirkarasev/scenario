@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 final class ScenarioRunUserRepository
 {
-    /** @param array<string, mixed> $userData */
+    /** @param  array<string, mixed>  $userData */
     public function firstOrCreateFromRunData(array $userData): User
     {
         $email = isset($userData['email']) && is_string($userData['email']) && $userData['email'] !== ''
@@ -29,7 +29,7 @@ final class ScenarioRunUserRepository
                 'name' => $name,
                 'fio' => $fio,
                 'password' => Hash::make(Str::random(32)),
-            ], static fn (mixed $value): bool => $value !== null),
+            ], static fn(mixed $value): bool => $value !== null),
         );
     }
 }

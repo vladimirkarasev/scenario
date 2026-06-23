@@ -36,7 +36,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_index_returns_user_tokens(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
         $target->createToken('Token Alpha');
         $target->createToken('Token Beta');
 
@@ -52,7 +52,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_index_returns_empty_data_when_no_tokens(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $this->actingAs($actor)
             ->getJson("/api/users/{$target->id}/tokens")
@@ -66,7 +66,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_index_returns_403_without_permission(): void
     {
         [$actor] = $this->makeUserWithProject();
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $this->actingAs($actor)
             ->getJson("/api/users/{$target->id}/tokens")
@@ -83,7 +83,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_store_creates_token_and_returns_plain_text(): void
     {
         [$actor] = $this->makeUserWithProject('user_create');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $response = $this->actingAs($actor)
             ->postJson("/api/users/{$target->id}/tokens", ['name' => 'My Token'])
@@ -92,9 +92,9 @@ final class UserTokenControllerTest extends TestCase
 
         $this->assertNotNull($response->json('data.plain_text_token'));
         $this->assertDatabaseHas('personal_access_tokens', [
-            'tokenable_id'   => $target->id,
+            'tokenable_id' => $target->id,
             'tokenable_type' => User::class,
-            'name'           => 'My Token',
+            'name' => 'My Token',
         ]);
     }
 
@@ -104,7 +104,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_store_returns_422_when_name_missing(): void
     {
         [$actor] = $this->makeUserWithProject('user_create');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $this->actingAs($actor)
             ->postJson("/api/users/{$target->id}/tokens", [])
@@ -117,7 +117,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_store_returns_403_without_permission(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $this->actingAs($actor)
             ->postJson("/api/users/{$target->id}/tokens", ['name' => 'Token'])
@@ -134,8 +134,8 @@ final class UserTokenControllerTest extends TestCase
     public function test_destroy_deletes_token_and_returns_204(): void
     {
         [$actor] = $this->makeUserWithProject('user_create');
-        $target  = User::factory()->create();
-        $issued  = $target->createToken('To Delete');
+        $target = User::factory()->create();
+        $issued = $target->createToken('To Delete');
         $tokenId = $issued->accessToken->id;
 
         $this->actingAs($actor)
@@ -151,7 +151,7 @@ final class UserTokenControllerTest extends TestCase
     public function test_destroy_is_idempotent_for_nonexistent_token(): void
     {
         [$actor] = $this->makeUserWithProject('user_create');
-        $target  = User::factory()->create();
+        $target = User::factory()->create();
 
         $this->actingAs($actor)
             ->deleteJson("/api/users/{$target->id}/tokens/999999")
@@ -166,9 +166,9 @@ final class UserTokenControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $actor   = User::factory()->create([
+        $actor = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -182,11 +182,11 @@ final class UserTokenControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project ' . Str::random(4),
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 }

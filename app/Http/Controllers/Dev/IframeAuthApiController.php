@@ -19,7 +19,8 @@ final class IframeAuthApiController extends Controller
     public function __construct(
         private readonly EmbedAuthTokenService $tokenService,
         private readonly EmbedAuthUserService $userService,
-    ) {}
+    ) {
+    }
 
     public function exchange(Request $request): JsonResponse
     {
@@ -41,17 +42,22 @@ final class IframeAuthApiController extends Controller
 
         $secret = $request->bearerToken();
 
-        if ($secret === null || $project->shared_secret === null || ! hash_equals($project->shared_secret, $secret)) {
+        if ($secret === null || $project->shared_secret === null || !hash_equals($project->shared_secret, $secret)) {
             return response()->json(['message' => 'Unauthorized.'], 401);
         }
 
-        $user = $this->userService->syncUser(new ProjectUserRegisterData(
-            login: $request->string('login')->toString(),
-            email: $request->filled('email') ? $request->string('email')->toString() : null,
-            name: $request->string('name')->toString(),
-            externalId: null,
-            roles: array_values(array_map(static fn (mixed $r): string => is_string($r) ? $r : '', $request->array('roles'))),
-        ), $project);
+        $user = $this->userService->syncUser(
+            new ProjectUserRegisterData(
+                login: $request->string('login')->toString(),
+                email: $request->filled('email') ? $request->string('email')->toString() : null,
+                name: $request->string('name')->toString(),
+                externalId: null,
+                roles: array_values(
+                    array_map(static fn(mixed $r): string => is_string($r) ? $r : '', $request->array('roles'))
+                ),
+            ),
+            $project
+        );
 
         return response()->json($this->tokenService->authorizeUser($user, $project));
     }
@@ -80,7 +86,7 @@ final class IframeAuthApiController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($request->only('email', 'password'))) {
+        if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
 

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - vehicle-additional-service'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: vehicle-additional-service
+  - name: vehicle-additional-service
 paths:
   /vehicle-additional-service:
     post:
@@ -30,13 +26,13 @@ paths:
       responses:
         200:
           description: 'Услуга успешно добавлена'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
-          content: {  }
+          content: { }
   '/vehicle-additional-service/{id}':
     delete:
       tags:
@@ -44,8 +40,7 @@ paths:
       summary: 'Изменение автомобиля'
       description: 'Удаление дополнительной услуги из автомобиля'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id доп. услуги автомобиля'
           required: true
@@ -54,13 +49,13 @@ paths:
       responses:
         200:
           description: 'Услуга успешно удалена'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
-          content: {  }
+          content: { }
   '/vehicle-additional-service/{vin}':
     get:
       tags:
@@ -68,15 +63,13 @@ paths:
       summary: 'Получение списка дополнительных услуг'
       description: 'Получение списка дополнительных услуг  автомобиля'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: path
           description: 'VIN автомобиля'
           required: true
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус. 1 - Активна, 2 - Удалена, 3 - Неактивна'
           schema:
@@ -92,7 +85,7 @@ paths:
                   $ref: '#/components/schemas/VehicleAdditionalService'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
-          content: {  }
+          content: { }

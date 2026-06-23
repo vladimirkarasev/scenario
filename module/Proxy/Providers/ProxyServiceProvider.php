@@ -27,7 +27,7 @@ final class ProxyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->singleton(ClientInterface::class, fn (): ClientInterface => new Client);
+        $this->app->singleton(ClientInterface::class, fn(): ClientInterface => new Client);
         $this->app->singleton(MockApiTransport::class);
         $this->commands([SyncProxiesCommand::class]);
     }
@@ -59,8 +59,12 @@ final class ProxyServiceProvider extends ServiceProvider
         /** @var \Illuminate\Foundation\Exceptions\Handler $handler */
         $handler = $this->app->make(ExceptionHandler::class);
 
-        $handler->renderable(fn (ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
-        $handler->renderable(fn (ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405));
-        $handler->renderable(fn (ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413));
+        $handler->renderable(fn(ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
+        $handler->renderable(
+            fn(ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405)
+        );
+        $handler->renderable(
+            fn(ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413)
+        );
     }
 }

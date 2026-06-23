@@ -13,14 +13,15 @@ final readonly class ProxyRequestIndexData
         public ?string $status,
         public ?string $search,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
         $filter = $request->array('filter');
 
         $endpointId = isset($filter['endpoint_id']) && is_numeric($filter['endpoint_id'])
-            ? (int) $filter['endpoint_id']
+            ? (int)$filter['endpoint_id']
             : null;
 
         $status = isset($filter['status']) && is_string($filter['status']) && $filter['status'] !== ''
@@ -31,7 +32,7 @@ final readonly class ProxyRequestIndexData
             ? trim($filter['search'])
             : null;
 
-        $perPage = max(1, min(100, (int) $request->integer('page.size', 20)));
+        $perPage = max(1, min(100, (int)$request->integer('page.size', 20)));
 
         return new self(
             endpointId: $endpointId,

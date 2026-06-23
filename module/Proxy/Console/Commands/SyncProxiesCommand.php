@@ -24,7 +24,7 @@ final class SyncProxiesCommand extends Command
                 ->where('code', $definition->code)
                 ->exists();
 
-            if (! $exists) {
+            if (!$exists) {
                 ProxyEndpoint::query()->create([
                     'uuid' => $definition->uuid,
                     'code' => $definition->code,

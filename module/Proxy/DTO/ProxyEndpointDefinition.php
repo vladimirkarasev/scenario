@@ -13,5 +13,6 @@ final readonly class ProxyEndpointDefinition
         public string $description,
         public string $handlerClass,
         public string $method = 'POST',
-    ) {}
+    ) {
+    }
 }

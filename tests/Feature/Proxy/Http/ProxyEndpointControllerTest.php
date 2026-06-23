@@ -112,7 +112,7 @@ final class ProxyEndpointControllerTest extends TestCase
 
         $uuid = $response->json('item.uuid');
         $this->assertNotNull($uuid);
-        $this->assertTrue((bool) preg_match('/^[0-9a-f-]{36}$/', $uuid), 'uuid должен быть в формате UUID v4');
+        $this->assertTrue((bool)preg_match('/^[0-9a-f-]{36}$/', $uuid), 'uuid должен быть в формате UUID v4');
     }
 
     /**

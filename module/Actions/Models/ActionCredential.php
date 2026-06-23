@@ -10,13 +10,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
 /**
- * @property int                       $id
- * @property string                    $name
- * @property string                    $type
+ * @property int $id
+ * @property string $name
+ * @property string $type
  * @property array<string, mixed>|null $config
- * @property array<string, string>     $encrypted_secrets
- * @property Carbon|null               $created_at
- * @property Carbon|null               $updated_at
+ * @property array<string, string> $encrypted_secrets
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 final class ActionCredential extends Model
 {
@@ -35,7 +35,7 @@ final class ActionCredential extends Model
     public function maskedSecrets(): array
     {
         return collect($this->encrypted_secrets)
-            ->map(static fn (mixed $value): string => filled($value) ? '••••••••' : '')
+            ->map(static fn(mixed $value): string => filled($value) ? '••••••••' : '')
             ->all();
     }
 
@@ -51,33 +51,37 @@ final class ActionCredential extends Model
     protected function encryptedSecrets(): Attribute
     {
         return Attribute::make(
-            get: fn (mixed $value): array => $this->decryptSecrets(is_string($value) ? $value : null),
-            set: fn (mixed $value): ?string => $this->encryptSecrets(self::stringKeyedArray($value)),
+            get: fn(mixed $value): array => $this->decryptSecrets(is_string($value) ? $value : null),
+            set: fn(mixed $value): ?string => $this->encryptSecrets(self::stringKeyedArray($value)),
         );
     }
 
     /** @return array<string, mixed> */
     private static function stringKeyedArray(mixed $value): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return [];
         }
 
         $result = [];
 
         foreach ($value as $key => $item) {
-            $result[(string) $key] = $item;
+            $result[(string)$key] = $item;
         }
 
         return $result;
     }
 
-    /** @param array<string, mixed> $secrets */
+    /** @param  array<string, mixed>  $secrets */
     private function encryptSecrets(array $secrets): ?string
     {
         $payload = collect($secrets)
-            ->filter(static fn (mixed $value): bool => $value !== null && $value !== '')
-            ->map(static fn (mixed $value): string => Crypt::encryptString(is_scalar($value) ? (string) $value : (string) json_encode($value)))
+            ->filter(static fn(mixed $value): bool => $value !== null && $value !== '')
+            ->map(
+                static fn(mixed $value): string => Crypt::encryptString(
+                    is_scalar($value) ? (string)$value : (string)json_encode($value)
+                )
+            )
             ->all();
 
         if ($payload === []) {
@@ -98,18 +102,18 @@ final class ActionCredential extends Model
 
         $decoded = json_decode($value, true, flags: JSON_THROW_ON_ERROR);
 
-        if (! is_array($decoded)) {
+        if (!is_array($decoded)) {
             return [];
         }
 
         $result = [];
 
         foreach ($decoded as $key => $secret) {
-            if (! is_string($secret)) {
+            if (!is_string($secret)) {
                 continue;
             }
 
-            $result[(string) $key] = Crypt::decryptString($secret);
+            $result[(string)$key] = Crypt::decryptString($secret);
         }
 
         return $result;

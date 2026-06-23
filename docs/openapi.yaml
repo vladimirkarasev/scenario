@@ -10,7 +10,7 @@ servers:
     description: Основной сервер
 
 security:
-  - BearerAuth: []
+  - BearerAuth: [ ]
 
 x-tagGroups:
   - name: Модуль «Сценарии»
@@ -118,7 +118,7 @@ paths:
   # ── Каталог ────────────────────────────────────────────────────────────────
   /scenarios/catalog:
     get:
-      tags: [Каталог]
+      tags: [ Каталог ]
       summary: Сводный каталог (категории + сценарии)
       parameters:
         - name: filter
@@ -157,7 +157,7 @@ paths:
   # ── Сценарии ───────────────────────────────────────────────────────────────
   /scenarios:
     get:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Список сценариев
       parameters:
         - name: filter
@@ -198,7 +198,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Создать сценарий
       requestBody:
         required: true
@@ -206,7 +206,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name]
+              required: [ name ]
               properties:
                 name:
                   type: string
@@ -236,7 +236,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/ScenarioId'
     get:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Просмотр сценария
       responses:
         '200':
@@ -248,7 +248,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Обновить сценарий
       requestBody:
         required: true
@@ -280,7 +280,7 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Удалить сценарий
       responses:
         '204':
@@ -288,7 +288,7 @@ paths:
 
   /scenarios/{scenario}/copy:
     post:
-      tags: [Сценарии]
+      tags: [ Сценарии ]
       summary: Дублировать сценарий
       parameters:
         - $ref: '#/components/parameters/ScenarioId'
@@ -305,7 +305,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/ScenarioId'
     get:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Список версий сценария
       responses:
         '200':
@@ -320,7 +320,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ScenarioVersion'
     post:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Создать новую версию (черновик)
       requestBody:
         content:
@@ -347,7 +347,7 @@ paths:
       - $ref: '#/components/parameters/ScenarioId'
       - $ref: '#/components/parameters/VersionId'
     get:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Просмотр версии
       responses:
         '200':
@@ -359,7 +359,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Обновить версию
       requestBody:
         required: true
@@ -382,7 +382,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ScenarioVersion'
     delete:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Удалить черновик версии
       responses:
         '204':
@@ -390,7 +390,7 @@ paths:
 
   /scenarios/{scenario}/versions/{version}/activate:
     post:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Активировать версию
       parameters:
         - $ref: '#/components/parameters/ScenarioId'
@@ -405,7 +405,7 @@ paths:
 
   /scenarios/{scenario}/versions/{version}/archive:
     post:
-      tags: [Версии]
+      tags: [ Версии ]
       summary: Архивировать версию
       parameters:
         - $ref: '#/components/parameters/ScenarioId'
@@ -421,7 +421,7 @@ paths:
   # ── Категории сценариев ────────────────────────────────────────────────────
   /scenarios/categories:
     get:
-      tags: [Категории сценариев]
+      tags: [ Категории сценариев ]
       summary: Список категорий сценариев
       parameters:
         - name: filter
@@ -448,7 +448,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Category'
     post:
-      tags: [Категории сценариев]
+      tags: [ Категории сценариев ]
       summary: Создать категорию
       requestBody:
         required: true
@@ -468,7 +468,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CategoryId'
     get:
-      tags: [Категории сценариев]
+      tags: [ Категории сценариев ]
       summary: Просмотр категории
       responses:
         '200':
@@ -478,7 +478,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
     put:
-      tags: [Категории сценариев]
+      tags: [ Категории сценариев ]
       summary: Обновить категорию
       requestBody:
         required: true
@@ -494,7 +494,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
     delete:
-      tags: [Категории сценариев]
+      tags: [ Категории сценариев ]
       summary: Удалить категорию
       responses:
         '204':
@@ -503,7 +503,7 @@ paths:
   # ── Запуск ─────────────────────────────────────────────────────────────────
   /scenarios/{scenario}/run:
     post:
-      tags: [Запуск]
+      tags: [ Запуск ]
       summary: Запустить сценарий
       parameters:
         - $ref: '#/components/parameters/ScenarioId'
@@ -531,7 +531,7 @@ paths:
 
   /scenario-runs/{run}/step:
     post:
-      tags: [Запуск]
+      tags: [ Запуск ]
       summary: Выполнить шаг прогона
       parameters:
         - name: run
@@ -566,7 +566,7 @@ paths:
 
   /scenario-runs/{run}/restart:
     post:
-      tags: [Запуск]
+      tags: [ Запуск ]
       summary: Перезапустить прогон с начала
       parameters:
         - name: run
@@ -585,7 +585,7 @@ paths:
 
   /scenario-runs/{run}/state:
     get:
-      tags: [Запуск]
+      tags: [ Запуск ]
       summary: Текущее состояние прогона
       parameters:
         - name: run
@@ -605,7 +605,7 @@ paths:
   # ── Прогоны (admin) ────────────────────────────────────────────────────────
   /scenario-runs:
     get:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Список прогонов (административный)
       parameters:
         - name: filter
@@ -620,7 +620,7 @@ paths:
                 format: uuid
               status:
                 type: string
-                enum: [pending, running, completed, failed, cancelled]
+                enum: [ pending, running, completed, failed, cancelled ]
               user_id:
                 type: string
                 format: uuid
@@ -643,7 +643,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/ScenarioRun'
     post:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Создать прогон (административно)
       requestBody:
         required: true
@@ -651,7 +651,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [scenario_id]
+              required: [ scenario_id ]
               properties:
                 scenario_id:
                   type: string
@@ -676,7 +676,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Просмотр прогона
       responses:
         '200':
@@ -686,7 +686,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ScenarioRun'
     delete:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Удалить прогон
       responses:
         '204':
@@ -694,7 +694,7 @@ paths:
 
   /scenario-runs/{run}/cancel:
     post:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Отменить прогон
       parameters:
         - name: run
@@ -713,7 +713,7 @@ paths:
 
   /scenario-runs/{run}/steps:
     get:
-      tags: [Прогоны]
+      tags: [ Прогоны ]
       summary: Шаги прогона (audit log)
       parameters:
         - name: run
@@ -738,7 +738,7 @@ paths:
   # ── Опросы ─────────────────────────────────────────────────────────────────
   /surveys:
     get:
-      tags: [Опросы]
+      tags: [ Опросы ]
       summary: Список прогонов (опросная точка зрения)
       parameters:
         - name: filter
@@ -772,7 +772,7 @@ paths:
 
   /surveys/{run}:
     get:
-      tags: [Опросы]
+      tags: [ Опросы ]
       summary: Состояние прогона (опросная точка зрения)
       parameters:
         - name: run
@@ -795,7 +795,7 @@ paths:
 
   /directories:
     get:
-      tags: [Справочники]
+      tags: [ Справочники ]
       summary: Список справочников
       parameters:
         - name: filter
@@ -827,7 +827,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Directory'
     post:
-      tags: [Справочники]
+      tags: [ Справочники ]
       summary: Создать справочник
       requestBody:
         required: true
@@ -849,7 +849,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DirectoryId'
     get:
-      tags: [Справочники]
+      tags: [ Справочники ]
       summary: Просмотр справочника
       responses:
         '200':
@@ -861,7 +861,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Справочники]
+      tags: [ Справочники ]
       summary: Обновить справочник
       requestBody:
         required: true
@@ -877,7 +877,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Directory'
     delete:
-      tags: [Справочники]
+      tags: [ Справочники ]
       summary: Удалить справочник
       responses:
         '204':
@@ -888,7 +888,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DirectoryId'
     get:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Список версий справочника
       responses:
         '200':
@@ -903,7 +903,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/DirectoryVersion'
     post:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Создать новую версию (черновик)
       responses:
         '201':
@@ -923,7 +923,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Просмотр версии
       responses:
         '200':
@@ -933,7 +933,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DirectoryVersion'
     delete:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Удалить черновик
       responses:
         '204':
@@ -941,7 +941,7 @@ paths:
 
   /directories/{directory}/versions/{version}/publish:
     post:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Опубликовать версию
       parameters:
         - $ref: '#/components/parameters/DirectoryId'
@@ -961,7 +961,7 @@ paths:
 
   /directories/{directory}/versions/{version}/import:
     post:
-      tags: [Версии справочника]
+      tags: [ Версии справочника ]
       summary: Импорт элементов из CSV/Excel
       parameters:
         - $ref: '#/components/parameters/DirectoryId'
@@ -977,7 +977,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [file]
+              required: [ file ]
               properties:
                 file:
                   type: string
@@ -1000,7 +1000,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/DirectoryId'
     get:
-      tags: [Элементы справочника]
+      tags: [ Элементы справочника ]
       summary: Список элементов опубликованной версии
       parameters:
         - name: filter
@@ -1033,7 +1033,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/DirectoryItem'
     post:
-      tags: [Элементы справочника]
+      tags: [ Элементы справочника ]
       summary: Создать элемент
       requestBody:
         required: true
@@ -1059,7 +1059,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Элементы справочника]
+      tags: [ Элементы справочника ]
       summary: Просмотр элемента
       responses:
         '200':
@@ -1069,7 +1069,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DirectoryItem'
     put:
-      tags: [Элементы справочника]
+      tags: [ Элементы справочника ]
       summary: Обновить элемент
       requestBody:
         required: true
@@ -1085,7 +1085,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DirectoryItem'
     delete:
-      tags: [Элементы справочника]
+      tags: [ Элементы справочника ]
       summary: Удалить элемент
       responses:
         '204':
@@ -1094,7 +1094,7 @@ paths:
   # ── Категории справочников ─────────────────────────────────────────────────
   /directories/categories:
     get:
-      tags: [Категории справочников]
+      tags: [ Категории справочников ]
       summary: Список категорий справочников
       parameters:
         - name: filter
@@ -1121,7 +1121,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/Category'
     post:
-      tags: [Категории справочников]
+      tags: [ Категории справочников ]
       summary: Создать категорию
       requestBody:
         required: true
@@ -1141,7 +1141,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/CategoryId'
     get:
-      tags: [Категории справочников]
+      tags: [ Категории справочников ]
       summary: Просмотр категории
       responses:
         '200':
@@ -1151,7 +1151,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
     put:
-      tags: [Категории справочников]
+      tags: [ Категории справочников ]
       summary: Обновить категорию
       requestBody:
         required: true
@@ -1167,7 +1167,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Category'
     delete:
-      tags: [Категории справочников]
+      tags: [ Категории справочников ]
       summary: Удалить категорию
       responses:
         '204':
@@ -1179,7 +1179,7 @@ paths:
 
   /actions:
     get:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Список действий
       parameters:
         - name: filter
@@ -1210,7 +1210,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Action'
     post:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Создать действие
       requestBody:
         required: true
@@ -1235,7 +1235,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Просмотр действия
       responses:
         '200':
@@ -1245,7 +1245,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
     put:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Обновить действие
       requestBody:
         required: true
@@ -1261,7 +1261,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Action'
     delete:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Удалить действие
       responses:
         '204':
@@ -1269,7 +1269,7 @@ paths:
 
   /actions/{action}:
     post:
-      tags: [Действия]
+      tags: [ Действия ]
       summary: Выполнить действие вручную
       parameters:
         - name: action
@@ -1298,7 +1298,7 @@ paths:
   # ── Учётные данные ─────────────────────────────────────────────────────────
   /action-credentials:
     get:
-      tags: [Учётные данные]
+      tags: [ Учётные данные ]
       summary: Список учётных данных
       parameters:
         - name: filter
@@ -1329,7 +1329,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/ActionCredential'
     post:
-      tags: [Учётные данные]
+      tags: [ Учётные данные ]
       summary: Создать учётные данные
       requestBody:
         required: true
@@ -1354,7 +1354,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Учётные данные]
+      tags: [ Учётные данные ]
       summary: Просмотр учётных данных
       responses:
         '200':
@@ -1364,7 +1364,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionCredential'
     put:
-      tags: [Учётные данные]
+      tags: [ Учётные данные ]
       summary: Обновить учётные данные
       requestBody:
         required: true
@@ -1380,7 +1380,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionCredential'
     delete:
-      tags: [Учётные данные]
+      tags: [ Учётные данные ]
       summary: Удалить учётные данные
       responses:
         '204':
@@ -1392,7 +1392,7 @@ paths:
 
   /proxy/webhooks:
     get:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Список вебхук-эндпоинтов
       parameters:
         - name: filter
@@ -1432,7 +1432,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Просмотр эндпоинта
       responses:
         '200':
@@ -1442,7 +1442,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProxyEndpoint'
     put:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Обновить эндпоинт
       requestBody:
         required: true
@@ -1466,7 +1466,7 @@ paths:
 
   /proxy/webhooks/{webhook}/fields:
     get:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Поля схемы вебхука (авторизованный)
       parameters:
         - name: webhook
@@ -1490,7 +1490,7 @@ paths:
 
   /proxy/webhooks/{webhook}/logs:
     get:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Лог входящих запросов
       parameters:
         - name: webhook
@@ -1518,7 +1518,7 @@ paths:
 
   /proxy/webhooks/{webhook}/logs/{log}/retry:
     post:
-      tags: [Вебхуки (admin)]
+      tags: [ Вебхуки (admin) ]
       summary: Повторить обработку запроса
       parameters:
         - name: webhook
@@ -1540,9 +1540,9 @@ paths:
   # ── Публичный приём вебхуков ───────────────────────────────────────────────
   /webhooks/{uuid}:
     post:
-      tags: [Вебхуки (public)]
+      tags: [ Вебхуки (public) ]
       summary: Принять вебхук (публичный эндпоинт)
-      security: []
+      security: [ ]
       parameters:
         - name: uuid
           in: path
@@ -1565,9 +1565,9 @@ paths:
 
   /webhooks/{uuid}/fields:
     get:
-      tags: [Вебхуки (public)]
+      tags: [ Вебхуки (public) ]
       summary: Поля схемы вебхука (публичный, только активные)
-      security: []
+      security: [ ]
       parameters:
         - name: uuid
           in: path
@@ -1594,7 +1594,7 @@ paths:
 
   /projects:
     get:
-      tags: [Проекты]
+      tags: [ Проекты ]
       summary: Список проектов
       parameters:
         - name: filter
@@ -1623,7 +1623,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Project'
     post:
-      tags: [Проекты]
+      tags: [ Проекты ]
       summary: Создать проект
       requestBody:
         required: true
@@ -1648,7 +1648,7 @@ paths:
           type: string
           format: uuid
     get:
-      tags: [Проекты]
+      tags: [ Проекты ]
       summary: Просмотр проекта
       responses:
         '200':
@@ -1658,7 +1658,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Project'
     put:
-      tags: [Проекты]
+      tags: [ Проекты ]
       summary: Обновить проект
       requestBody:
         required: true
@@ -1674,7 +1674,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Project'
     delete:
-      tags: [Проекты]
+      tags: [ Проекты ]
       summary: Удалить проект
       responses:
         '204':
@@ -1686,7 +1686,7 @@ paths:
 
   /users:
     get:
-      tags: [Пользователи]
+      tags: [ Пользователи ]
       summary: Список пользователей
       parameters:
         - name: filter
@@ -1728,7 +1728,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [Пользователи]
+      tags: [ Пользователи ]
       summary: Создать пользователя
       requestBody:
         required: true
@@ -1750,7 +1750,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/UserId'
     get:
-      tags: [Пользователи]
+      tags: [ Пользователи ]
       summary: Просмотр пользователя
       responses:
         '200':
@@ -1762,7 +1762,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      tags: [Пользователи]
+      tags: [ Пользователи ]
       summary: Обновить пользователя
       requestBody:
         required: true
@@ -1778,7 +1778,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
     delete:
-      tags: [Пользователи]
+      tags: [ Пользователи ]
       summary: Удалить пользователя
       responses:
         '204':
@@ -1789,7 +1789,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/UserId'
     get:
-      tags: [Токены пользователей]
+      tags: [ Токены пользователей ]
       summary: Список API-токенов пользователя
       responses:
         '200':
@@ -1804,7 +1804,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/UserToken'
     post:
-      tags: [Токены пользователей]
+      tags: [ Токены пользователей ]
       summary: Создать API-токен
       requestBody:
         required: true
@@ -1812,7 +1812,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name]
+              required: [ name ]
               properties:
                 name:
                   type: string
@@ -1838,7 +1838,7 @@ paths:
         schema:
           type: integer
     delete:
-      tags: [Токены пользователей]
+      tags: [ Токены пользователей ]
       summary: Удалить токен
       responses:
         '204':
@@ -1847,7 +1847,7 @@ paths:
   # ── Группы ─────────────────────────────────────────────────────────────────
   /users/groups:
     get:
-      tags: [Группы]
+      tags: [ Группы ]
       summary: Список групп
       parameters:
         - name: filter
@@ -1876,7 +1876,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Group'
     post:
-      tags: [Группы]
+      tags: [ Группы ]
       summary: Создать группу
       requestBody:
         required: true
@@ -1896,7 +1896,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/GroupId'
     get:
-      tags: [Группы]
+      tags: [ Группы ]
       summary: Просмотр группы
       responses:
         '200':
@@ -1906,7 +1906,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Group'
     put:
-      tags: [Группы]
+      tags: [ Группы ]
       summary: Обновить группу
       requestBody:
         required: true
@@ -1922,7 +1922,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Group'
     delete:
-      tags: [Группы]
+      tags: [ Группы ]
       summary: Удалить группу
       responses:
         '204':
@@ -1933,7 +1933,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/GroupId'
     get:
-      tags: [Участники групп]
+      tags: [ Участники групп ]
       summary: Список участников группы
       parameters:
         - name: filter
@@ -1962,7 +1962,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/User'
     post:
-      tags: [Участники групп]
+      tags: [ Участники групп ]
       summary: Добавить участников в группу
       requestBody:
         required: true
@@ -1970,7 +1970,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [user_ids]
+              required: [ user_ids ]
               properties:
                 user_ids:
                   type: array
@@ -1986,7 +1986,7 @@ paths:
       - $ref: '#/components/parameters/GroupId'
       - $ref: '#/components/parameters/UserId'
     delete:
-      tags: [Участники групп]
+      tags: [ Участники групп ]
       summary: Удалить участника из группы
       responses:
         '204':
@@ -1995,7 +1995,7 @@ paths:
   # ── Роли ───────────────────────────────────────────────────────────────────
   /users/roles:
     get:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Список ролей
       parameters:
         - name: filter
@@ -2024,7 +2024,7 @@ paths:
                         items:
                           $ref: '#/components/schemas/Role'
     post:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Создать роль
       requestBody:
         required: true
@@ -2044,7 +2044,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RoleId'
     get:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Просмотр роли
       responses:
         '200':
@@ -2054,7 +2054,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
     put:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Обновить роль
       requestBody:
         required: true
@@ -2070,7 +2070,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Role'
     delete:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Удалить роль
       responses:
         '204':
@@ -2079,7 +2079,7 @@ paths:
   # ── Права доступа (permissions) ─────────────────────────────────────────────
   /users/permissions:
     get:
-      tags: [Роли]
+      tags: [ Роли ]
       summary: Список всех прав доступа
       responses:
         '200':
@@ -2105,19 +2105,19 @@ paths:
 
   /embed/register:
     post:
-      tags: [Регистрация]
+      tags: [ Регистрация ]
       summary: Зарегистрировать пользователя и получить launch-токен
       description: >
         Регистрирует пользователя (или возвращает существующего по `external_id`)
         и выдаёт одноразовый `launch_token` для последующего обмена на JWT.
-      security: []
+      security: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [external_id, project_id]
+              required: [ external_id, project_id ]
               properties:
                 external_id:
                   type: string
@@ -2149,16 +2149,16 @@ paths:
 
   /embed/auth/token:
     post:
-      tags: [Авторизация iframe]
+      tags: [ Авторизация iframe ]
       summary: Обменять launch-токен на access/refresh токены
-      security: []
+      security: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [launch_token]
+              required: [ launch_token ]
               properties:
                 launch_token:
                   type: string
@@ -2174,16 +2174,16 @@ paths:
 
   /embed/auth/refresh:
     post:
-      tags: [Авторизация iframe]
+      tags: [ Авторизация iframe ]
       summary: Обновить access-токен через refresh-токен
-      security: []
+      security: [ ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [refresh_token]
+              required: [ refresh_token ]
               properties:
                 refresh_token:
                   type: string
@@ -2199,7 +2199,7 @@ paths:
 
   /embed/auth/logout:
     post:
-      tags: [Авторизация iframe]
+      tags: [ Авторизация iframe ]
       summary: Выход — инвалидация refresh-токена
       responses:
         '204':
@@ -2365,9 +2365,9 @@ components:
             last:
               type: string
             prev:
-              type: [string, 'null']
+              type: [ string, 'null' ]
             next:
-              type: [string, 'null']
+              type: [ string, 'null' ]
 
     # ── Сценарии ──────────────────────────────────────────────────────────
     Scenario:
@@ -2412,7 +2412,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [draft, active, archived]
+          enum: [ draft, active, archived ]
         nodes_json:
           type: string
           description: JSON граф узлов (Vue Flow nodes)
@@ -2434,7 +2434,7 @@ components:
       properties:
         type:
           type: string
-          enum: [category, scenario]
+          enum: [ category, scenario ]
         id:
           type: string
           format: uuid
@@ -2458,7 +2458,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [pending, running, completed, failed, cancelled]
+          enum: [ pending, running, completed, failed, cancelled ]
         current_node_id:
           type: string
           nullable: true
@@ -2509,10 +2509,10 @@ components:
           format: uuid
         status:
           type: string
-          enum: [pending, running, completed, failed, cancelled]
+          enum: [ pending, running, completed, failed, cancelled ]
         node_type:
           type: string
-          enum: [block, condition, end, scenario_link]
+          enum: [ block, condition, end, scenario_link ]
         node_id:
           type: string
         data:
@@ -2549,7 +2549,7 @@ components:
 
     DirectoryInput:
       type: object
-      required: [name]
+      required: [ name ]
       properties:
         name:
           type: string
@@ -2572,7 +2572,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [draft, published]
+          enum: [ draft, published ]
         items_count:
           type: integer
         published_at:
@@ -2612,7 +2612,7 @@ components:
 
     DirectoryItemInput:
       type: object
-      required: [label, value]
+      required: [ label, value ]
       properties:
         label:
           type: string
@@ -2654,7 +2654,7 @@ components:
 
     ActionInput:
       type: object
-      required: [name, type]
+      required: [ name, type ]
       properties:
         name:
           type: string
@@ -2684,7 +2684,7 @@ components:
 
     ActionCredentialInput:
       type: object
-      required: [name, type]
+      required: [ name, type ]
       properties:
         name:
           type: string
@@ -2727,7 +2727,7 @@ components:
           type: string
         type:
           type: string
-          enum: [string, integer, boolean, list, array]
+          enum: [ string, integer, boolean, list, array ]
         required:
           type: boolean
         example:
@@ -2746,7 +2746,7 @@ components:
           format: uuid
         status:
           type: string
-          enum: [received, processed, failed, retrying]
+          enum: [ received, processed, failed, retrying ]
         payload:
           type: object
           additionalProperties: true
@@ -2778,7 +2778,7 @@ components:
 
     ProjectInput:
       type: object
-      required: [name]
+      required: [ name ]
       properties:
         name:
           type: string
@@ -2816,7 +2816,7 @@ components:
 
     UserInput:
       type: object
-      required: [name, email]
+      required: [ name, email ]
       properties:
         name:
           type: string
@@ -2872,7 +2872,7 @@ components:
 
     GroupInput:
       type: object
-      required: [name]
+      required: [ name ]
       properties:
         name:
           type: string
@@ -2897,7 +2897,7 @@ components:
 
     RoleInput:
       type: object
-      required: [name]
+      required: [ name ]
       properties:
         name:
           type: string
@@ -2927,7 +2927,7 @@ components:
 
     CategoryInput:
       type: object
-      required: [name]
+      required: [ name ]
       properties:
         name:
           type: string

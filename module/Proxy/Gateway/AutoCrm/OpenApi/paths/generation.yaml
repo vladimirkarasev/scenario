@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - generation'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: generation
+  - name: generation
     description: 'Управление поколениями'
 paths:
   /generation:
@@ -22,26 +18,22 @@ paths:
       summary: 'Получение списка поколений'
       description: 'Получение списка поколений'
       parameters:
-        -
-          name: model_id
+        - name: model_id
           in: query
           description: 'ID модели'
           schema:
             type: integer
-        -
-          name: year
+        - name: year
           in: query
           description: 'Год выпуска'
           schema:
             type: integer
-        -
-          name: is_recent
+        - name: is_recent
           in: query
           description: 'признак активности поколения 1 - только поколения которые выпускаются (по умолчанию), 0 - поколения, которые не выпускаются, пустое значение - все поколения'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -57,7 +49,7 @@ paths:
                   $ref: '#/components/schemas/Generation'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/generation/{id}':
     get:
       tags:
@@ -65,8 +57,7 @@ paths:
       summary: 'Получение поколения по ID'
       description: 'Получение поколения по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id поколения'
           required: true
@@ -81,7 +72,7 @@ paths:
                 $ref: '#/components/schemas/Generation'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

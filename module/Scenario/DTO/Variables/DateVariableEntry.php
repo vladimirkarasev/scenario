@@ -8,15 +8,16 @@ namespace Module\Scenario\DTO\Variables;
 final readonly class DateVariableEntry implements VariableEntryInterface
 {
     /**
-     * @param 'date'|'datetime' $fieldType
-     * @param string            $format     Момент-формат, напр. 'DD.MM.YYYY HH:mm'
+     * @param  'date'|'datetime'  $fieldType
+     * @param  string  $format  Момент-формат, напр. 'DD.MM.YYYY HH:mm'
      */
     public function __construct(
         private string $blockId,
         private string $fieldName,
         private string $fieldType,
         private string $format,
-    ) {}
+    ) {
+    }
 
     public function blockId(): string
     {
@@ -41,10 +42,10 @@ final readonly class DateVariableEntry implements VariableEntryInterface
     public function toArray(): array
     {
         return [
-            '_block_id'   => $this->blockId,
+            '_block_id' => $this->blockId,
             '_field_name' => $this->fieldName,
             '_field_type' => $this->fieldType,
-            '_format'     => $this->format,
+            '_format' => $this->format,
         ];
     }
 
@@ -55,10 +56,10 @@ final readonly class DateVariableEntry implements VariableEntryInterface
             : 'date';
 
         return new static(
-            blockId:   is_string($data['_block_id']   ?? null) ? $data['_block_id']   : '',
+            blockId: is_string($data['_block_id'] ?? null) ? $data['_block_id'] : '',
             fieldName: is_string($data['_field_name'] ?? null) ? $data['_field_name'] : '',
             fieldType: $fieldType,
-            format:    is_string($data['_format']     ?? null) ? $data['_format']     : '',
+            format: is_string($data['_format'] ?? null) ? $data['_format'] : '',
         );
     }
 }

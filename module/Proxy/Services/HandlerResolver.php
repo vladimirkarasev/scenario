@@ -11,7 +11,9 @@ use Module\Proxy\ProxyHandler;
 
 final readonly class HandlerResolver
 {
-    public function __construct(private Container $container) {}
+    public function __construct(private Container $container)
+    {
+    }
 
     public function resolve(ProxyEndpoint $endpoint): ProxyHandler
     {
@@ -20,20 +22,20 @@ final readonly class HandlerResolver
         $namespace = is_string($rawNamespace) ? $rawNamespace : 'Module\\Proxy\\Proxies\\';
         $allowedHandlers = config('proxy.allowed_handlers', []);
 
-        if ($class === '' || ! class_exists($class)) {
+        if ($class === '' || !class_exists($class)) {
             throw new InvalidArgumentException('Proxy handler class does not exist.');
         }
 
         $isAllowedNamespace = str_starts_with($class, $namespace);
         $isWhitelisted = in_array($class, is_array($allowedHandlers) ? $allowedHandlers : [], true);
 
-        if (! $isAllowedNamespace && ! $isWhitelisted) {
+        if (!$isAllowedNamespace && !$isWhitelisted) {
             throw new InvalidArgumentException('Proxy handler is not allowed.');
         }
 
         $handler = $this->container->make($class);
 
-        if (! $handler instanceof ProxyHandler) {
+        if (!$handler instanceof ProxyHandler) {
             throw new InvalidArgumentException('Proxy handler must extend '.ProxyHandler::class.'.');
         }
 

@@ -6,17 +6,18 @@ namespace Module\Proxy\Gateway\AutoCrm\DTO;
 
 final readonly class AutoCrmData
 {
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     public function __construct(
         public array $data,
-    ) {}
+    ) {
+    }
 
-    /** @param array<mixed, mixed> $data */
+    /** @param  array<mixed, mixed>  $data */
     public static function fromArray(array $data): self
     {
         $typed = [];
         foreach ($data as $k => $v) {
-            $typed[(string) $k] = $v;
+            $typed[(string)$k] = $v;
         }
 
         return new self($typed);

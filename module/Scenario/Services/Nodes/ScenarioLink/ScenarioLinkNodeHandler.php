@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Module\Scenario\Services\Nodes;
+namespace Module\Scenario\Services\Nodes\ScenarioLink;
 
 use Illuminate\Support\Str;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
+use Module\Scenario\Services\Nodes\NodeAdvanceResult;
+use Module\Scenario\Services\Nodes\NodeHandlerInterface;
+use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\ScenarioGraphResolver;
 use RuntimeException;
 
@@ -19,7 +22,8 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private ScenarioRunStepRepository $steps,
-    ) {}
+    ) {
+    }
 
     public function isInteractive(array $node): bool
     {
@@ -33,11 +37,11 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         $targetScenarioId = $this->strField($data, 'targetScenarioId');
         $targetVersionId = $this->strField($data, 'targetVersionId');
 
-        if (! Str::isUuid($targetScenarioId)) {
+        if (!Str::isUuid($targetScenarioId)) {
             throw new RuntimeException('Scenario link target scenario id must be a valid UUID.');
         }
 
-        if (! Str::isUuid($targetVersionId)) {
+        if (!Str::isUuid($targetVersionId)) {
             throw new RuntimeException('Scenario link target version id must be a valid UUID.');
         }
 

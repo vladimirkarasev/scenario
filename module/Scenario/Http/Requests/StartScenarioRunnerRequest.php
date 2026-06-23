@@ -29,8 +29,11 @@ final class StartScenarioRunnerRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v): void {
-            if (! $this->filled('scenario_id') && ! $this->filled('version_id') && ! $this->filled('alias')) {
-                $v->errors()->add('scenario_id', 'Необходимо передать один из параметров: scenario_id, version_id или alias.');
+            if (!$this->filled('scenario_id') && !$this->filled('version_id') && !$this->filled('alias')) {
+                $v->errors()->add(
+                    'scenario_id',
+                    'Необходимо передать один из параметров: scenario_id, version_id или alias.'
+                );
             }
         });
     }

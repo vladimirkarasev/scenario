@@ -56,7 +56,7 @@ final class ValidationRulesBuilderTest extends TestCase
     public function test_required_is_not_added_when_field_has_present_or_filled_rules(): void
     {
         $present = ProxyField::make('a')->required()->rules(['present', 'string']);
-        $filled  = ProxyField::make('b')->required()->rules(['filled', 'string']);
+        $filled = ProxyField::make('b')->required()->rules(['filled', 'string']);
 
         $rulesA = $this->builder->build([$present]);
         $rulesB = $this->builder->build([$filled]);

@@ -1,6 +1,6 @@
 ProjectUserRegisterRequest:
   type: object
-  required: [login, name, roles]
+  required: [ login, name, roles ]
   properties:
     login:
       type: string
@@ -31,14 +31,14 @@ ProjectUserRegisterRequest:
         type: string
         maxLength: 100
       description: Роли пользователя в контексте данного проекта
-      example: [client, manager]
+      example: [ client, manager ]
     group:
       type: object
       nullable: true
       description: >
         Группа доступа пользователя. Если группа с таким `slug` не существует — создаётся автоматически.
         Пользователь добавляется в группу. Передавать при каждом вызове, чтобы поддерживать актуальность состава.
-      required: [slug, name]
+      required: [ slug, name ]
       properties:
         slug:
           type: string
@@ -59,7 +59,7 @@ ProjectUserRegisterRequest:
 
 IframeLaunchTokenResponse:
   type: object
-  required: [iframe_launch_token, expires_in]
+  required: [ iframe_launch_token, expires_in ]
   properties:
     iframe_launch_token:
       type: string
@@ -72,7 +72,7 @@ IframeLaunchTokenResponse:
 
 EmbedAuthExchangeRequest:
   type: object
-  required: [token]
+  required: [ token ]
   properties:
     token:
       type: string
@@ -81,7 +81,7 @@ EmbedAuthExchangeRequest:
 
 EmbedAuthRefreshRequest:
   type: object
-  required: [refresh_token]
+  required: [ refresh_token ]
   properties:
     refresh_token:
       type: string
@@ -90,7 +90,7 @@ EmbedAuthRefreshRequest:
 
 EmbedTokenPairResponse:
   type: object
-  required: [access_token, refresh_token, token_type, expires_in]
+  required: [ access_token, refresh_token, token_type, expires_in ]
   properties:
     access_token:
       type: string

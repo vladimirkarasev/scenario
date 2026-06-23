@@ -12,10 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class SetRequestId
 {
-    /** @param Closure(Request): Response $next */
+    /** @param  Closure(Request): Response  $next */
     public function handle(Request $request, Closure $next): Response
     {
-        $requestId = $request->header('X-Request-Id') ?: (string) Str::uuid();
+        $requestId = $request->header('X-Request-Id') ?: (string)Str::uuid();
 
         Log::shareContext(['request_id' => $requestId]);
 

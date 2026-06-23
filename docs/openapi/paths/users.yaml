@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Пользователи]
+    tags: [ Пользователи ]
     summary: Список пользователей
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: search
         in: query
@@ -35,10 +35,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Пользователи]
+    tags: [ Пользователи ]
     summary: Создать пользователя
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -67,10 +67,10 @@ item:
         type: integer
 
   get:
-    tags: [Пользователи]
+    tags: [ Пользователи ]
     summary: Получить пользователя
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Пользователь с группами
@@ -84,10 +84,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Пользователи]
+    tags: [ Пользователи ]
     summary: Обновить пользователя
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -109,10 +109,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Пользователи]
+    tags: [ Пользователи ]
     summary: Удалить пользователя
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Пользователь удалён
@@ -132,10 +132,10 @@ members:
         format: uuid
 
   get:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Участники группы
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Список участников (JSON:API коллекция)
@@ -156,17 +156,17 @@ members:
         $ref: '../components/responses.yaml#/NotFound'
 
   post:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Добавить пользователя в группу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [user_id]
+            required: [ user_id ]
             properties:
               user_id:
                 type: integer
@@ -197,10 +197,10 @@ memberItem:
         type: integer
 
   delete:
-    tags: [Группы]
+    tags: [ Группы ]
     summary: Удалить пользователя из группы
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Пользователь удалён из группы

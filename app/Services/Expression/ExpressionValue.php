@@ -14,11 +14,12 @@ use LogicException;
 final readonly class ExpressionValue implements ArrayAccess, JsonSerializable
 {
     /**
-     * @param array<string, mixed> $values
+     * @param  array<string, mixed>  $values
      */
     public function __construct(
         private array $values,
-    ) {}
+    ) {
+    }
 
     public function __get(string $name): mixed
     {

@@ -12,7 +12,8 @@ abstract readonly class AutoCrmListPageMethod extends AbstractApiMethod
     public function __construct(
         protected AutoCrmListQuery $query,
         protected int $page,
-    ) {}
+    ) {
+    }
 
     final public function method(): string
     {

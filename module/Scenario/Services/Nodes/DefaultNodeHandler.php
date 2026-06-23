@@ -17,7 +17,8 @@ final readonly class DefaultNodeHandler implements NodeHandlerInterface
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private VariableResolver $variableResolver,
-    ) {}
+    ) {
+    }
 
     public function isInteractive(array $node): bool
     {

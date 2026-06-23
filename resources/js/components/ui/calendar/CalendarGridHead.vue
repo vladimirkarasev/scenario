@@ -1,9 +1,9 @@
 <script setup>
-import { CalendarGridHead } from "reka-ui";
+import {CalendarGridHead} from "reka-ui";
 
 const props = defineProps({
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -14,6 +14,6 @@ const props = defineProps({
 
 <template>
   <CalendarGridHead data-slot="calendar-grid-head" v-bind="props">
-    <slot />
+    <slot/>
   </CalendarGridHead>
 </template>

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - mysales'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: mysales
+  - name: mysales
     description: 'Интеграция с MySales'
 paths:
   /mysales/buy/view:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение информации о предпочтениях клиента'
       description: 'Получение информации о предпочтениях клиента'
       parameters:
-        -
-          name: need_id
+        - name: need_id
           in: query
           description: 'id потребности'
           required: true
@@ -38,7 +33,7 @@ paths:
                 $ref: '#/components/schemas/MysalesNeedBuyResult'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -52,8 +47,7 @@ paths:
       summary: 'Получение информации о предпочтениях клиента'
       description: 'Получение информации о предпочтениях клиента'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'id рабочего листа'
           required: true
@@ -68,7 +62,7 @@ paths:
                 $ref: '#/components/schemas/WorksheetQuestions'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

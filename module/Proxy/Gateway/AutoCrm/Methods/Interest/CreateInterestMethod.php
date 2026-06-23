@@ -9,7 +9,9 @@ use Module\Proxy\Gateway\Base\Methods\AbstractApiMethod;
 
 final readonly class CreateInterestMethod extends AbstractApiMethod
 {
-    public function __construct(private InterestForm $form) {}
+    public function __construct(private InterestForm $form)
+    {
+    }
 
     public function key(): string
     {

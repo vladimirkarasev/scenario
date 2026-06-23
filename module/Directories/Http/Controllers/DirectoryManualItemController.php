@@ -18,7 +18,8 @@ final class DirectoryManualItemController extends Controller
     public function __construct(
         private readonly DirectoryManualItemService $directoryManualItemService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function store(StoreDirectoryManualItemRequest $request, Directory $directory): JsonResponse
     {

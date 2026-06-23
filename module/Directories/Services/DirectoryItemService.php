@@ -33,11 +33,12 @@ final class DirectoryItemService
         private readonly DirectoryItemRepository $items,
         private readonly DirectoryRepository $directories,
         private readonly Container $container,
-    ) {}
+    ) {
+    }
 
     /**
-     * @param  array<string, string|list<string>> $filters
-     * @param  array<string, string>              $filtersTo
+     * @param  array<string, string|list<string>>  $filters
+     * @param  array<string, string>  $filtersTo
      * @return array<int, array<string, mixed>>
      */
     public function items(
@@ -140,7 +141,7 @@ final class DirectoryItemService
         DirectoryCache::forgetDirectory($directory->id);
     }
 
-    /** @param array<int, int> $ids */
+    /** @param  array<int, int>  $ids */
     public function bulkDelete(Directory $directory, array $ids): void
     {
         $this->items->bulkDeleteForDirectory($directory->id, $ids);
@@ -221,8 +222,8 @@ final class DirectoryItemService
     }
 
     /**
-     * @param  array<string, string|list<string>> $filters   field_key => value(s) from
-     * @param  array<string, string>              $filtersTo field_key => value to (for 'between' operator)
+     * @param  array<string, string|list<string>>  $filters  field_key => value(s) from
+     * @param  array<string, string>  $filtersTo  field_key => value to (for 'between' operator)
      * @return array<int, array<string, mixed>>
      */
     private function payloadItems(
@@ -270,7 +271,7 @@ final class DirectoryItemService
         }
 
         return $items
-            ->map(fn (DirectoryItem $item): array => $this->payloadItem($item))
+            ->map(fn(DirectoryItem $item): array => $this->payloadItem($item))
             ->values()
             ->all();
     }
@@ -279,7 +280,7 @@ final class DirectoryItemService
      * Expand a filtered collection to also include all ancestor items,
      * so the frontend can still render the tree correctly.
      *
-     * @param  Collection<int, DirectoryItem> $matched
+     * @param  Collection<int, DirectoryItem>  $matched
      * @return Collection<int, DirectoryItem>
      */
     private function withAncestors(DirectoryVersion $version, Collection $matched): Collection
@@ -288,7 +289,7 @@ final class DirectoryItemService
         $pendingParentIds = $matched->pluck('parent_id')->filter()->unique()->values()->all();
 
         while ($pendingParentIds !== []) {
-            $missing = array_values(array_filter($pendingParentIds, fn (mixed $id): bool => ! isset($included[$id])));
+            $missing = array_values(array_filter($pendingParentIds, fn(mixed $id): bool => !isset($included[$id])));
             if ($missing === []) {
                 break;
             }
@@ -318,8 +319,8 @@ final class DirectoryItemService
     }
 
     /**
-     * @param  array<string, mixed>                     $values
-     * @param  Collection<string, array<string, mixed>> $fields
+     * @param  array<string, mixed>  $values
+     * @param  Collection<string, array<string, mixed>>  $fields
      * @return array<string, mixed>
      */
     private function normalizeValues(array $values, Collection $fields): array
@@ -336,7 +337,7 @@ final class DirectoryItemService
             }
 
             if (is_scalar($value)) {
-                $trimmed = trim((string) $value);
+                $trimmed = trim((string)$value);
                 $normalized[$fieldKey] = $trimmed !== '' ? $trimmed : null;
             } else {
                 $normalized[$fieldKey] = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -347,8 +348,8 @@ final class DirectoryItemService
     }
 
     /**
-     * @param array<string, mixed>                     $values
-     * @param Collection<string, array<string, mixed>> $fields
+     * @param  array<string, mixed>  $values
+     * @param  Collection<string, array<string, mixed>>  $fields
      */
     private function validateValues(
         array $values,
@@ -358,7 +359,7 @@ final class DirectoryItemService
         ?DirectoryItem $ignoreItem = null,
     ): void {
         $rules = $fields
-            ->mapWithKeys(static fn (array $field, string $fieldKey): array => [
+            ->mapWithKeys(static fn(array $field, string $fieldKey): array => [
                 $fieldKey => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
             ])
             ->all();
@@ -396,7 +397,7 @@ final class DirectoryItemService
     }
 
     /**
-     * @param  Collection<string, array<string, mixed>> $fields
+     * @param  Collection<string, array<string, mixed>>  $fields
      * @return array<int, string>
      */
     private function searchableKeys(Collection $fields): array
@@ -412,8 +413,8 @@ final class DirectoryItemService
     }
 
     /**
-     * @param array<string, mixed> $values
-     * @param array<int, string>   $searchableKeys
+     * @param  array<string, mixed>  $values
+     * @param  array<int, string>  $searchableKeys
      */
     private function buildSearchText(array $values, array $searchableKeys = []): string
     {
@@ -422,14 +423,14 @@ final class DirectoryItemService
         }
 
         return collect($values)
-            ->filter(static fn (mixed $value): bool => is_scalar($value) && filled((string) $value))
-            ->map(static fn (mixed $value): string => Str::lower(trim((string) $value)))
+            ->filter(static fn(mixed $value): bool => is_scalar($value) && filled((string)$value))
+            ->map(static fn(mixed $value): string => Str::lower(trim((string)$value)))
             ->implode(' ');
     }
 
     private function ensureItemBelongsToDirectory(Directory $directory, DirectoryItem $item): void
     {
-        if (! $this->items->belongsToDirectory($item, $directory->id)) {
+        if (!$this->items->belongsToDirectory($item, $directory->id)) {
             throw DirectoryItemException::notBelongsToDirectory();
         }
     }

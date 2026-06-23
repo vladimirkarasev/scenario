@@ -17,7 +17,8 @@ final class EmbedAuthUserService
 {
     public function __construct(
         private readonly UserGroupService $groupService,
-    ) {}
+    ) {
+    }
 
     public function syncUser(ProjectUserRegisterData $data, Project $project): User
     {
@@ -92,7 +93,7 @@ final class EmbedAuthUserService
     }
 
     /**
-     * @param list<string> $roles
+     * @param  list<string>  $roles
      */
     private function syncProjectRoles(User $user, Project $project, array $roles): void
     {
@@ -106,7 +107,7 @@ final class EmbedAuthUserService
         }
 
         $now = now();
-        $records = array_map(static fn (string $role): array => [
+        $records = array_map(static fn(string $role): array => [
             'user_id' => $user->id,
             'project_id' => $project->id,
             'role' => $role,

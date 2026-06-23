@@ -50,19 +50,21 @@ final class FakeCategoryRepository implements CategoryRepositoryContract
         return Category::hydrate([]);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes, ?int $actorId): Category
     {
         return (new Category)->forceFill($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Category $category, array $attributes, ?int $actorId): Category
     {
         return $category->forceFill($attributes);
     }
 
-    public function delete(Category $category): void {}
+    public function delete(Category $category): void
+    {
+    }
 
     /** @return array<int, string> */
     public function childIds(string $parentId): array

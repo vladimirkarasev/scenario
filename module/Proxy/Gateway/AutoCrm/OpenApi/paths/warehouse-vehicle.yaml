@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-vehicle'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-vehicle
+  - name: warehouse-vehicle
     description: 'Управление автомобилями'
 paths:
   /warehouse/vehicle:
@@ -22,230 +18,192 @@ paths:
       summary: 'Получение списка автомобилей'
       description: 'Получение списка автомобилей'
       parameters:
-        -
-          name: brand_id
+        - name: brand_id
           in: query
           description: 'ID бренда'
           schema:
             type: integer
-        -
-          name: model_id
+        - name: model_id
           in: query
           description: 'ID модели'
           schema:
             type: integer
-        -
-          name: model_code
+        - name: model_code
           in: query
           description: 'Код модели'
           schema:
             type: string
-        -
-          name: conditional_sale
+        - name: conditional_sale
           in: query
           description: 'Условно реализован (0 - Нет, 1 - Да, 2 - Был усл. реализован)'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Список связанных сущностей. Например:\nphotos.upload - для включения в результат фотографий автомобиля;\nprograms - добавить в ответ список программ верификации автомобиля;\nwarranty - данные по гарантийному сроку автомобиля;\ncolor - для получения данных по цвету кузова;\ntrim - для получения данных по цвету обивки;\ntags - получение списка тегов;\nvideos - получение списка видео;\nvehicleDiscounts - получения списка мотивационных программ для автомобиля;\nmaxCompensationDiscountsSum - сумма максимально возможной компенсационной скидки;\nroutePoints - получение списка точек маршрута автомобиля;\noptionsExtendedChangan - получение списка характеристик для Changan;\nvehiclePrices — цены прайс-листов\n"
           schema:
             type: string
-        -
-          name: dealer_code
+        - name: dealer_code
           in: query
           description: 'Код дилера'
           schema:
             type: string
-        -
-          name: dealer_contractor_code
+        - name: dealer_contractor_code
           in: query
           description: 'Код контрагента дилера'
           schema:
             type: string
-        -
-          name: holding_code
+        - name: holding_code
           in: query
           description: 'Код холдинга'
           schema:
             type: string
-        -
-          name: is_archive
+        - name: is_archive
           in: query
           description: 'В архиве'
           schema:
             type: integer
-        -
-          name: status_code
+        - name: status_code
           in: query
           description: 'Код статуса'
           schema:
             type: string
-        -
-          name: vehicle_is_sold
+        - name: vehicle_is_sold
           in: query
           description: Продана
           schema:
             type: integer
-        -
-          name: is_trade_in
+        - name: is_trade_in
           in: query
           description: Б\У
           schema:
             type: integer
-        -
-          name: vehicle_vin
+        - name: vehicle_vin
           in: query
           description: 'VIN номер автомобиля'
           schema:
             $ref: '#/components/schemas/WarehouseVehicle/properties/vehicle_vin'
-        -
-          name: vehicle_is_in_stock
+        - name: vehicle_is_in_stock
           in: query
           description: 'Автомобиль находится на складе дилера'
           schema:
             type: integer
-        -
-          name: withoutDealerCode
+        - name: withoutDealerCode
           in: query
           description: 'Без кода дилера'
           schema:
             type: integer
-        -
-          name: verificationProgramId
+        - name: verificationProgramId
           in: query
           description: 'ID программы проверки автомобиля'
           schema:
             type: integer
-        -
-          name: ready_to_buy
+        - name: ready_to_buy
           in: query
           description: 'Готовность автомобиля к продаже - 1 - готов, 0 - нет'
           schema:
             type: integer
-        -
-          name: createdFrom
+        - name: createdFrom
           in: query
           description: 'Дата создания с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: createdTo
+        - name: createdTo
           in: query
           description: 'Дата создания по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: paymentDateFrom
+        - name: paymentDateFrom
           in: query
           description: 'Дата оплаты авто дилером с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: paymentDateTo
+        - name: paymentDateTo
           in: query
           description: 'Дата оплаты авто дилером по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: internal_status_id
+        - name: internal_status_id
           in: query
           description: 'Внутренний статус автомобиля (см. warehouse-vehicle-internal-status)'
           schema:
             type: integer
-        -
-          name: vehicle_code
+        - name: vehicle_code
           in: query
           description: 'Код автомобиля'
           schema:
             type: string
-        -
-          name: hasPts
+        - name: hasPts
           in: query
           description: 'Наличие номера ПТС у автомобиля 1 - есть, 0 - нет'
           schema:
             type: integer
-        -
-          name: hasEpts
+        - name: hasEpts
           in: query
           description: 'Наличие файла E-ПТС у автомобиля 1 - есть, 0 - нет'
           schema:
             type: integer
-        -
-          name: curb_weight
+        - name: curb_weight
           in: query
           description: 'Масса ТС в снаряженном состоянии'
           schema:
             type: integer
-        -
-          name: shipping_order_number
+        - name: shipping_order_number
           in: query
           description: 'Номер заявки на доставку'
           schema:
             type: string
-        -
-          name: vehicle_order_no
+        - name: vehicle_order_no
           in: query
           description: 'Номер заказа'
           schema:
             type: string
-        -
-          name: saledFrom
+        - name: saledFrom
           in: query
           description: 'Дата продажи с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: saledTo
+        - name: saledTo
           in: query
           description: 'Дата продажи по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: vehicleReceiptDateFrom
+        - name: vehicleReceiptDateFrom
           in: query
           description: 'Дата прихода на склад с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: vehicleReceiptDateTo
+        - name: vehicleReceiptDateTo
           in: query
           description: 'Дата прихода на склад по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: country_id
+        - name: country_id
           in: query
           description: 'Id страны связанного дилера'
           schema:
             type: string
-        -
-          name: 'dealersWithTags[]'
+        - name: 'dealersWithTags[]'
           in: query
           description: 'Дилер с тегами - список id тегов дилеров, чьи машины надо получить'
           schema:
             type: array
-        -
-          name: 'dealersWithoutTags[]'
+        - name: 'dealersWithoutTags[]'
           in: query
           description: 'Исключить дилеров с тегами - список тегов дилеров, чьи машины надо отсечь'
           schema:
             type: array
-        -
-          name: 'withTags[]'
+        - name: 'withTags[]'
           in: query
           description: 'Авто с тегами - список id тегов автомобилей, чьи машины надо получить'
           schema:
             type: array
-        -
-          name: withTagsLogic
+        - name: withTagsLogic
           in: query
           description: 'Способ соединения тегов и/или'
           schema:
@@ -254,14 +212,12 @@ paths:
             enum:
               - and
               - or
-        -
-          name: 'withoutTags[]'
+        - name: 'withoutTags[]'
           in: query
           description: 'Исключить авто с тегами - список id тегов автомобилей, которые нужно исключить'
           schema:
             type: array
-        -
-          name: withoutTagsLogic
+        - name: withoutTagsLogic
           in: query
           description: 'Способ соединения тегов и/или'
           schema:
@@ -270,20 +226,17 @@ paths:
             enum:
               - and
               - or
-        -
-          name: sort
+        - name: sort
           in: query
           description: "Параметр по которому идет сортировки, например: \"sort=-vehicle_dealer_payment_at\" - сортировка Я-а по дате покупки авто, \"sort=vehicle_dealer_payment_at\" - сортировка А-я по дате покупки авто\n"
           schema:
             type: string
-        -
-          name: is_free_stock
+        - name: is_free_stock
           in: query
           description: 'Свободный склад - 1 - готов, 0 - нет'
           schema:
             type: integer
-        -
-          name: factoring_status
+        - name: factoring_status
           in: query
           description: 'Статус факторинга'
           schema:
@@ -299,7 +252,7 @@ paths:
                   $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - warehouse-vehicle
@@ -327,7 +280,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -343,14 +296,12 @@ paths:
       summary: 'Изменение скидки от дилера'
       description: 'Изменение скидки от дилера'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'id авто'
           schema:
             type: integer
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'vin авто'
           required: true
@@ -372,7 +323,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -386,14 +337,12 @@ paths:
       summary: 'Управление дополнительным оборудованием'
       description: 'Управление дополнительным оборудованием'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'id авто'
           schema:
             type: integer
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'vin авто'
           required: true
@@ -415,7 +364,7 @@ paths:
                 $ref: '#/components/schemas/OptionalEquipmentForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -437,7 +386,7 @@ paths:
                 type: array
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -451,8 +400,7 @@ paths:
       summary: 'Резервирование  автомобиля'
       description: 'Резервирование автомобиля'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'vin авто'
           required: true
@@ -474,7 +422,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -488,8 +436,7 @@ paths:
       summary: 'Изменение автомобиля'
       description: 'Изменение автомобиля'
       parameters:
-        -
-          name: job
+        - name: job
           in: path
           description: 'JOB автомобиля'
           required: true
@@ -511,7 +458,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -525,8 +472,7 @@ paths:
       summary: 'Изменение автомобиля'
       description: 'Изменение автомобиля'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: path
           description: 'VIN автомобиля'
           required: true
@@ -548,7 +494,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -562,8 +508,7 @@ paths:
       summary: 'Изменение даты продажи  автомобиля'
       description: 'Изменение даты продажи автомобиля'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID авто'
           required: true
@@ -585,7 +530,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -599,15 +544,13 @@ paths:
       summary: 'Получение автомобиля по ID'
       description: 'Получение автомобиля по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID автомобиля'
           required: true
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Параметр позволяющий получить в ответе связные данные (photos, options, ptsStatus, programs, base, color, tags, trim)'
           schema:
@@ -621,7 +564,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -634,8 +577,7 @@ paths:
       summary: 'Изменение автомобиля'
       description: 'Изменение автомобиля'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id пакета'
           required: true
@@ -657,7 +599,7 @@ paths:
                 $ref: '#/components/schemas/WarehouseVehicle'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -1,19 +1,19 @@
-import { computed, ref } from 'vue'
-import { scenarioCategoryRepository } from '@/modules/scenario/repositories/scenarioCategoryRepository'
-import type { CategoryRef } from '@/modules/scenario/repositories/categoryRepository'
-import { useFormToast } from '@/composables/useFormToast'
-import { useZodForm } from '@/composables/useZodForm'
-import { scenarioSectionSchema } from '@/modules/scenario/schemas/scenarioSectionSchema'
+import {computed, ref} from 'vue'
+import {scenarioCategoryRepository} from '@/modules/scenario/repositories/scenarioCategoryRepository'
+import type {CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import {useFormToast} from '@/composables/useFormToast'
+import {useZodForm} from '@/composables/useZodForm'
+import {scenarioSectionSchema} from '@/modules/scenario/schemas/scenarioSectionSchema'
 
 export function useScenarioSectionModal(
     onCreated: (category: CategoryRef) => void,
     onUpdated: (category: CategoryRef) => void,
 ) {
-    const open      = ref(false)
+    const open = ref(false)
     const editingId = ref<string | null>(null)
     const selectedGroups = ref<Array<Record<string, unknown>>>([])
 
-    const { formData, errors, formError, submitting, submit, reset } =
+    const {formData, errors, formError, submitting, submit, reset} =
         useZodForm(scenarioSectionSchema, {
             name: '',
             parent_id: null as string | null,
@@ -44,7 +44,7 @@ export function useScenarioSectionModal(
         editingId.value = category.id
         const groupIds = category.group_ids ?? []
         // selectedGroups получает минимальный набор; реальные имена подтянутся при поиске.
-        selectedGroups.value = groupIds.map(id => ({ id, name: id }))
+        selectedGroups.value = groupIds.map(id => ({id, name: id}))
         reset({
             name: category.name,
             parent_id: category.parent_id,
@@ -81,7 +81,8 @@ export function useScenarioSectionModal(
                 }
             })
             close()
-        } catch { /* ошибка отображена в форме */ }
+        } catch { /* ошибка отображена в форме */
+        }
     }
 
     return {

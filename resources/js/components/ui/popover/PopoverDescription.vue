@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,9 +12,9 @@ const props = defineProps({
 
 <template>
   <p
-    data-slot="popover-description"
-    :class="cn('text-muted-foreground', props.class)"
+      data-slot="popover-description"
+      :class="cn('text-muted-foreground', props.class)"
   >
-    <slot />
+    <slot/>
   </p>
 </template>

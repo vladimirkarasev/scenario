@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Module\Scenario\Services\Nodes;
+namespace Module\Scenario\Services\Nodes\Block;
 
 use Illuminate\Support\Facades\Validator;
+use Module\Scenario\Services\Nodes\NodeHelpers;
 
 final class BlockNodeValidator
 {
@@ -20,8 +21,8 @@ final class BlockNodeValidator
     ];
 
     /**
-     * @param array<string, mixed> $nodeData
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $nodeData
+     * @param  array<string, mixed>  $input
      */
     public function validate(array $nodeData, array $input): void
     {
@@ -35,7 +36,7 @@ final class BlockNodeValidator
     }
 
     /**
-     * @param  array<string, mixed>              $nodeData
+     * @param  array<string, mixed>  $nodeData
      * @return array<string, array<int, string>>
      */
     private function buildRules(array $nodeData): array
@@ -43,7 +44,7 @@ final class BlockNodeValidator
         $rules = [];
 
         foreach ($this->arrayField($nodeData, 'fields') as $field) {
-            if (! is_array($field)) {
+            if (!is_array($field)) {
                 continue;
             }
 
@@ -60,7 +61,7 @@ final class BlockNodeValidator
     }
 
     /**
-     * @param  array<array-key, mixed> $field
+     * @param  array<array-key, mixed>  $field
      * @return array<int, string>
      */
     private function fieldRules(array $field): array

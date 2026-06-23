@@ -6,9 +6,11 @@ import ConditionRenderer from '@/modules/scenario/components/player/ConditionRen
 import SurveyBlockRenderer from '@/modules/scenario/components/player/SurveyBlockRenderer.vue'
 import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextRenderer.vue'
 import ScenarioTimelineEntry from '@/modules/scenario/components/player/ScenarioTimelineEntry.vue'
+import ActionPipeline from '@/modules/scenario/components/player/ActionPipeline.vue'
 import {useScenarioPlayer} from '@/modules/scenario/composables/useScenarioPlayer'
 import type {
   SurveyBlock,
+  ScenarioRenderedAction,
   ScenarioRenderedBlock,
   ScenarioRenderedCondition,
   ScenarioRenderedEnd,
@@ -38,10 +40,14 @@ const {
   completed,
   failed,
   fieldErrors,
+  actionStages,
+  pipelineFailed,
   createRun,
   loadRun,
   continueRun,
+  retryAction,
   jumpTo,
+  subscribe,
   unsubscribe,
 } = useScenarioPlayer()
 
@@ -50,7 +56,7 @@ const bottomAnchor = ref<HTMLElement | null>(null)
 async function handleContinue(input: Record<string, unknown>, targetNodeId?: string | null) {
   await continueRun(input, targetNodeId)
   await nextTick()
-  bottomAnchor.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  bottomAnchor.value?.scrollIntoView({behavior: 'smooth', block: 'start'})
 }
 
 watch(run, (val) => emit('update:run', val))
@@ -58,6 +64,7 @@ watch(run, (val) => emit('update:run', val))
 onMounted(async () => {
   if (props.runId) {
     await loadRun(props.runId)
+    if (run.value?.id) await subscribe(run.value.id)
     return
   }
 
@@ -67,6 +74,7 @@ onMounted(async () => {
       scenarioVersionId: props.scenarioVersionId ?? null,
       context: props.initialContext ?? {},
     })
+    if (run.value?.id) await subscribe(run.value.id)
   }
 })
 
@@ -86,15 +94,19 @@ function asEnd(value: unknown): ScenarioRenderedEnd {
   return value as ScenarioRenderedEnd
 }
 
+function asAction(value: unknown): ScenarioRenderedAction {
+  return value as ScenarioRenderedAction
+}
+
 const endBlocks = computed(() =>
     ((asEnd(rendered.value)?.blocks ?? []) as SurveyBlock[]).filter(Boolean),
 )
 
 const activeDraftKey = computed(() => {
-    const runId = run.value?.id
-    const nodeId = run.value?.current_node_id
-    if (!runId || !nodeId) return null
-    return `scenario-run:${runId}:${nodeId}`
+  const runId = run.value?.id
+  const nodeId = run.value?.current_node_id
+  if (!runId || !nodeId) return null
+  return `scenario-run:${runId}:${nodeId}`
 })
 </script>
 
@@ -103,7 +115,7 @@ const activeDraftKey = computed(() => {
 
     <!-- Error banner -->
     <div v-if="error" class="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-      <AlertCircle class="mt-0.5 size-3.5 shrink-0 text-red-500" />
+      <AlertCircle class="mt-0.5 size-3.5 shrink-0 text-red-500"/>
       <div>
         <p class="text-[12px] font-semibold text-red-800">Ошибка</p>
         <p class="mt-0.5 text-[12px] text-red-600">{{ error }}</p>
@@ -123,11 +135,12 @@ const activeDraftKey = computed(() => {
     </div>
 
     <!-- Completed -->
-    <div v-if="completed" class="overflow-hidden rounded-xl border border-emerald-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)]">
-      <div class="h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-500" />
+    <div v-if="completed"
+         class="overflow-hidden rounded-xl border border-emerald-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)]">
+      <div class="h-[2px] bg-gradient-to-r from-emerald-400 to-emerald-500"/>
       <div class="px-5 py-5 text-center">
         <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
-          <CheckCircle2 class="size-5 text-emerald-600" />
+          <CheckCircle2 class="size-5 text-emerald-600"/>
         </div>
         <h2 class="text-[15px] font-semibold tracking-[-0.01em] text-slate-900">
           {{ asEnd(rendered)?.title ?? 'Все шаги успешно пройдены' }}
@@ -150,11 +163,12 @@ const activeDraftKey = computed(() => {
     </div>
 
     <!-- Failed -->
-    <div v-if="failed && !completed" class="overflow-hidden rounded-xl border border-red-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)]">
-      <div class="h-[2px] bg-gradient-to-r from-red-400 to-red-500" />
+    <div v-if="failed && !completed"
+         class="overflow-hidden rounded-xl border border-red-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)]">
+      <div class="h-[2px] bg-gradient-to-r from-red-400 to-red-500"/>
       <div class="px-5 py-5 text-center">
         <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-          <XCircle class="size-5 text-red-500" />
+          <XCircle class="size-5 text-red-500"/>
         </div>
         <h2 class="text-[15px] font-semibold text-slate-900">Сценарий завершился с ошибкой</h2>
         <p class="mt-1 text-[12px] text-slate-500">Выполнение остановлено. Попробуйте начать заново.</p>
@@ -183,15 +197,27 @@ const activeDraftKey = computed(() => {
         @select="(targetNodeId: string) => handleContinue({}, targetNodeId)"
     />
 
+    <!-- Active action pipeline (wait_for_result) -->
+    <ActionPipeline
+        v-if="rendered && (rendered as Record<string, unknown>).type === 'action' && !completed && !failed"
+        :title="String(asAction(rendered).data?.title || 'Выполнение действий')"
+        :stages="asAction(rendered).stages ?? []"
+        :statuses="actionStages"
+        :failed="pipelineFailed || Boolean(asAction(rendered).failed)"
+        :loading="loading"
+        @continue="handleContinue({})"
+        @retry="retryAction()"
+    />
+
     <!-- Loading / waiting -->
     <div
         v-if="!completed && !failed && !rendered"
         class="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)]"
     >
-      <div class="h-[2px] bg-gradient-to-r from-slate-200 to-slate-300" />
+      <div class="h-[2px] bg-gradient-to-r from-slate-200 to-slate-300"/>
       <div class="px-5 py-4">
-        <Skeleton v-if="loading" class="mb-1.5 h-4 w-40 rounded-md" />
-        <Skeleton v-if="loading" class="h-3 w-28 rounded-md" />
+        <Skeleton v-if="loading" class="mb-1.5 h-4 w-40 rounded-md"/>
+        <Skeleton v-if="loading" class="h-3 w-28 rounded-md"/>
         <template v-else>
           <p class="text-[13px] font-medium text-slate-700">Подготовка сценария</p>
           <p class="mt-0.5 text-[12px] text-slate-400">Ожидаем активный узел...</p>
@@ -199,17 +225,17 @@ const activeDraftKey = computed(() => {
       </div>
       <div v-if="loading" class="grid gap-3 border-t border-slate-100 px-5 pb-4 pt-3">
         <div class="space-y-1.5">
-          <Skeleton class="h-3 w-20 rounded-md" />
-          <Skeleton class="h-8 w-full rounded-lg" />
+          <Skeleton class="h-3 w-20 rounded-md"/>
+          <Skeleton class="h-8 w-full rounded-lg"/>
         </div>
         <div class="space-y-1.5">
-          <Skeleton class="h-3 w-24 rounded-md" />
-          <Skeleton class="h-8 w-full rounded-lg" />
+          <Skeleton class="h-3 w-24 rounded-md"/>
+          <Skeleton class="h-8 w-full rounded-lg"/>
         </div>
-        <Skeleton class="mt-0.5 h-8 w-28 rounded-lg" />
+        <Skeleton class="mt-0.5 h-8 w-28 rounded-lg"/>
       </div>
     </div>
 
-    <div ref="bottomAnchor" class="h-px" />
+    <div ref="bottomAnchor" class="h-px"/>
   </div>
 </template>

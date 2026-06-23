@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-vehicle-used'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-vehicle-used
+  - name: warehouse-vehicle-used
     description: 'Управление автомобилями с пробегом'
 paths:
   /warehouse/vehicle-used/yearly-sales:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка автомобилей с пробегом, сгруппированного по дилеру и по году'
       description: 'Получение списка автомобилей с пробегом, сгруппированного по дилеру и по году'
       parameters:
-        -
-          name: dealer_code
+        - name: dealer_code
           in: query
           description: 'Код дилера'
           schema:
             type: string
-        -
-          name: sale_year
+        - name: sale_year
           in: query
           description: Год
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,4 +44,4 @@ paths:
                   $ref: '#/components/schemas/WarehouseVehicleUsedYearlySales'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

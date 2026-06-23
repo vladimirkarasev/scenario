@@ -18,9 +18,9 @@ final class ScenarioVersionRequest extends FormRequest
     public function rules(): array
     {
         $scenario = $this->route('scenario');
-        $scenarioId = is_object($scenario) && isset($scenario->id) ? (string) $scenario->id : (string) $scenario;
+        $scenarioId = is_object($scenario) && isset($scenario->id) ? (string)$scenario->id : (string)$scenario;
         $version = $this->route('version');
-        $versionId = is_object($version) && isset($version->id) ? (string) $version->id : null;
+        $versionId = is_object($version) && isset($version->id) ? (string)$version->id : null;
 
         return [
             'name' => [
@@ -28,7 +28,7 @@ final class ScenarioVersionRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('scenario_versions', 'name')
-                    ->where(fn ($q) => $q->where('scenario_id', $scenarioId))
+                    ->where(fn($q) => $q->where('scenario_id', $scenarioId))
                     ->ignore($versionId),
             ],
             'status' => ['nullable', 'string', Rule::in(['draft', 'active', 'archived'])],

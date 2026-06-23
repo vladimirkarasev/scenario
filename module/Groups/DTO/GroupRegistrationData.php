@@ -10,5 +10,6 @@ final readonly class GroupRegistrationData
         public string $slug,
         public string $name,
         public ?string $extId = null,
-    ) {}
+    ) {
+    }
 }

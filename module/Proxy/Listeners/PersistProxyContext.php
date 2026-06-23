@@ -32,7 +32,7 @@ final class PersistProxyContext
         $this->save($event->proxyRequest, $event->context->toArray());
     }
 
-    /** @param array<string, mixed> $snapshot */
+    /** @param  array<string, mixed>  $snapshot */
     private function save(ProxyRequest $proxyRequest, array $snapshot): void
     {
         $proxyRequest->forceFill(['message_box' => $snapshot])->save();

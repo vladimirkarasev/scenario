@@ -37,7 +37,7 @@ final class GroupMembersControllerTest extends TestCase
     public function test_index_returns_group_members(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
-        $group   = $this->makeGroup($project);
+        $group = $this->makeGroup($project);
         $member1 = User::factory()->create();
         $member2 = User::factory()->create();
         $group->members()->syncWithoutDetaching([$member1->id, $member2->id]);
@@ -85,7 +85,7 @@ final class GroupMembersControllerTest extends TestCase
     public function test_store_adds_member_to_group(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_create');
-        $group  = $this->makeGroup($project);
+        $group = $this->makeGroup($project);
         $member = User::factory()->create();
 
         $this->actingAs($actor)
@@ -114,7 +114,7 @@ final class GroupMembersControllerTest extends TestCase
     public function test_store_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
-        $group  = $this->makeGroup($project);
+        $group = $this->makeGroup($project);
         $member = User::factory()->create();
 
         $this->actingAs($actor)
@@ -132,7 +132,7 @@ final class GroupMembersControllerTest extends TestCase
     public function test_destroy_removes_member_from_group(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_delete');
-        $group  = $this->makeGroup($project);
+        $group = $this->makeGroup($project);
         $member = User::factory()->create();
         $group->members()->syncWithoutDetaching([$member->id]);
 
@@ -149,7 +149,7 @@ final class GroupMembersControllerTest extends TestCase
     public function test_destroy_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
-        $group  = $this->makeGroup($project);
+        $group = $this->makeGroup($project);
         $member = User::factory()->create();
         $group->members()->syncWithoutDetaching([$member->id]);
 
@@ -166,9 +166,9 @@ final class GroupMembersControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $user    = User::factory()->create([
+        $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -182,20 +182,20 @@ final class GroupMembersControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project ' . Str::random(4),
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 
     private function makeGroup(Project $project): UserGroup
     {
         return UserGroup::query()->create([
-            'name'      => 'Group ' . Str::random(4),
-            'slug'      => 'group-' . Str::random(6),
-            'site_id'   => $project->id,
+            'name' => 'Group '.Str::random(4),
+            'slug' => 'group-'.Str::random(6),
+            'site_id' => $project->id,
             'is_active' => true,
         ]);
     }

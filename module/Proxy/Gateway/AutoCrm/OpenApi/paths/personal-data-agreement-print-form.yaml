@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - personal-data-agreement-print-form'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: personal-data-agreement-print-form
+  - name: personal-data-agreement-print-form
 paths:
   '/personal-data-agreement/event/print-form/{id}':
     get:
@@ -21,8 +17,7 @@ paths:
       summary: 'Получение печатной формы СОПД'
       description: 'Получение печатной формы в формате Base64 анкеты согласия на обработку ПД'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID СОПД'
           required: true

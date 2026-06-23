@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - common-tag'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: common-tag
+  - name: common-tag
     description: 'Управление тегами'
 paths:
   /common-tag:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка тегов'
       description: 'Получение списка тегов'
       parameters:
-        -
-          name: name
+        - name: name
           in: query
           description: 'Наименование тега'
           schema:
             type: string
-        -
-          name: type
+        - name: type
           in: query
           description: 'Тип тега'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,4 +44,4 @@ paths:
                   $ref: '#/components/schemas/CommonTag'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - purchase-product-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: purchase-product-type
+  - name: purchase-product-type
     description: 'Управление типами продукта'
 paths:
   /purchase-product-type:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка типов продуктов'
       description: 'Получение списка типов продуктов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID типов продуктов'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус типов продуктов'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/PurchaseProductType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/purchase-product-type/{id}':
     get:
       tags:
@@ -59,8 +52,7 @@ paths:
       summary: 'Получение типа продукта по ID'
       description: 'Получение типа продукта по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id типа продукта'
           required: true
@@ -75,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/PurchaseProductType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

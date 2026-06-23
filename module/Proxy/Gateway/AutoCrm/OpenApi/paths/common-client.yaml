@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - common-client'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: common-client
+  - name: common-client
     description: 'Справочники клиентов дистрибьютора'
 paths:
   /common-client:
@@ -22,13 +18,11 @@ paths:
       summary: 'Получение списка клиентов дистрибьютора'
       description: 'Получение списка клиентов дистрибьютора'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           schema:
             type: integer
-        -
-          name: type
+        - name: type
           in: query
           description: "Тип клиента * `1` - Физическое лицо * `2` - Юридическое лицо\n"
           schema:
@@ -36,122 +30,102 @@ paths:
             enum:
               - 1
               - 2
-        -
-          name: tagId
+        - name: tagId
           in: query
           description: 'Id тегов'
           schema:
             type: integer
-        -
-          name: email
+        - name: email
           in: query
           description: Email
           schema:
             type: string
-        -
-          name: phone
+        - name: phone
           in: query
           description: 'Номер телефона'
           schema:
             type: string
-        -
-          name: first_name
+        - name: first_name
           in: query
           description: 'Имя клиента'
           schema:
             type: string
-        -
-          name: middle_name
+        - name: middle_name
           in: query
           description: 'Отчество клиента'
           schema:
             type: string
-        -
-          name: last_name
+        - name: last_name
           in: query
           description: 'Фамилия клиента'
           schema:
             type: string
-        -
-          name: company_name
+        - name: company_name
           in: query
           description: 'Название компании'
           schema:
             type: string
-        -
-          name: address
+        - name: address
           in: query
           description: Адрес
           schema:
             type: string
-        -
-          name: sex
+        - name: sex
           in: query
           description: Пол
           schema:
             type: integer
-        -
-          name: brandId
+        - name: brandId
           in: query
           description: 'ID Бренда автомобиля клиента'
           schema:
             type: integer
-        -
-          name: modelId
+        - name: modelId
           in: query
           description: 'ID Модели автомобиля клиента'
           schema:
             type: integer
-        -
-          name: dealerId
+        - name: dealerId
           in: query
           description: 'ID Дилера клиента'
           schema:
             type: integer
-        -
-          name: google_id
+        - name: google_id
           in: query
           description: 'Google ID'
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Получение дополнительных полей, можно передать несколько значений через запятую:\n* commonClientIdentifiers - Идентификаторы клиента в Internet\n* dealers - Список дилеров по данному клиенту\n* warehouseVehicle - Список автомобилей\n"
           schema:
             type: string
-        -
-          name: createdFrom
+        - name: createdFrom
           in: query
           description: 'Дата создания с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: createdTo
+        - name: createdTo
           in: query
           description: 'Дата создания по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: updatedFrom
+        - name: updatedFrom
           in: query
           description: 'Дата изменения с, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: updatedTo
+        - name: updatedTo
           in: query
           description: 'Дата изменения по, в формате dd.MM.yyyy'
           schema:
             type: string
-        -
-          name: clientId
+        - name: clientId
           in: query
           description: 'ID клиента дилера'
           schema:
@@ -167,7 +141,7 @@ paths:
                   $ref: '#/components/schemas/CommonClient'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - common-client
@@ -195,7 +169,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -211,15 +185,13 @@ paths:
       summary: 'Удаление идентификатора клиента дистрибьютора'
       description: 'Удаление идентификатора клиента дистрибьютора по типу и значению'
       parameters:
-        -
-          name: type
+        - name: type
           in: path
           description: "Тип идентификатора клиента. Возможные значения:\n  - 1 — Google ID\n  - 2 — Yandex ID\n  - 3 — Git ID\n  - 4 — GWM ID (если применимо)\n  - 5 — Номер заказа в личном кабинете\n  - 6 — Серийный номер оплаты\n  - 7 — Ссылка на профиль Telegram\n  - 8 — Ссылка на профиль ВКонтакте\n  - 9 — Ссылка на профиль Одноклассники\n"
           required: true
           schema:
             type: string
-        -
-          name: value
+        - name: value
           in: path
           description: 'Значение идентификатора'
           required: true
@@ -247,7 +219,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -261,8 +233,7 @@ paths:
       summary: 'Получение клиента дистрибьютора по ID'
       description: 'Получение клиента дистрибьютора по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id клиента дистрибьютора'
           required: true
@@ -277,7 +248,7 @@ paths:
                 $ref: '#/components/schemas/CommonClient'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -290,8 +261,7 @@ paths:
       summary: 'Изменение клиента дистрибьютора'
       description: 'Изменение клиента дистрибьютора'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id клиента дистрибьютора'
           required: true
@@ -313,7 +283,7 @@ paths:
                 $ref: '#/components/schemas/CommonClient'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -327,8 +297,7 @@ paths:
       summary: 'Изменение подписок клиента дистрибьютора'
       description: 'Изменение подписок клиента дистрибьютора'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID клиента дистрибьютора'
           required: true
@@ -360,7 +329,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - delivery-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: delivery-type
+  - name: delivery-type
     description: 'Управление видами отгрузок'
 paths:
   /logistic/delivery-type:
@@ -22,14 +18,12 @@ paths:
       description: 'Получение списка Виды отгрузок'
       summary: 'Получение списка Виды отгрузок'
       parameters:
-        -
-          name: name
+        - name: name
           in: query
           description: 'ID заявки в ТК'
           schema:
             type: integer
-        -
-          name: type
+        - name: type
           in: query
           description: 'Статус (1 - Дилерские, 2 - Перемещения, 3 - Самовывоз)'
           schema:
@@ -38,8 +32,7 @@ paths:
               - 1
               - 2
               - 3
-        -
-          name: page
+        - name: page
           in: query
           type: integer
           schema:
@@ -55,7 +48,7 @@ paths:
                   $ref: '#/components/schemas/DeliveryType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/logistic/delivery-type/{id}':
     get:
       tags:
@@ -63,8 +56,7 @@ paths:
       summary: 'Получение вида отгрузки по ID'
       description: 'Получение вида отгрузки по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id вида отгрузки'
           required: true
@@ -79,7 +71,7 @@ paths:
                 $ref: '#/components/schemas/DeliveryType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

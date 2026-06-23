@@ -12,7 +12,9 @@ use Module\Proxy\Services\ProxyRequestLoggerService;
 
 final readonly class LogProxyRequestStatus
 {
-    public function __construct(private ProxyRequestLoggerService $logger) {}
+    public function __construct(private ProxyRequestLoggerService $logger)
+    {
+    }
 
     public function handleAccepted(ProxyRequestAccepted $event): void
     {
@@ -21,7 +23,9 @@ final readonly class LogProxyRequestStatus
 
     public function handleProcessed(ProxyRequestProcessed $event): void
     {
-        $response = $event->context->response ?? throw new \LogicException('ProxyContext has no response after processing.');
+        $response = $event->context->response ?? throw new \LogicException(
+            'ProxyContext has no response after processing.'
+        );
         $this->logger->markProcessed($event->proxyRequest, $response, $event->isMocked);
     }
 

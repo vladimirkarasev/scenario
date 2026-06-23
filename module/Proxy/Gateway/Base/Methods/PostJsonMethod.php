@@ -7,15 +7,16 @@ namespace Module\Proxy\Gateway\Base\Methods;
 final readonly class PostJsonMethod extends AbstractApiMethod
 {
     /**
-     * @param array<string, mixed> $body
-     * @param array<string, mixed> $query
+     * @param  array<string, mixed>  $body
+     * @param  array<string, mixed>  $query
      */
     public function __construct(
         private string $uri,
         private array $body = [],
         private array $query = [],
         private string $key = '',
-    ) {}
+    ) {
+    }
 
     public function key(): string
     {

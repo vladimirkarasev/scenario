@@ -1,22 +1,22 @@
-import { computed, onBeforeUnmount, ref, type Ref } from 'vue'
+import {computed, onBeforeUnmount, ref, type Ref} from 'vue'
 
 // Кнопки-стрелки горизонтальной прокрутки таблицы (появляются по hover).
 // Держит метрики скролла и плавно прокручивает через requestAnimationFrame,
 // пока курсор над стрелкой. Используется в DirectoryItemsTable и
 // SurveyDirectoryTableField — обе таблицы шире своего контейнера.
 export function useHorizontalScrollArrows(scrollRef: Ref<HTMLElement | null>) {
-    const scrollLeft  = ref(0)
+    const scrollLeft = ref(0)
     const clientWidth = ref(0)
     const scrollWidth = ref(0)
-    const frame       = ref<number | null>(null)
+    const frame = ref<number | null>(null)
 
-    const canScrollLeft  = computed(() => scrollLeft.value > 1)
+    const canScrollLeft = computed(() => scrollLeft.value > 1)
     const canScrollRight = computed(() => scrollLeft.value + clientWidth.value < scrollWidth.value - 1)
 
     function updateMetrics(): void {
         const el = scrollRef.value
         if (!el) return
-        scrollLeft.value  = el.scrollLeft
+        scrollLeft.value = el.scrollLeft
         clientWidth.value = el.clientWidth
         scrollWidth.value = el.scrollWidth
     }
@@ -52,5 +52,5 @@ export function useHorizontalScrollArrows(scrollRef: Ref<HTMLElement | null>) {
 
     onBeforeUnmount(stopScroll)
 
-    return { canScrollLeft, canScrollRight, updateMetrics, onScroll, startScroll, stopScroll }
+    return {canScrollLeft, canScrollRight, updateMetrics, onScroll, startScroll, stopScroll}
 }

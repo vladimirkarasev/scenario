@@ -1,5 +1,5 @@
-import { Node, mergeAttributes } from '@tiptap/core'
-import { VueNodeViewRenderer } from '@tiptap/vue-3'
+import {Node, mergeAttributes} from '@tiptap/core'
+import {VueNodeViewRenderer} from '@tiptap/vue-3'
 import TiptapDetailsNodeView from '@/modules/scenario/components/tiptap/TiptapDetailsNodeView.vue'
 
 export const Details = Node.create({
@@ -18,21 +18,21 @@ export const Details = Node.create({
             open: {
                 default: true,
                 parseHTML: (element) => element.hasAttribute('open'),
-                renderHTML: (attrs) => (attrs.open ? { open: '' } : {}),
+                renderHTML: (attrs) => (attrs.open ? {open: ''} : {}),
             },
         }
     },
 
     parseHTML() {
-        return [{ tag: 'details', contentElement: '[data-type="details-content"]' }]
+        return [{tag: 'details', contentElement: '[data-type="details-content"]'}]
     },
 
-    renderHTML({ HTMLAttributes, node }) {
+    renderHTML({HTMLAttributes, node}) {
         return [
             'details',
             mergeAttributes(HTMLAttributes),
             ['summary', {}, node.attrs.title],
-            ['div', { 'data-type': 'details-content' }, 0],
+            ['div', {'data-type': 'details-content'}, 0],
         ]
     },
 
@@ -42,11 +42,11 @@ export const Details = Node.create({
 
     addCommands() {
         return {
-            setDetails: () => ({ commands }) =>
+            setDetails: () => ({commands}) =>
                 commands.insertContent({
                     type: this.name,
-                    attrs: { title: 'Подробнее', open: true },
-                    content: [{ type: 'paragraph' }],
+                    attrs: {title: 'Подробнее', open: true},
+                    content: [{type: 'paragraph'}],
                 }),
         }
     },

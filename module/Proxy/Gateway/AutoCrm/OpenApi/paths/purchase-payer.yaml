@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - purchase-payer'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: purchase-payer
+  - name: purchase-payer
     description: 'Управление плательщиками'
 paths:
   /purchase-payer:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка плательщиков'
       description: 'Получение списка плательщиков'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID плательщика'
           schema:
             type: integer
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус плательщика'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/PurchasePayer'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/purchase-payer/{id}':
     get:
       tags:
@@ -59,8 +52,7 @@ paths:
       summary: 'Получение плательщика по ID'
       description: 'Получение плательщика по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id плательщика'
           required: true
@@ -75,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/PurchasePayer'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

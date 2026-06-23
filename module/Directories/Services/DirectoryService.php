@@ -24,7 +24,8 @@ final class DirectoryService
         private readonly DirectoryRepository $directories,
         private readonly DirectoryItemRepository $items,
         private readonly ProjectRepository $projects,
-    ) {}
+    ) {
+    }
 
     /** @return array<int, array<string, mixed>> */
     public function items(Project $project): array
@@ -32,22 +33,27 @@ final class DirectoryService
         return DirectoryCache::rememberList($project->id, function () use ($project): array {
             return $this->directories
                 ->listForProject($project)
-                ->map(fn (Directory $directory): array => $this->listPayload($directory))
+                ->map(fn(Directory $directory): array => $this->listPayload($directory))
                 ->values()
                 ->all();
         });
     }
 
     /**
-     * @param  string[]                                                                                                                  $categoryIds
+     * @param  string[]  $categoryIds
      * @return array{items: array<int, array<string, mixed>>, meta: array{current_page: int, last_page: int, per_page: int, total: int}}
      */
-    public function paginate(Project $project, int $page, int $perPage, array $categoryIds = [], bool $uncategorized = false): array
-    {
+    public function paginate(
+        Project $project,
+        int $page,
+        int $perPage,
+        array $categoryIds = [],
+        bool $uncategorized = false
+    ): array {
         $paginator = $this->directories->paginateForProject($project, $page, $perPage, $categoryIds, $uncategorized);
 
         return [
-            'items' => array_map(fn (Directory $d): array => $this->listPayload($d), $paginator->items()),
+            'items' => array_map(fn(Directory $d): array => $this->listPayload($d), $paginator->items()),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),
@@ -105,10 +111,10 @@ final class DirectoryService
             'api_config_json' => $data->apiConfig,
         ]);
 
-        $directory->categories()->sync($this->categoryPivot($data->categoryIds, (string) $directory->project_id));
+        $directory->categories()->sync($this->categoryPivot($data->categoryIds, (string)$directory->project_id));
 
         DirectoryCache::forgetDirectory($directory->id);
-        DirectoryCache::forgetList((string) $directory->project_id);
+        DirectoryCache::forgetList((string)$directory->project_id);
 
         return $this->find($directory->fresh() ?? $directory);
     }
@@ -144,13 +150,13 @@ final class DirectoryService
                 'id' => $displayVersion->id,
                 'version_number' => $displayVersion->version_number,
                 'status' => $displayVersion->status,
-                'is_active' => (bool) $displayVersion->is_active,
+                'is_active' => (bool)$displayVersion->is_active,
                 'schema_json' => $this->versionService->payload($displayVersion)['schema_json'],
                 'created_at' => $displayVersion->created_at?->toIso8601String(),
             ] : null,
             'sample_items' => [],
             'imports' => $directory->imports
-                ->map(fn (DirectoryImport $import): array => $this->importPayload($import))
+                ->map(fn(DirectoryImport $import): array => $this->importPayload($import))
                 ->values()
                 ->all(),
             'import_schedule' => $directory->relationLoaded('importSchedule')
@@ -197,16 +203,17 @@ final class DirectoryService
                 'id' => $displayVersion->id,
                 'version_number' => $displayVersion->version_number,
                 'status' => $displayVersion->status,
-                'is_active' => (bool) $displayVersion->is_active,
+                'is_active' => (bool)$displayVersion->is_active,
                 'schema_json' => $this->versionService->payload($displayVersion)['schema_json'],
                 'created_at' => $displayVersion->created_at?->toIso8601String(),
             ] : null,
             'sample_items' => $displayVersion !== null ? $this->sampleItems($displayVersion) : [],
             'versions' => $directory->relationLoaded('versions')
-                ? $directory->versions->map(fn (DirectoryVersion $v): array => $this->versionService->payload($v))->values()->all()
+                ? $directory->versions->map(fn(DirectoryVersion $v): array => $this->versionService->payload($v)
+                )->values()->all()
                 : [],
             'imports' => $directory->imports
-                ->map(fn (DirectoryImport $import): array => $this->importPayload($import))
+                ->map(fn(DirectoryImport $import): array => $this->importPayload($import))
                 ->values()
                 ->all(),
             'import_schedule' => $directory->relationLoaded('importSchedule')
@@ -272,7 +279,7 @@ final class DirectoryService
     {
         return $this->items
             ->sampleForVersion($version)
-            ->map(static fn ($item): array => [
+            ->map(static fn($item): array => [
                 'id' => $item->id,
                 'external_key' => $item->external_key,
                 'parent_id' => $item->parent_id,
@@ -284,7 +291,7 @@ final class DirectoryService
     }
 
     /**
-     * @param  string[]                                  $categoryIds
+     * @param  string[]  $categoryIds
      * @return array<string, array<string, string|null>>
      */
     private function categoryPivot(array $categoryIds, string $projectId): array
@@ -299,7 +306,7 @@ final class DirectoryService
 
     private function ensureManageAccess(bool $canManageDirectories): void
     {
-        if (! $canManageDirectories) {
+        if (!$canManageDirectories) {
             throw DirectoryException::forbidden();
         }
     }

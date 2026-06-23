@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - damage-report'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: damage-report
+  - name: damage-report
     description: 'Работа с отчётами о повреждениях (ОУПТС)'
 paths:
   /service/damage-report:
@@ -22,8 +18,7 @@ paths:
       summary: 'Список ОУПТС'
       description: 'Список ОУПТС'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID ОУПТС'
           style: form
@@ -32,8 +27,7 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReport/properties/id'
-        -
-          name: vin
+        - name: vin
           in: query
           description: 'VIN (LIKE-поиск)'
           style: form
@@ -42,74 +36,64 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReport/properties/vin'
-        -
-          name: code
+        - name: code
           in: query
           description: 'Номер ТН/CMR (LIKE-поиск)'
           schema:
             $ref: '#/components/schemas/DamageReport/properties/code'
-        -
-          name: transporter_number
+        - name: transporter_number
           in: query
           description: 'Номер автовоза (LIKE-поиск)'
           schema:
             $ref: '#/components/schemas/DamageReport/properties/transporter_number'
-        -
-          name: trailer_number
+        - name: trailer_number
           in: query
           description: 'Номер прицепа (LIKE-поиск)'
           schema:
             $ref: '#/components/schemas/DamageReport/properties/trailer_number'
-        -
-          name: createdFrom
+        - name: createdFrom
           in: query
           description: 'Дата создания с (формат - dd.mm.yyyy)'
           schema:
             type: string
             format: date
             pattern: '^\d{2}\.\d{2}\.\d{4}$'
-        -
-          name: createdTo
+        - name: createdTo
           in: query
           description: 'Дата создания по (формат - dd.mm.yyyy)'
           schema:
             type: string
             format: date
             pattern: '^\d{2}\.\d{2}\.\d{4}$'
-        -
-          name: dateFrom
+        - name: dateFrom
           in: query
           description: 'Дата приемки/отгрузки с (формат - dd.mm.yyyy)'
           schema:
             type: string
             format: date
             pattern: '^\d{2}\.\d{2}\.\d{4}$'
-        -
-          name: dateTo
+        - name: dateTo
           in: query
           description: 'Дата приемки/отгрузки по (формат - dd.mm.yyyy)'
           schema:
             type: string
             format: date
             pattern: '^\d{2}\.\d{2}\.\d{4}$'
-        -
-          name: 'shippingCompanyId[]'
+        - name: 'shippingCompanyId[]'
           in: query
           description: 'ID транспортных компаний'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
-        -
-          name: 'driverId[]'
+        - name: 'driverId[]'
           in: query
           description: 'ID водителей'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportDriver/properties/id'
-        -
-          name: driverLogic
+        - name: driverLogic
           in: query
           description: "Логика поиска водителей\n`or` - или `and` - и"
           schema:
@@ -117,16 +101,14 @@ paths:
             enum:
               - or
               - and
-        -
-          name: 'typeId[]'
+        - name: 'typeId[]'
           in: query
           description: "Тип отчёта\n`1` - Приёмка `2` - Отгрузка"
           schema:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportPartnerBase/properties/type_id'
-        -
-          name: warehouseId
+        - name: warehouseId
           in: query
           description: 'ID складов'
           style: form
@@ -135,8 +117,7 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
-        -
-          name: dealerId
+        - name: dealerId
           in: query
           description: 'ID дилеров'
           style: form
@@ -145,8 +126,7 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/Dealer/properties/id'
-        -
-          name: dealerStatus
+        - name: dealerStatus
           in: query
           description: "Статус дилера\n`active` - активный `deleted` - удалённый"
           schema:
@@ -154,40 +134,35 @@ paths:
             enum:
               - active
               - deleted
-        -
-          name: brandId
+        - name: brandId
           in: query
           description: 'ID брендов'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/Brand/properties/id'
-        -
-          name: modelId
+        - name: modelId
           in: query
           description: 'ID моделей'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/Model/properties/id'
-        -
-          name: modelAliasId
+        - name: modelAliasId
           in: query
           description: 'ID алиасов моделей'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/ModelAlias/properties/id'
-        -
-          name: 'damageStatus[]'
+        - name: 'damageStatus[]'
           in: query
           description: 'ID статусов повреждений (справочник)'
           schema:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportDirectory/properties/id'
-        -
-          name: damageStatusLogic
+        - name: damageStatusLogic
           in: query
           description: "Логика поиска статусов повреждений\n`or` - или `and` - и"
           schema:
@@ -206,7 +181,7 @@ paths:
                   $ref: '#/components/schemas/DamageReport'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -233,7 +208,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -254,8 +229,7 @@ paths:
             schema:
               type: object
               allOf:
-                -
-                  $ref: '#/components/schemas/DamageReportDamageForm'
+                - $ref: '#/components/schemas/DamageReportDamageForm'
             encoding:
               'damage_type[]':
                 style: form
@@ -278,7 +252,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDamage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -294,8 +268,7 @@ paths:
       summary: 'Получение повреждения по ID'
       description: 'Получение повреждения по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID повреждения'
           required: true
@@ -310,7 +283,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDamage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -323,8 +296,7 @@ paths:
       summary: 'Изменение повреждения по ID'
       description: 'Изменение повреждения по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID повреждения'
           required: true
@@ -345,7 +317,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDamage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -358,8 +330,7 @@ paths:
       summary: 'Удаление повреждения по ID'
       description: 'Удаление повреждения по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID повреждения'
           required: true
@@ -368,10 +339,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -385,8 +356,7 @@ paths:
       summary: 'Добавление фото повреждения'
       description: 'Добавление фото повреждения'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID повреждения'
           required: true
@@ -407,7 +377,7 @@ paths:
                 $ref: '#/components/schemas/Upload'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -423,15 +393,13 @@ paths:
       summary: 'Удаление фото повреждения'
       description: 'Удаление фото повреждения'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID повреждения'
           required: true
           schema:
             type: integer
-        -
-          name: uploadId
+        - name: uploadId
           in: path
           description: 'ID файла'
           required: true
@@ -440,10 +408,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -457,8 +425,7 @@ paths:
       summary: 'Список водителей'
       description: 'Список водителей'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID водителя'
           style: form
@@ -467,26 +434,22 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportDriver/properties/id'
-        -
-          name: first_name
+        - name: first_name
           in: query
           description: 'Имя водителя (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: middle_name
+        - name: middle_name
           in: query
           description: 'Отчество водителя (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: last_name
+        - name: last_name
           in: query
           description: 'Фамилия водителя (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: active
+        - name: active
           in: query
           description: 'Активность (0 - Не активен, 1 - Активен)'
           schema:
@@ -502,7 +465,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportDriver'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -529,7 +492,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDriver'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -545,8 +508,7 @@ paths:
       summary: 'Получение водителя по ID'
       description: 'Получение водителя по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID водителя'
           required: true
@@ -561,7 +523,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDriver'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -574,8 +536,7 @@ paths:
       summary: 'Изменение водителя по ID'
       description: 'Изменение водителя по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID водителя'
           required: true
@@ -596,7 +557,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportDriver'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -610,26 +571,22 @@ paths:
       summary: 'Список элементов'
       description: 'Список элементов'
       parameters:
-        -
-          name: fullCode
+        - name: fullCode
           in: query
           description: 'Код элемента (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           description: 'Имя элемента (LIKE-поиск)'
           schema:
             $ref: '#/components/schemas/DamageReportElement/properties/name'
-        -
-          name: type
+        - name: type
           in: query
           description: "Тип элемента ущерба\n`1` - Элемент а/м (дверь, капот, шина) `2` - Сопроводительный товар (аптечка, домкрат)"
           schema:
             $ref: '#/components/schemas/DamageReportElement/properties/type'
-        -
-          name: base_element
+        - name: base_element
           in: query
           description: 'Элемент (справочник)'
           schema:
@@ -645,7 +602,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportElement'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -672,7 +629,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportElement'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -688,8 +645,7 @@ paths:
       summary: 'Справочник элементов'
       description: 'Справочник элементов'
       parameters:
-        -
-          name: directory
+        - name: directory
           in: path
           description: "Тип справочника\n`base` - Элемент а/м (дверь, капот, шина) `product` - Сопроводительный товар (аптечка, домкрат)"
           required: true
@@ -709,7 +665,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportDirectory'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -723,8 +679,7 @@ paths:
       summary: 'Получение элемента по ID'
       description: 'Получение элемента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID элемента'
           required: true
@@ -739,7 +694,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportElement'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -752,8 +707,7 @@ paths:
       summary: 'Изменение элемента по ID'
       description: 'Изменение элемента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID элемента'
           required: true
@@ -774,7 +728,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportElement'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -787,8 +741,7 @@ paths:
       summary: 'Удаление элемента по ID'
       description: 'Удаление элемента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID элемента'
           required: true
@@ -797,10 +750,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -814,8 +767,7 @@ paths:
       summary: 'Список контрагентов'
       description: 'Список контрагентов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID контрагента'
           style: form
@@ -824,28 +776,24 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
-        -
-          name: name
+        - name: name
           in: query
           description: 'Наименование контрагента (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: active
+        - name: active
           in: query
           description: 'Активность (0 - Не активен, 1 - Активен)'
           schema:
             type: integer
-        -
-          name: 'typeIDs[]'
+        - name: 'typeIDs[]'
           in: query
           description: 'ID типов'
           schema:
             type: array
             items:
               type: integer
-        -
-          name: 'userIDs[]'
+        - name: 'userIDs[]'
           in: query
           description: 'ID пользователей'
           schema:
@@ -863,7 +811,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportPartner'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -890,7 +838,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportPartnerForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -906,8 +854,7 @@ paths:
       summary: 'Получение контрагента по ID'
       description: 'Получение контрагента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID контрагента'
           required: true
@@ -922,7 +869,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportPartner'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -935,8 +882,7 @@ paths:
       summary: 'Изменение контрагента по ID'
       description: 'Изменение контрагента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID контрагента'
           required: true
@@ -957,7 +903,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportPartnerForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -970,8 +916,7 @@ paths:
       summary: 'Удаление контрагента по ID'
       description: 'Удаление контрагента по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID контрагента'
           required: true
@@ -980,10 +925,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление контрагента по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -997,8 +942,7 @@ paths:
       summary: 'Список степеней ущерба'
       description: 'Список степеней ущерба'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID степеней ущерба'
           style: form
@@ -1007,14 +951,12 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/DamageReportStage/properties/id'
-        -
-          name: name
+        - name: name
           in: query
           description: 'Наименование степени ущерба (LIKE-поиск)'
           schema:
             type: string
-        -
-          name: code
+        - name: code
           in: query
           description: 'Коды степеней ущерба'
           style: form
@@ -1024,14 +966,12 @@ paths:
             items:
               type: string
               default: A
-        -
-          name: need_photo
+        - name: need_photo
           in: query
           description: 'Требуется фото (0 - Не требуется, 1 - Требуется)'
           schema:
             type: integer
-        -
-          name: is_active
+        - name: is_active
           in: query
           description: 'Активность (0 - Не активна, 1 - Активна)'
           schema:
@@ -1047,7 +987,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportStage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1074,7 +1014,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportStage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -1090,8 +1030,7 @@ paths:
       summary: 'Получение степени ущерба по ID'
       description: 'Получение степени ущерба по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID степени ущерба'
           required: true
@@ -1106,7 +1045,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportStage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1119,8 +1058,7 @@ paths:
       summary: 'Изменение степени ущерба по ID'
       description: 'Изменение степени ущерба по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID степени ущерба'
           required: true
@@ -1141,7 +1079,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportStage'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1154,8 +1092,7 @@ paths:
       summary: 'Удаление степени ущерба по ID'
       description: 'Удаление степени ущерба по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID степени ущерба'
           required: true
@@ -1164,10 +1101,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1195,7 +1132,7 @@ paths:
                 $ref: '#/components/schemas/DamageReportPairForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -1211,8 +1148,7 @@ paths:
       summary: 'Справочник повреждений'
       description: 'Справочник повреждений'
       parameters:
-        -
-          name: directory
+        - name: directory
           in: path
           description: "Тип справочника\n`type` - Тип повреждений `size` - Размер повреждений `status` - Статус повреждений `partner-type` - Тип контрагентов"
           required: true
@@ -1234,7 +1170,7 @@ paths:
                   $ref: '#/components/schemas/DamageReportDirectory'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1248,8 +1184,7 @@ paths:
       summary: 'Получение ОУПТС по ID'
       description: 'Получение ОУПТС по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID ОУПТС'
           required: true
@@ -1264,7 +1199,7 @@ paths:
                 $ref: '#/components/schemas/DamageReport'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -1277,8 +1212,7 @@ paths:
       summary: 'Изменение ОУПТС по ID'
       description: 'Изменение ОУПТС по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID ОУПТС'
           required: true
@@ -1299,7 +1233,7 @@ paths:
                 $ref: '#/components/schemas/DamageReport'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

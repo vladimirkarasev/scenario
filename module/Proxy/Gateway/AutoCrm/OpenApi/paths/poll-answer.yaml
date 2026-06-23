@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - poll-answer'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: poll-answer
+  - name: poll-answer
     description: 'Ответы к анкетам опросов'
 paths:
   '/client-service/poll-answer/{id}':
@@ -22,8 +18,7 @@ paths:
       summary: 'Ответы на вопросы опроса'
       description: 'Ответы на вопросы опроса'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID опроса'
           required: true
@@ -38,7 +33,7 @@ paths:
                 $ref: '#/components/schemas/PollAnswerForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Опрос не найден'
           content:
@@ -51,8 +46,7 @@ paths:
       summary: 'Ответы на вопросы опроса'
       description: 'Ответы на вопросы опроса'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID опроса'
           required: true
@@ -74,7 +68,7 @@ paths:
                 $ref: '#/components/schemas/PollAnswerForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Опрос не найден'
           content:

@@ -42,7 +42,8 @@ final readonly class ImportService
         private DirectoryImportPayloadNormalizer $normalizer,
         private DirectoryImportRowProcessor $rowProcessor,
         private Container $container,
-    ) {}
+    ) {
+    }
 
     public function queue(DirectoryImportData $data): DirectoryImport
     {
@@ -78,7 +79,7 @@ final readonly class ImportService
 
     public function start(int $directoryImportId): void
     {
-        if (! $this->markAsProcessing($directoryImportId)) {
+        if (!$this->markAsProcessing($directoryImportId)) {
             return;
         }
 
@@ -96,7 +97,7 @@ final readonly class ImportService
         $source->start($import, $this->importChunkCallback());
     }
 
-    /** @param Collection<int, array<string, mixed>> $rows */
+    /** @param  Collection<int, array<string, mixed>>  $rows */
     public function importChunk(int $directoryImportId, Collection $rows, int $baseRowNumber): void
     {
         $this->waitBeforeChunkIfConfigured();
@@ -189,7 +190,7 @@ final readonly class ImportService
     }
 
     /**
-     * @param array<int, string|null> $rowErrors
+     * @param  array<int, string|null>  $rowErrors
      */
     private function recordFailedRows(DirectoryImport $import, int $failedRows, array $rowErrors): void
     {
@@ -210,7 +211,7 @@ final readonly class ImportService
         ]);
     }
 
-    /** @param list<string> $processedKeys */
+    /** @param  list<string>  $processedKeys */
     private function rememberProcessedKeys(DirectoryImport $import, array $processedKeys): void
     {
         if ($processedKeys === []) {
@@ -221,7 +222,7 @@ final readonly class ImportService
             $locked = $this->imports->lockForUpdateOrFail($import->id);
             $knownKeys = array_filter(
                 $locked->processed_keys_json ?? [],
-                static fn (string $key): bool => $key !== '',
+                static fn(string $key): bool => $key !== '',
             );
 
             $this->imports->update($locked, [
@@ -245,7 +246,7 @@ final readonly class ImportService
         $processedKeys = array_values(
             array_filter(
                 $import->processed_keys_json ?? [],
-                static fn (string $key): bool => $key !== '',
+                static fn(string $key): bool => $key !== '',
             ),
         );
 
@@ -259,7 +260,7 @@ final readonly class ImportService
     private function shouldActivateVersion(DirectoryImport $import): bool
     {
         return $import->directory_version_id !== null
-            && (bool) ($import->remote_config_json['activate_on_success'] ?? true);
+            && (bool)($import->remote_config_json['activate_on_success'] ?? true);
     }
 
     private function activateImportedVersion(DirectoryImport $import): void
@@ -276,7 +277,7 @@ final readonly class ImportService
         $this->container->make(DirectoryCacheService::class)->forgetDirectory($directory);
     }
 
-    /** @param array<int, array<string, mixed>> $normalizedFields */
+    /** @param  array<int, array<string, mixed>>  $normalizedFields */
     private function targetVersionFor(DirectoryImportData $data, array $normalizedFields): DirectoryVersion
     {
         if ($data->versionId !== null) {
@@ -289,7 +290,7 @@ final readonly class ImportService
         return $this->createImportVersion($data, $normalizedFields);
     }
 
-    /** @param array<int, array<string, mixed>> $normalizedFields */
+    /** @param  array<int, array<string, mixed>>  $normalizedFields */
     private function createImportVersion(DirectoryImportData $data, array $normalizedFields): DirectoryVersion
     {
         $sourceVersion = $this->versions->activeOrFirst($data->directory);
@@ -308,7 +309,7 @@ final readonly class ImportService
     }
 
     /**
-     * @param  array<string, mixed> $sourcePayload
+     * @param  array<string, mixed>  $sourcePayload
      * @return array<string, mixed>
      */
     private function remoteConfigFor(array $sourcePayload, DirectoryImportData $data): array
@@ -401,7 +402,7 @@ final readonly class ImportService
         $parentKeyField = $import->parent_key_field;
         $versionId = $import->directory_version_id;
 
-        if (! is_string($parentKeyField) || $versionId === null) {
+        if (!is_string($parentKeyField) || $versionId === null) {
             return;
         }
 
@@ -421,7 +422,7 @@ final readonly class ImportService
                 continue;
             }
 
-            $parentId = $keyToId->get(is_scalar($parentKeyValue) ? (string) $parentKeyValue : '');
+            $parentId = $keyToId->get(is_scalar($parentKeyValue) ? (string)$parentKeyValue : '');
 
             // Пропустить самоссылку
             if ($parentId === null || $parentId === $item->id) {

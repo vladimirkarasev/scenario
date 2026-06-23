@@ -47,29 +47,29 @@ final class ScenarioRunControllerTest extends TestCase
     private function makeScenarioWithBlock(string $blockNodeId, array $fields = []): array
     {
         $scenario = Scenario::query()->create(['name' => 'Test', 'is_active' => true]);
-        $version  = ScenarioVersion::query()->create(['scenario_id' => $scenario->id, 'status' => 'active']);
+        $version = ScenarioVersion::query()->create(['scenario_id' => $scenario->id, 'status' => 'active']);
 
         $this->createRevision($version, [
             'nodes_json' => [
                 [
-                    'id'   => 'node_start',
+                    'id' => 'node_start',
                     'type' => 'start',
                     'data' => [],
                 ],
                 [
-                    'id'   => $blockNodeId,
+                    'id' => $blockNodeId,
                     'type' => 'block',
                     'data' => ['title' => 'Step', 'fields' => $fields],
                 ],
                 [
-                    'id'   => 'node_end',
+                    'id' => 'node_end',
                     'type' => 'end',
                     'data' => ['title' => 'Готово'],
                 ],
             ],
             'edges_json' => [
                 ['id' => 'e1', 'source' => 'node_start', 'target' => $blockNodeId],
-                ['id' => 'e2', 'source' => $blockNodeId,  'target' => 'node_end'],
+                ['id' => 'e2', 'source' => $blockNodeId, 'target' => 'node_end'],
             ],
         ]);
 
@@ -122,7 +122,7 @@ final class ScenarioRunControllerTest extends TestCase
     public function test_show_returns_run_payload(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block');
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -149,7 +149,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'full_name', 'type' => 'input', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -166,7 +166,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'comment', 'type' => 'textarea', 'required' => false],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -178,7 +178,7 @@ final class ScenarioRunControllerTest extends TestCase
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block');
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -194,7 +194,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'full_name', 'type' => 'input', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)
@@ -210,7 +210,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'agree', 'type' => 'checkbox', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)
@@ -230,7 +230,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'email', 'type' => 'email', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)
@@ -248,7 +248,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'email', 'type' => 'email', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -266,7 +266,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'age', 'type' => 'number', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)
@@ -286,7 +286,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'bio', 'type' => 'textarea', 'required' => false, 'maxLength' => 50],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)
@@ -304,7 +304,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'bio', 'type' => 'textarea', 'required' => false, 'maxLength' => 50],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $this->actingAs($user)
@@ -322,7 +322,7 @@ final class ScenarioRunControllerTest extends TestCase
             ['name' => 'name', 'type' => 'input', 'required' => true],
         ]);
 
-        $run  = $this->createRun($scenario);
+        $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
         $response = $this->actingAs($user)

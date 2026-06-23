@@ -21,13 +21,14 @@ final class DirectoryItemController extends Controller
     public function __construct(
         private readonly DirectoryItemService $directoryItemService,
         private readonly DirectoryService $directoryService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request, Directory $directory): AnonymousResourceCollection
     {
         $this->ensureProjectAccess($request, $directory);
 
-        $rawFilter = (array) $request->input('filter', []);
+        $rawFilter = (array)$request->input('filter', []);
 
         $versionId = isset($rawFilter['version_id']) && is_string($rawFilter['version_id'])
             ? $rawFilter['version_id']
@@ -43,16 +44,18 @@ final class DirectoryItemController extends Controller
             if (in_array($key, ['version_id', 'q', 'search', 'with_other'], true)) {
                 continue;
             }
-            if (! is_string($key)) {
+            if (!is_string($key)) {
                 continue;
             }
             if (is_string($value) && $value !== '') {
                 $filters[$key] = $value;
             } elseif (is_array($value)) {
-                $cleaned = array_values(array_filter(
-                    array_map(static fn (mixed $v): string => is_string($v) ? $v : '', $value),
-                    static fn (string $v): bool => $v !== ''
-                ));
+                $cleaned = array_values(
+                    array_filter(
+                        array_map(static fn(mixed $v): string => is_string($v) ? $v : '', $value),
+                        static fn(string $v): bool => $v !== ''
+                    )
+                );
                 if ($cleaned !== []) {
                     $filters[$key] = $cleaned;
                 }
@@ -60,7 +63,7 @@ final class DirectoryItemController extends Controller
         }
 
         $filtersTo = [];
-        foreach ((array) $request->input('filter_to', []) as $key => $value) {
+        foreach ((array)$request->input('filter_to', []) as $key => $value) {
             if (is_string($key) && is_string($value) && $value !== '') {
                 $filtersTo[$key] = $value;
             }
@@ -69,7 +72,7 @@ final class DirectoryItemController extends Controller
         $sortKey = null;
         $sortDir = 'asc';
         $rawSort = $request->input('sort');
-        if (! is_string($rawSort) || $rawSort === '') {
+        if (!is_string($rawSort) || $rawSort === '') {
             $rawSort = is_string($directory->default_sort) ? $directory->default_sort : '';
         }
         if ($rawSort !== '') {
@@ -82,12 +85,24 @@ final class DirectoryItemController extends Controller
         }
 
         return DirectoryItemResource::collection(
-            $this->directoryItemService->items($directory, $versionId, $filters, $filtersTo, $search, $sortKey, $sortDir, $withOther),
+            $this->directoryItemService->items(
+                $directory,
+                $versionId,
+                $filters,
+                $filtersTo,
+                $search,
+                $sortKey,
+                $sortDir,
+                $withOther
+            ),
         );
     }
 
-    public function update(UpdateDirectoryItemRequest $request, Directory $directory, DirectoryItem $item): DirectoryItemResource
-    {
+    public function update(
+        UpdateDirectoryItemRequest $request,
+        Directory $directory,
+        DirectoryItem $item
+    ): DirectoryItemResource {
         $this->ensureProjectAccess($request, $directory);
 
         return new DirectoryItemResource(
@@ -116,11 +131,11 @@ final class DirectoryItemController extends Controller
         $this->ensureProjectAccess($request, $directory);
 
         $ids = [];
-        foreach ((array) $request->input('ids', []) as $v) {
+        foreach ((array)$request->input('ids', []) as $v) {
             if (is_int($v) && $v > 0) {
                 $ids[] = $v;
-            } elseif (is_string($v) && ctype_digit($v) && (int) $v > 0) {
-                $ids[] = (int) $v;
+            } elseif (is_string($v) && ctype_digit($v) && (int)$v > 0) {
+                $ids[] = (int)$v;
             }
         }
 

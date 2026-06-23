@@ -12,15 +12,16 @@ final class ContextualLogger implements LoggerInterface
     use LoggerTrait;
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function __construct(
         private readonly LoggerInterface $inner,
         private readonly array $context = [],
-    ) {}
+    ) {
+    }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function with(array $context): self
     {

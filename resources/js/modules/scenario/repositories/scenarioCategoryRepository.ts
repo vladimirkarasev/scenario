@@ -1,5 +1,5 @@
-import { destroyJson, getJson, sendJson } from '@/lib/http'
-import type { CategoryRef } from '@/modules/scenario/repositories/categoryRepository'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
+import type {CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
 
 interface JsonApiItem {
     id: string
@@ -50,7 +50,7 @@ export const scenarioCategoryRepository = {
         const url = `/api/scenarios/categories${qs.toString() ? `?${qs}` : ''}`
         const response = await getJson<Record<string, unknown>>(url, 'Не удалось загрузить разделы.')
         const items: CategoryRef[] = ((response.data ?? []) as JsonApiItem[]).map(normalize)
-        return { items }
+        return {items}
     },
 
     async create(payload: ScenarioCategoryPayload): Promise<CategoryRef> {

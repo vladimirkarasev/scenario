@@ -18,7 +18,8 @@ final readonly class CatalogItemRow
         public int $child_count,
         public int $scenario_count,
         public int $version_count,
-    ) {}
+    ) {
+    }
 
     public static function fromRow(object $row): self
     {
@@ -41,7 +42,7 @@ final readonly class CatalogItemRow
     {
         $value = $row->{$key} ?? null;
 
-        return is_scalar($value) ? (string) $value : '';
+        return is_scalar($value) ? (string)$value : '';
     }
 
     private static function nullableStr(object $row, string $key): ?string
@@ -52,18 +53,18 @@ final readonly class CatalogItemRow
             return null;
         }
 
-        return is_scalar($value) ? (string) $value : null;
+        return is_scalar($value) ? (string)$value : null;
     }
 
     private static function bool(object $row, string $key): bool
     {
-        return (bool) ($row->{$key} ?? false);
+        return (bool)($row->{$key} ?? false);
     }
 
     private static function int(object $row, string $key): int
     {
         $value = $row->{$key} ?? 0;
 
-        return is_scalar($value) ? (int) $value : 0;
+        return is_scalar($value) ? (int)$value : 0;
     }
 }

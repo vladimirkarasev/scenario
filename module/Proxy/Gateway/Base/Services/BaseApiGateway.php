@@ -20,7 +20,8 @@ class BaseApiGateway implements ApiGateway
         protected ApiTransport $transport,
         protected MockApiTransport $mockTransport,
         protected LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function send(ApiMethod $method): ApiGatewayResponse
     {

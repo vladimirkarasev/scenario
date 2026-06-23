@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 final readonly class UserData
 {
     /**
-     * @param string[] $roles
-     * @param string[] $groupIds
+     * @param  string[]  $roles
+     * @param  string[]  $groupIds
      */
     public function __construct(
         public string $name,
@@ -21,7 +21,8 @@ final readonly class UserData
         public ?string $password,
         public array $roles = [],
         public array $groupIds = [],
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {

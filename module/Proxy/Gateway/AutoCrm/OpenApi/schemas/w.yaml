@@ -245,18 +245,16 @@ components:
           description: 'Опции (можно получить больше информации указав expand)'
           items:
             oneOf:
-              -
-                type: array
+              - type: array
                 items:
                   type: string
-              -
-                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+              - $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'
@@ -685,18 +683,16 @@ components:
           description: 'Опции (можно получить больше информации указав expand)'
           items:
             oneOf:
-              -
-                type: array
+              - type: array
                 items:
                   type: string
-              -
-                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+              - $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'
@@ -921,23 +917,19 @@ components:
             $ref: '#/components/schemas/SupportProgram'
         maxSumFromDealer:
           oneOf:
-            -
-              type: object
+            - type: object
               properties:
                 value:
                   oneOf:
-                    -
-                      type: number
-                    -
-                      type: 'null'
+                    - type: number
+                    - type: 'null'
                   description: 'Макс. размер доп. скидки от дилера'
                 ids:
                   type: array
                   description: 'Список id скидок'
                   items:
                     type: integer
-            -
-              type: 'null'
+            - type: 'null'
           description: 'Макс. размер доп. скидки от дилера'
         sumFromDealers:
           type: array
@@ -949,10 +941,8 @@ components:
                 description: 'id дилера'
               sum:
                 oneOf:
-                  -
-                    type: number
-                  -
-                    type: 'null'
+                  - type: number
+                  - type: 'null'
                 description: 'Размер доп. скидки от дилера'
           description: 'Размеры доп. скидок от дилеров'
       description: 'Модель мотивационной программы автомобиля'
@@ -1300,13 +1290,13 @@ components:
           description: Опции
           items:
             type: object
-            properties: {  }
+            properties: { }
         programs:
           type: array
           description: 'Программы проверки автомобиля'
           items:
             type: object
-            properties: {  }
+            properties: { }
         vehicle_pts_status:
           type: string
           description: 'Статус ПТС'

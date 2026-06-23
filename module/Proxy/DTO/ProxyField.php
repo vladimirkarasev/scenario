@@ -29,7 +29,9 @@ class ProxyField
 
     private ?string $sourceFilterable = null;
 
-    protected function __construct(private readonly string $key) {}
+    protected function __construct(private readonly string $key)
+    {
+    }
 
     public static function make(string $key): static
     {
@@ -80,7 +82,7 @@ class ProxyField
         return $this;
     }
 
-    /** @param array<int, string>|string $rules */
+    /** @param  array<int, string>|string  $rules */
     public function rules(array|string $rules): static
     {
         $this->rules = is_array($rules) ? array_values($rules) : explode('|', $rules);

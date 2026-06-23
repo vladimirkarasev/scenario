@@ -20,7 +20,8 @@ final class ScenariosVersionController extends Controller
 {
     public function __construct(
         private readonly ScenarioVersionService $scenarioVersionService,
-    ) {}
+    ) {
+    }
 
     public function index(Scenario $scenario): AnonymousResourceCollection
     {

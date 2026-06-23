@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Список actions
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - name: filter[search]
         in: query
@@ -38,10 +38,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Создать action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -70,10 +70,10 @@ item:
         type: integer
 
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Получить action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Action
@@ -87,10 +87,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   put:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Обновить action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -112,10 +112,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Удалить action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Action удалён
@@ -134,10 +134,10 @@ execute:
         type: integer
 
   post:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Выполнить action синхронно
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: false
       content:
@@ -166,7 +166,7 @@ run:
         type: integer
 
   post:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Запустить action через оркестратор
     description: >
       Режим, основной список actions и lifecycle hooks передаются в теле запроса:
@@ -174,7 +174,7 @@ run:
       `failed_action_ids`. Если параметры не переданы, используется текущий action
       и fallback из `action.config` для старых записей.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: false
       content:
@@ -209,10 +209,10 @@ schedule:
         type: integer
 
   get:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Получить расписание action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: 'Расписание action или `data: null`, если расписание не задано.'
@@ -231,7 +231,7 @@ schedule:
         $ref: '../components/responses.yaml#/NotFound'
 
   put:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Создать или обновить расписание action
     description: >
       Scheduler раз в минуту запускает due-расписания командой
@@ -239,7 +239,7 @@ schedule:
       в `POST /actions/{action}/run`: `execution_mode`, `action_ids`,
       `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -261,10 +261,10 @@ schedule:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Actions]
+    tags: [ Actions ]
     summary: Удалить расписание action
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Расписание удалено

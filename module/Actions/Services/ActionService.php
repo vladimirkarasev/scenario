@@ -15,14 +15,15 @@ final class ActionService
 {
     public function __construct(
         private readonly ActionRepository $actions,
-    ) {}
+    ) {
+    }
 
     /** @return array<int, array<string, mixed>> */
     public function items(): array
     {
         return $this->actions
             ->orderedWithRecentRuns()
-            ->map(fn (Action $action): array => $this->payload($action))
+            ->map(fn(Action $action): array => $this->payload($action))
             ->values()
             ->all();
     }
@@ -80,7 +81,7 @@ final class ActionService
             'input_fields' => $action->input_fields ?? [],
             'credential_id' => $action->config['credential_id'] ?? null,
             'runs' => $action->relationLoaded('runs')
-                ? $action->runs->map(fn (ActionRun $run): array => $this->runPayload($run))->values()->all()
+                ? $action->runs->map(fn(ActionRun $run): array => $this->runPayload($run))->values()->all()
                 : [],
             'created_at' => $action->created_at?->toIso8601String(),
             'updated_at' => $action->updated_at?->toIso8601String(),

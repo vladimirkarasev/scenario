@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - model-year'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: model-year
+  - name: model-year
     description: 'Управление модельными годами'
 paths:
   /model-year:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка модельных годов'
       description: 'Получение списка модельный годов'
       parameters:
-        -
-          name: model_id
+        - name: model_id
           in: query
           description: 'id модели'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -45,7 +39,7 @@ paths:
                   $ref: '#/components/schemas/ModelYear'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/model-year/{id}':
     get:
       tags:
@@ -53,8 +47,7 @@ paths:
       summary: 'Получение модельного года по ID'
       description: 'Получение модельного года по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id модельного года'
           required: true
@@ -69,7 +62,7 @@ paths:
                 $ref: '#/components/schemas/ModelYear'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

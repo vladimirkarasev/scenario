@@ -36,14 +36,16 @@ final class UserServiceTest extends TestCase
      */
     public function test_create_persists_user_attributes(): void
     {
-        $user = $this->service->create(new UserData(
-            name: 'Иван Иванов',
-            fio: null,
-            email: 'ivan@example.com',
-            login: null,
-            externalId: null,
-            password: 'secret1234',
-        ));
+        $user = $this->service->create(
+            new UserData(
+                name: 'Иван Иванов',
+                fio: null,
+                email: 'ivan@example.com',
+                login: null,
+                externalId: null,
+                password: 'secret1234',
+            )
+        );
 
         $this->assertNotNull($user->id);
         $this->assertDatabaseHas('users', ['email' => 'ivan@example.com', 'name' => 'Иван Иванов']);
@@ -54,17 +56,19 @@ final class UserServiceTest extends TestCase
      */
     public function test_create_adds_user_to_project(): void
     {
-        $user = $this->service->create(new UserData(
-            name: 'Проектный',
-            fio: null,
-            email: 'proj-' . Str::random(6) . '@example.com',
-            login: null,
-            externalId: null,
-            password: 'secret1234',
-        ));
+        $user = $this->service->create(
+            new UserData(
+                name: 'Проектный',
+                fio: null,
+                email: 'proj-'.Str::random(6).'@example.com',
+                login: null,
+                externalId: null,
+                password: 'secret1234',
+            )
+        );
 
         $this->assertDatabaseHas('project_users', [
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'project_id' => $this->project->id,
         ]);
     }
@@ -77,14 +81,16 @@ final class UserServiceTest extends TestCase
         $this->app->instance(CurrentProject::class, new CurrentProject(null));
         $service = app(UserService::class);
 
-        $user = $service->create(new UserData(
-            name: 'Без проекта',
-            fio: null,
-            email: 'noproject-' . Str::random(6) . '@example.com',
-            login: null,
-            externalId: null,
-            password: 'secret1234',
-        ));
+        $user = $service->create(
+            new UserData(
+                name: 'Без проекта',
+                fio: null,
+                email: 'noproject-'.Str::random(6).'@example.com',
+                login: null,
+                externalId: null,
+                password: 'secret1234',
+            )
+        );
 
         $count = DB::table('project_users')->where('user_id', $user->id)->count();
         $this->assertSame(0, $count);
@@ -97,15 +103,17 @@ final class UserServiceTest extends TestCase
     {
         Role::query()->create(['name' => 'admin', 'guard_name' => 'web']);
 
-        $user = $this->service->create(new UserData(
-            name: 'Администратор',
-            fio: null,
-            email: 'admin-' . Str::random(6) . '@example.com',
-            login: null,
-            externalId: null,
-            password: 'secret1234',
-            roles: ['admin'],
-        ));
+        $user = $this->service->create(
+            new UserData(
+                name: 'Администратор',
+                fio: null,
+                email: 'admin-'.Str::random(6).'@example.com',
+                login: null,
+                externalId: null,
+                password: 'secret1234',
+                roles: ['admin'],
+            )
+        );
 
         $this->assertTrue($user->hasRole('admin'));
     }
@@ -117,14 +125,16 @@ final class UserServiceTest extends TestCase
     {
         $plainPassword = 'plaintext123';
 
-        $user = $this->service->create(new UserData(
-            name: 'User',
-            fio: null,
-            email: 'hashed-' . Str::random(6) . '@example.com',
-            login: null,
-            externalId: null,
-            password: $plainPassword,
-        ));
+        $user = $this->service->create(
+            new UserData(
+                name: 'User',
+                fio: null,
+                email: 'hashed-'.Str::random(6).'@example.com',
+                login: null,
+                externalId: null,
+                password: $plainPassword,
+            )
+        );
 
         $stored = User::query()->find($user->id);
         $this->assertTrue(Hash::check($plainPassword, $stored->password));
@@ -138,14 +148,17 @@ final class UserServiceTest extends TestCase
     {
         $user = User::factory()->create(['name' => 'Старое имя']);
 
-        $this->service->update(new UserData(
-            name: 'Новое имя',
-            fio: null,
-            email: $user->email,
-            login: null,
-            externalId: null,
-            password: null,
-        ), $user);
+        $this->service->update(
+            new UserData(
+                name: 'Новое имя',
+                fio: null,
+                email: $user->email,
+                login: null,
+                externalId: null,
+                password: null,
+            ),
+            $user
+        );
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Новое имя']);
     }
@@ -155,17 +168,20 @@ final class UserServiceTest extends TestCase
      */
     public function test_update_hashes_new_password_when_provided(): void
     {
-        $user         = User::factory()->create();
-        $newPassword  = 'new-secure-pass';
+        $user = User::factory()->create();
+        $newPassword = 'new-secure-pass';
 
-        $this->service->update(new UserData(
-            name: $user->name,
-            fio: null,
-            email: $user->email,
-            login: null,
-            externalId: null,
-            password: $newPassword,
-        ), $user);
+        $this->service->update(
+            new UserData(
+                name: $user->name,
+                fio: null,
+                email: $user->email,
+                login: null,
+                externalId: null,
+                password: $newPassword,
+            ),
+            $user
+        );
 
         $stored = User::query()->find($user->id);
         $this->assertTrue(Hash::check($newPassword, $stored->password));
@@ -176,17 +192,20 @@ final class UserServiceTest extends TestCase
      */
     public function test_update_does_not_change_password_when_null(): void
     {
-        $user           = User::factory()->create();
-        $originalHash   = $user->password;
+        $user = User::factory()->create();
+        $originalHash = $user->password;
 
-        $this->service->update(new UserData(
-            name: $user->name,
-            fio: null,
-            email: $user->email,
-            login: null,
-            externalId: null,
-            password: null,
-        ), $user);
+        $this->service->update(
+            new UserData(
+                name: $user->name,
+                fio: null,
+                email: $user->email,
+                login: null,
+                externalId: null,
+                password: null,
+            ),
+            $user
+        );
 
         $stored = User::query()->find($user->id);
         $this->assertSame($originalHash, $stored->password);
@@ -224,11 +243,11 @@ final class UserServiceTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project',
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project',
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 }

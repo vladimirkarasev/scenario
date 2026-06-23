@@ -309,16 +309,12 @@ components:
       description: 'Модель загрузки результата проверки скана согласия на обработку персональных данных'
     PersonalDataAgreementEventWithAppealStatus:
       allOf:
-        -
-          $ref: '#/components/schemas/PersonalDataAgreementEvent'
-        -
-          properties:
+        - $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        - properties:
             appeal_status:
               oneOf:
-                -
-                  type: string
-                -
-                  type: 'null'
+                - type: string
+                - type: 'null'
               description: 'Статус апелляции'
     PersonalDataAgreementPhone:
       type: object
@@ -527,7 +523,7 @@ components:
       properties:
         data:
           type: object
-          properties: {  }
+          properties: { }
           description: 'Данные ответов на вопросы'
         scheduledAt:
           type: string

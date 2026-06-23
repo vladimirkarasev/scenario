@@ -9,16 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int                       $id
- * @property string                    $action_id
- * @property bool                      $enabled
- * @property string|null               $cron
- * @property string                    $timezone
+ * @property int $id
+ * @property string $action_id
+ * @property bool $enabled
+ * @property string|null $cron
+ * @property string $timezone
  * @property array<string, mixed>|null $input
  * @property array<string, mixed>|null $options
  * @property array<string, mixed>|null $settings
- * @property Carbon|null               $last_run_at
- * @property Carbon|null               $next_run_at
+ * @property Carbon|null $last_run_at
+ * @property Carbon|null $next_run_at
  */
 final class ActionSchedule extends Model
 {

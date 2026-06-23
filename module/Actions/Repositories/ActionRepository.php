@@ -19,7 +19,7 @@ final class ActionRepository
         return Action::query()
             ->with([
                 'schedule',
-                'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
+                'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
             ])
             ->when($filters->search !== null, static function (Builder $query) use ($filters): void {
                 $query->where(static function (Builder $query) use ($filters): void {
@@ -28,8 +28,11 @@ final class ActionRepository
                         ->orWhere('key', 'like', "%{$filters->search}%");
                 });
             })
-            ->when($filters->type !== null, static fn (Builder $query): Builder => $query->where('type', $filters->type))
-            ->when($filters->isActive !== null, static fn (Builder $query): Builder => $query->where('is_active', $filters->isActive))
+            ->when($filters->type !== null, static fn(Builder $query): Builder => $query->where('type', $filters->type))
+            ->when(
+                $filters->isActive !== null,
+                static fn(Builder $query): Builder => $query->where('is_active', $filters->isActive)
+            )
             ->orderBy('name')
             ->paginate($filters->perPage, ['*'], 'page[number]');
     }
@@ -40,19 +43,19 @@ final class ActionRepository
         return Action::query()
             ->with([
                 'schedule',
-                'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
+                'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
             ])
             ->orderBy('name')
             ->get();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): Action
     {
         return Action::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(Action $action, array $attributes): Action
     {
         $action->fill($attributes);
@@ -70,7 +73,7 @@ final class ActionRepository
     {
         return $action->load([
             'schedule',
-            'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
+            'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
         ]);
     }
 }

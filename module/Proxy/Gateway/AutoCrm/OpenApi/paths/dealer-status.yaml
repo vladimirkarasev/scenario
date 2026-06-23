@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - dealer-status'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: dealer-status
+  - name: dealer-status
     description: 'Управление статусами дилеров'
 paths:
   /dealer-status:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение статусов дилера'
       description: 'Получение статусов дилера'
       parameters:
-        -
-          name: statusName
+        - name: statusName
           in: query
           description: 'Имя ошибки'
           schema:
@@ -39,4 +34,4 @@ paths:
                   $ref: '#/components/schemas/DealerStatus'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

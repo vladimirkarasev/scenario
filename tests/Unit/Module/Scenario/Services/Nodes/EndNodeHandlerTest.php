@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\Nodes\EndNodeHandler;
+use Module\Scenario\Services\Nodes\End\EndNodeHandler;
 use Tests\TestCase;
 
 final class EndNodeHandlerTest extends TestCase
@@ -42,7 +42,10 @@ final class EndNodeHandlerTest extends TestCase
     {
         $scenario = Scenario::query()->create(['name' => 'S', 'is_active' => true]);
         $version = ScenarioVersion::query()->create(['scenario_id' => $scenario->id]);
-        $revision = $this->createRevision($version, ['nodes_json' => [['id' => 'node_end', 'type' => 'end', 'data' => []]], 'edges_json' => []]);
+        $revision = $this->createRevision(
+            $version,
+            ['nodes_json' => [['id' => 'node_end', 'type' => 'end', 'data' => []]], 'edges_json' => []]
+        );
         $run = ScenarioRun::query()->create([
             'scenario_id' => $scenario->id,
             'scenario_version_id' => $version->id,
@@ -83,7 +86,7 @@ final class EndNodeHandlerTest extends TestCase
 
         $result = $this->handler->render($this->version, $node, []);
 
-        $this->assertSame('Completed', $result['title']);
+        $this->assertSame('Все шаги успешно пройдены', $result['title']);
     }
 
     public function test_render_resolves_template_in_title(): void

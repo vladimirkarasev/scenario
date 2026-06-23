@@ -17,15 +17,15 @@ use Module\Groups\QueryBuilders\UserGroupBuilder;
 use Module\Scenario\Models\Scenario;
 
 /**
- * @property string      $id
+ * @property string $id
  * @property string|null $site_id
- * @property string      $name
- * @property string      $slug
+ * @property string $name
+ * @property string $slug
  * @property string|null $ext_id
  * @property string|null $description
- * @property bool        $is_active
- * @property int|null    $created_by
- * @property int|null    $updated_by
+ * @property bool $is_active
+ * @property int|null $created_by
+ * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int|null $members_count

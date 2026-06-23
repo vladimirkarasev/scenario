@@ -16,7 +16,9 @@ use Module\Actions\Services\Handlers\TemplateFileActionHandler;
 
 final readonly class ActionRegistry
 {
-    public function __construct(private Container $container) {}
+    public function __construct(private Container $container)
+    {
+    }
 
     public function handlerFor(string $type): ActionHandlerInterface
     {

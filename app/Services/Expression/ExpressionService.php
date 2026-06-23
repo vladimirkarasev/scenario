@@ -51,7 +51,7 @@ final readonly class ExpressionService
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function evaluate(string $expression, array $context = []): mixed
     {
@@ -64,18 +64,18 @@ final readonly class ExpressionService
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function render(mixed $value, array $context = [], bool $emptyExpressionValueAsBlank = false): mixed
     {
         if (is_array($value)) {
             return array_map(
-                fn (mixed $item): mixed => $this->render($item, $context, $emptyExpressionValueAsBlank),
+                fn(mixed $item): mixed => $this->render($item, $context, $emptyExpressionValueAsBlank),
                 $value,
             );
         }
 
-        if (! is_string($value)) {
+        if (!is_string($value)) {
             return $value;
         }
 
@@ -83,14 +83,17 @@ final readonly class ExpressionService
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
-    public function renderString(string $template, array $context = [], bool $emptyExpressionValueAsBlank = false): string
-    {
+    public function renderString(
+        string $template,
+        array $context = [],
+        bool $emptyExpressionValueAsBlank = false
+    ): string {
         return preg_replace_callback(
             self::TEMPLATE_PATTERN,
             function (array $matches) use ($context, $emptyExpressionValueAsBlank): string {
-                $inner = trim((string) ($matches[1] ?: ($matches[2] ?? '')));
+                $inner = trim((string)($matches[1] ?: ($matches[2] ?? '')));
 
                 // Спец-суффикс ._array — вернуть значение как JSON-массив (для multiple-полей).
                 if (preg_match('/^(.+)\._array$/u', $inner, $m) === 1) {
@@ -111,7 +114,7 @@ final readonly class ExpressionService
 
     private function registerFunctions(): void
     {
-        $notCompilable = static fn (): string => throw new \LogicException(
+        $notCompilable = static fn(): string => throw new \LogicException(
             'compile() is not supported for application expressions',
         );
 
@@ -119,7 +122,7 @@ final readonly class ExpressionService
             $this->expressionLanguage->register(
                 $function->name(),
                 $notCompilable,
-                static fn (array $context, mixed ...$args): mixed => $function->evaluate($context, ...$args),
+                static fn(array $context, mixed ...$args): mixed => $function->evaluate($context, ...$args),
             );
         }
     }
@@ -140,7 +143,7 @@ final readonly class ExpressionService
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     private function renderAsArray(string $expression, array $context, bool $emptyExpressionValueAsBlank): string
     {
@@ -150,7 +153,7 @@ final readonly class ExpressionService
             $value = $value->jsonSerialize();
         }
 
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return $this->stringify($value, $emptyExpressionValueAsBlank);
         }
 
@@ -163,7 +166,7 @@ final readonly class ExpressionService
 
         foreach (self::WRAPPED_EXPRESSION_PATTERNS as $pattern) {
             if (preg_match($pattern, $expression, $matches) === 1) {
-                return trim((string) $matches[1]);
+                return trim((string)$matches[1]);
             }
         }
 
@@ -171,13 +174,13 @@ final readonly class ExpressionService
     }
 
     /**
-     * @param  array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     private function normalizeContext(array $context, string $expression): array
     {
         $context = array_map(
-            fn (mixed $value): mixed => $this->normalizeValue($value),
+            fn(mixed $value): mixed => $this->normalizeValue($value),
             $context,
         );
 
@@ -190,20 +193,20 @@ final readonly class ExpressionService
 
     private function normalizeValue(mixed $value): mixed
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return $value;
         }
 
         if (array_is_list($value)) {
             return array_map(
-                fn (mixed $item): mixed => $this->normalizeValue($item),
+                fn(mixed $item): mixed => $this->normalizeValue($item),
                 $value,
             );
         }
 
         $normalized = [];
         foreach ($value as $key => $item) {
-            $normalized[(string) $key] = $this->normalizeValue($item);
+            $normalized[(string)$key] = $this->normalizeValue($item);
         }
 
         return new ExpressionValue($normalized);
@@ -213,7 +216,7 @@ final readonly class ExpressionService
      * Если массив — это список shapes (DirectoryList или Select) с полем label,
      * вернёт массив лейблов. Иначе null.
      *
-     * @param  list<mixed>       $value
+     * @param  list<mixed>  $value
      * @return list<string>|null
      */
     private function collectShapeLabels(array $value): ?array
@@ -297,7 +300,7 @@ final readonly class ExpressionService
         }
 
         if (is_int($value) || is_float($value)) {
-            return (string) $value;
+            return (string)$value;
         }
 
         if (is_string($value)) {
@@ -315,9 +318,9 @@ final readonly class ExpressionService
         preg_match_all('/\b[a-zA-Z_][a-zA-Z0-9_]*\b/', $expression, $matches);
 
         return array_filter(
-            $matches[0],
-            fn (string $name): bool => ! in_array($name, self::RESERVED_NAMES, true),
-        )
+                $matches[0],
+                fn(string $name): bool => !in_array($name, self::RESERVED_NAMES, true),
+            )
                 |> array_unique(...)
                 |> array_values(...);
     }

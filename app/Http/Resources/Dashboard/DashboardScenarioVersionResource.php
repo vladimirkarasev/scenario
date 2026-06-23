@@ -27,7 +27,7 @@ final class DashboardScenarioVersionResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'revisions' => $this->relationLoaded('revisions')
-                ? $this->revisions->map(fn (ScenarioVersionRevision $revision): array => [
+                ? $this->revisions->map(fn(ScenarioVersionRevision $revision): array => [
                     'id' => $revision->id,
                     'created_at' => $revision->created_at?->toIso8601String(),
                 ])->values()

@@ -1,5 +1,5 @@
-import { destroyJson, getJson, sendJson } from '@/lib/http'
-import type { ActionSchedule, ScheduleListItem, SchedulePayload } from '@/modules/actions/types/action'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
+import type {ActionSchedule, ScheduleListItem, SchedulePayload} from '@/modules/actions/types/action'
 
 interface JsonApiItem {
     id: string

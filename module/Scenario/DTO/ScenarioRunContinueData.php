@@ -8,11 +8,12 @@ use Illuminate\Http\Request;
 
 final readonly class ScenarioRunContinueData
 {
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function __construct(
         public array $input,
         public ?string $selectedTargetNodeId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
@@ -27,7 +28,7 @@ final readonly class ScenarioRunContinueData
     /** @return array<string, mixed> */
     private static function arrayInput(mixed $value): array
     {
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return [];
         }
         $result = [];

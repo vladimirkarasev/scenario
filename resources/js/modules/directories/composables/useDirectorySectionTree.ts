@@ -1,214 +1,220 @@
-import { computed, onMounted, ref } from 'vue'
-import { categoryRepository, type CategoryRef } from '@/modules/scenario/repositories/categoryRepository'
+import {computed, onMounted, ref} from 'vue'
+import {categoryRepository, type CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
 
 export interface SectionNode extends CategoryRef {
-  children: SectionNode[]
+    children: SectionNode[]
 }
 
 export interface FlatSectionItem {
-  section: SectionNode
-  depth: number
-  hasChildren: boolean
+    section: SectionNode
+    depth: number
+    hasChildren: boolean
 }
 
 export function useDirectorySectionTree() {
-  const sections           = ref<CategoryRef[]>([])
-  const loading            = ref(false)
-  const loadedParents      = ref(new Set<string | null>())
-  const activeSection      = ref<string | 'all'>('all')
-  const expandedIds        = ref(new Set<string>())
-  // Stable ref for directory list filtering — only updated after children finish loading,
-  // so the directory list fires exactly one request per section click.
-  const categoryFilterIds  = ref<string[]>([])
+    const sections = ref<CategoryRef[]>([])
+    const loading = ref(false)
+    const loadedParents = ref(new Set<string | null>())
+    const activeSection = ref<string | 'all'>('all')
+    const expandedIds = ref(new Set<string>())
+    // Stable ref for directory list filtering — only updated after children finish loading,
+    // so the directory list fires exactly one request per section click.
+    const categoryFilterIds = ref<string[]>([])
 
-  // ── Tree construction ────────────────────────────────────────────────
+    // ── Tree construction ────────────────────────────────────────────────
 
-  const sectionTree = computed<SectionNode[]>(() => {
-    const map   = new Map<string, SectionNode>()
-    const roots: SectionNode[] = []
-    for (const c of sections.value) map.set(c.id, { ...c, children: [] })
-    for (const c of sections.value) {
-      const node = map.get(c.id)!
-      if (c.parent_id !== null && map.has(c.parent_id)) {
-        map.get(c.parent_id)!.children.push(node)
-      } else if (c.parent_id === null || !map.has(c.parent_id)) {
-        roots.push(node)
-      }
+    const sectionTree = computed<SectionNode[]>(() => {
+        const map = new Map<string, SectionNode>()
+        const roots: SectionNode[] = []
+        for (const c of sections.value) map.set(c.id, {...c, children: []})
+        for (const c of sections.value) {
+            const node = map.get(c.id)!
+            if (c.parent_id !== null && map.has(c.parent_id)) {
+                map.get(c.parent_id)!.children.push(node)
+            } else if (c.parent_id === null || !map.has(c.parent_id)) {
+                roots.push(node)
+            }
+        }
+        return roots
+    })
+
+    const sidebarItems = computed<FlatSectionItem[]>(() => flatten(sectionTree.value, 0))
+
+    const allSectionsFlat = computed<{ id: string; name: string; depth: number }[]>(() => {
+        const result: { id: string; name: string; depth: number }[] = []
+
+        function walk(nodes: SectionNode[], depth: number): void {
+            for (const n of nodes) {
+                result.push({id: n.id, name: n.name, depth})
+                if (n.children.length) walk(n.children, depth + 1)
+            }
+        }
+
+        walk(sectionTree.value, 0)
+        return result
+    })
+
+    const currentSectionName = computed(() =>
+        activeSection.value === 'all'
+            ? 'Справочники'
+            : sections.value.find(c => c.id === activeSection.value)?.name ?? '—',
+    )
+
+    const visibleSubsections = computed<SectionNode[]>(() => {
+        if (activeSection.value === 'all') return sectionTree.value
+        const find = (nodes: SectionNode[]): SectionNode | undefined => {
+            for (const n of nodes) {
+                if (n.id === activeSection.value) return n
+                const found = find(n.children)
+                if (found) return found
+            }
+        }
+        return find(sectionTree.value)?.children ?? []
+    })
+
+    // ── Loading ──────────────────────────────────────────────────────────
+
+    async function loadByParent(parentId: string | null): Promise<void> {
+        if (loadedParents.value.has(parentId)) return
+        loading.value = true
+        try {
+            const result = await categoryRepository.list(parentId)
+            const incoming = result.items.filter(c => !sections.value.some(s => s.id === c.id))
+            sections.value = [...sections.value, ...incoming]
+            loadedParents.value = new Set([...loadedParents.value, parentId])
+        } catch { /* silent */
+        } finally {
+            loading.value = false
+        }
     }
-    return roots
-  })
 
-  const sidebarItems = computed<FlatSectionItem[]>(() => flatten(sectionTree.value, 0))
+    onMounted(() => loadByParent(null))
 
-  const allSectionsFlat = computed<{ id: string; name: string; depth: number }[]>(() => {
-    const result: { id: string; name: string; depth: number }[] = []
-    function walk(nodes: SectionNode[], depth: number): void {
-      for (const n of nodes) {
-        result.push({ id: n.id, name: n.name, depth })
-        if (n.children.length) walk(n.children, depth + 1)
-      }
+    // ── Expand / select ──────────────────────────────────────────────────
+
+    async function toggleExpand(id: string): Promise<void> {
+        if (expandedIds.value.has(id)) {
+            const next = new Set(expandedIds.value)
+            next.delete(id)
+            expandedIds.value = next
+            return
+        }
+        const node = sections.value.find(s => s.id === id)
+        if (node && node.children_count > 0) {
+            await loadByParent(id)
+        }
+        const next = new Set(expandedIds.value)
+        next.add(id)
+        expandedIds.value = next
     }
-    walk(sectionTree.value, 0)
-    return result
-  })
 
-  const currentSectionName = computed(() =>
-    activeSection.value === 'all'
-      ? 'Справочники'
-      : sections.value.find(c => c.id === activeSection.value)?.name ?? '—',
-  )
-
-  const visibleSubsections = computed<SectionNode[]>(() => {
-    if (activeSection.value === 'all') return sectionTree.value
-    const find = (nodes: SectionNode[]): SectionNode | undefined => {
-      for (const n of nodes) {
-        if (n.id === activeSection.value) return n
-        const found = find(n.children)
-        if (found) return found
-      }
+    function expandParents(nodes: SectionNode[], targetId: string, acc: Set<string>): boolean {
+        for (const n of nodes) {
+            if (n.id === targetId) return true
+            if (expandParents(n.children, targetId, acc)) {
+                acc.add(n.id)
+                return true
+            }
+        }
+        return false
     }
-    return find(sectionTree.value)?.children ?? []
-  })
 
-  // ── Loading ──────────────────────────────────────────────────────────
-
-  async function loadByParent(parentId: string | null): Promise<void> {
-    if (loadedParents.value.has(parentId)) return
-    loading.value = true
-    try {
-      const result = await categoryRepository.list(parentId)
-      const incoming = result.items.filter(c => !sections.value.some(s => s.id === c.id))
-      sections.value = [...sections.value, ...incoming]
-      loadedParents.value = new Set([...loadedParents.value, parentId])
-    } catch { /* silent */ }
-    finally { loading.value = false }
-  }
-
-  onMounted(() => loadByParent(null))
-
-  // ── Expand / select ──────────────────────────────────────────────────
-
-  async function toggleExpand(id: string): Promise<void> {
-    if (expandedIds.value.has(id)) {
-      const next = new Set(expandedIds.value)
-      next.delete(id)
-      expandedIds.value = next
-      return
+    async function selectSection(id: string | 'all'): Promise<void> {
+        activeSection.value = id
+        if (id === 'all') {
+            categoryFilterIds.value = []
+            return
+        }
+        const next = new Set(expandedIds.value)
+        next.add(id)
+        expandParents(sectionTree.value, id, next)
+        expandedIds.value = next
+        const node = sections.value.find(s => s.id === id)
+        if (node && node.children_count > 0) {
+            await loadByParent(id)
+        }
+        // Show directories attached to the selected section; children are loaded as folders.
+        categoryFilterIds.value = [id]
     }
-    const node = sections.value.find(s => s.id === id)
-    if (node && node.children_count > 0) {
-      await loadByParent(id)
+
+    // ── Counts ───────────────────────────────────────────────────────────
+
+    function descendantIds(id: string): Set<string> {
+        const ids = new Set<string>([id])
+
+        function walk(nodes: SectionNode[]): void {
+            for (const n of nodes) {
+                if (n.parent_id !== null && ids.has(n.parent_id)) ids.add(n.id)
+                if (n.children.length) walk(n.children)
+            }
+        }
+
+        for (let i = 0; i < 5; i++) walk(sectionTree.value)
+        return ids
     }
-    const next = new Set(expandedIds.value)
-    next.add(id)
-    expandedIds.value = next
-  }
 
-  function expandParents(nodes: SectionNode[], targetId: string, acc: Set<string>): boolean {
-    for (const n of nodes) {
-      if (n.id === targetId) return true
-      if (expandParents(n.children, targetId, acc)) {
-        acc.add(n.id)
-        return true
-      }
+    function countInSection(id: string): number {
+        // Uses children_count from loaded nodes as a lightweight indicator
+        const node = sections.value.find(s => s.id === id)
+        return node?.children_count ?? 0
     }
-    return false
-  }
 
-  async function selectSection(id: string | 'all'): Promise<void> {
-    activeSection.value = id
-    if (id === 'all') {
-      categoryFilterIds.value = []
-      return
+    // ── Mutations (for CRUD) ─────────────────────────────────────────────
+
+    function addSection(section: CategoryRef): void {
+        if (!sections.value.some(s => s.id === section.id)) {
+            sections.value = [...sections.value, section]
+        }
+        // Mark parent as loaded so children aren't re-fetched over this new entry
+        if (section.parent_id !== null) {
+            loadedParents.value = new Set([...loadedParents.value, section.parent_id])
+        }
     }
-    const next = new Set(expandedIds.value)
-    next.add(id)
-    expandParents(sectionTree.value, id, next)
-    expandedIds.value = next
-    const node = sections.value.find(s => s.id === id)
-    if (node && node.children_count > 0) {
-      await loadByParent(id)
+
+    function updateSection(updated: CategoryRef): void {
+        const idx = sections.value.findIndex(s => s.id === updated.id)
+        if (idx !== -1) {
+            const next = [...sections.value]
+            next[idx] = updated
+            sections.value = next
+        }
     }
-    // Show directories attached to the selected section; children are loaded as folders.
-    categoryFilterIds.value = [id]
-  }
 
-  // ── Counts ───────────────────────────────────────────────────────────
-
-  function descendantIds(id: string): Set<string> {
-    const ids = new Set<string>([id])
-    function walk(nodes: SectionNode[]): void {
-      for (const n of nodes) {
-        if (n.parent_id !== null && ids.has(n.parent_id)) ids.add(n.id)
-        if (n.children.length) walk(n.children)
-      }
+    function removeSection(id: string): void {
+        sections.value = sections.value.filter(s => s.id !== id)
     }
-    for (let i = 0; i < 5; i++) walk(sectionTree.value)
-    return ids
-  }
 
-  function countInSection(id: string): number {
-    // Uses children_count from loaded nodes as a lightweight indicator
-    const node = sections.value.find(s => s.id === id)
-    return node?.children_count ?? 0
-  }
+    // ── Helpers ──────────────────────────────────────────────────────────
 
-  // ── Mutations (for CRUD) ─────────────────────────────────────────────
-
-  function addSection(section: CategoryRef): void {
-    if (!sections.value.some(s => s.id === section.id)) {
-      sections.value = [...sections.value, section]
+    function flatten(nodes: SectionNode[], depth: number): FlatSectionItem[] {
+        const result: FlatSectionItem[] = []
+        for (const n of nodes) {
+            const hasChildren = n.children_count > 0
+            result.push({section: n, depth, hasChildren})
+            if (n.children.length && expandedIds.value.has(n.id)) {
+                result.push(...flatten(n.children, depth + 1))
+            }
+        }
+        return result
     }
-    // Mark parent as loaded so children aren't re-fetched over this new entry
-    if (section.parent_id !== null) {
-      loadedParents.value = new Set([...loadedParents.value, section.parent_id])
+
+    return {
+        sections,
+        loading,
+        activeSection,
+        expandedIds,
+        categoryFilterIds,
+        sectionTree,
+        sidebarItems,
+        allSectionsFlat,
+        visibleSubsections,
+        currentSectionName,
+        toggleExpand,
+        selectSection,
+        descendantIds,
+        countInSection,
+        addSection,
+        updateSection,
+        removeSection,
     }
-  }
-
-  function updateSection(updated: CategoryRef): void {
-    const idx = sections.value.findIndex(s => s.id === updated.id)
-    if (idx !== -1) {
-      const next = [...sections.value]
-      next[idx] = updated
-      sections.value = next
-    }
-  }
-
-  function removeSection(id: string): void {
-    sections.value = sections.value.filter(s => s.id !== id)
-  }
-
-  // ── Helpers ──────────────────────────────────────────────────────────
-
-  function flatten(nodes: SectionNode[], depth: number): FlatSectionItem[] {
-    const result: FlatSectionItem[] = []
-    for (const n of nodes) {
-      const hasChildren = n.children_count > 0
-      result.push({ section: n, depth, hasChildren })
-      if (n.children.length && expandedIds.value.has(n.id)) {
-        result.push(...flatten(n.children, depth + 1))
-      }
-    }
-    return result
-  }
-
-  return {
-    sections,
-    loading,
-    activeSection,
-    expandedIds,
-    categoryFilterIds,
-    sectionTree,
-    sidebarItems,
-    allSectionsFlat,
-    visibleSubsections,
-    currentSectionName,
-    toggleExpand,
-    selectSection,
-    descendantIds,
-    countInSection,
-    addSection,
-    updateSection,
-    removeSection,
-  }
 }

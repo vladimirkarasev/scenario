@@ -141,7 +141,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string) $version->id,
+            versionId: (string)$version->id,
             withOther: true,
         );
 
@@ -169,7 +169,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string) $version->id,
+            versionId: (string)$version->id,
             withOther: true,
         );
 
@@ -191,7 +191,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string) $version->id,
+            versionId: (string)$version->id,
             withOther: false,
         );
 
@@ -211,7 +211,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string) $version->id,
+            versionId: (string)$version->id,
             withOther: true,
         );
 
@@ -247,7 +247,7 @@ final class DirectoryItemServiceTest extends TestCase
         ]);
     }
 
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     private function makeItem(DirectoryVersion $version, array $data = []): DirectoryItem
     {
         return DirectoryItem::query()->create([

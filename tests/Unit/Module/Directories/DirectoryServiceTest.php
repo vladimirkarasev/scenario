@@ -80,7 +80,7 @@ final class DirectoryServiceTest extends TestCase
     private function makeProject(string $sitekey, string $host = 'localhost'): Project
     {
         return Project::query()->create([
-            'name' => 'Project ' . $sitekey,
+            'name' => 'Project '.$sitekey,
             'sitekey' => $sitekey,
             'host' => $host,
             'is_active' => true,
@@ -91,8 +91,8 @@ final class DirectoryServiceTest extends TestCase
     {
         return Directory::query()->create([
             'project_id' => $project->id,
-            'name' => 'Dir ' . uniqid(),
-            'slug' => 'dir-' . uniqid(),
+            'name' => 'Dir '.uniqid(),
+            'slug' => 'dir-'.uniqid(),
             'source_type' => 'manual',
         ]);
     }

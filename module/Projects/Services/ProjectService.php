@@ -13,7 +13,8 @@ final class ProjectService
 {
     public function __construct(
         private readonly ProjectRepository $projects,
-    ) {}
+    ) {
+    }
 
     /** @return LengthAwarePaginator<int, Project> */
     public function paginate(int $perPage = 20): LengthAwarePaginator

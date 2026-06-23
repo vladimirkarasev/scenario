@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - offer'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: offer
+  - name: offer
     description: 'Коммерческое предложение по потребности рабочего листа'
 paths:
   /offer/need:
@@ -22,15 +18,13 @@ paths:
       summary: 'Получение коммерческого предложения по идентификатору потребности рабочего листа'
       description: 'Получение коммерческого предложения по идентификатору потребности рабочего листа'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'Идентификатор потребности рабочего листа'
           required: true
           schema:
             type: string
-        -
-          name: templateId
+        - name: templateId
           in: query
           description: 'ID шаблона документа'
           required: true
@@ -45,7 +39,7 @@ paths:
                 $ref: '#/components/schemas/NeedOffer'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:
@@ -61,22 +55,19 @@ paths:
       summary: 'Получение коммерческого предложения по VIN потребности рабочего листа'
       description: 'Получение коммерческого предложения по VIN потребности рабочего листа'
       parameters:
-        -
-          name: vin
+        - name: vin
           in: query
           description: VIN
           required: true
           schema:
             type: string
-        -
-          name: templateId
+        - name: templateId
           in: query
           description: 'ID шаблона документа'
           required: true
           schema:
             type: string
-        -
-          name: worksheetId
+        - name: worksheetId
           in: query
           description: 'ID РЛ'
           required: false
@@ -91,7 +82,7 @@ paths:
                 $ref: '#/components/schemas/NeedOffer'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка валидации данных'
           content:

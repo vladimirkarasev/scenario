@@ -43,7 +43,9 @@ final class CategoryBuilder
      */
     private ?array $visibleByGroupIds = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function query(): self
     {
@@ -57,7 +59,7 @@ final class CategoryBuilder
         return $this;
     }
 
-    /** @param Collection<int, string>|null $categoryIds */
+    /** @param  Collection<int, string>|null  $categoryIds */
     public function activeCategoryIds(?Collection $categoryIds): self
     {
         $this->activeCategoryIds = $categoryIds;
@@ -73,7 +75,7 @@ final class CategoryBuilder
         return $this;
     }
 
-    /** @param Collection<int, string> $parentCategoryIds */
+    /** @param  Collection<int, string>  $parentCategoryIds */
     public function filterByParentCategoryIds(Collection $parentCategoryIds): self
     {
         $this->parentCategoryIds = $parentCategoryIds->values();
@@ -115,7 +117,7 @@ final class CategoryBuilder
         $rows = $this->orderedQuery()->get();
 
         return $rows
-            ->map(static fn (object $row): CatalogItemRow => CatalogItemRow::fromRow($row))
+            ->map(static fn(object $row): CatalogItemRow => CatalogItemRow::fromRow($row))
             ->values();
     }
 
@@ -125,7 +127,7 @@ final class CategoryBuilder
         /** @var LengthAwarePaginator<int, CatalogItemRow> $paginator */
         $paginator = $this->orderedQuery()->paginate($perPage);
         $paginator->getCollection()->transform(
-            static fn (object $row): CatalogItemRow => CatalogItemRow::fromRow($row),
+            static fn(object $row): CatalogItemRow => CatalogItemRow::fromRow($row),
         );
 
         return $paginator;
@@ -208,7 +210,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function applyScenarioVisibilityFilter(EloquentBuilder $query): void
     {
@@ -225,16 +227,16 @@ final class CategoryBuilder
         $groupIds = $this->visibleByGroupIds;
         $query->whereExists(static function (\Illuminate\Database\Query\Builder $b) use ($groupIds): void {
             $b->selectRaw('1')
-              ->from('model_has_groups')
-              ->whereColumn('model_has_groups.model_id', 'scenarios.id')
-              ->whereIn('model_has_groups.group_id', $groupIds)
-              ->where('model_has_groups.model_type', Scenario::class);
+                ->from('model_has_groups')
+                ->whereColumn('model_has_groups.model_id', 'scenarios.id')
+                ->whereIn('model_has_groups.group_id', $groupIds)
+                ->where('model_has_groups.model_type', Scenario::class);
         });
     }
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function applyCategoryParentFilter(EloquentBuilder $query): void
     {
@@ -252,7 +254,7 @@ final class CategoryBuilder
             return;
         }
 
-        if (! $this->hasParentFilter) {
+        if (!$this->hasParentFilter) {
             return;
         }
 
@@ -263,7 +265,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function applyScenarioParentFilter(EloquentBuilder $query): void
     {
@@ -279,7 +281,7 @@ final class CategoryBuilder
             return;
         }
 
-        if (! $this->hasParentFilter) {
+        if (!$this->hasParentFilter) {
             $this->withOptionalScenarioCategory($query);
 
             return;
@@ -296,7 +298,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function withOptionalScenarioCategory(EloquentBuilder $query): void
     {
@@ -312,7 +314,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function onlyRootScenarios(EloquentBuilder $query): void
     {
@@ -330,7 +332,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function onlyScenariosInCategory(EloquentBuilder $query, string $parentId): void
     {
@@ -338,8 +340,8 @@ final class CategoryBuilder
     }
 
     /**
-     * @param EloquentBuilder<Model>    $query
-     * @param Collection<int, string>   $parentCategoryIds
+     * @param  EloquentBuilder<Model>  $query
+     * @param  Collection<int, string>  $parentCategoryIds
      */
     private function onlyScenariosInCategories(EloquentBuilder $query, Collection $parentCategoryIds): void
     {
@@ -353,8 +355,8 @@ final class CategoryBuilder
             })
             ->when(
                 $parentCategoryIds->isEmpty(),
-                static fn (EloquentBuilder $builder): EloquentBuilder => $builder->whereRaw('1 = 0'),
-                static fn (EloquentBuilder $builder): EloquentBuilder => $builder->whereIn(
+                static fn(EloquentBuilder $builder): EloquentBuilder => $builder->whereRaw('1 = 0'),
+                static fn(EloquentBuilder $builder): EloquentBuilder => $builder->whereIn(
                     'model_has_categories.category_id',
                     $parentCategoryIds->all(),
                 ),
@@ -363,7 +365,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function onlyScenariosInParentTree(EloquentBuilder $query, string $parentId): void
     {
@@ -381,12 +383,13 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function whereInParentTree(EloquentBuilder $query, string $column, string $parentId): void
     {
         $query->whereRaw(
-            DB::raw("{$column} in (
+            DB::raw(
+                "{$column} in (
                 with recursive category_tree(id) as (
                     select id from categories where id = ?
                     union all
@@ -395,7 +398,8 @@ final class CategoryBuilder
                     inner join category_tree on categories.parent_id = category_tree.id
                 )
                 select id from category_tree
-            )"),
+            )"
+            ),
             [$parentId],
         );
     }
@@ -444,7 +448,7 @@ final class CategoryBuilder
 
     /**
      * @template T of Model
-     * @param  EloquentBuilder<T> $query
+     * @param  EloquentBuilder<T>  $query
      */
     private function applySearch(EloquentBuilder $query, string $nameColumn, ?string $descriptionColumn): void
     {

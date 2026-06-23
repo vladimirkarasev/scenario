@@ -15,19 +15,19 @@ use Illuminate\Support\Str;
 use Module\Scenario\Enums\ScenarioRunStatus;
 
 /**
- * @property string                    $id
- * @property int|null                  $number
- * @property string                    $scenario_id
- * @property string|null               $scenario_version_id
- * @property string                    $scenario_version_revision_id
- * @property string|null               $current_node_id
+ * @property string $id
+ * @property int|null $number
+ * @property string $scenario_id
+ * @property string|null $scenario_version_id
+ * @property string $scenario_version_revision_id
+ * @property string|null $current_node_id
  * @property array<string, mixed>|null $context
- * @property ScenarioRunStatus         $status
- * @property int|null                  $created_by
- * @property int|null                  $updated_by
- * @property int|null                  $operator_id
- * @property Carbon|null               $created_at
- * @property Carbon|null               $updated_at
+ * @property ScenarioRunStatus $status
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $operator_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Scenario|null $scenario
  * @property-read ScenarioVersion|null $version
  * @property-read ScenarioVersionRevision|null $revision
@@ -99,7 +99,7 @@ final class ScenarioRun extends Model
 
     public function formattedNumber(int $width = 7): string
     {
-        return str_pad((string) $this->number, $width, '0', STR_PAD_LEFT);
+        return str_pad((string)$this->number, $width, '0', STR_PAD_LEFT);
     }
 
     protected function casts(): array
@@ -114,21 +114,21 @@ final class ScenarioRun extends Model
     protected static function booted(): void
     {
         self::creating(static function (ScenarioRun $run): void {
-            if (! $run->getKey()) {
-                $run->{$run->getKeyName()} = (string) Str::uuid();
+            if (!$run->getKey()) {
+                $run->{$run->getKeyName()} = (string)Str::uuid();
             }
             $userId = Auth::id();
             if ($userId !== null) {
-                $run->created_by ??= (int) $userId;
-                $run->updated_by ??= (int) $userId;
-                $run->operator_id ??= (int) $userId;
+                $run->created_by ??= (int)$userId;
+                $run->updated_by ??= (int)$userId;
+                $run->operator_id ??= (int)$userId;
             }
 
             // На PostgreSQL number выдаёт DEFAULT nextval(...); прочие драйверы (sqlite в тестах)
             // последовательности не имеют, поэтому проставляем значение вручную.
             if ($run->number === null && $run->getConnection()->getDriverName() !== 'pgsql') {
                 $maxNumber = self::query()->max('number');
-                $run->number = (is_numeric($maxNumber) ? (int) $maxNumber : 0) + 1;
+                $run->number = (is_numeric($maxNumber) ? (int)$maxNumber : 0) + 1;
             }
         });
 

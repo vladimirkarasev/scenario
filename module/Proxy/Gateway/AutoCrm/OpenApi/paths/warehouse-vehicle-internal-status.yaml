@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - warehouse-vehicle-internal-status'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: warehouse-vehicle-internal-status
+  - name: warehouse-vehicle-internal-status
     description: 'Управление внутренними статусами автомобилей'
 paths:
   /warehouse/vehicle-internal-status:
@@ -32,4 +28,4 @@ paths:
                   $ref: '#/components/schemas/WarehouseVehicleInternalStatus'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

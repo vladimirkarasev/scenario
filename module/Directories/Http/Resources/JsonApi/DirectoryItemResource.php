@@ -18,7 +18,7 @@ final class DirectoryItemResource extends JsonApiResource
     {
         $id = $this->resource['id'];
 
-        return is_scalar($id) ? (string) $id : '';
+        return is_scalar($id) ? (string)$id : '';
     }
 
     public function toType(Request $request): string
@@ -32,16 +32,16 @@ final class DirectoryItemResource extends JsonApiResource
         $attributes = array_diff_key($this->resource, ['id' => null]);
 
         $rawFields = $request->input('fields.items');
-        if (! is_string($rawFields) || $rawFields === '') {
+        if (!is_string($rawFields) || $rawFields === '') {
             return $attributes;
         }
 
         $allowedKeys = explode(',', $rawFields)
-                |> (fn ($x) => array_map('trim', $x))
-                |> (fn ($x) => array_filter($x, static fn (string $k): bool => $k !== ''))
+                |> (fn($x) => array_map('trim', $x))
+                |> (fn($x) => array_filter($x, static fn(string $k): bool => $k !== ''))
                 |> array_flip(...);
 
-        if ($allowedKeys === [] || ! isset($attributes['data']) || ! is_array($attributes['data'])) {
+        if ($allowedKeys === [] || !isset($attributes['data']) || !is_array($attributes['data'])) {
             return $attributes;
         }
 

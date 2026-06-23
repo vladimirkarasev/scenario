@@ -23,7 +23,8 @@ final readonly class CatalogService
         private ScenarioRepository $scenariosRepository,
         private CatalogItemsQueryBuilder $catalogItemsQuery,
         private ActiveCatalogCategoryIdsQuery $activeCatalogCategoryIds,
-    ) {}
+    ) {
+    }
 
     /**
      * @return Collection<int, array{
@@ -44,11 +45,11 @@ final readonly class CatalogService
 
         return $this->catalogItemsQuery
             ->get($folderId, $activeCategoryIds)
-            ->map(static fn (CatalogItemRow $item): array => [
+            ->map(static fn(CatalogItemRow $item): array => [
                 'type' => $item->item_type,
                 'id' => $item->item_type === 'category'
-                    ? (string) $item->category_id
-                    : (string) $item->scenario_id,
+                    ? (string)$item->category_id
+                    : (string)$item->scenario_id,
                 'name' => $item->name,
                 'is_active' => $item->is_active,
                 'active_version_id' => $item->active_version_id,
@@ -70,7 +71,7 @@ final readonly class CatalogService
         $visibleIds = collect();
 
         foreach ($directCategoryIds as $categoryId) {
-            $id = (string) $categoryId;
+            $id = (string)$categoryId;
 
             while ($id !== '' && $categories->has($id)) {
                 $visibleIds->push($id);
@@ -87,7 +88,7 @@ final readonly class CatalogService
     {
         return $this->categoriesRepository
             ->orderedForCatalog()
-            ->map(fn (Category $category): array => $this->categoryPayload($category))
+            ->map(fn(Category $category): array => $this->categoryPayload($category))
             ->values();
     }
 
@@ -96,7 +97,7 @@ final readonly class CatalogService
     {
         return $this->scenariosRepository
             ->orderedForCatalog()
-            ->map(fn (Scenario $scenario): array => $this->scenarioPayload($scenario));
+            ->map(fn(Scenario $scenario): array => $this->scenarioPayload($scenario));
     }
 
     /** @return array<string, mixed> */
@@ -133,7 +134,7 @@ final readonly class CatalogService
             'aliases' => array_values(array_filter($scenario->aliases ?? [])),
             'categories' => $scenario->categories
                 ->sortBy('name')
-                ->map(fn (Category $category): array => [
+                ->map(fn(Category $category): array => [
                     'id' => $category->id,
                     'parent_id' => $category->parent_id,
                     'name' => $category->name,
@@ -143,14 +144,14 @@ final readonly class CatalogService
                 ->all(),
             'groups' => $scenario->groups
                 ->sortBy('name')
-                ->map(static fn ($group): array => [
+                ->map(static fn($group): array => [
                     'id' => $group->id,
                     'name' => $group->name,
                 ])
                 ->values()
                 ->all(),
             'versions' => $scenario->versions
-                ->map(fn (ScenarioVersion $version): array => $this->versionPayload($version))
+                ->map(fn(ScenarioVersion $version): array => $this->versionPayload($version))
                 ->values()
                 ->all(),
             'created_at' => $scenario->created_at?->toIso8601String(),
@@ -172,7 +173,7 @@ final readonly class CatalogService
             'created_at' => $version->created_at?->toIso8601String(),
             'updated_at' => $version->updated_at?->toIso8601String(),
             'revisions' => $version->relationLoaded('revisions')
-                ? $version->revisions->map(fn (ScenarioVersionRevision $revision): array => [
+                ? $version->revisions->map(fn(ScenarioVersionRevision $revision): array => [
                     'id' => $revision->id,
                     'created_at' => $revision->created_at?->toIso8601String(),
                 ])->values()->all()

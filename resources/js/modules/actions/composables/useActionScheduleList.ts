@@ -1,6 +1,6 @@
-import { computed, onMounted, ref } from 'vue'
-import { actionScheduleRepository } from '@/modules/actions/repositories/actionScheduleRepository'
-import type { ScheduleListItem } from '@/modules/actions/types/action'
+import {computed, onMounted, ref} from 'vue'
+import {actionScheduleRepository} from '@/modules/actions/repositories/actionScheduleRepository'
+import type {ScheduleListItem} from '@/modules/actions/types/action'
 
 export function useActionScheduleList() {
     const items = ref<ScheduleListItem[]>([])
@@ -40,5 +40,5 @@ export function useActionScheduleList() {
 
     onMounted(load)
 
-    return { items, loading, error, search, showDisabled, filtered, counts, load }
+    return {items, loading, error, search, showDisabled, filtered, counts, load}
 }

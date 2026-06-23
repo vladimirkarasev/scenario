@@ -12,7 +12,8 @@ final readonly class UserGroupIndexData
         public ?string $search,
         public ?bool $isActive,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {

@@ -109,7 +109,7 @@ final class ProxyFieldsControllerTest extends TestCase
     public function test_unknown_uuid_returns_404(): void
     {
         $this->actingAs($this->user)
-            ->getJson('/api/proxies/' . Str::uuid() . '/fields')
+            ->getJson('/api/proxies/'.Str::uuid().'/fields')
             ->assertNotFound();
     }
 
@@ -131,10 +131,10 @@ final class ProxyFieldsControllerTest extends TestCase
     private function makeEndpoint(bool $isActive = true): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
-            'uuid'          => Str::uuid()->toString(),
-            'name'          => 'Lead ' . Str::random(4),
-            'code'          => 'lead-' . Str::random(6),
-            'is_active'     => $isActive,
+            'uuid' => Str::uuid()->toString(),
+            'name' => 'Lead '.Str::random(4),
+            'code' => 'lead-'.Str::random(6),
+            'is_active' => $isActive,
             'handler_class' => TestLeadProxyHandler::class,
         ]);
     }

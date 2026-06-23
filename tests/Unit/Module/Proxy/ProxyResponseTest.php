@@ -61,7 +61,7 @@ final class ProxyResponseTest extends TestCase
     public function test_with_request_id_adds_header_and_returns_new_instance(): void
     {
         $original = ProxyResponse::accepted();
-        $withId   = $original->withRequestId('test-uuid-123');
+        $withId = $original->withRequestId('test-uuid-123');
 
         // Заголовок добавлен в новый объект
         $this->assertSame('test-uuid-123', $withId->headers['X-Request-Id']);
@@ -76,7 +76,7 @@ final class ProxyResponseTest extends TestCase
     public function test_with_request_id_preserves_status_and_body(): void
     {
         $original = ProxyResponse::ok(['key' => 'value']);
-        $withId   = $original->withRequestId('abc-123');
+        $withId = $original->withRequestId('abc-123');
 
         $this->assertSame(200, $withId->statusCode);
         $this->assertSame('value', $withId->body['key']);
@@ -88,9 +88,9 @@ final class ProxyResponseTest extends TestCase
     public function test_with_request_id_merges_with_existing_headers(): void
     {
         $response = new ProxyResponse(200, [], ['X-Custom' => 'foo']);
-        $withId   = $response->withRequestId('req-999');
+        $withId = $response->withRequestId('req-999');
 
         $this->assertSame('req-999', $withId->headers['X-Request-Id']);
-        $this->assertSame('foo',     $withId->headers['X-Custom']);
+        $this->assertSame('foo', $withId->headers['X-Custom']);
     }
 }

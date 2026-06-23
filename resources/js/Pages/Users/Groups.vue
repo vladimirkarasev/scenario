@@ -270,120 +270,120 @@ function closeMemberSearchSoon(): void {
           <div class="flex gap-0 divide-x divide-slate-100">
             <!-- Left: group fields -->
             <div class="min-w-0 flex-1">
-            <FormBody>
-              <FormError :message="formError"/>
-              <FormSection>
-                <FormInput
-                    name="name"
-                    v-model="form.name"
-                    label="Название"
-                    placeholder="HR-команда"
-                    required
-                    :error="errors.name"
-                />
-                <FormAutoSlug
-                    name="slug"
-                    v-model="form.slug"
-                    :source="form.name"
-                    label="Slug"
-                    placeholder="hr-team"
-                    required
-                    :auto-lock-on-edit="!!editing"
-                    :error="errors.slug"
-                />
-                <FormTextarea
-                    name="description"
-                    v-model="form.description"
-                    label="Описание"
-                    placeholder="Сотрудники отдела..."
-                    :error="errors.description"
-                />
-                <FormCheckbox v-model="form.is_active" label="Активна"/>
-              </FormSection>
-            </FormBody>
-          </div>
-
-          <!-- Right: members (edit only) -->
-          <div v-if="editing" class="flex w-72 flex-none flex-col">
-            <div class="border-b border-slate-100 px-4 py-3">
-              <div class="text-[12px] font-semibold text-slate-700">
-                Участники
-                <span class="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">{{
-                    members.length
-                  }}</span>
-              </div>
+              <FormBody>
+                <FormError :message="formError"/>
+                <FormSection>
+                  <FormInput
+                      name="name"
+                      v-model="form.name"
+                      label="Название"
+                      placeholder="HR-команда"
+                      required
+                      :error="errors.name"
+                  />
+                  <FormAutoSlug
+                      name="slug"
+                      v-model="form.slug"
+                      :source="form.name"
+                      label="Slug"
+                      placeholder="hr-team"
+                      required
+                      :auto-lock-on-edit="!!editing"
+                      :error="errors.slug"
+                  />
+                  <FormTextarea
+                      name="description"
+                      v-model="form.description"
+                      label="Описание"
+                      placeholder="Сотрудники отдела..."
+                      :error="errors.description"
+                  />
+                  <FormCheckbox v-model="form.is_active" label="Активна"/>
+                </FormSection>
+              </FormBody>
             </div>
 
-            <!-- Member search -->
-            <div class="relative border-b border-slate-100 px-3 py-2.5">
-              <div
-                  class="flex h-8 items-center gap-2 rounded-lg bg-slate-50 px-2.5 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
-                <Plus :size="12" class="shrink-0 text-slate-400"/>
-                <input
-                    v-model="memberSearch"
-                    type="text"
-                    class="min-w-0 flex-1 bg-transparent text-[12px] outline-none focus:outline-none placeholder:text-slate-400 border-0"
-                    placeholder="Добавить пользователя..."
-                    @input="onMemberSearchInput"
-                    @blur="closeMemberSearchSoon"
-                />
+            <!-- Right: members (edit only) -->
+            <div v-if="editing" class="flex w-72 flex-none flex-col">
+              <div class="border-b border-slate-100 px-4 py-3">
+                <div class="text-[12px] font-semibold text-slate-700">
+                  Участники
+                  <span class="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">{{
+                      members.length
+                    }}</span>
+                </div>
               </div>
-              <!-- Search dropdown -->
-              <div
-                  v-if="memberSearchOpen"
-                  class="absolute left-3 right-3 top-full z-10 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
-              >
-                <button
-                    v-for="u in memberResults"
-                    :key="u.id"
-                    type="button"
-                    class="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-blue-50"
-                    @mousedown.prevent="addMember(u)"
+
+              <!-- Member search -->
+              <div class="relative border-b border-slate-100 px-3 py-2.5">
+                <div
+                    class="flex h-8 items-center gap-2 rounded-lg bg-slate-50 px-2.5 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
+                  <Plus :size="12" class="shrink-0 text-slate-400"/>
+                  <input
+                      v-model="memberSearch"
+                      type="text"
+                      class="min-w-0 flex-1 bg-transparent text-[12px] outline-none focus:outline-none placeholder:text-slate-400 border-0"
+                      placeholder="Добавить пользователя..."
+                      @input="onMemberSearchInput"
+                      @blur="closeMemberSearchSoon"
+                  />
+                </div>
+                <!-- Search dropdown -->
+                <div
+                    v-if="memberSearchOpen"
+                    class="absolute left-3 right-3 top-full z-10 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+                >
+                  <button
+                      v-for="u in memberResults"
+                      :key="u.id"
+                      type="button"
+                      class="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-blue-50"
+                      @mousedown.prevent="addMember(u)"
+                  >
+                    <div
+                        class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600">
+                      {{ u.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="truncate text-[12px] font-medium text-slate-900">{{ u.name }}</div>
+                      <div class="truncate text-[11px] text-slate-400">{{ u.email }}</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Members list -->
+              <div class="flex-1 overflow-y-auto" style="max-height: 260px">
+                <div v-if="loadingMembers" class="flex items-center justify-center py-8 text-[12px] text-slate-400">
+                  Загрузка…
+                </div>
+                <div v-else-if="!members.length" class="flex flex-col items-center justify-center py-8 text-center">
+                  <Users :size="20" class="mb-2 text-slate-300"/>
+                  <div class="text-[12px] text-slate-400">Нет участников</div>
+                </div>
+                <div
+                    v-for="m in members"
+                    :key="m.id"
+                    class="group/m flex items-center gap-2.5 px-4 py-2.5 transition hover:bg-slate-50"
                 >
                   <div
-                      class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-600">
-                    {{ u.name.charAt(0).toUpperCase() }}
+                      class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-500">
+                    {{ m.name.charAt(0).toUpperCase() }}
                   </div>
-                  <div class="min-w-0">
-                    <div class="truncate text-[12px] font-medium text-slate-900">{{ u.name }}</div>
-                    <div class="truncate text-[11px] text-slate-400">{{ u.email }}</div>
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate text-[12px] font-medium text-slate-900">{{ m.name }}</div>
+                    <div class="truncate text-[11px] text-slate-400">{{ m.login ?? m.email }}</div>
                   </div>
-                </button>
+                  <button
+                      type="button"
+                      class="flex-none text-slate-300 opacity-0 transition group-hover/m:opacity-100 hover:text-red-500"
+                      @click="removeMember(m)"
+                  >
+                    <X :size="13"/>
+                  </button>
+                </div>
               </div>
             </div>
-
-            <!-- Members list -->
-            <div class="flex-1 overflow-y-auto" style="max-height: 260px">
-              <div v-if="loadingMembers" class="flex items-center justify-center py-8 text-[12px] text-slate-400">
-                Загрузка…
-              </div>
-              <div v-else-if="!members.length" class="flex flex-col items-center justify-center py-8 text-center">
-                <Users :size="20" class="mb-2 text-slate-300"/>
-                <div class="text-[12px] text-slate-400">Нет участников</div>
-              </div>
-              <div
-                  v-for="m in members"
-                  :key="m.id"
-                  class="group/m flex items-center gap-2.5 px-4 py-2.5 transition hover:bg-slate-50"
-              >
-                <div
-                    class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-500">
-                  {{ m.name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="truncate text-[12px] font-medium text-slate-900">{{ m.name }}</div>
-                  <div class="truncate text-[11px] text-slate-400">{{ m.login ?? m.email }}</div>
-                </div>
-                <button
-                    type="button"
-                    class="flex-none text-slate-300 opacity-0 transition group-hover/m:opacity-100 hover:text-red-500"
-                    @click="removeMember(m)"
-                >
-                  <X :size="13"/>
-                </button>
-              </div>
-            </div>
-          </div>
           </div>
           <FormActions :submitting="submitting" @cancel="closeModal" @submit="save"/>
         </form>

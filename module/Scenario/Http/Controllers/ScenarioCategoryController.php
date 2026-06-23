@@ -45,11 +45,11 @@ final class ScenarioCategoryController extends CategoryController
 
         DB::table('model_has_categories')->insertOrIgnore([
             'category_id' => $category->id,
-            'model_id'    => $category->id,
-            'model_type'  => $this->modelClass(),
-            'project_id'  => $this->currentProjectId(),
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'model_id' => $category->id,
+            'model_type' => $this->modelClass(),
+            'project_id' => $this->currentProjectId(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return new CategoryResource($category);

@@ -1,7 +1,7 @@
-import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
-import { toast } from 'vue-sonner'
-import { scenarioRunRepository } from '@/modules/scenario/repositories/scenarioRunRepository'
+import {ref} from 'vue'
+import {router} from '@inertiajs/vue3'
+import {toast} from 'vue-sonner'
+import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
 
 export function usePlayScenario() {
     const launching = ref(false)
@@ -30,5 +30,5 @@ export function usePlayScenario() {
         }
     }
 
-    return { launching, launchError, launch }
+    return {launching, launchError, launch}
 }

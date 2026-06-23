@@ -29,7 +29,7 @@ final class ProjectRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('projects')
-                    ->where(fn (Builder $query) => $query->where('host', $this->input('host')))
+                    ->where(fn(Builder $query) => $query->where('host', $this->input('host')))
                     ->ignore($project?->id),
             ],
             'host' => ['required', 'string', 'max:255'],

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - nami'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: nami
+  - name: nami
     description: 'Управление отчетами НАМИ'
 paths:
   /nami:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка отчетов НАМИ'
       description: 'Получение списка отчетов НАМИ'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID записи'
           schema:
             type: integer
-        -
-          name: vin
+        - name: vin
           in: query
           description: VIN
           schema:
@@ -45,7 +39,7 @@ paths:
                   $ref: '#/components/schemas/Nami'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/nami/{id}':
     get:
       tags:
@@ -53,8 +47,7 @@ paths:
       summary: 'Получение отчета по id'
       description: 'Получение отчета по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id отчета'
           required: true
@@ -69,7 +62,7 @@ paths:
                 $ref: '#/components/schemas/Nami'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

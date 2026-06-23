@@ -1,22 +1,22 @@
-import { ref } from 'vue'
-import { actionScheduleRepository } from '@/modules/actions/repositories/actionScheduleRepository'
-import { CRON_PRESETS } from '@/modules/actions/types/action'
-import type { Action, ActionSchedule } from '@/modules/actions/types/action'
-import { useFormToast } from '@/composables/useFormToast'
-import { useZodForm } from '@/composables/useZodForm'
-import { actionScheduleSchema } from '@/modules/actions/schemas/actionScheduleSchema'
+import {ref} from 'vue'
+import {actionScheduleRepository} from '@/modules/actions/repositories/actionScheduleRepository'
+import {CRON_PRESETS} from '@/modules/actions/types/action'
+import type {Action, ActionSchedule} from '@/modules/actions/types/action'
+import {useFormToast} from '@/composables/useFormToast'
+import {useZodForm} from '@/composables/useZodForm'
+import {actionScheduleSchema} from '@/modules/actions/schemas/actionScheduleSchema'
 
 export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSchedule | null) => void) {
     const show = ref(false)
     const loading = ref(false)
     const action = ref<Action | null>(null)
 
-    const { formData: form, errors, formError, submitting, submit, reset } =
+    const {formData: form, errors, formError, submitting, submit, reset} =
         useZodForm(actionScheduleSchema, {
             enabled: true,
             cron: '0 9 * * *',
             timezone: 'Europe/Moscow',
-            input: { source: 'schedule' } as Record<string, unknown>,
+            input: {source: 'schedule'} as Record<string, unknown>,
             options: {} as Record<string, unknown>,
             settings: {} as Record<string, unknown>,
         })
@@ -32,7 +32,7 @@ export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSch
             enabled: schedule?.enabled ?? true,
             cron: schedule?.cron ?? '0 9 * * *',
             timezone: schedule?.timezone ?? 'Europe/Moscow',
-            input: schedule?.input ?? { source: 'schedule' },
+            input: schedule?.input ?? {source: 'schedule'},
             options: schedule?.options ?? {},
             settings: schedule?.settings ?? {},
         })
@@ -49,7 +49,7 @@ export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSch
             const schedule = await actionScheduleRepository.get(item.id)
             // Пользователь мог закрыть/открыть другую модалку, пока шёл запрос.
             if (!show.value || action.value?.id !== item.id) return
-            action.value = { ...item, schedule }
+            action.value = {...item, schedule}
             fillForm(schedule)
         } catch (e: unknown) {
             formError.value = e instanceof Error ? e.message : 'Не удалось загрузить расписание.'
@@ -81,7 +81,8 @@ export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSch
             })
             close()
             formToast.saved(isUpdate)
-        } catch { /* errors уже в форме */ }
+        } catch { /* errors уже в форме */
+        }
     }
 
     async function remove(): Promise<void> {
@@ -100,7 +101,9 @@ export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSch
     return {
         show, loading, saving: submitting, error: formError, errors,
         action, form, presets: CRON_PRESETS,
-        applyPreset: (cron: string) => { form.cron = cron },
+        applyPreset: (cron: string) => {
+            form.cron = cron
+        },
         open, close, save, remove,
     }
 }

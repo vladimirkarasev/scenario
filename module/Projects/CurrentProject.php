@@ -10,7 +10,8 @@ final readonly class CurrentProject
 {
     public function __construct(
         private ?Project $project,
-    ) {}
+    ) {
+    }
 
     public function get(): ?Project
     {

@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,9 +12,9 @@ const props = defineProps({
 
 <template>
   <option
-    data-slot="native-select-option"
-    :class="cn('bg-[Canvas] text-[CanvasText]', props.class)"
+      data-slot="native-select-option"
+      :class="cn('bg-[Canvas] text-[CanvasText]', props.class)"
   >
-    <slot />
+    <slot/>
   </option>
 </template>

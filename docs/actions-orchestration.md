@@ -1,17 +1,20 @@
 # Actions Orchestration
 
-Идея расширения модуля Actions для поддержки оркестровки (цепочки, батч, retry) с интеграцией в сценарий и уведомлением через WebSocket.
+Идея расширения модуля Actions для поддержки оркестровки (цепочки, батч, retry) с интеграцией в сценарий и уведомлением
+через WebSocket.
 
 ## Концепция
 
 В сценарии пользователь добавляет **Action-ноду**, настраивает её прямо в редакторе:
+
 - Какой action выполнить (выбор по UUID)
 - Режим: `sync` / `chain` / `batch`
 - Ожидать завершения: `wait_for_completion`
 - Retry: количество попыток, backoff
 - Webhooks: один или несколько (для chain/batch)
 
-Данные из опроса (ScenarioRun context) подставляются в конфиг action через уже существующий `ActionDataResolver` (`{{ input.name }}`).
+Данные из опроса (ScenarioRun context) подставляются в конфиг action через уже существующий `ActionDataResolver` (
+`{{ input.name }}`).
 
 ## API
 
@@ -68,6 +71,7 @@ Frontend слушает WS канал scenario-run:{id}
 ## Два кейса использования
 
 ### Кейс 1 — Отправка заявки (async)
+
 - `execution_mode: chain`
 - `wait_for_completion: true`
 - Webhooks: [email_action_uuid, crm_action_uuid]
@@ -76,6 +80,7 @@ Frontend слушает WS канал scenario-run:{id}
 - По завершении цепочки — `chain_completed` → сценарий идёт дальше
 
 ### Кейс 2 — Справочники (sync, Brands/Dealers/Models)
+
 - `execution_mode: sync`
 - `wait_for_completion: true`
 - Без retry (maxAttempts = 1)
@@ -84,17 +89,18 @@ Frontend слушает WS канал scenario-run:{id}
 
 ## WS события (канал scenario-run:{id})
 
-| Событие | Когда |
-|---|---|
-| `action_started` | Job взят в работу |
-| `action_completed` | Job успешно завершён |
-| `action_failed` | Job исчерпал retry |
-| `chain_completed` | Все шаги цепочки выполнены |
-| `batch_completed` | Все параллельные задачи выполнены |
+| Событие            | Когда                             |
+|--------------------|-----------------------------------|
+| `action_started`   | Job взят в работу                 |
+| `action_completed` | Job успешно завершён              |
+| `action_failed`    | Job исчерпал retry                |
+| `chain_completed`  | Все шаги цепочки выполнены        |
+| `batch_completed`  | Все параллельные задачи выполнены |
 
 ## Что нужно реализовать
 
-- [ ] `ExecuteActionJob` — queued job, оборачивает `ActionExecutor::execute()`, бросает исключение если `ActionRunStatus::Failed` (для retry)
+- [ ] `ExecuteActionJob` — queued job, оборачивает `ActionExecutor::execute()`, бросает исключение если
+  `ActionRunStatus::Failed` (для retry)
 - [ ] `ActionCompletedEvent` — broadcast event → Centrifugo канал `scenario-run:{id}`
 - [ ] Расширить `action.config` схему: `execution_mode`, `wait_for_completion`, `retry`, `webhooks`
 - [ ] `ActionRunController::run()` — читает конфиг, диспатчит sync/chain/batch

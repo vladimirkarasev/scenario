@@ -87,7 +87,7 @@ final class ScenarioVersionControllerTest extends TestCase
         $user = $this->makeUser('scenario_view');
 
         $this->actingAs($user)
-            ->getJson('/api/scenarios/' . Str::uuid() . '/versions')
+            ->getJson('/api/scenarios/'.Str::uuid().'/versions')
             ->assertNotFound();
     }
 
@@ -146,7 +146,7 @@ final class ScenarioVersionControllerTest extends TestCase
         $scenario = $this->makeScenario();
 
         $this->actingAs($user)
-            ->getJson("/api/scenarios/{$scenario->id}/versions/" . Str::uuid())
+            ->getJson("/api/scenarios/{$scenario->id}/versions/".Str::uuid())
             ->assertNotFound();
     }
 
@@ -178,8 +178,8 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson("/api/scenarios/{$scenario->id}/versions", [
-                'name'        => 'Beta',
-                'status'      => 'draft',
+                'name' => 'Beta',
+                'status' => 'draft',
                 'schema_json' => ['blocks' => [], 'connections' => [], 'version' => 1],
             ])
             ->assertStatus(201)
@@ -188,7 +188,7 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
-            'name'        => 'Beta',
+            'name' => 'Beta',
         ]);
     }
 
@@ -219,7 +219,7 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson("/api/scenarios/{$scenario->id}/versions", [
-                'status'      => 'active',
+                'status' => 'active',
                 'schema_json' => ['blocks' => [], 'connections' => [], 'version' => 1],
             ])
             ->assertStatus(201);
@@ -270,8 +270,8 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->putJson("/api/scenarios/{$scenario->id}/versions/{$version->id}", [
-                'name'        => 'v1 — исправлена',
-                'status'      => 'active',
+                'name' => 'v1 — исправлена',
+                'status' => 'active',
                 'schema_json' => ['blocks' => [], 'connections' => [], 'version' => 1],
             ])
             ->assertOk()
@@ -279,8 +279,8 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertJsonPath('item.status', 'active');
 
         $this->assertDatabaseHas('scenario_versions', [
-            'id'     => $version->id,
-            'name'   => 'v1 — исправлена',
+            'id' => $version->id,
+            'name' => 'v1 — исправлена',
             'status' => 'active',
         ]);
     }
@@ -336,8 +336,8 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
-            'name'        => 'v1 (копия)',
-            'status'      => 'draft',
+            'name' => 'v1 (копия)',
+            'status' => 'draft',
         ]);
     }
 
@@ -408,16 +408,16 @@ final class ScenarioVersionControllerTest extends TestCase
 
     private function makeScenario(): Scenario
     {
-        return Scenario::query()->create(['name' => 'Scenario ' . Str::random(4), 'is_active' => true]);
+        return Scenario::query()->create(['name' => 'Scenario '.Str::random(4), 'is_active' => true]);
     }
 
     private function makeVersion(Scenario $scenario, string $name, string $status = 'draft'): ScenarioVersion
     {
         return ScenarioVersion::query()->create([
-            'id'          => (string) Str::uuid(),
+            'id' => (string)Str::uuid(),
             'scenario_id' => $scenario->id,
-            'name'        => $name,
-            'status'      => $status,
+            'name' => $name,
+            'status' => $status,
         ]);
     }
 }

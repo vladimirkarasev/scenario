@@ -13,5 +13,6 @@ final readonly class ProxyRequestProcessed
         public ProxyRequest $proxyRequest,
         public ProxyContext $context,
         public bool $isMocked = false,
-    ) {}
+    ) {
+    }
 }

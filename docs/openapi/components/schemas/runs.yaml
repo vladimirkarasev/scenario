@@ -50,7 +50,7 @@ RunnerJumpRequest:
 
 RunPayload:
   type: object
-  required: [run]
+  required: [ run ]
   properties:
     run:
       $ref: '#/RunState'
@@ -145,7 +145,7 @@ RunStep:
 
 RunStatus:
   type: string
-  enum: [active, completed, failed]
+  enum: [ active, completed, failed ]
   description: >
     - `active` — прогон в процессе
     - `completed` — прогон завершён
@@ -153,7 +153,7 @@ RunStatus:
 
 ScenarioRunListResponse:
   type: object
-  required: [runs, pagination, total]
+  required: [ runs, pagination, total ]
   properties:
     runs:
       type: array
@@ -221,7 +221,7 @@ ScenarioRunUser:
 
 StoreScenarioRunRequest:
   type: object
-  required: [scenario_id]
+  required: [ scenario_id ]
   properties:
     scenario_id:
       type: string
@@ -258,7 +258,7 @@ ContinueRunRequest:
 
 AdminJumpRunRequest:
   type: object
-  required: [node_id]
+  required: [ node_id ]
   properties:
     node_id:
       type: string

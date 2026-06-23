@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - distribution-channel'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: distribution-channel
+  - name: distribution-channel
     description: 'Каналы реализации'
 paths:
   /service/distribution-channel:
@@ -32,7 +28,7 @@ paths:
                   $ref: '#/components/schemas/DistributionChannel'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

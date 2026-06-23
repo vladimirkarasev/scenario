@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - department'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: department
+  - name: department
     description: 'Список департаментов'
 paths:
   /department:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка департаментов'
       description: 'Получение списка департаментов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           description: ID
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           description: 'Статус (active, deleted)'
           schema:
             type: string
-        -
-          name: is_dealer
+        - name: is_dealer
           in: query
           description: 'Для дилеров (0, 1)'
           schema:
@@ -51,4 +44,4 @@ paths:
                   $ref: '#/components/schemas/Department'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

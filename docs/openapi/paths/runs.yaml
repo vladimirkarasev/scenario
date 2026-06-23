@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Список прогонов
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Возвращает постраничный список прогонов сценариев с информацией об
       авторах. Поддерживает фильтрацию по `scenario_id`, `status`,
@@ -45,10 +45,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Создать прогон
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Создаёт новый прогон и автоматически продвигает его до первого
       интерактивного узла через `ScenarioPlayerService`. Публикует
@@ -73,10 +73,10 @@ collection:
 
 users:
   get:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Поиск пользователей
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Возвращает до 30 пользователей, совпадающих с поисковым запросом.
       Используется для фильтра «создатель прогона» в интерфейсе.
@@ -96,7 +96,7 @@ users:
           application/json:
             schema:
               type: object
-              required: [users]
+              required: [ users ]
               properties:
                 users:
                   type: array
@@ -110,10 +110,10 @@ item:
     - $ref: '../components/parameters.yaml#/RunId'
 
   get:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Получить прогон
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Возвращает полный payload прогона (текущий узел, рендер, история шагов).
       Прогон автоматически продвигается до ближайшего интерактивного узла.
@@ -131,10 +131,10 @@ item:
 
 continue:
   post:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Продолжить прогон
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Принимает пользовательский ввод и продвигает прогон вперёд.
       Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.
@@ -160,10 +160,10 @@ continue:
 
 jump:
   post:
-    tags: [Прогоны]
+    tags: [ Прогоны ]
     summary: Перейти к узлу
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     description: >
       Переводит прогон к конкретному узлу (`node_id`).
       Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.

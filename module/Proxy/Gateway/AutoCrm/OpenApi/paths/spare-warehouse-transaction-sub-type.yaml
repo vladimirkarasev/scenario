@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - spare-warehouse-transaction-sub-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: spare-warehouse-transaction-sub-type
+  - name: spare-warehouse-transaction-sub-type
     description: 'Управление списком подтипов запчастей дилеров'
 paths:
   /spare-warehouse/transaction-sub-type:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка'
       description: 'Получение списка'
       parameters:
-        -
-          name: status
+        - name: status
           in: query
           schema:
             type: integer
@@ -38,7 +33,7 @@ paths:
                   $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - spare-warehouse-transaction-sub-type
@@ -66,7 +61,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -82,8 +77,7 @@ paths:
       summary: 'Получение подтипа'
       description: 'Получение подтипа'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id подтипа'
           required: true
@@ -98,7 +92,7 @@ paths:
                 $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -111,8 +105,7 @@ paths:
       summary: 'Изменение подтипа'
       description: 'Изменение подтипа'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id движения'
           required: true
@@ -134,7 +127,7 @@ paths:
                 $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

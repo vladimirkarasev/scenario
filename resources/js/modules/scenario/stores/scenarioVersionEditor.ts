@@ -1,14 +1,18 @@
-import { computed, ref } from 'vue'
-import { defineStore } from 'pinia'
-import { router } from '@inertiajs/vue3'
+import {computed, ref} from 'vue'
+import {defineStore} from 'pinia'
+import {router} from '@inertiajs/vue3'
 import {
     cloneScenarioFlowDocument,
     createEmptyScenarioFlowDocument,
     normalizeScenarioFlowDocument,
     type ScenarioFlowDocument,
 } from '@/modules/scenario/lib/scenario-flow-document'
-import { destroyJson, getJson, sendJson } from '@/lib/http'
-import { clearScenarioVersionDraft, loadScenarioVersionDraft, saveScenarioVersionDraft } from '@/modules/scenario/lib/scenario-version-draft'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
+import {
+    clearScenarioVersionDraft,
+    loadScenarioVersionDraft,
+    saveScenarioVersionDraft
+} from '@/modules/scenario/lib/scenario-version-draft'
 
 interface ScenarioVersion {
     id: string
@@ -54,7 +58,7 @@ export const useScenarioVersionEditorStore = defineStore('scenarioVersionEditor'
     }
 
     function currentDraftKey() {
-        return { scenarioId: scenarioId.value, versionId: versionId.value }
+        return {scenarioId: scenarioId.value, versionId: versionId.value}
     }
 
     async function load(): Promise<void> {
@@ -125,7 +129,10 @@ export const useScenarioVersionEditorStore = defineStore('scenarioVersionEditor'
             if (versionId.value) {
                 const savedVersion = payload.item as ScenarioVersion
                 scenarios.value = scenarios.value.map((item) => item.id === scenario.value!.id
-                    ? { ...item, versions: (item.versions ?? []).map((version) => version.id === savedVersion.id ? savedVersion : version) }
+                    ? {
+                        ...item,
+                        versions: (item.versions ?? []).map((version) => version.id === savedVersion.id ? savedVersion : version)
+                    }
                     : item)
                 await load()
             } else {

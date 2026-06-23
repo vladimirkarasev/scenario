@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - external-event'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: external-event
+  - name: external-event
     description: 'Внешние события'
 paths:
   /external-event:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка внешних событий'
       description: 'Получение списка внешних событий'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,4 +34,4 @@ paths:
                   $ref: '#/components/schemas/ExternalEvent'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

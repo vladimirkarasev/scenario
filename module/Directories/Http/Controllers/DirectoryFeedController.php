@@ -16,7 +16,8 @@ final class DirectoryFeedController extends Controller
     public function __construct(
         private readonly DirectoryFeedService $feed,
         private readonly CurrentProject $currentProject,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DirectoryFeedRequest $request): JsonResponse
     {

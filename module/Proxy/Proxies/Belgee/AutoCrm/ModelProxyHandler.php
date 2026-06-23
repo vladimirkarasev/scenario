@@ -17,7 +17,8 @@ final class ModelProxyHandler extends AutoCrmProxyHandler
     public function __construct(
         private readonly BelgeeAutoCrmGateway $autoCrm,
         private readonly BelgeeAutoCrmInterestBuilder $interestBuilder,
-    ) {}
+    ) {
+    }
 
     public function fields(): iterable
     {

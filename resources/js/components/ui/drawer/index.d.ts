@@ -1,4 +1,4 @@
-import type { DefineComponent } from 'vue'
+import type {DefineComponent} from 'vue'
 
 export const Drawer: DefineComponent
 export const DrawerClose: DefineComponent

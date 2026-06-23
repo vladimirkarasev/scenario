@@ -8,18 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int                                   $id
- * @property string                                $uuid
- * @property string                                $name
- * @property string                                $code
- * @property string|null                           $description
- * @property bool                                  $is_active
- * @property bool                                  $is_mocked
- * @property string                                $handler_class
- * @property string|null                           $method
- * @property array<string, mixed>|null             $config
+ * @property int $id
+ * @property string $uuid
+ * @property string $name
+ * @property string $code
+ * @property string|null $description
+ * @property bool $is_active
+ * @property bool $is_mocked
+ * @property string $handler_class
+ * @property string|null $method
+ * @property array<string, mixed>|null $config
  * @property array<int, array<string, mixed>>|null $mock_responses
- * @property int|null                              $created_by
+ * @property int|null $created_by
  */
 final class ProxyEndpoint extends Model
 {

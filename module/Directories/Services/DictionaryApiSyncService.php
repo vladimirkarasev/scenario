@@ -29,10 +29,14 @@ final class DictionaryApiSyncService
         private readonly DirectoryVersionRepository $versions,
         private readonly ImportService $importService,
         private readonly DirectoryVersionService $versionService,
-    ) {}
+    ) {
+    }
 
-    public function queue(Directory $directory, ?int $userId = null, ?DirectoryImportOptions $options = null): DirectoryImport
-    {
+    public function queue(
+        Directory $directory,
+        ?int $userId = null,
+        ?DirectoryImportOptions $options = null
+    ): DirectoryImport {
         if ($directory->source_type !== 'api') {
             throw DictionaryApiSyncException::notApiDirectory();
         }
@@ -113,7 +117,7 @@ final class DictionaryApiSyncService
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     private function queueProxySync(
         Directory $directory,
@@ -130,7 +134,7 @@ final class DictionaryApiSyncService
 
         $version = $this->versions->activeOrFirst($directory);
         if ($version === null) {
-            $version = DB::transaction(fn () => $this->versions->createNext($directory, null));
+            $version = DB::transaction(fn() => $this->versions->createNext($directory, null));
         }
         $version->forceFill([
             'source_metadata_json' => ['source' => 'proxy', 'queued_at' => now()->toIso8601String()],
@@ -187,7 +191,7 @@ final class DictionaryApiSyncService
     }
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     private function queueDirectApiSync(
         Directory $directory,
@@ -197,7 +201,7 @@ final class DictionaryApiSyncService
     ): DirectoryImport {
         $version = $this->versions->activeOrFirst($directory);
         if ($version === null) {
-            $version = DB::transaction(fn () => $this->versions->createNext($directory, null));
+            $version = DB::transaction(fn() => $this->versions->createNext($directory, null));
         }
         $version->forceFill([
             'source_metadata_json' => ['source' => 'api', 'queued_at' => now()->toIso8601String()],
@@ -233,7 +237,7 @@ final class DictionaryApiSyncService
     }
 
     /**
-     * @param  array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      * @return array<string, mixed>
      */
     private function remoteConfig(array $config): array
@@ -241,7 +245,10 @@ final class DictionaryApiSyncService
         return [
             'url' => is_string($config['endpoint'] ?? null) ? $config['endpoint'] : '',
             'method' => is_string($config['method'] ?? null) ? $config['method'] : 'GET',
-            'items_path' => is_string(data_get($config, 'response_mapping.items_path')) ? data_get($config, 'response_mapping.items_path') : 'data',
+            'items_path' => is_string(data_get($config, 'response_mapping.items_path')) ? data_get(
+                $config,
+                'response_mapping.items_path'
+            ) : 'data',
             'headers' => is_array($config['headers'] ?? null) ? $config['headers'] : [],
             'auth_type' => is_string($config['auth_type'] ?? null) ? $config['auth_type'] : 'none',
             'auth' => is_array($config['auth'] ?? null) ? $config['auth'] : [],

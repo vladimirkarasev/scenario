@@ -1,11 +1,11 @@
-import { onMounted, ref } from 'vue'
-import { directorySyncScheduleRepository } from '@/modules/directories/repositories/directorySyncScheduleRepository'
+import {onMounted, ref} from 'vue'
+import {directorySyncScheduleRepository} from '@/modules/directories/repositories/directorySyncScheduleRepository'
 
 export const CRON_PRESETS = [
-    { label: 'Каждый час', cron: '0 * * * *' },
-    { label: 'Каждые 6 часов', cron: '0 */6 * * *' },
-    { label: 'Ежедневно в 09:00', cron: '0 9 * * *' },
-    { label: 'Еженедельно (Пн 09:00)', cron: '0 9 * * 1' },
+    {label: 'Каждый час', cron: '0 * * * *'},
+    {label: 'Каждые 6 часов', cron: '0 */6 * * *'},
+    {label: 'Ежедневно в 09:00', cron: '0 9 * * *'},
+    {label: 'Еженедельно (Пн 09:00)', cron: '0 9 * * 1'},
 ]
 
 export function useDirectorySyncSchedule(directoryId: string) {
@@ -29,8 +29,10 @@ export function useDirectorySyncSchedule(directoryId: string) {
                 nextRunAt.value = schedule.next_run_at
                 lastRunAt.value = schedule.last_run_at
             }
-        } catch { /* silent */ }
-        finally { loading.value = false }
+        } catch { /* silent */
+        } finally {
+            loading.value = false
+        }
     }
 
     async function save(): Promise<void> {
@@ -53,5 +55,5 @@ export function useDirectorySyncSchedule(directoryId: string) {
 
     onMounted(load)
 
-    return { enabled, cron, timezone, nextRunAt, lastRunAt, loading, saving, error, load, save }
+    return {enabled, cron, timezone, nextRunAt, lastRunAt, loading, saving, error, load, save}
 }

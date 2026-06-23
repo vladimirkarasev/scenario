@@ -19,7 +19,7 @@ final readonly class ImplodeFunction implements ExpressionFunctionInterface
         $separator = Scalar::toString($args[0] ?? null);
         $items = $args[1] ?? null;
 
-        if (! is_array($items)) {
+        if (!is_array($items)) {
             return Scalar::toString($items);
         }
 

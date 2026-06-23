@@ -1,5 +1,12 @@
-import { destroyJson, getJson, sendJson } from '@/lib/http'
-import type { Action, ActionInputField, ActionPayload, ActionSchedule, ActionType, InputFieldType } from '@/modules/actions/types/action'
+import {destroyJson, getJson, sendJson} from '@/lib/http'
+import type {
+    Action,
+    ActionInputField,
+    ActionPayload,
+    ActionSchedule,
+    ActionType,
+    InputFieldType
+} from '@/modules/actions/types/action'
 
 interface JsonApiItem {
     id: string
@@ -120,7 +127,7 @@ export const actionRepository = {
         await sendJson('/api/actions/run', {
             body: {
                 mode: 'sequential',
-                actions: { [code]: id },
+                actions: {[code]: id},
                 input,
             },
             fallbackMessage: 'Не удалось запустить action.',

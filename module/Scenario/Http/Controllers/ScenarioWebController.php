@@ -103,7 +103,7 @@ final class ScenarioWebController extends Controller
     public function surveyRun(ScenarioRun $run): Response
     {
         return Inertia::render('Scenario/ScenarioPlayer', [
-            'runId'      => $run->id,
+            'runId' => $run->id,
             'scenarioId' => $run->scenario_id,
         ]);
     }

@@ -1,13 +1,13 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import { TabsContent } from "reka-ui";
-import { cn } from "@/lib/utils";
+import {reactiveOmit} from "@vueuse/core";
+import {TabsContent} from "reka-ui";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
-  value: { type: [String, Number], required: true },
-  forceMount: { type: Boolean, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  value: {type: [String, Number], required: true},
+  forceMount: {type: Boolean, required: false},
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -20,10 +20,10 @@ const delegatedProps = reactiveOmit(props, "class");
 
 <template>
   <TabsContent
-    data-slot="tabs-content"
-    :class="cn('text-sm flex-1 outline-none', props.class)"
-    v-bind="delegatedProps"
+      data-slot="tabs-content"
+      :class="cn('text-sm flex-1 outline-none', props.class)"
+      v-bind="delegatedProps"
   >
-    <slot />
+    <slot/>
   </TabsContent>
 </template>

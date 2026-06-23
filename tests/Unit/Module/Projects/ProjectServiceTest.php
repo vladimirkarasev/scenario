@@ -28,20 +28,22 @@ final class ProjectServiceTest extends TestCase
      */
     public function test_create_persists_project_attributes(): void
     {
-        $project = $this->service->create(new ProjectData(
-            name: 'Тестовый проект',
-            sitekey: 'sk-test01',
-            host: 'test.local',
-            sharedSecret: Str::random(32),
-            isActive: true,
-        ));
+        $project = $this->service->create(
+            new ProjectData(
+                name: 'Тестовый проект',
+                sitekey: 'sk-test01',
+                host: 'test.local',
+                sharedSecret: Str::random(32),
+                isActive: true,
+            )
+        );
 
         $this->assertNotNull($project->id);
         $this->assertDatabaseHas('projects', [
-            'id'       => $project->id,
-            'name'     => 'Тестовый проект',
-            'sitekey'  => 'sk-test01',
-            'host'     => 'test.local',
+            'id' => $project->id,
+            'name' => 'Тестовый проект',
+            'sitekey' => 'sk-test01',
+            'host' => 'test.local',
         ]);
     }
 
@@ -50,15 +52,17 @@ final class ProjectServiceTest extends TestCase
      */
     public function test_create_inactive_project(): void
     {
-        $project = $this->service->create(new ProjectData(
-            name: 'Отключённый',
-            sitekey: 'sk-inactive',
-            host: 'inactive.local',
-            sharedSecret: Str::random(32),
-            isActive: false,
-        ));
+        $project = $this->service->create(
+            new ProjectData(
+                name: 'Отключённый',
+                sitekey: 'sk-inactive',
+                host: 'inactive.local',
+                sharedSecret: Str::random(32),
+                isActive: false,
+            )
+        );
 
-        $this->assertFalse((bool) $project->is_active);
+        $this->assertFalse((bool)$project->is_active);
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'is_active' => false]);
     }
 
@@ -69,13 +73,16 @@ final class ProjectServiceTest extends TestCase
     {
         $project = $this->makeProject('Старое имя');
 
-        $this->service->update(new ProjectData(
-            name: 'Новое имя',
-            sitekey: $project->sitekey,
-            host: $project->host,
-            sharedSecret: Str::random(32),
-            isActive: true,
-        ), $project);
+        $this->service->update(
+            new ProjectData(
+                name: 'Новое имя',
+                sitekey: $project->sitekey,
+                host: $project->host,
+                sharedSecret: Str::random(32),
+                isActive: true,
+            ),
+            $project
+        );
 
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'name' => 'Новое имя']);
     }
@@ -87,13 +94,16 @@ final class ProjectServiceTest extends TestCase
     {
         $project = $this->makeProject();
 
-        $this->service->update(new ProjectData(
-            name: $project->name,
-            sitekey: $project->sitekey,
-            host: 'new-host.local',
-            sharedSecret: Str::random(32),
-            isActive: true,
-        ), $project);
+        $this->service->update(
+            new ProjectData(
+                name: $project->name,
+                sitekey: $project->sitekey,
+                host: 'new-host.local',
+                sharedSecret: Str::random(32),
+                isActive: true,
+            ),
+            $project
+        );
 
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'host' => 'new-host.local']);
     }
@@ -146,11 +156,11 @@ final class ProjectServiceTest extends TestCase
     private function makeProject(string $name = 'Project'): Project
     {
         return Project::query()->create([
-            'name'          => $name,
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => $name,
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 }

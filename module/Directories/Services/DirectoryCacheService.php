@@ -18,7 +18,7 @@ final class DirectoryCacheService
     private const TTL_SECONDS = 3600;
 
     /**
-     * @param  array<string, mixed> $query
+     * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
     public function activeData(Directory $directory, array $query = []): array
@@ -41,9 +41,12 @@ final class DirectoryCacheService
         $rows = $this->sortRows($rows, $sortRaw, is_string($direction) ? $direction : 'asc');
 
         $perPageRaw = $query['per_page'] ?? null;
-        $perPage = min(100, max(1, is_int($perPageRaw) ? $perPageRaw : (is_numeric($perPageRaw) ? (int) $perPageRaw : 50)));
+        $perPage = min(
+            100,
+            max(1, is_int($perPageRaw) ? $perPageRaw : (is_numeric($perPageRaw) ? (int)$perPageRaw : 50))
+        );
         $pageRaw = $query['page'] ?? null;
-        $page = max(1, is_int($pageRaw) ? $pageRaw : (is_numeric($pageRaw) ? (int) $pageRaw : 1));
+        $page = max(1, is_int($pageRaw) ? $pageRaw : (is_numeric($pageRaw) ? (int)$pageRaw : 1));
         $paginator = new LengthAwarePaginator(
             items: $rows->forPage($page, $perPage)->values(),
             total: $rows->count(),
@@ -94,7 +97,12 @@ final class DirectoryCacheService
         }
 
         foreach ($directory->versions()->pluck('id') as $versionId) {
-            Cache::forget($this->versionKey($directory->slug ?? '', is_int($versionId) ? $versionId : (is_numeric($versionId) ? (int) $versionId : 0)));
+            Cache::forget(
+                $this->versionKey(
+                    $directory->slug ?? '',
+                    is_int($versionId) ? $versionId : (is_numeric($versionId) ? (int)$versionId : 0)
+                )
+            );
         }
     }
 
@@ -105,7 +113,7 @@ final class DirectoryCacheService
         $result = $this->store()->remember(
             $this->versionKey($directory->slug ?? '', $version->id),
             self::TTL_SECONDS,
-            fn (): array => $this->loadVersionRows($version),
+            fn(): array => $this->loadVersionRows($version),
         );
 
         return $result;
@@ -128,7 +136,7 @@ final class DirectoryCacheService
         return $version->items()
             ->orderBy('id')
             ->get()
-            ->map(static fn (DirectoryItem $item): array => [
+            ->map(static fn(DirectoryItem $item): array => [
                 'id' => $item->id,
                 'external_key' => $item->external_key,
                 ...(is_array($item->data_json) ? $item->data_json : []),
@@ -138,8 +146,8 @@ final class DirectoryCacheService
     }
 
     /**
-     * @param  Collection<int, array<string, mixed>> $rows
-     * @param  array<string, mixed>                  $filters
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @param  array<string, mixed>  $filters
      * @return Collection<int, array<string, mixed>>
      */
     private function filterRows(Collection $rows, array $filters): Collection
@@ -150,9 +158,9 @@ final class DirectoryCacheService
                     continue;
                 }
 
-                $rowValue = data_get($row, (string) $key);
+                $rowValue = data_get($row, (string)$key);
                 if (
-                    (is_scalar($rowValue) ? (string) $rowValue : '') !== (is_scalar($value) ? (string) $value : '')
+                    (is_scalar($rowValue) ? (string)$rowValue : '') !== (is_scalar($value) ? (string)$value : '')
                 ) {
                     return false;
                 }
@@ -163,16 +171,16 @@ final class DirectoryCacheService
     }
 
     /**
-     * @param  Collection<int, array<string, mixed>> $rows
+     * @param  Collection<int, array<string, mixed>>  $rows
      * @return Collection<int, array<string, mixed>>
      */
     private function sortRows(Collection $rows, mixed $sort, string $direction): Collection
     {
-        if (! is_string($sort) || $sort === '') {
+        if (!is_string($sort) || $sort === '') {
             return $rows;
         }
 
-        $sorted = $rows->sortBy(static fn (array $row): mixed => data_get($row, $sort));
+        $sorted = $rows->sortBy(static fn(array $row): mixed => data_get($row, $sort));
 
         return strtolower($direction) === 'desc' ? $sorted->reverse()->values() : $sorted->values();
     }

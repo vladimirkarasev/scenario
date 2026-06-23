@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 final readonly class CategoryData
 {
     /**
-     * @param list<string> $groupIds
+     * @param  list<string>  $groupIds
      */
     public function __construct(
         public ?string $parentId,
@@ -19,26 +19,31 @@ final readonly class CategoryData
         public bool $canManageCatalog,
         public array $groupIds = [],
         public bool $inheritToDescendants = false,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request, ?bool $canManageCatalog = null): self
     {
         $rawGroupIds = $request->input('group_ids');
         $groupIds = is_array($rawGroupIds)
-            ? array_values(array_unique(array_filter(
-                array_map(static fn (mixed $i): string => is_scalar($i) ? (string) $i : '', $rawGroupIds),
-                static fn (string $v): bool => $v !== '',
-            )))
+            ? array_values(
+                array_unique(
+                    array_filter(
+                        array_map(static fn(mixed $i): string => is_scalar($i) ? (string)$i : '', $rawGroupIds),
+                        static fn(string $v): bool => $v !== '',
+                    )
+                )
+            )
             : [];
 
         return new self(
             parentId: $request->filled('parent_id') ? $request->str('parent_id')->toString() : null,
             name: $request->str('name')->toString(),
-            isActive: (bool) $request->input('is_active'),
+            isActive: (bool)$request->input('is_active'),
             actorId: $request->user()?->id,
-            canManageCatalog: $canManageCatalog ?? (bool) $request->user()?->can('category_create'),
+            canManageCatalog: $canManageCatalog ?? (bool)$request->user()?->can('category_create'),
             groupIds: $groupIds,
-            inheritToDescendants: (bool) $request->input('inherit_to_descendants'),
+            inheritToDescendants: (bool)$request->input('inherit_to_descendants'),
         );
     }
 

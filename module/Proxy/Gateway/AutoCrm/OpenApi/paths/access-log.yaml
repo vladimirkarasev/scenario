@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - access-log'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: access-log
+  - name: access-log
     description: 'Журнал доступов пользователей'
 paths:
   /access-log:
@@ -22,72 +18,61 @@ paths:
       summary: 'Получение журнала доступа пользователей'
       description: 'Получение журнала доступа пользователей'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: createdAtFrom
+        - name: createdAtFrom
           in: query
           description: 'Дата создания с'
           schema:
             type: date-time
             pattern: '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$'
             default: '31.01.2010 12:59'
-        -
-          name: createdAtTo
+        - name: createdAtTo
           in: query
           description: 'Дата создания по'
           schema:
             type: date-time
             pattern: '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$'
             default: '31.01.2040 12:59'
-        -
-          name: userId
+        - name: userId
           in: query
           description: 'id пользователя'
           schema:
             type: integer
-        -
-          name: userName
+        - name: userName
           in: query
           description: 'ФИО пользователя'
           schema:
             type: string
-        -
-          name: userEmail
+        - name: userEmail
           in: query
           description: 'E-mail пользователя'
           schema:
             type: string
-        -
-          name: action
+        - name: action
           in: query
           description: 'Действие. По умолчанию установлен фильтр «действие не пусто», для просмотра всех событий добавьте пустой параметр action в запрос. Действие «вход пользователя» user_login, действие «выход пользователя» user_logout'
           schema:
             type: string
-        -
-          name: requestMethod
+        - name: requestMethod
           in: query
           description: 'Тип запроса (GET, POST, ...)'
           schema:
             type: string
-        -
-          name: requestUrl
+        - name: requestUrl
           in: query
           description: Url
           schema:
             type: string
-        -
-          name: responseCode
+        - name: responseCode
           in: query
           description: 'Код ответа'
           schema:
             type: string
-        -
-          name: userIp
+        - name: userIp
           in: query
           description: 'IP пользователя'
           schema:
@@ -103,7 +88,7 @@ paths:
                   $ref: '#/components/schemas/AccessLog'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         403:
           description: 'Ошибка доступа'
-          content: {  }
+          content: { }

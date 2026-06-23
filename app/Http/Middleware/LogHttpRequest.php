@@ -13,9 +13,11 @@ final class LogHttpRequest
 {
     private float $startTime = 0.0;
 
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
-    /** @param Closure(Request): Response $next */
+    /** @param  Closure(Request): Response  $next */
     public function handle(Request $request, Closure $next): Response
     {
         $this->startTime = microtime(true);
@@ -29,7 +31,7 @@ final class LogHttpRequest
             return;
         }
 
-        $duration = (int) ((microtime(true) - $this->startTime) * 1000);
+        $duration = (int)((microtime(true) - $this->startTime) * 1000);
 
         $this->logger->info('HTTP request', [
             'method' => $request->method(),

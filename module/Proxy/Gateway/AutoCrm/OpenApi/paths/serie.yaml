@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - serie'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: serie
+  - name: serie
     description: 'Управление сериями'
 paths:
   /serie:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка серий'
       description: 'Получение списка серий'
       parameters:
-        -
-          name: generation_id
+        - name: generation_id
           in: query
           description: 'ID поколения'
           schema:
             type: integer
-        -
-          name: is_recent
+        - name: is_recent
           in: query
           description: 'признак активности серии 1 - только серии которые выпускаются (по умолчанию), 0 - серии, которые не выпускаются, пустое значение - все серии'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,7 +44,7 @@ paths:
                   $ref: '#/components/schemas/Serie'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/serie/{id}':
     get:
       tags:
@@ -59,8 +52,7 @@ paths:
       summary: 'Получение серии по ID'
       description: 'Получение серии по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id модели'
           required: true
@@ -75,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/Serie'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

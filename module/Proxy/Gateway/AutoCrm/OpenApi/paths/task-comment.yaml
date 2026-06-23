@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - task-comment'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: task-comment
+  - name: task-comment
     description: 'Комментарии задач'
 paths:
   /task-comment:
@@ -37,7 +33,7 @@ paths:
                 $ref: '#/components/schemas/TaskComment'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

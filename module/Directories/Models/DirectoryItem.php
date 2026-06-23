@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int                       $id
- * @property int                       $directory_version_id
- * @property int|null                  $parent_id
- * @property string|null               $external_key
- * @property string|null               $search_text
+ * @property int $id
+ * @property int $directory_version_id
+ * @property int|null $parent_id
+ * @property string|null $external_key
+ * @property string|null $search_text
  * @property array<string, mixed>|null $data_json
  */
 final class DirectoryItem extends Model

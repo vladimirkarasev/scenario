@@ -1,14 +1,14 @@
 <script setup>
-import { reactiveOmit } from "@vueuse/core";
-import { ChevronRightIcon } from "lucide-vue-next";
-import { CalendarNext, useForwardProps } from "reka-ui";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from '@/components/ui/button';
+import {reactiveOmit} from "@vueuse/core";
+import {ChevronRightIcon} from "lucide-vue-next";
+import {CalendarNext, useForwardProps} from "reka-ui";
+import {cn} from "@/lib/utils";
+import {buttonVariants} from '@/components/ui/button';
 
 const props = defineProps({
-  nextPage: { type: Function, required: false },
-  asChild: { type: Boolean, required: false },
-  as: { type: null, required: false },
+  nextPage: {type: Function, required: false},
+  asChild: {type: Boolean, required: false},
+  as: {type: null, required: false},
   class: {
     type: [Boolean, null, String, Object, Array],
     required: false,
@@ -23,18 +23,18 @@ const forwardedProps = useForwardProps(delegatedProps);
 
 <template>
   <CalendarNext
-    data-slot="calendar-next-button"
-    :class="
+      data-slot="calendar-next-button"
+      :class="
       cn(
         buttonVariants({ variant: 'outline' }),
         'size-7 bg-transparent p-0 opacity-50 hover:opacity-100',
         props.class,
       )
     "
-    v-bind="forwardedProps"
+      v-bind="forwardedProps"
   >
     <slot>
-      <ChevronRightIcon class="cn-rtl-flip size-4" />
+      <ChevronRightIcon class="cn-rtl-flip size-4"/>
     </slot>
   </CalendarNext>
 </template>

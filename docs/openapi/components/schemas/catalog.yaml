@@ -1,13 +1,13 @@
 CatalogItem:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
       format: uuid
     type:
       type: string
-      enum: [category, scenario]
+      enum: [ category, scenario ]
     attributes:
       type: object
       properties:

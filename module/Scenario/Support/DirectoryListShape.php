@@ -82,7 +82,7 @@ final readonly class DirectoryListShape
     /**
      * Whether the selected value is the "Другой" fallback option.
      *
-     * @param string $otherKey external_key configured on the directory version (defaults to the sentinel)
+     * @param  string  $otherKey  external_key configured on the directory version (defaults to the sentinel)
      */
     public static function isOther(mixed $value, string $otherKey = self::OTHER_EXTERNAL_KEY): bool
     {
@@ -94,7 +94,7 @@ final readonly class DirectoryListShape
      */
     public static function otherText(mixed $value): ?string
     {
-        if (! self::matches($value)) {
+        if (!self::matches($value)) {
             return null;
         }
 

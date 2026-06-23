@@ -44,7 +44,7 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertSame('v1', $result['item']['name']);
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
-            'name'        => 'v1',
+            'name' => 'v1',
         ]);
     }
 
@@ -125,8 +125,8 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertSame('draft', $result['item']['status']);
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
-            'name'        => 'v1 (копия)',
-            'status'      => 'draft',
+            'name' => 'v1 (копия)',
+            'status' => 'draft',
         ]);
     }
 
@@ -137,10 +137,10 @@ final class ScenarioVersionServiceTest extends TestCase
     {
         $scenario = $this->makeScenario();
         $version = ScenarioVersion::query()->create([
-            'id'          => (string) Str::uuid(),
+            'id' => (string)Str::uuid(),
             'scenario_id' => $scenario->id,
-            'name'        => 'v1',
-            'status'      => 'draft',
+            'name' => 'v1',
+            'status' => 'draft',
         ]);
 
         $result = $this->service->duplicate(new ScenarioVersionActionData(), $version);
@@ -188,31 +188,31 @@ final class ScenarioVersionServiceTest extends TestCase
 
     private function makeScenario(): Scenario
     {
-        return Scenario::query()->create(['name' => 'Scenario ' . Str::random(4), 'is_active' => true]);
+        return Scenario::query()->create(['name' => 'Scenario '.Str::random(4), 'is_active' => true]);
     }
 
     private function makeVersion(Scenario $scenario, string $name = 'v1'): ScenarioVersion
     {
         $version = ScenarioVersion::query()->create([
-            'id'          => (string) Str::uuid(),
+            'id' => (string)Str::uuid(),
             'scenario_id' => $scenario->id,
-            'name'        => $name,
-            'status'      => 'draft',
+            'name' => $name,
+            'status' => 'draft',
         ]);
 
         ScenarioVersionRevision::query()->create([
             'scenario_version_id' => $version->id,
-            'schema_json'         => ['nodes' => [], 'edges' => []],
-            'nodes_json'          => [],
-            'edges_json'          => [],
-            'schema_version'      => 1,
+            'schema_json' => ['nodes' => [], 'edges' => []],
+            'nodes_json' => [],
+            'edges_json' => [],
+            'schema_version' => 1,
         ]);
 
         return $version;
     }
 
     /**
-     * @param array<mixed> $schemaJson
+     * @param  array<mixed>  $schemaJson
      */
     private function makeVersionData(
         ?string $name = 'v1',

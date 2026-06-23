@@ -41,13 +41,13 @@ final class ScenarioRunStepRepository
             ->delete();
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(ScenarioRun $run, array $attributes): ScenarioRunStep
     {
         return $run->steps()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(ScenarioRunStep $step, array $attributes): ScenarioRunStep
     {
         $step->fill($attributes);

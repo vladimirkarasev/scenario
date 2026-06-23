@@ -18,26 +18,32 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
 
     public function __construct(
         private readonly ActionDataResolver $dataResolver,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
-        $resolvedConfig = $this->dataResolver->resolve($action->config ?? [], $this->dataResolver->contextForAction($action, $input));
+        $resolvedConfig = $this->dataResolver->resolve(
+            $action->config ?? [],
+            $this->dataResolver->contextForAction($action, $input)
+        );
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
         $format = strtolower($this->stringValue($config['format'] ?? null, 'txt'));
 
-        if (! in_array($format, self::FORMATS, true)) {
+        if (!in_array($format, self::FORMATS, true)) {
             return ActionResult::failed('Template action format must be one of: xml, txt, html.');
         }
 
         $template = $config['template'] ?? null;
 
-        if (! is_string($template) || $template === '') {
+        if (!is_string($template) || $template === '') {
             return ActionResult::failed('Template action requires `template` in config.');
         }
 
-        $content = $this->content($this->dataResolver->resolve($template, $this->dataResolver->contextForAction($action, $input)));
+        $content = $this->content(
+            $this->dataResolver->resolve($template, $this->dataResolver->contextForAction($action, $input))
+        );
         $fileName = $this->fileName($action, $config, $format);
         $path = sprintf('actions/%s/%s', Str::slug($action->key), $fileName);
 
@@ -77,7 +83,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
             ->placeholder('Hello {{ scenario.name }}');
     }
 
-    /** @param array<string, mixed> $config */
+    /** @param  array<string, mixed>  $config */
     private function fileName(Action $action, array $config, string $format): string
     {
         $configured = $config['file_name'] ?? null;
@@ -112,7 +118,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
         }
 
         if (is_scalar($content) || $content === null) {
-            return (string) $content;
+            return (string)$content;
         }
 
         return json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '';
@@ -120,7 +126,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string) $value : $default;
+        return is_scalar($value) ? (string)$value : $default;
     }
 
     /**
@@ -132,7 +138,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string) $key] = $value;
+            $result[(string)$key] = $value;
         }
 
         return $result;

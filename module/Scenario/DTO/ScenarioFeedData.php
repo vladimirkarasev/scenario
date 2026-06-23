@@ -17,7 +17,8 @@ final readonly class ScenarioFeedData
         public ?string $excludeScenarioId,
         public int $page,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(ScenarioFeedRequest $request): self
     {
@@ -37,7 +38,9 @@ final readonly class ScenarioFeedData
             ? $filter['status']
             : null;
 
-        $excludeScenarioId = isset($filter['exclude_scenario_id']) && is_string($filter['exclude_scenario_id']) && $filter['exclude_scenario_id'] !== ''
+        $excludeScenarioId = isset($filter['exclude_scenario_id']) && is_string(
+            $filter['exclude_scenario_id']
+        ) && $filter['exclude_scenario_id'] !== ''
             ? $filter['exclude_scenario_id']
             : null;
 

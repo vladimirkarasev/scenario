@@ -17,7 +17,8 @@ final class DirectoryVersionService
     public function __construct(
         private readonly DirectoryVersionRepository $versions,
         private readonly Container $container,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
@@ -26,7 +27,7 @@ final class DirectoryVersionService
     {
         return $this->versions
             ->orderedForDirectory($directory)
-            ->map(fn (DirectoryVersion $version): array => $this->payload($version))
+            ->map(fn(DirectoryVersion $version): array => $this->payload($version))
             ->values()
             ->all();
     }
@@ -58,7 +59,7 @@ final class DirectoryVersionService
             throw DirectoryVersionException::notBelongsToDirectory();
         }
 
-        if ((bool) $version->is_active) {
+        if ((bool)$version->is_active) {
             throw DirectoryVersionException::cannotDeleteActive();
         }
 
@@ -68,7 +69,7 @@ final class DirectoryVersionService
     }
 
     /**
-     * @param  array<int, array<string, mixed>> $fields
+     * @param  array<int, array<string, mixed>>  $fields
      * @return array<string, mixed>
      */
     public function updateSchema(
@@ -97,7 +98,7 @@ final class DirectoryVersionService
     }
 
     /**
-     * @param  array{add_new: bool, update_existing: bool, delete_unused: bool}|null $syncOptions
+     * @param  array{add_new: bool, update_existing: bool, delete_unused: bool}|null  $syncOptions
      * @return array<string, mixed>
      */
     public function updateSettings(
@@ -128,7 +129,7 @@ final class DirectoryVersionService
         }
         $version->save();
 
-        if ((bool) $version->is_active) {
+        if ((bool)$version->is_active) {
             $directory->source_type = $sourceType;
             $directory->next_sync_at = $sourceType === 'api' ? now() : null;
             $directory->save();
@@ -190,14 +191,14 @@ final class DirectoryVersionService
             'version_number' => $version->version_number,
             'code' => $version->code,
             'status' => $version->status,
-            'is_active' => (bool) $version->is_active,
+            'is_active' => (bool)$version->is_active,
             'source_type' => $version->source_type ?? 'manual',
             'sync_options' => $version->sync_options ?? [
-                'add_new' => true,
-                'update_existing' => true,
-                'delete_unused' => false,
-            ],
-            'allow_other' => (bool) $version->allow_other,
+                    'add_new' => true,
+                    'update_existing' => true,
+                    'delete_unused' => false,
+                ],
+            'allow_other' => (bool)$version->allow_other,
             'other_label' => $version->other_label,
             'other_external_key' => $version->other_external_key,
             'schema_json' => $this->schemaPayload($version),

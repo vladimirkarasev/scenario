@@ -43,8 +43,8 @@ final class UserGroupServiceTest extends TestCase
 
         $this->assertSame($this->project->id, $group->site_id);
         $this->assertDatabaseHas('user_groups', [
-            'id'      => $group->id,
-            'name'    => 'Тест',
+            'id' => $group->id,
+            'name' => 'Тест',
             'site_id' => $this->project->id,
         ]);
     }
@@ -100,7 +100,7 @@ final class UserGroupServiceTest extends TestCase
     public function test_add_member_attaches_user_to_group(): void
     {
         $group = $this->makeGroup();
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
 
         $this->service->addMember($group, $user);
 
@@ -113,7 +113,7 @@ final class UserGroupServiceTest extends TestCase
     public function test_add_member_is_idempotent(): void
     {
         $group = $this->makeGroup();
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
 
         $this->service->addMember($group, $user);
         $this->service->addMember($group, $user);
@@ -127,7 +127,7 @@ final class UserGroupServiceTest extends TestCase
     public function test_remove_member_detaches_user_from_group(): void
     {
         $group = $this->makeGroup();
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $group->members()->syncWithoutDetaching([$user->id]);
 
         $this->service->removeMember($group, $user);
@@ -155,7 +155,7 @@ final class UserGroupServiceTest extends TestCase
      */
     public function test_sync_from_registration_updates_name_when_changed(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $group = $this->makeGroup(slug: 'existing-group', name: 'Старое имя');
 
         $data = new GroupRegistrationData(slug: 'existing-group', name: 'Новое имя');
@@ -182,7 +182,7 @@ final class UserGroupServiceTest extends TestCase
      */
     public function test_sync_from_registration_does_not_overwrite_ext_id_when_null(): void
     {
-        $user  = User::factory()->create();
+        $user = User::factory()->create();
         $group = $this->makeGroup(slug: 'ext-group', extId: 'original-ext-id');
 
         $data = new GroupRegistrationData(slug: 'ext-group', name: $group->name);
@@ -198,21 +198,21 @@ final class UserGroupServiceTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project',
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project',
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 
     private function makeGroup(string $slug = '', string $name = 'Group', ?string $extId = null): UserGroup
     {
         return UserGroup::query()->create([
-            'name'      => $name,
-            'slug'      => $slug ?: 'group-' . Str::random(6),
-            'site_id'   => $this->project->id,
-            'ext_id'    => $extId,
+            'name' => $name,
+            'slug' => $slug ?: 'group-'.Str::random(6),
+            'site_id' => $this->project->id,
+            'ext_id' => $extId,
             'is_active' => true,
         ]);
     }

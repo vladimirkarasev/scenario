@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - vehicle-exchange-status'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: vehicle-exchange-status
+  - name: vehicle-exchange-status
     description: 'Изменение статуса операции обмена автомобилями'
 paths:
   '/subaru-erp/vehicle-exchange-status/{id}':
@@ -22,8 +18,7 @@ paths:
       summary: 'Изменение статуса операции обмена автомобилями'
       description: 'Изменение статуса операции обмена автомобилями'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID операции обмена'
           required: true
@@ -45,7 +40,7 @@ paths:
                 $ref: '#/components/schemas/VehicleExchangeStatusForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Операция обмена не найдена'
           content:

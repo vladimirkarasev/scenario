@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - dealer-logistic'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: dealer-logistic
+  - name: dealer-logistic
     description: 'Управление логистическими данными дилера'
 paths:
   /dealer-logistic:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка логистических данных дилера'
       description: 'Получение списка логистических данных дилера'
       parameters:
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'ID дилера'
           schema:
             type: integer
-        -
-          name: type
+        - name: type
           in: query
           description: "Тип доставки: `1` - а/м `2` - з/ч\n"
           schema:
@@ -48,7 +42,7 @@ paths:
                   $ref: '#/components/schemas/DealerLogistic'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - dealer-logistic
@@ -70,7 +64,7 @@ paths:
                 $ref: '#/components/schemas/DealerLogistic'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -84,26 +78,22 @@ paths:
       summary: 'Получение списка логистических адресов дилера'
       description: 'Получение списка логистических адресов дилера'
       parameters:
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'ID дилера'
           schema:
             type: integer
-        -
-          name: id
+        - name: id
           in: query
           description: 'ID логистического адреса'
           schema:
             type: integer
-        -
-          name: external_code
+        - name: external_code
           in: query
           description: 'внешний ID логистического адреса'
           schema:
             type: string
-        -
-          name: is_additional
+        - name: is_additional
           in: query
           description: 'Дополнительный адрес доставки'
           schema:
@@ -111,8 +101,7 @@ paths:
             enum:
               - 0
               - 1
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -128,22 +117,20 @@ paths:
                   $ref: '#/components/schemas/DealerLogisticAddress'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - dealer-logistic
       summary: 'Создание логистического адреса дилера по ID'
       description: 'Создание логистического адреса дилера по ID'
       parameters:
-        -
-          name: dealer_id
+        - name: dealer_id
           in: query
           description: 'id дилера'
           required: true
           schema:
             type: integer
-        -
-          name: type
+        - name: type
           in: query
           description: "Тип доставки: `1` - а/м `2` - з/ч\n"
           required: true
@@ -168,7 +155,7 @@ paths:
                 $ref: '#/components/schemas/DealerLogisticAddress'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -190,8 +177,7 @@ paths:
       summary: 'Получение логистического адреса дилера по ID'
       description: 'Получение логистического адреса дилера по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID логистического адреса'
           required: true
@@ -206,7 +192,7 @@ paths:
                 $ref: '#/components/schemas/DealerLogisticAddress'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -219,8 +205,7 @@ paths:
       summary: 'Изменение логистического адреса дилера по ID'
       description: 'Изменение логистического адреса дилера по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID логистического адреса'
           required: true
@@ -242,7 +227,7 @@ paths:
                 $ref: '#/components/schemas/DealerLogistic'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -255,8 +240,7 @@ paths:
       summary: 'Удаление логистического адреса дилера по ID'
       description: 'Удаление логистического адреса дилера по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -265,13 +249,13 @@ paths:
       responses:
         200:
           description: 'Успешное удаление по ID'
-          content: {  }
+          content: { }
         400:
           description: 'Ошибка клиента'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -285,8 +269,7 @@ paths:
       summary: 'Изменение логистических данных дилера по ID'
       description: 'Изменение логистических данных дилера по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID логистических данных'
           required: true
@@ -311,7 +294,7 @@ paths:
                 $ref: '#/components/schemas/DealerLogistic'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

@@ -12,7 +12,9 @@ use Module\Proxy\Proxies\Motorinvest\AutoCrm\ModelsProxyHandler as MotorinvestMo
 
 final class MotorinvestProxyRegistry
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /** @return Generator<int, ProxyEndpointDefinition, mixed, void> */
     public static function all(): Generator

@@ -16,7 +16,8 @@ final class ScenarioDispatchController extends Controller
 {
     public function __construct(
         private readonly ScenarioDispatchService $dispatcher,
-    ) {}
+    ) {
+    }
 
     public function __invoke(DispatchScenarioRequest $request): JsonResponse
     {

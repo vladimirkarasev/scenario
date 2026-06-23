@@ -212,7 +212,7 @@ final class ProxyRequestLogControllerTest extends TestCase
         $this->actingAs($this->user)
             ->getJson("/api/proxy/requests/{$request->id}")
             ->assertOk()
-            ->assertJsonPath('data.id', (string) $request->id)
+            ->assertJsonPath('data.id', (string)$request->id)
             ->assertJsonPath('data.attributes.request_id', $request->request_id);
     }
 
@@ -255,8 +255,10 @@ final class ProxyRequestLogControllerTest extends TestCase
         ]);
     }
 
-    private function makeRequest(ProxyEndpoint $endpoint, ProxyRequestStatus $status = ProxyRequestStatus::Processed): ProxyRequest
-    {
+    private function makeRequest(
+        ProxyEndpoint $endpoint,
+        ProxyRequestStatus $status = ProxyRequestStatus::Processed
+    ): ProxyRequest {
         return ProxyRequest::query()->create([
             'proxy_endpoint_id' => $endpoint->id,
             'request_id' => Str::uuid()->toString(),

@@ -17,12 +17,12 @@ final class ScenarioFeedRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'filter.parent_id'          => ['nullable', 'string'],
-            'filter.search'             => ['nullable', 'string', 'max:255'],
-            'filter.status'             => ['nullable', 'string', 'in:active,draft,archived'],
+            'filter.parent_id' => ['nullable', 'string'],
+            'filter.search' => ['nullable', 'string', 'max:255'],
+            'filter.status' => ['nullable', 'string', 'in:active,draft,archived'],
             'filter.exclude_scenario_id' => ['nullable', 'uuid'],
-            'page.number'               => ['nullable', 'integer', 'min:1'],
-            'page.size'                 => ['nullable', 'integer', 'min:1', 'max:100'],
+            'page.number' => ['nullable', 'integer', 'min:1'],
+            'page.size' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

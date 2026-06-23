@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - result'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: result
+  - name: result
     description: 'Управление результатами'
 paths:
   /lms/result:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка результатов'
       description: 'Получение списка результатов'
       parameters:
-        -
-          name: for_lead
+        - name: for_lead
           in: query
           description: 'Выводить только результаты для лидов (1 - да, 0 - нет)'
           schema:
@@ -31,8 +26,7 @@ paths:
             enum:
               - 0
               - 1
-        -
-          name: for_reject
+        - name: for_reject
           in: query
           description: 'Выводить только результаты для отказов (1 - да, 0 - нет)'
           schema:
@@ -40,8 +34,7 @@ paths:
             enum:
               - 0
               - 1
-        -
-          name: reject_contract
+        - name: reject_contract
           in: query
           description: 'Выводить только результаты для отказов от контрактов (1 - да, 0 - нет)'
           schema:
@@ -49,14 +42,12 @@ paths:
             enum:
               - 0
               - 1
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
             type: integer
-        -
-          name: expand
+        - name: expand
           in: query
           description: "Получение дополнительных полей, можно передать несколько значений через запятую\nmatrix - Матрица допустимого применения результата"
           schema:
@@ -72,4 +63,4 @@ paths:
                   $ref: '#/components/schemas/Result'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

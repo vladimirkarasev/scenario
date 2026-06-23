@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Проекты]
+    tags: [ Проекты ]
     summary: Список проектов
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - $ref: '../components/parameters.yaml#/PerPage'
     responses:
@@ -24,11 +24,11 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Проекты]
+    tags: [ Проекты ]
     summary: Создать проект
     description: Требует роль `project_admin`.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -59,10 +59,10 @@ item:
         type: integer
 
   get:
-    tags: [Проекты]
+    tags: [ Проекты ]
     summary: Получить проект
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Проект
@@ -76,11 +76,11 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Проекты]
+    tags: [ Проекты ]
     summary: Обновить проект
     description: Требует роль `project_admin`.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -104,11 +104,11 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Проекты]
+    tags: [ Проекты ]
     summary: Удалить проект
     description: Требует роль `project_admin`.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Проект удалён

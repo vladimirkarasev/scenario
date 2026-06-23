@@ -18,7 +18,7 @@ final class ProjectsServiceProvider extends ServiceProvider
         $this->app->scoped(CurrentProject::class, function (): CurrentProject {
             $user = $this->app->make(AuthFactory::class)->user();
 
-            if (! $user instanceof User || ! $user->sitekey || ! $user->host) {
+            if (!$user instanceof User || !$user->sitekey || !$user->host) {
                 return new CurrentProject(null);
             }
 

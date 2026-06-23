@@ -6,4 +6,6 @@ namespace Module\Directories\Exceptions;
 
 use RuntimeException;
 
-final class DirectoryImportException extends RuntimeException {}
+final class DirectoryImportException extends RuntimeException
+{
+}

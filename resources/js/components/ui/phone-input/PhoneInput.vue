@@ -2,7 +2,7 @@
 import {ref, computed, watch, onMounted, onUnmounted, nextTick} from 'vue'
 import IMask from 'imask'
 import {ChevronDown} from 'lucide-vue-next'
-import type { PhoneShape } from '@/lib/phone-shape'
+import type {PhoneShape} from '@/lib/phone-shape'
 
 export type PhoneValue = PhoneShape
 
@@ -86,8 +86,8 @@ const filteredCountries = computed(() => {
 })
 
 function findCountryByDigits(digits: string): Country | null {
-    const sorted = [...COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length)
-    return sorted.find(c => digits.startsWith(c.dialCode.replace(/\D/g, ''))) ?? null
+  const sorted = [...COUNTRIES].sort((a, b) => b.dialCode.length - a.dialCode.length)
+  return sorted.find(c => digits.startsWith(c.dialCode.replace(/\D/g, ''))) ?? null
 }
 
 type ImaskInstance = ReturnType<typeof IMask>
@@ -206,7 +206,7 @@ function handleOutsideClick(e: MouseEvent) {
         @click="openDropdown"
     >
       <span class="text-base leading-none">{{ selectedCountry.flag }}</span>
-      <ChevronDown class="size-3 shrink-0 text-muted-foreground" />
+      <ChevronDown class="size-3 shrink-0 text-muted-foreground"/>
     </button>
 
     <input

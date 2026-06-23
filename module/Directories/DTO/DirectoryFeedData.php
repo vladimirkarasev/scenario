@@ -15,7 +15,8 @@ final readonly class DirectoryFeedData
         public ?string $search,
         public int $page,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(DirectoryFeedRequest $request): self
     {

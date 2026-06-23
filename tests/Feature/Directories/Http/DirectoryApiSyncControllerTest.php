@@ -50,8 +50,8 @@ final class DirectoryApiSyncControllerTest extends TestCase
 
         $this->assertDatabaseHas('directory_imports', [
             'directory_id' => $directory->id,
-            'source_type'  => 'remote',
-            'status'       => 'pending',
+            'source_type' => 'remote',
+            'status' => 'pending',
         ]);
 
         Bus::assertDispatched(SyncDictionaryFromApiJob::class);
@@ -84,9 +84,9 @@ final class DirectoryApiSyncControllerTest extends TestCase
 
         $this->actingAs($user)
             ->postJson("/api/directories/{$directory->id}/sync-api", [
-                'add_new'          => true,
-                'update_existing'  => false,
-                'delete_unused'    => false,
+                'add_new' => true,
+                'update_existing' => false,
+                'delete_unused' => false,
             ])
             ->assertStatus(202);
 
@@ -127,9 +127,9 @@ final class DirectoryApiSyncControllerTest extends TestCase
     private function makeUserWithProject(string ...$permissions): array
     {
         $project = $this->makeProject();
-        $user    = User::factory()->create([
+        $user = User::factory()->create([
             'sitekey' => $project->sitekey,
-            'host'    => $project->host,
+            'host' => $project->host,
         ]);
 
         foreach ($permissions as $permission) {
@@ -143,23 +143,23 @@ final class DirectoryApiSyncControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name'          => 'Project ' . Str::random(4),
-            'sitekey'       => 'sk-' . Str::random(6),
-            'host'          => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
-            'is_active'     => true,
+            'is_active' => true,
         ]);
     }
 
-    /** @param array<string, mixed> $apiConfig */
+    /** @param  array<string, mixed>  $apiConfig */
     private function makeDirectory(Project $project, string $sourceType = 'manual', array $apiConfig = []): Directory
     {
         return Directory::query()->create([
-            'project_id'       => $project->id,
-            'name'             => 'Directory ' . Str::random(4),
-            'slug'             => 'dir-' . Str::random(6),
-            'source_type'      => $sourceType,
-            'api_config_json'  => $apiConfig ?: null,
+            'project_id' => $project->id,
+            'name' => 'Directory '.Str::random(4),
+            'slug' => 'dir-'.Str::random(6),
+            'source_type' => $sourceType,
+            'api_config_json' => $apiConfig ?: null,
         ]);
     }
 }

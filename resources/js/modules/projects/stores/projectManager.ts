@@ -1,6 +1,6 @@
-import { computed, reactive, ref } from 'vue'
-import { defineStore } from 'pinia'
-import { destroyJson, sendJson } from '@/lib/http'
+import {computed, reactive, ref} from 'vue'
+import {defineStore} from 'pinia'
+import {destroyJson, sendJson} from '@/lib/http'
 
 interface Project {
     id: string
@@ -76,7 +76,7 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
                     : endpoints.value!.store,
                 {
                     method: editingId.value ? 'PUT' : 'POST',
-                    body: { ...form },
+                    body: {...form},
                     fallbackMessage: 'Failed to save project.',
                 },
             )

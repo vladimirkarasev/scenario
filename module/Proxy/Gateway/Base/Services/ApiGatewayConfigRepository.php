@@ -13,13 +13,13 @@ final class ApiGatewayConfigRepository
     {
         $config = config("proxy.gateways.{$name}");
 
-        if (! is_array($config)) {
+        if (!is_array($config)) {
             throw new ApiGatewayConfigException("Proxy gateway [{$name}] is not configured.");
         }
 
         $typed = [];
         foreach ($config as $k => $v) {
-            $typed[(string) $k] = $v;
+            $typed[(string)$k] = $v;
         }
 
         return ApiGatewayConfig::fromArray($name, $typed);

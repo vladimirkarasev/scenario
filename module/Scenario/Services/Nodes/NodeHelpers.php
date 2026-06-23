@@ -10,7 +10,7 @@ use Module\Scenario\Models\ScenarioVersion;
 /** Типобезопасные помощники для работы с данными узла и прогона. */
 trait NodeHelpers
 {
-    /** @param array<string, mixed> $node */
+    /** @param  array<string, mixed>  $node */
     private function nodeId(array $node): string
     {
         $id = $node['id'] ?? null;
@@ -18,7 +18,7 @@ trait NodeHelpers
         return is_string($id) ? $id : throw new \RuntimeException('Node has no id.');
     }
 
-    /** @param array<string, mixed> $node */
+    /** @param  array<string, mixed>  $node */
     private function nodeType(array $node): string
     {
         $type = $node['type'] ?? null;
@@ -29,14 +29,14 @@ trait NodeHelpers
     /**
      * Возвращает data-секцию узла с гарантированными строковыми ключами.
      *
-     * @param  array<string, mixed> $node
+     * @param  array<string, mixed>  $node
      * @return array<string, mixed>
      */
     private function nodeData(array $node): array
     {
         $raw = $node['data'] ?? null;
 
-        if (! is_array($raw)) {
+        if (!is_array($raw)) {
             return [];
         }
 
@@ -57,7 +57,7 @@ trait NodeHelpers
         return $run->version ?? throw new \RuntimeException('Run version is not loaded.');
     }
 
-    /** @param array<array-key, mixed> $data */
+    /** @param  array<array-key, mixed>  $data */
     private function strField(array $data, string $key, string $default = ''): string
     {
         $val = $data[$key] ?? null;
@@ -65,7 +65,7 @@ trait NodeHelpers
         return is_string($val) ? $val : $default;
     }
 
-    /** @param array<array-key, mixed> $data */
+    /** @param  array<array-key, mixed>  $data */
     private function intField(array $data, string $key, int $default = 0): int
     {
         $val = $data[$key] ?? null;
@@ -73,16 +73,16 @@ trait NodeHelpers
         return is_int($val) ? $val : $default;
     }
 
-    /** @param array<array-key, mixed> $data */
+    /** @param  array<array-key, mixed>  $data */
     private function boolField(array $data, string $key, bool $default = false): bool
     {
         $val = $data[$key] ?? null;
 
-        return $val !== null ? (bool) $val : $default;
+        return $val !== null ? (bool)$val : $default;
     }
 
     /**
-     * @param  array<array-key, mixed> $data
+     * @param  array<array-key, mixed>  $data
      * @return array<array-key, mixed>
      */
     private function arrayField(array $data, string $key): array

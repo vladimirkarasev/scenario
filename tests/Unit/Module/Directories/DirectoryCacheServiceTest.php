@@ -105,7 +105,7 @@ final class DirectoryCacheServiceTest extends TestCase
             DirectoryItem::query()->create([
                 'directory_version_id' => $version->id,
                 'data_json' => ['seq' => $i],
-                'search_text' => (string) $i,
+                'search_text' => (string)$i,
             ]);
         }
 
@@ -143,7 +143,7 @@ final class DirectoryCacheServiceTest extends TestCase
         return Directory::query()->create([
             'project_id' => $project->id,
             'name' => 'Test Directory',
-            'slug' => 'test-dir-' . uniqid(),
+            'slug' => 'test-dir-'.uniqid(),
             'source_type' => 'manual',
         ]);
     }

@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - call'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: call
+  - name: call
     description: 'Управление журналом звонков'
 paths:
   /call:
@@ -22,14 +18,12 @@ paths:
       summary: 'Получение списка звонков'
       description: 'Получение списка звонков'
       parameters:
-        -
-          name: src
+        - name: src
           in: query
           description: 'Кто звонил'
           schema:
             type: string
-        -
-          name: dest
+        - name: dest
           in: query
           description: 'Кому звонили'
           schema:
@@ -45,7 +39,7 @@ paths:
                   $ref: '#/components/schemas/Call'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - call
@@ -73,7 +67,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -89,8 +83,7 @@ paths:
       summary: 'Получение звонка по id'
       description: 'Получение звонка по id'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id звонка'
           required: true
@@ -105,7 +98,7 @@ paths:
                 $ref: '#/components/schemas/Call'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -118,8 +111,7 @@ paths:
       summary: 'Изменение звонка по ID'
       description: 'Изменение звонка по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id звонка'
           required: true
@@ -141,7 +133,7 @@ paths:
                 $ref: '#/components/schemas/Call'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

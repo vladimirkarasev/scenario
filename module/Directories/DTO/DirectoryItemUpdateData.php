@@ -8,14 +8,15 @@ use Illuminate\Http\Request;
 
 final readonly class DirectoryItemUpdateData
 {
-    /** @param array<string, mixed> $data */
+    /** @param  array<string, mixed>  $data */
     public function __construct(
         public array $data,
         public ?string $matchBy,
         public ?int $parentId,
         public ?string $externalKey = null,
         public bool $externalKeyProvided = false,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {
@@ -26,7 +27,9 @@ final readonly class DirectoryItemUpdateData
             data: $data,
             matchBy: $request->filled('match_by') ? $request->str('match_by')->toString() : null,
             parentId: $request->filled('parent_id') ? $request->integer('parent_id') : null,
-            externalKey: $request->has('external_key') ? ($request->filled('external_key') ? $request->str('external_key')->toString() : null) : null,
+            externalKey: $request->has('external_key') ? ($request->filled('external_key') ? $request->str(
+                'external_key'
+            )->toString() : null) : null,
             externalKeyProvided: $request->has('external_key'),
         );
     }

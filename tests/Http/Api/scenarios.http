@@ -5,7 +5,8 @@
 @activeVersionUuid = 44444444-4444-4444-4444-444444444444
 
 ### List scenarios
-GET {{baseUrl}}/scenarios?active_only=0&search=lead&is_active=1&filter[tags][]=belgee&category_id={{categoryUuid}}&per_page=15
+GET {{baseUrl}}/scenarios?active_only=0&search=lead&is_active=1&filter[tags][]=belgee&category_id={{categoryUuid}}&
+    per_page=15
 
 ### Show scenario
 GET {{baseUrl}}/scenarios/{{scenarioUuid}}
@@ -25,8 +26,14 @@ Content-Type: application/json
   "description": "Scenario for Belgee lead intake.",
   "is_active": true,
   "alias": "belgee-lead",
-  "tags": ["belgee", "lead", "capture"],
-  "category_ids": ["{{categoryUuid}}"],
+  "tags": [
+    "belgee",
+    "lead",
+    "capture"
+  ],
+  "category_ids": [
+    "{{categoryUuid}}"
+  ],
   "active_version_id": "{{activeVersionUuid}}"
 }
 
@@ -39,8 +46,15 @@ Content-Type: application/json
   "description": "Updated scenario description.",
   "is_active": true,
   "alias": "belgee-lead",
-  "tags": ["belgee", "lead", "capture", "updated"],
-  "category_ids": ["{{categoryUuid}}"],
+  "tags": [
+    "belgee",
+    "lead",
+    "capture",
+    "updated"
+  ],
+  "category_ids": [
+    "{{categoryUuid}}"
+  ],
   "active_version_id": "{{activeVersionUuid}}"
 }
 

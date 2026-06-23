@@ -16,14 +16,18 @@ final class XmlActionHandler implements ActionHandlerInterface
 
     public function __construct(
         private readonly ActionDataResolver $dataResolver,
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
-        $config = $this->dataResolver->resolve($action->config ?? [], $this->dataResolver->contextForAction($action, $input));
+        $config = $this->dataResolver->resolve(
+            $action->config ?? [],
+            $this->dataResolver->contextForAction($action, $input)
+        );
         $config = is_array($config) ? $config : [];
-        $rootName = is_string($config['root'] ?? null) ? (string) $config['root'] : 'document';
+        $rootName = is_string($config['root'] ?? null) ? (string)$config['root'] : 'document';
         $payload = $config['body'] ?? $input;
 
         $xml = new \SimpleXMLElement(sprintf('<?xml version="1.0" encoding="UTF-8"?><%s/>', $rootName));
@@ -35,7 +39,7 @@ final class XmlActionHandler implements ActionHandlerInterface
         ]);
     }
 
-    /** @param array<int|string, mixed> $data */
+    /** @param  array<int|string, mixed>  $data */
     private function append(\SimpleXMLElement $element, array $data): void
     {
         foreach ($data as $key => $value) {
@@ -48,7 +52,7 @@ final class XmlActionHandler implements ActionHandlerInterface
                 continue;
             }
 
-            $element->addChild($nodeName, htmlspecialchars(is_scalar($value) || $value === null ? (string) $value : ''));
+            $element->addChild($nodeName, htmlspecialchars(is_scalar($value) || $value === null ? (string)$value : ''));
         }
     }
 }

@@ -35,7 +35,7 @@ final class DirectoryRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('directories', 'slug')
-                    ->where(fn (Builder $query) => $query->where('project_id', $projectId))
+                    ->where(fn(Builder $query) => $query->where('project_id', $projectId))
                     ->ignore($directory?->id),
             ],
             'description' => ['nullable', 'string'],
@@ -54,7 +54,10 @@ final class DirectoryRequest extends FormRequest
             'fields' => $this->isMethod('post') ? ['sometimes', 'array'] : ['required', 'array', 'min:1'],
             'fields.*.key' => ['required', 'string', 'distinct'],
             'fields.*.name' => ['required', 'string'],
-            'fields.*.type' => ['nullable', Rule::in(['string', 'integer', 'float', 'boolean', 'date', 'datetime', 'json'])],
+            'fields.*.type' => [
+                'nullable',
+                Rule::in(['string', 'integer', 'float', 'boolean', 'date', 'datetime', 'json'])
+            ],
             'fields.*.nullable' => ['nullable', 'boolean'],
             'fields.*.default' => ['nullable'],
             'fields.*.sort_order' => ['nullable', 'integer', 'min:0'],

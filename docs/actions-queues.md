@@ -29,6 +29,7 @@ php artisan queue:work sqs --queue=default --tries=3 --timeout=90
 ```
 
 Notes:
+
 - `action_runs` stores business execution status, error reason and attempts count.
 - Laravel's failed job storage still uses `failed_jobs`.
 - `Bus::batch()` also requires Laravel's `job_batches` table.

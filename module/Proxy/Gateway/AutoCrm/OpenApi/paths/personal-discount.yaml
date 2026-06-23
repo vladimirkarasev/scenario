@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - personal-discount'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: personal-discount
+  - name: personal-discount
     description: 'Персональные скидки'
 paths:
   /personal-discount/discount:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка персональных скидок'
       description: 'Получение списка персональных скидок'
       parameters:
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -39,7 +34,7 @@ paths:
                   $ref: '#/components/schemas/PersonalDiscount'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/personal-discount/discount/{id}':
     get:
       tags:
@@ -47,8 +42,7 @@ paths:
       summary: 'Просмотр персональной скидки'
       description: 'Просмотр персональной скидки'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'ID персональной скидки'
           required: true
@@ -70,7 +64,7 @@ paths:
                 $ref: '#/components/schemas/PersonalDiscount'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Опрос не найден'
           content:

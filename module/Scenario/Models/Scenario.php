@@ -19,19 +19,19 @@ use Module\Scenario\Enums\ScenarioStatus;
 use Module\Scenario\QueryBuilders\ScenarioBuilder;
 
 /**
- * @property string                  $id
- * @property string|null             $project_id
- * @property string                  $name
- * @property string|null             $description
- * @property bool                    $is_active
- * @property ScenarioStatus          $status
- * @property string|null             $alias
+ * @property string $id
+ * @property string|null $project_id
+ * @property string $name
+ * @property string|null $description
+ * @property bool $is_active
+ * @property ScenarioStatus $status
+ * @property string|null $alias
  * @property array<int, string>|null $tags
- * @property int|null                $created_by
- * @property int|null                $updated_by
- * @property string|null             $active_version_id
- * @property Carbon|null             $created_at
- * @property Carbon|null             $updated_at
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property string|null $active_version_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Project|null $project
  * @property-read User|null $createdBy
  * @property-read User|null $updatedBy
@@ -135,8 +135,8 @@ final class Scenario extends Model
     {
         return [
             'is_active' => 'boolean',
-            'status'    => ScenarioStatus::class,
-            'tags'      => 'array',
+            'status' => ScenarioStatus::class,
+            'tags' => 'array',
         ];
     }
 }

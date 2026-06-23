@@ -10,14 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int                              $id
- * @property string                           $directory_id
- * @property array<string, string>            $mapping_json
+ * @property int $id
+ * @property string $directory_id
+ * @property array<string, string> $mapping_json
  * @property array<int, array<string, mixed>> $fields_json
- * @property array<string, mixed>             $remote_config_json
- * @property array<int, string>               $processed_keys_json
- * @property Carbon|null                      $started_at
- * @property Carbon|null                      $finished_at
+ * @property array<string, mixed> $remote_config_json
+ * @property array<int, string> $processed_keys_json
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
  */
 final class DirectoryImport extends Model
 {

@@ -236,9 +236,9 @@ final class DirectoryImportControllerTest extends TestCase
     private function makeProject(): Project
     {
         return Project::query()->create([
-            'name' => 'Project ' . Str::random(4),
-            'sitekey' => 'sk-' . Str::random(6),
-            'host' => Str::random(4) . '.local',
+            'name' => 'Project '.Str::random(4),
+            'sitekey' => 'sk-'.Str::random(6),
+            'host' => Str::random(4).'.local',
             'shared_secret' => Str::random(32),
             'is_active' => true,
         ]);
@@ -248,8 +248,8 @@ final class DirectoryImportControllerTest extends TestCase
     {
         return Directory::query()->create([
             'project_id' => $project->id,
-            'name' => 'Directory ' . Str::random(4),
-            'slug' => 'dir-' . Str::random(6),
+            'name' => 'Directory '.Str::random(4),
+            'slug' => 'dir-'.Str::random(6),
             'source_type' => 'manual',
         ]);
     }
@@ -286,7 +286,7 @@ final class DirectoryImportControllerTest extends TestCase
     /**
      * Создаёт реальный XLSX-файл в tmp для передачи в request.
      *
-     * @param array<int, list<string>> $rows
+     * @param  array<int, list<string>>  $rows
      */
     private function makeExcelFile(array $rows): UploadedFile
     {
@@ -299,7 +299,7 @@ final class DirectoryImportControllerTest extends TestCase
             }
         }
 
-        $path = sys_get_temp_dir() . '/test_import_' . uniqid() . '.xlsx';
+        $path = sys_get_temp_dir().'/test_import_'.uniqid().'.xlsx';
         (new Xlsx($spreadsheet))->save($path);
 
         return new UploadedFile(

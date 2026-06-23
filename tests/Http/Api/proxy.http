@@ -19,9 +19,21 @@ Content-Type: application/json
 
 {
   "items": [
-    {"id": 1, "name": "Первый элемент", "code": "first"},
-    {"id": 2, "name": "Второй элемент", "code": "second"},
-    {"id": 3, "name": "Третий элемент",  "code": "third"}
+    {
+      "id": 1,
+      "name": "Первый элемент",
+      "code": "first"
+    },
+    {
+      "id": 2,
+      "name": "Второй элемент",
+      "code": "second"
+    },
+    {
+      "id": 3,
+      "name": "Третий элемент",
+      "code": "third"
+    }
   ]
 }
 

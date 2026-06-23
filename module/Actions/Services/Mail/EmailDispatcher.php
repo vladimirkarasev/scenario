@@ -20,7 +20,8 @@ final readonly class EmailDispatcher
         private EmailAccountResolver $resolver,
         private EmailSenderFactory $factory,
         private Dispatcher $events,
-    ) {}
+    ) {
+    }
 
     public function send(EmailMessage $message): EmailSendResult
     {
@@ -33,21 +34,25 @@ final readonly class EmailDispatcher
         $result = $this->factory->forAccount($account)->send($message);
 
         if ($result->sent) {
-            $this->events->dispatch(new EmailSent(
-                from: $message->from,
-                to: $message->to,
-                subject: $message->subject,
-                transport: $result->transport,
-                messageId: $result->messageId,
-            ));
+            $this->events->dispatch(
+                new EmailSent(
+                    from: $message->from,
+                    to: $message->to,
+                    subject: $message->subject,
+                    transport: $result->transport,
+                    messageId: $result->messageId,
+                )
+            );
         } else {
-            $this->events->dispatch(new EmailSendFailed(
-                from: $message->from,
-                to: $message->to,
-                subject: $message->subject,
-                transport: $result->transport,
-                error: $result->error ?? 'unknown error',
-            ));
+            $this->events->dispatch(
+                new EmailSendFailed(
+                    from: $message->from,
+                    to: $message->to,
+                    subject: $message->subject,
+                    transport: $result->transport,
+                    error: $result->error ?? 'unknown error',
+                )
+            );
         }
 
         return $result;

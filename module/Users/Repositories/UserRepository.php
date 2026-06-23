@@ -27,13 +27,13 @@ final class UserRepository
         return $user->load(['groups:id,name,slug', 'roles:id,name,title']);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function create(array $attributes): User
     {
         return User::query()->create($attributes);
     }
 
-    /** @param array<string, mixed> $attributes */
+    /** @param  array<string, mixed>  $attributes */
     public function update(User $user, array $attributes): User
     {
         $user->update($attributes);

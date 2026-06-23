@@ -23,7 +23,10 @@ Authorization: Bearer {{sharedSecret}}
   "email": "user@example.com",
   "name": "Иван Иванов",
   "external_id": "crm_user_123",
-  "roles": ["client", "manager"]
+  "roles": [
+    "client",
+    "manager"
+  ]
 }
 
 ### Register without email (generates fake email)
@@ -34,7 +37,9 @@ Authorization: Bearer {{sharedSecret}}
 {
   "login": "user_no_email",
   "name": "Без Email",
-  "roles": ["client"]
+  "roles": [
+    "client"
+  ]
 }
 
 ### Register with external_id only (no email, no login match)
@@ -46,7 +51,9 @@ Authorization: Bearer {{sharedSecret}}
   "login": "some_login",
   "name": "External User",
   "external_id": "ext_456",
-  "roles": ["viewer"]
+  "roles": [
+    "viewer"
+  ]
 }
 
 ### 404 — project not found
@@ -57,7 +64,9 @@ Authorization: Bearer {{sharedSecret}}
 {
   "login": "user_123",
   "name": "Test",
-  "roles": ["client"]
+  "roles": [
+    "client"
+  ]
 }
 
 ### 401 — wrong shared secret
@@ -68,7 +77,9 @@ Authorization: Bearer wrong-secret
 {
   "login": "user_123",
   "name": "Test",
-  "roles": ["client"]
+  "roles": [
+    "client"
+  ]
 }
 
 ### 422 — validation error (missing required fields)

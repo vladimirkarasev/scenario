@@ -19,8 +19,13 @@
     transition: border-color 0.15s ease;
 }
 
-.scenario-flow-connector--rounded { border-radius: 1.50rem; }
-.scenario-flow-connector--circle  { border-radius: 9999px; }
+.scenario-flow-connector--rounded {
+    border-radius: 1.50rem;
+}
+
+.scenario-flow-connector--circle {
+    border-radius: 9999px;
+}
 
 .scenario-flow-connector--diamond {
     inset: -6px;

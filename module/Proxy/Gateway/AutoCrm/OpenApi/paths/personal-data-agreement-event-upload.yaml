@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - personal-data-agreement-event-upload'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: personal-data-agreement-event-upload
+  - name: personal-data-agreement-event-upload
     description: 'Подтверждение сканов согласия на обработку ПД'
 paths:
   '/personal-data-agreement/event-upload/{id}':
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение результата проверки скана согласия на обработку ПД'
       description: 'Получение результата проверки скана согласия на обработку ПД'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id скана согласия на обработку ПД'
           required: true
@@ -45,7 +40,7 @@ paths:
                 $ref: '#/components/schemas/PersonalDataAgreementEventUploadForm'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

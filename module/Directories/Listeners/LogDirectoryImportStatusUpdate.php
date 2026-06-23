@@ -13,9 +13,12 @@ final readonly class LogDirectoryImportStatusUpdate
     public function handle(DirectoryImportStatusUpdated $event): void
     {
         if ($event->status === DirectoryImportStatus::Failed->value) {
-            Log::error('Directory import failed.', $event->logContext() + [
-                'error_message' => $event->errorMessage,
-            ]);
+            Log::error(
+                'Directory import failed.',
+                $event->logContext() + [
+                    'error_message' => $event->errorMessage,
+                ]
+            );
 
             return;
         }

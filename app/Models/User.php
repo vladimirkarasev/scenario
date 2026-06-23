@@ -24,10 +24,10 @@ use Module\Users\QueryBuilders\UserBuilder;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
- * @property int         $id
- * @property string      $name
+ * @property int $id
+ * @property string $name
  * @property string|null $fio
- * @property string      $email
+ * @property string $email
  * @property string|null $sitekey
  * @property string|null $host
  * @property string|null $login
@@ -47,9 +47,12 @@ final class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
-    /** @param string[] $abilities */
-    public function createToken(string $name, array $abilities = ['*'], ?DateTimeInterface $expiresAt = null): NewAccessToken
-    {
+    /** @param  string[]  $abilities */
+    public function createToken(
+        string $name,
+        array $abilities = ['*'],
+        ?DateTimeInterface $expiresAt = null
+    ): NewAccessToken {
         $plainTextToken = $this->generateTokenString();
 
         $token = $this->tokens()->create([

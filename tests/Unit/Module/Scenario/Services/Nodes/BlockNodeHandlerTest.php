@@ -9,7 +9,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\Nodes\BlockNodeHandler;
+use Module\Scenario\Services\Nodes\Block\BlockNodeHandler;
 use Tests\TestCase;
 
 final class BlockNodeHandlerTest extends TestCase

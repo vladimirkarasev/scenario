@@ -1,5 +1,5 @@
 <script setup>
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 
 const props = defineProps({
   class: {
@@ -12,9 +12,9 @@ const props = defineProps({
 
 <template>
   <div
-    data-slot="card-content"
-    :class="cn('px-4 group-data-[size=sm]/card:px-3', props.class)"
+      data-slot="card-content"
+      :class="cn('px-4 group-data-[size=sm]/card:px-3', props.class)"
   >
-    <slot />
+    <slot/>
   </div>
 </template>

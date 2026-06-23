@@ -8,13 +8,14 @@ final readonly class ConditionEvaluator
 {
     public function __construct(
         private VariableResolver $variableResolver,
-    ) {}
+    ) {
+    }
 
     /**
      * Вычисляет выражение из условия и возвращает ID целевого узла.
      *
-     * @param array<string, mixed> $condition
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $condition
+     * @param  array<string, mixed>  $context
      */
     public function resolveTarget(array $condition, array $context = []): ?string
     {
@@ -26,7 +27,7 @@ final readonly class ConditionEvaluator
         $rules = is_array($rawRules) ? $rawRules : [];
 
         foreach ($rules as $rule) {
-            if (! is_array($rule)) {
+            if (!is_array($rule)) {
                 continue;
             }
 
@@ -53,7 +54,7 @@ final readonly class ConditionEvaluator
             'equals' => $this->toStr($actual) === $this->toStr($expected),
             'not_equals' => $this->toStr($actual) !== $this->toStr($expected),
             'in' => is_array($expected) && in_array($actual, $expected, true),
-            'not_in' => is_array($expected) && ! in_array($actual, $expected, true),
+            'not_in' => is_array($expected) && !in_array($actual, $expected, true),
             default => false,
         };
     }
@@ -68,7 +69,7 @@ final readonly class ConditionEvaluator
             return $value ? '1' : '0';
         }
         if (is_int($value) || is_float($value)) {
-            return (string) $value;
+            return (string)$value;
         }
         if (is_string($value)) {
             return $value;

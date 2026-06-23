@@ -10,7 +10,8 @@ final readonly class ScenarioActionData
 {
     public function __construct(
         public ?int $actorId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(Request $request): self
     {

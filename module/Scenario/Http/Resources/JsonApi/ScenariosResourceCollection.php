@@ -16,13 +16,13 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
         $base = parent::with($request);
 
         /** @var list<mixed> $rawIncluded */
-        $rawIncluded = is_array($base['included'] ?? null) ? array_values((array) $base['included']) : [];
+        $rawIncluded = is_array($base['included'] ?? null) ? array_values((array)$base['included']) : [];
 
-        $knownIds   = [];
-        $parentIds  = [];
+        $knownIds = [];
+        $parentIds = [];
 
         foreach ($rawIncluded as $item) {
-            if (! is_array($item) || ($item['type'] ?? '') !== 'category') {
+            if (!is_array($item) || ($item['type'] ?? '') !== 'category') {
                 continue;
             }
             /** @var array<string, mixed> $item */
@@ -31,7 +31,7 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
                 $knownIds[] = $id;
             }
 
-            $attrs    = $item['attributes'] ?? null;
+            $attrs = $item['attributes'] ?? null;
             $parentId = $attrs instanceof \stdClass ? ($attrs->parent_id ?? null) : null;
             if (is_string($parentId) && $parentId !== '') {
                 $parentIds[] = $parentId;
@@ -47,7 +47,7 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
         /** @var array<string, Category> $ancestors */
         $ancestors = [];
 
-        while (! empty($needed)) {
+        while (!empty($needed)) {
             $rows = Category::query()
                 ->whereIn('id', $needed)
                 ->get(['id', 'parent_id', 'name', 'is_active']);
@@ -63,7 +63,7 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
                 }
             }
 
-            $known  = array_merge($knownIds, array_keys($ancestors));
+            $known = array_merge($knownIds, array_keys($ancestors));
             $needed = array_values(array_diff($newParents, $known));
         }
 
@@ -71,7 +71,7 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
             return $base;
         }
 
-        $existingIds   = array_column(array_filter($rawIncluded, 'is_array'), 'id');
+        $existingIds = array_column(array_filter($rawIncluded, 'is_array'), 'id');
         $ancestorItems = [];
 
         foreach ($ancestors as $id => $cat) {
@@ -79,14 +79,14 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
                 continue;
             }
             $ancestorItems[] = [
-                'id'            => $id,
-                'type'          => 'category',
-                'attributes'    => (object) [
+                'id' => $id,
+                'type' => 'category',
+                'attributes' => (object)[
                     'parent_id' => $cat->parent_id,
-                    'name'      => $cat->name,
+                    'name' => $cat->name,
                     'is_active' => $cat->is_active,
                 ],
-                'relationships' => (object) [
+                'relationships' => (object)[
                     'children' => ['meta' => ['count' => 0]],
                 ],
             ];

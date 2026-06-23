@@ -147,8 +147,8 @@ final class FieldResolverTest extends TestCase
             ['ip' => '10.0.0.1'],
         );
 
-        $this->assertSame('Иван',   $result['name']);
-        $this->assertSame('form',   $result['source']);
+        $this->assertSame('Иван', $result['name']);
+        $this->assertSame('form', $result['source']);
         $this->assertSame('10.0.0.1', $result['ip']);
     }
 }

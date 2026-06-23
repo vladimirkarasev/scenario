@@ -20,7 +20,7 @@ final class UserResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string) $this->id;
+        return (string)$this->id;
     }
 
     public function toType(Request $request): string
@@ -49,9 +49,9 @@ final class UserResource extends JsonApiResource
 
         if ($this->relationLoaded('roles')) {
             $result['roles'] = [
-                'data' => $this->roles->map(static fn (Role $r): array => [
+                'data' => $this->roles->map(static fn(Role $r): array => [
                     'type' => 'roles',
-                    'id' => (string) $r->id,
+                    'id' => (string)$r->id,
                     'meta' => ['name' => $r->name, 'title' => $r->title],
                 ])->all(),
             ];
@@ -59,7 +59,7 @@ final class UserResource extends JsonApiResource
 
         if ($this->relationLoaded('groups')) {
             $result['groups'] = [
-                'data' => $this->groups->map(static fn (UserGroup $g): array => [
+                'data' => $this->groups->map(static fn(UserGroup $g): array => [
                     'type' => 'groups',
                     'id' => $g->id,
                     'meta' => ['name' => $g->name, 'slug' => $g->slug],

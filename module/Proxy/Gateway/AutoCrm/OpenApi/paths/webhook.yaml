@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - webhook'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: webhook
+  - name: webhook
     description: 'Управление вебхуками'
 paths:
   /webhooks/default:
@@ -22,8 +18,7 @@ paths:
       summary: 'Получение списка вебхуков'
       description: 'Получение списка вебхуков'
       parameters:
-        -
-          name: handler
+        - name: handler
           in: query
           description: Обработчик
           schema:
@@ -35,14 +30,12 @@ paths:
               - schedule-worksheet-event-closed
               - worksheet-event-closed
               - purchase-closed
-        -
-          name: url
+        - name: url
           in: query
           description: URL
           schema:
             type: string
-        -
-          name: method
+        - name: method
           in: query
           description: 'HTTP метод'
           schema:
@@ -55,8 +48,7 @@ paths:
               - DELETE
               - HEAD
               - OPTIONS
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -72,7 +64,7 @@ paths:
                   $ref: '#/components/schemas/Webhook'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - webhook
@@ -94,7 +86,7 @@ paths:
                 $ref: '#/components/schemas/Webhook'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
   '/webhooks/default/{id}':
     put:
       tags:
@@ -102,8 +94,7 @@ paths:
       summary: 'Изменение вебхука по ID'
       description: 'Изменение вебхука по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id вебхука'
           required: true
@@ -125,7 +116,7 @@ paths:
                 $ref: '#/components/schemas/Webhook'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -138,8 +129,7 @@ paths:
       summary: 'Удаление вебхука'
       description: 'Удаление вебхука'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: id
           required: true
@@ -148,13 +138,13 @@ paths:
       responses:
         204:
           description: 'Успешное удаление'
-          content: {  }
+          content: { }
         400:
           description: 'Ошибка клиента'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

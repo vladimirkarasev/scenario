@@ -3,10 +3,10 @@ collection:
     - $ref: '../components/parameters.yaml#/ScenarioId'
 
   get:
-    tags: [Версии]
+    tags: [ Версии ]
     summary: Список версий сценария
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Список версий (JSON:API коллекция)
@@ -27,10 +27,10 @@ collection:
         $ref: '../components/responses.yaml#/NotFound'
 
   post:
-    tags: [Версии]
+    tags: [ Версии ]
     summary: Создать версию сценария
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -57,10 +57,10 @@ item:
     - $ref: '../components/parameters.yaml#/VersionId'
 
   get:
-    tags: [Версии]
+    tags: [ Версии ]
     summary: Получить версию сценария
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Версия
@@ -74,10 +74,10 @@ item:
         $ref: '../components/responses.yaml#/NotFound'
 
   patch:
-    tags: [Версии]
+    tags: [ Версии ]
     summary: Обновить версию сценария
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -99,10 +99,10 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Версии]
+    tags: [ Версии ]
     summary: Удалить версию сценария
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '200':
         description: Результат удаления

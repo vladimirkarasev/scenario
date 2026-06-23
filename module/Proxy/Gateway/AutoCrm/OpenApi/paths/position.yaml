@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - position'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: position
+  - name: position
     description: 'Управление должностями'
 paths:
   /position:
@@ -22,20 +18,17 @@ paths:
       summary: 'Получение списка должностей'
       description: 'Получение списка должностей'
       parameters:
-        -
-          name: code
+        - name: code
           in: query
           description: 'системный код MANAGER - менеджер, ACCEPTOR - мастер приемщик,  ROP - Руководитель отдела продаж, MECHANIC - Механик, CS - Клиентская служба, MARKETING - Маркетинг'
           schema:
             type: string
-        -
-          name: is_dealer
+        - name: is_dealer
           in: query
           description: 'флаг is_dealer: 1 = только дилерские, 0 = только не дилерские, 2 = любые. Опущен, пустое или не предусмотренное значение = только дилерские'
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -51,4 +44,4 @@ paths:
                   $ref: '#/components/schemas/Position'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }

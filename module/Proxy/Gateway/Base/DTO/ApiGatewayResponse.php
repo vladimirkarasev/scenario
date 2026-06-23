@@ -6,12 +6,13 @@ namespace Module\Proxy\Gateway\Base\DTO;
 
 final readonly class ApiGatewayResponse
 {
-    /** @param array<string, mixed> $headers */
+    /** @param  array<string, mixed>  $headers */
     public function __construct(
         public int $statusCode,
         public mixed $body = null,
         public array $headers = [],
-    ) {}
+    ) {
+    }
 
     public function successful(): bool
     {
@@ -20,7 +21,7 @@ final readonly class ApiGatewayResponse
 
     public function json(?string $key = null, mixed $default = null): mixed
     {
-        if (! is_array($this->body)) {
+        if (!is_array($this->body)) {
             return $key === null ? [] : $default;
         }
 
@@ -34,7 +35,7 @@ final readonly class ApiGatewayResponse
     public function header(string $key, mixed $default = null): mixed
     {
         foreach ($this->headers as $header => $value) {
-            if (strcasecmp((string) $header, $key) === 0) {
+            if (strcasecmp((string)$header, $key) === 0) {
                 return $value;
             }
         }

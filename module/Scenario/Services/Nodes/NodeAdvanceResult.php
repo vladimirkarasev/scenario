@@ -9,7 +9,9 @@ final readonly class NodeAdvanceResult
     public function __construct(
         public ?string $nextNodeId,
         public bool $runMutated = false,
-    ) {}
+        public bool $pause = false,
+    ) {
+    }
 
     public static function next(?string $nodeId): self
     {
@@ -19,5 +21,14 @@ final readonly class NodeAdvanceResult
     public static function mutated(): self
     {
         return new self(null, runMutated: true);
+    }
+
+    /**
+     * Узел запустил асинхронную работу и приостановил прогон на себе
+     * (например, action-нода с wait_for_result ждёт завершения цепочки экшенов).
+     */
+    public static function pause(): self
+    {
+        return new self(null, pause: true);
     }
 }

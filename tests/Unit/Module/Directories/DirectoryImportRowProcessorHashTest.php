@@ -77,7 +77,7 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
         );
 
         $this->assertNotNull($key);
-        $this->assertSame(32, strlen((string) $key), 'external_key должен быть MD5-хэшем при отсутствии match_by');
+        $this->assertSame(32, strlen((string)$key), 'external_key должен быть MD5-хэшем при отсутствии match_by');
     }
 
     /**
@@ -162,12 +162,12 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
         $this->assertNotSame($h1, $h2);
     }
 
-    /** @param array<string, string|null> $row */
+    /** @param  array<string, string|null>  $row */
     private function hash(array $row, int $rowNumber = 2): string
     {
         return $row
                 |> array_keys(...)
                 |> collect(...)
-                |> (fn ($x) => $this->computeRowHash->invoke($this->processor, $row, $x, $rowNumber));
+                |> (fn($x) => $this->computeRowHash->invoke($this->processor, $row, $x, $rowNumber));
     }
 }

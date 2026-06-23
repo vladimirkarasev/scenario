@@ -14,7 +14,8 @@ final class SurveysController extends Controller
 {
     public function __construct(
         private readonly SurveysService $surveys,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): JsonResponse
     {

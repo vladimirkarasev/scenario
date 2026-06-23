@@ -12,27 +12,30 @@ use Module\Actions\Services\ActionDataResolver;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Services\ScenarioPlayerService;
 
-final class ScenarioRunResultActionHandler implements ActionHandlerInterface
+final readonly class ScenarioRunResultActionHandler implements ActionHandlerInterface
 {
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-        private readonly ScenarioPlayerService $player,
-    ) {}
+        private ActionDataResolver $dataResolver,
+        private ScenarioPlayerService $player,
+    ) {
+    }
 
-    /** @param array<string, mixed> $input */
+    /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
     {
         $config = $this->dataResolver->resolveActionConfig($action, $input);
         $own = is_array($input[$action->code] ?? null) ? $input[$action->code] : [];
 
-        $runId = $this->stringValue($config['scenario_uuid'] ?? null);
+        $runId = $this->firstUuid([
+            $config['scenario_uuid'] ?? null,
+            $own['scenario_uuid'] ?? null,
+            $input['scenario_run_id'] ?? null,
+        ]);
 
         if ($runId === '') {
-            $runId = $this->stringValue($own['scenario_uuid'] ?? null);
-        }
-
-        if ($runId === '') {
-            return ActionResult::failed('Scenario run result requires `scenario_uuid` in config or input.');
+            return ActionResult::failed(
+                'Scenario run result requires a valid `scenario_uuid` (UUID) in config or input.'
+            );
         }
 
         $run = ScenarioRun::query()->find($runId);
@@ -53,12 +56,35 @@ final class ScenarioRunResultActionHandler implements ActionHandlerInterface
             ->description('Если не указано, берётся из input.scenario_uuid.');
     }
 
+    /**
+     * Возвращает первое значение, похожее на UUID, иначе ''.
+     *
+     * @param  array<int, mixed>  $candidates
+     */
+    private function firstUuid(array $candidates): string
+    {
+        foreach ($candidates as $candidate) {
+            $value = $this->stringValue($candidate);
+
+            if ($this->isUuid($value)) {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    private function isUuid(string $value): bool
+    {
+        return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value) === 1;
+    }
+
     private function stringValue(mixed $value): string
     {
         if (is_string($value)) {
-            return $value;
+            return trim($value);
         }
 
-        return is_scalar($value) ? (string) $value : '';
+        return is_scalar($value) ? (string)$value : '';
     }
 }

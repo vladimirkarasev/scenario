@@ -1,5 +1,398 @@
-const Ziggy = {"url":"http:\/\/scenario.localhost","port":null,"defaults":{},"routes":{"debugbar.openhandler":{"uri":"_debugbar\/open","methods":["GET","HEAD"]},"debugbar.cache.delete":{"uri":"_debugbar\/cache\/{key}","methods":["DELETE"],"wheres":{"key":".*"},"parameters":["key"]},"debugbar.queries.explain":{"uri":"_debugbar\/queries\/explain","methods":["POST"]},"debugbar.clockwork":{"uri":"_debugbar\/clockwork\/{id}","methods":["GET","HEAD"],"parameters":["id"]},"debugbar.assets":{"uri":"_debugbar\/assets","methods":["GET","HEAD"]},"sanctum.csrf-cookie":{"uri":"sanctum\/csrf-cookie","methods":["GET","HEAD"]},"scalar":{"uri":"scalar","methods":["GET","HEAD"]},"actions.types":{"uri":"api\/actions\/types","methods":["GET","HEAD"]},"actions.index":{"uri":"api\/actions","methods":["GET","HEAD"]},"actions.store":{"uri":"api\/actions","methods":["POST"]},"actions.show":{"uri":"api\/actions\/{action}","methods":["GET","HEAD"],"parameters":["action"],"bindings":{"action":"id"}},"actions.update":{"uri":"api\/actions\/{action}","methods":["PUT"],"parameters":["action"],"bindings":{"action":"id"}},"actions.destroy":{"uri":"api\/actions\/{action}","methods":["DELETE"],"parameters":["action"],"bindings":{"action":"id"}},"actions.execute":{"uri":"api\/actions\/{action}\/execute","methods":["POST"],"parameters":["action"],"bindings":{"action":"id"}},"actions.run":{"uri":"api\/actions\/{action}\/run","methods":["POST"],"parameters":["action"],"bindings":{"action":"id"}},"actions.schedule.show":{"uri":"api\/actions\/{action}\/schedule","methods":["GET","HEAD"],"parameters":["action"],"bindings":{"action":"id"}},"actions.schedule.upsert":{"uri":"api\/actions\/{action}\/schedule","methods":["PUT"],"parameters":["action"],"bindings":{"action":"id"}},"actions.schedule.destroy":{"uri":"api\/actions\/{action}\/schedule","methods":["DELETE"],"parameters":["action"],"bindings":{"action":"id"}},"action-credentials.index":{"uri":"api\/action-credentials","methods":["GET","HEAD"]},"action-credentials.store":{"uri":"api\/action-credentials","methods":["POST"]},"action-credentials.update":{"uri":"api\/action-credentials\/{credential}","methods":["PUT"],"parameters":["credential"],"bindings":{"credential":"id"}},"action-credentials.destroy":{"uri":"api\/action-credentials\/{credential}","methods":["DELETE"],"parameters":["credential"],"bindings":{"credential":"id"}},"action-runs.index":{"uri":"api\/action-runs","methods":["GET","HEAD"]},"action-runs.completed":{"uri":"api\/action-runs\/completed","methods":["GET","HEAD"]},"action-runs.failed":{"uri":"api\/action-runs\/failed","methods":["GET","HEAD"]},"directories":{"uri":"directories","methods":["GET","HEAD"]},"directories.show":{"uri":"directories\/{directory}","methods":["GET","HEAD"],"parameters":["directory"]},"directories.settings":{"uri":"directories\/{directory}\/settings","methods":["GET","HEAD"],"parameters":["directory"]},"directories.version":{"uri":"directories\/{directory}\/versions\/{version}","methods":["GET","HEAD"],"parameters":["directory","version"]},"directories.categories.index":{"uri":"api\/directories\/categories","methods":["GET","HEAD"]},"directories.categories.show":{"uri":"api\/directories\/categories\/{category}","methods":["GET","HEAD"],"parameters":["category"],"bindings":{"category":"id"}},"directories.categories.store":{"uri":"api\/directories\/categories","methods":["POST"]},"directories.categories.update":{"uri":"api\/directories\/categories\/{category}","methods":["PUT"],"parameters":["category"],"bindings":{"category":"id"}},"directories.categories.destroy":{"uri":"api\/directories\/categories\/{category}","methods":["DELETE"],"parameters":["category"],"bindings":{"category":"id"}},"directories.index":{"uri":"api\/directories","methods":["GET","HEAD"]},"directories.versions.index":{"uri":"api\/directories\/{directory}\/versions","methods":["GET","HEAD"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.imports.index":{"uri":"api\/directories\/{directory}\/imports","methods":["GET","HEAD"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.items.index":{"uri":"api\/directories\/{directory}\/items","methods":["GET","HEAD"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.store":{"uri":"api\/directories","methods":["POST"]},"directories.update":{"uri":"api\/directories\/{directory}","methods":["PUT"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.imports.store":{"uri":"api\/directories\/{directory}\/imports","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.imports.excel":{"uri":"api\/directories\/{directory}\/import\/excel","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.imports.preview":{"uri":"api\/directories\/{directory}\/imports\/preview","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.sync-api":{"uri":"api\/directories\/{directory}\/sync-api","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.cache.warmup":{"uri":"api\/directories\/{directory}\/cache\/warmup","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.import-settings.update":{"uri":"api\/directories\/{directory}\/import-settings","methods":["PATCH"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.import-schedule.upsert":{"uri":"api\/directories\/{directory}\/import-schedule","methods":["PUT"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.items.store":{"uri":"api\/directories\/{directory}\/items","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.items.update":{"uri":"api\/directories\/{directory}\/items\/{item}","methods":["PUT"],"parameters":["directory","item"],"bindings":{"directory":"id","item":"id"}},"directories.destroy":{"uri":"api\/directories\/{directory}","methods":["DELETE"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.items.bulk-destroy":{"uri":"api\/directories\/{directory}\/items","methods":["DELETE"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.items.destroy":{"uri":"api\/directories\/{directory}\/items\/{item}","methods":["DELETE"],"parameters":["directory","item"],"bindings":{"directory":"id","item":"id"}},"directories.versions.store":{"uri":"api\/directories\/{directory}\/versions","methods":["POST"],"parameters":["directory"],"bindings":{"directory":"id"}},"directories.versions.schema":{"uri":"api\/directories\/{directory}\/versions\/{version}\/schema","methods":["PUT"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.versions.settings":{"uri":"api\/directories\/{directory}\/versions\/{version}\/settings","methods":["PATCH"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.versions.code":{"uri":"api\/directories\/{directory}\/versions\/{version}\/code","methods":["PATCH"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.versions.destroy":{"uri":"api\/directories\/{directory}\/versions\/{version}","methods":["DELETE"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.versions.activate":{"uri":"api\/directories\/{directory}\/versions\/{version}\/activate","methods":["PATCH"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.versions.activate.post":{"uri":"api\/directories\/{directory}\/versions\/{version}\/activate","methods":["POST"],"wheres":{"version":"[0-9]+"},"parameters":["directory","version"],"bindings":{"directory":"id","version":"id"}},"directories.data":{"uri":"api\/directories\/{directory}\/data","methods":["GET","HEAD"],"parameters":["directory"]},"proxy.endpoints":{"uri":"proxy\/endpoints","methods":["GET","HEAD"]},"proxy.requests":{"uri":"proxy\/requests","methods":["GET","HEAD"]},"proxy.requests.show":{"uri":"proxy\/requests\/{proxyRequest}","methods":["GET","HEAD"],"parameters":["proxyRequest"]},"proxy.proxies.receive":{"uri":"api\/proxies\/{uuid}","methods":["GET","POST","HEAD"],"parameters":["uuid"]},"proxy.proxies.fields":{"uri":"api\/proxies\/{uuid}\/fields","methods":["GET","HEAD"],"parameters":["uuid"]},"api.proxy.endpoints.index":{"uri":"api\/proxy\/endpoints","methods":["GET","HEAD"]},"api.proxy.endpoints.store":{"uri":"api\/proxy\/endpoints","methods":["POST"]},"api.proxy.endpoints.show":{"uri":"api\/proxy\/endpoints\/{proxy}","methods":["GET","HEAD"],"parameters":["proxy"],"bindings":{"proxy":"id"}},"api.proxy.endpoints.update":{"uri":"api\/proxy\/endpoints\/{proxy}","methods":["PUT"],"parameters":["proxy"],"bindings":{"proxy":"id"}},"api.proxy.endpoints.destroy":{"uri":"api\/proxy\/endpoints\/{proxy}","methods":["DELETE"],"parameters":["proxy"],"bindings":{"proxy":"id"}},"api.proxy.requests.index":{"uri":"api\/proxy\/requests","methods":["GET","HEAD"]},"api.proxy.requests.show":{"uri":"api\/proxy\/requests\/{proxyRequest}","methods":["GET","HEAD"],"parameters":["proxyRequest"],"bindings":{"proxyRequest":"id"}},"projects.index":{"uri":"projects","methods":["GET","HEAD"]},"workspace":{"uri":"workspace","methods":["GET","HEAD"]},"workspace.scenario":{"uri":"workspace\/scenario\/{scenario}","methods":["GET","HEAD"],"parameters":["scenario"],"bindings":{"scenario":"id"}},"workspace.scenarios":{"uri":"workspace\/scenarios","methods":["GET","HEAD"]},"workspace.run.detail":{"uri":"workspace\/detail\/{run}","methods":["GET","HEAD"],"parameters":["run"]},"workspace.run":{"uri":"workspace\/{run}","methods":["GET","HEAD"],"parameters":["run"]},"scenarios":{"uri":"scenarios","methods":["GET","HEAD"]},"surveys":{"uri":"surveys","methods":["GET","HEAD"]},"scenario-runs":{"uri":"scenario-runs","methods":["GET","HEAD"]},"scenario-runs.play":{"uri":"scenario-runs\/{run}\/play","methods":["GET","HEAD"],"parameters":["run"],"bindings":{"run":"id"}},"scenarios.edit":{"uri":"scenarios\/{scenario}\/edit","methods":["GET","HEAD"],"parameters":["scenario"],"bindings":{"scenario":"id"}},"scenario-versions.create":{"uri":"scenarios\/{scenario}\/versions\/create","methods":["GET","HEAD"],"parameters":["scenario"],"bindings":{"scenario":"id"}},"scenario-versions.edit":{"uri":"scenario-versions\/{version}\/edit","methods":["GET","HEAD"],"parameters":["version"],"bindings":{"version":"id"}},"scenario-version-blocks.edit":{"uri":"scenario-versions\/{version}\/blocks\/{block}\/edit","methods":["GET","HEAD"],"parameters":["version","block"],"bindings":{"version":"id"}},"scenario-draft-blocks.edit":{"uri":"scenarios\/{scenario}\/blocks\/{block}\/edit","methods":["GET","HEAD"],"parameters":["scenario","block"],"bindings":{"scenario":"id"}},"surveys.run":{"uri":"surveys\/{run}","methods":["GET","HEAD"],"parameters":["run"],"bindings":{"run":"id"}},"users.index":{"uri":"users","methods":["GET","HEAD"]},"users.roles":{"uri":"users\/roles","methods":["GET","HEAD"]},"users.groups":{"uri":"users\/groups","methods":["GET","HEAD"]},"iframe-auth.authorize":{"uri":"api\/dev\/iframe-auth\/authorize","methods":["POST"]},"iframe-auth.mock-token":{"uri":"api\/dev\/iframe-auth\/token","methods":["POST"]},"iframe-auth.dev-login":{"uri":"api\/dev\/iframe-auth\/login","methods":["POST"]},"embed":{"uri":"embed","methods":["GET","HEAD"]},"actions":{"uri":"actions","methods":["GET","HEAD"]},"actions.runs":{"uri":"actions\/runs","methods":["GET","HEAD"]},"login":{"uri":"login","methods":["GET","HEAD"]},"auth.page":{"uri":"auth","methods":["GET","HEAD"]},"storage.local":{"uri":"storage\/{path}","methods":["GET","HEAD"],"wheres":{"path":".*"},"parameters":["path"]},"storage.local.upload":{"uri":"storage\/{path}","methods":["PUT"],"wheres":{"path":".*"},"parameters":["path"]}}};
+const Ziggy = {
+    "url": "http:\/\/scenario.localhost", "port": null, "defaults": {}, "routes": {
+        "debugbar.openhandler": {"uri": "_debugbar\/open", "methods": ["GET", "HEAD"]},
+        "debugbar.cache.delete": {
+            "uri": "_debugbar\/cache\/{key}",
+            "methods": ["DELETE"],
+            "wheres": {"key": ".*"},
+            "parameters": ["key"]
+        },
+        "debugbar.queries.explain": {"uri": "_debugbar\/queries\/explain", "methods": ["POST"]},
+        "debugbar.clockwork": {"uri": "_debugbar\/clockwork\/{id}", "methods": ["GET", "HEAD"], "parameters": ["id"]},
+        "debugbar.assets": {"uri": "_debugbar\/assets", "methods": ["GET", "HEAD"]},
+        "sanctum.csrf-cookie": {"uri": "sanctum\/csrf-cookie", "methods": ["GET", "HEAD"]},
+        "scalar": {"uri": "scalar", "methods": ["GET", "HEAD"]},
+        "actions.types": {"uri": "api\/actions\/types", "methods": ["GET", "HEAD"]},
+        "actions.index": {"uri": "api\/actions", "methods": ["GET", "HEAD"]},
+        "actions.store": {"uri": "api\/actions", "methods": ["POST"]},
+        "actions.show": {
+            "uri": "api\/actions\/{action}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.update": {
+            "uri": "api\/actions\/{action}",
+            "methods": ["PUT"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.destroy": {
+            "uri": "api\/actions\/{action}",
+            "methods": ["DELETE"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.execute": {
+            "uri": "api\/actions\/{action}\/execute",
+            "methods": ["POST"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.run": {
+            "uri": "api\/actions\/{action}\/run",
+            "methods": ["POST"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.schedule.show": {
+            "uri": "api\/actions\/{action}\/schedule",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.schedule.upsert": {
+            "uri": "api\/actions\/{action}\/schedule",
+            "methods": ["PUT"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "actions.schedule.destroy": {
+            "uri": "api\/actions\/{action}\/schedule",
+            "methods": ["DELETE"],
+            "parameters": ["action"],
+            "bindings": {"action": "id"}
+        },
+        "action-credentials.index": {"uri": "api\/action-credentials", "methods": ["GET", "HEAD"]},
+        "action-credentials.store": {"uri": "api\/action-credentials", "methods": ["POST"]},
+        "action-credentials.update": {
+            "uri": "api\/action-credentials\/{credential}",
+            "methods": ["PUT"],
+            "parameters": ["credential"],
+            "bindings": {"credential": "id"}
+        },
+        "action-credentials.destroy": {
+            "uri": "api\/action-credentials\/{credential}",
+            "methods": ["DELETE"],
+            "parameters": ["credential"],
+            "bindings": {"credential": "id"}
+        },
+        "action-runs.index": {"uri": "api\/action-runs", "methods": ["GET", "HEAD"]},
+        "action-runs.completed": {"uri": "api\/action-runs\/completed", "methods": ["GET", "HEAD"]},
+        "action-runs.failed": {"uri": "api\/action-runs\/failed", "methods": ["GET", "HEAD"]},
+        "directories": {"uri": "directories", "methods": ["GET", "HEAD"]},
+        "directories.show": {
+            "uri": "directories\/{directory}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"]
+        },
+        "directories.settings": {
+            "uri": "directories\/{directory}\/settings",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"]
+        },
+        "directories.version": {
+            "uri": "directories\/{directory}\/versions\/{version}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory", "version"]
+        },
+        "directories.categories.index": {"uri": "api\/directories\/categories", "methods": ["GET", "HEAD"]},
+        "directories.categories.show": {
+            "uri": "api\/directories\/categories\/{category}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["category"],
+            "bindings": {"category": "id"}
+        },
+        "directories.categories.store": {"uri": "api\/directories\/categories", "methods": ["POST"]},
+        "directories.categories.update": {
+            "uri": "api\/directories\/categories\/{category}",
+            "methods": ["PUT"],
+            "parameters": ["category"],
+            "bindings": {"category": "id"}
+        },
+        "directories.categories.destroy": {
+            "uri": "api\/directories\/categories\/{category}",
+            "methods": ["DELETE"],
+            "parameters": ["category"],
+            "bindings": {"category": "id"}
+        },
+        "directories.index": {"uri": "api\/directories", "methods": ["GET", "HEAD"]},
+        "directories.versions.index": {
+            "uri": "api\/directories\/{directory}\/versions",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.imports.index": {
+            "uri": "api\/directories\/{directory}\/imports",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.items.index": {
+            "uri": "api\/directories\/{directory}\/items",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.store": {"uri": "api\/directories", "methods": ["POST"]},
+        "directories.update": {
+            "uri": "api\/directories\/{directory}",
+            "methods": ["PUT"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.imports.store": {
+            "uri": "api\/directories\/{directory}\/imports",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.imports.excel": {
+            "uri": "api\/directories\/{directory}\/import\/excel",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.imports.preview": {
+            "uri": "api\/directories\/{directory}\/imports\/preview",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.sync-api": {
+            "uri": "api\/directories\/{directory}\/sync-api",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.cache.warmup": {
+            "uri": "api\/directories\/{directory}\/cache\/warmup",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.import-settings.update": {
+            "uri": "api\/directories\/{directory}\/import-settings",
+            "methods": ["PATCH"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.import-schedule.upsert": {
+            "uri": "api\/directories\/{directory}\/import-schedule",
+            "methods": ["PUT"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.items.store": {
+            "uri": "api\/directories\/{directory}\/items",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.items.update": {
+            "uri": "api\/directories\/{directory}\/items\/{item}",
+            "methods": ["PUT"],
+            "parameters": ["directory", "item"],
+            "bindings": {"directory": "id", "item": "id"}
+        },
+        "directories.destroy": {
+            "uri": "api\/directories\/{directory}",
+            "methods": ["DELETE"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.items.bulk-destroy": {
+            "uri": "api\/directories\/{directory}\/items",
+            "methods": ["DELETE"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.items.destroy": {
+            "uri": "api\/directories\/{directory}\/items\/{item}",
+            "methods": ["DELETE"],
+            "parameters": ["directory", "item"],
+            "bindings": {"directory": "id", "item": "id"}
+        },
+        "directories.versions.store": {
+            "uri": "api\/directories\/{directory}\/versions",
+            "methods": ["POST"],
+            "parameters": ["directory"],
+            "bindings": {"directory": "id"}
+        },
+        "directories.versions.schema": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}\/schema",
+            "methods": ["PUT"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.versions.settings": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}\/settings",
+            "methods": ["PATCH"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.versions.code": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}\/code",
+            "methods": ["PATCH"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.versions.destroy": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}",
+            "methods": ["DELETE"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.versions.activate": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}\/activate",
+            "methods": ["PATCH"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.versions.activate.post": {
+            "uri": "api\/directories\/{directory}\/versions\/{version}\/activate",
+            "methods": ["POST"],
+            "wheres": {"version": "[0-9]+"},
+            "parameters": ["directory", "version"],
+            "bindings": {"directory": "id", "version": "id"}
+        },
+        "directories.data": {
+            "uri": "api\/directories\/{directory}\/data",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["directory"]
+        },
+        "proxy.endpoints": {"uri": "proxy\/endpoints", "methods": ["GET", "HEAD"]},
+        "proxy.requests": {"uri": "proxy\/requests", "methods": ["GET", "HEAD"]},
+        "proxy.requests.show": {
+            "uri": "proxy\/requests\/{proxyRequest}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["proxyRequest"]
+        },
+        "proxy.proxies.receive": {
+            "uri": "api\/proxies\/{uuid}",
+            "methods": ["GET", "POST", "HEAD"],
+            "parameters": ["uuid"]
+        },
+        "proxy.proxies.fields": {
+            "uri": "api\/proxies\/{uuid}\/fields",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["uuid"]
+        },
+        "api.proxy.endpoints.index": {"uri": "api\/proxy\/endpoints", "methods": ["GET", "HEAD"]},
+        "api.proxy.endpoints.store": {"uri": "api\/proxy\/endpoints", "methods": ["POST"]},
+        "api.proxy.endpoints.show": {
+            "uri": "api\/proxy\/endpoints\/{proxy}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["proxy"],
+            "bindings": {"proxy": "id"}
+        },
+        "api.proxy.endpoints.update": {
+            "uri": "api\/proxy\/endpoints\/{proxy}",
+            "methods": ["PUT"],
+            "parameters": ["proxy"],
+            "bindings": {"proxy": "id"}
+        },
+        "api.proxy.endpoints.destroy": {
+            "uri": "api\/proxy\/endpoints\/{proxy}",
+            "methods": ["DELETE"],
+            "parameters": ["proxy"],
+            "bindings": {"proxy": "id"}
+        },
+        "api.proxy.requests.index": {"uri": "api\/proxy\/requests", "methods": ["GET", "HEAD"]},
+        "api.proxy.requests.show": {
+            "uri": "api\/proxy\/requests\/{proxyRequest}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["proxyRequest"],
+            "bindings": {"proxyRequest": "id"}
+        },
+        "projects.index": {"uri": "projects", "methods": ["GET", "HEAD"]},
+        "workspace": {"uri": "workspace", "methods": ["GET", "HEAD"]},
+        "workspace.scenario": {
+            "uri": "workspace\/scenario\/{scenario}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["scenario"],
+            "bindings": {"scenario": "id"}
+        },
+        "workspace.scenarios": {"uri": "workspace\/scenarios", "methods": ["GET", "HEAD"]},
+        "workspace.run.detail": {"uri": "workspace\/detail\/{run}", "methods": ["GET", "HEAD"], "parameters": ["run"]},
+        "workspace.run": {"uri": "workspace\/{run}", "methods": ["GET", "HEAD"], "parameters": ["run"]},
+        "scenarios": {"uri": "scenarios", "methods": ["GET", "HEAD"]},
+        "surveys": {"uri": "surveys", "methods": ["GET", "HEAD"]},
+        "scenario-runs": {"uri": "scenario-runs", "methods": ["GET", "HEAD"]},
+        "scenario-runs.play": {
+            "uri": "scenario-runs\/{run}\/play",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["run"],
+            "bindings": {"run": "id"}
+        },
+        "scenarios.edit": {
+            "uri": "scenarios\/{scenario}\/edit",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["scenario"],
+            "bindings": {"scenario": "id"}
+        },
+        "scenario-versions.create": {
+            "uri": "scenarios\/{scenario}\/versions\/create",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["scenario"],
+            "bindings": {"scenario": "id"}
+        },
+        "scenario-versions.edit": {
+            "uri": "scenario-versions\/{version}\/edit",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["version"],
+            "bindings": {"version": "id"}
+        },
+        "scenario-version-blocks.edit": {
+            "uri": "scenario-versions\/{version}\/blocks\/{block}\/edit",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["version", "block"],
+            "bindings": {"version": "id"}
+        },
+        "scenario-draft-blocks.edit": {
+            "uri": "scenarios\/{scenario}\/blocks\/{block}\/edit",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["scenario", "block"],
+            "bindings": {"scenario": "id"}
+        },
+        "surveys.run": {
+            "uri": "surveys\/{run}",
+            "methods": ["GET", "HEAD"],
+            "parameters": ["run"],
+            "bindings": {"run": "id"}
+        },
+        "users.index": {"uri": "users", "methods": ["GET", "HEAD"]},
+        "users.roles": {"uri": "users\/roles", "methods": ["GET", "HEAD"]},
+        "users.groups": {"uri": "users\/groups", "methods": ["GET", "HEAD"]},
+        "iframe-auth.authorize": {"uri": "api\/dev\/iframe-auth\/authorize", "methods": ["POST"]},
+        "iframe-auth.mock-token": {"uri": "api\/dev\/iframe-auth\/token", "methods": ["POST"]},
+        "iframe-auth.dev-login": {"uri": "api\/dev\/iframe-auth\/login", "methods": ["POST"]},
+        "embed": {"uri": "embed", "methods": ["GET", "HEAD"]},
+        "actions": {"uri": "actions", "methods": ["GET", "HEAD"]},
+        "actions.runs": {"uri": "actions\/runs", "methods": ["GET", "HEAD"]},
+        "login": {"uri": "login", "methods": ["GET", "HEAD"]},
+        "auth.page": {"uri": "auth", "methods": ["GET", "HEAD"]},
+        "storage.local": {
+            "uri": "storage\/{path}",
+            "methods": ["GET", "HEAD"],
+            "wheres": {"path": ".*"},
+            "parameters": ["path"]
+        },
+        "storage.local.upload": {
+            "uri": "storage\/{path}",
+            "methods": ["PUT"],
+            "wheres": {"path": ".*"},
+            "parameters": ["path"]
+        }
+    }
+};
 if (typeof window !== 'undefined' && typeof window.Ziggy !== 'undefined') {
-  Object.assign(Ziggy.routes, window.Ziggy.routes);
+    Object.assign(Ziggy.routes, window.Ziggy.routes);
 }
-export { Ziggy };
+export {Ziggy};

@@ -239,7 +239,7 @@ final class PublicProxyControllerTest extends TestCase
         ]);
     }
 
-    /** @param array<int, array<string, mixed>> $mocks */
+    /** @param  array<int, array<string, mixed>>  $mocks */
     private function makeMockedEndpoint(array $mocks): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([

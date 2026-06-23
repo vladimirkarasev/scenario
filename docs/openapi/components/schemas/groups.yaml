@@ -1,6 +1,6 @@
 UserGroup:
   type: object
-  required: [id, type, attributes]
+  required: [ id, type, attributes ]
   properties:
     id:
       type: string
@@ -60,7 +60,7 @@ UserGroupAttributes:
 
 UserGroupRequest:
   type: object
-  required: [name, slug]
+  required: [ name, slug ]
   properties:
     name:
       type: string

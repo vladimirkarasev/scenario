@@ -6,4 +6,6 @@ namespace Module\Proxy\Gateway\Base\Exceptions;
 
 use RuntimeException;
 
-final class ApiGatewayException extends RuntimeException {}
+final class ApiGatewayException extends RuntimeException
+{
+}

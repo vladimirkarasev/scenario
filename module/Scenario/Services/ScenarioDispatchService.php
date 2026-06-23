@@ -18,7 +18,8 @@ final readonly class ScenarioDispatchService
     public function __construct(
         private Centrifugo $centrifugo,
         private ScenarioPlayerService $player,
-    ) {}
+    ) {
+    }
 
     /**
      * Найти сценарий по тегу в проекте сервис-юзера, найти целевого пользователя
@@ -38,8 +39,8 @@ final readonly class ScenarioDispatchService
             ->where('project_id', $projectId)
             ->when(
                 $data->login !== null,
-                fn ($q) => $q->where('login', $data->login),
-                fn ($q) => $q->where('external_id', $data->externalId),
+                fn($q) => $q->where('login', $data->login),
+                fn($q) => $q->where('external_id', $data->externalId),
             )
             ->first();
 
@@ -60,13 +61,15 @@ final readonly class ScenarioDispatchService
             throw new RuntimeException("No active scenario found for tag '{$data->tag}'.");
         }
 
-        $run = $this->player->createRun(new ScenarioRunData(
-            scenarioId: $scenario->id,
-            scenarioVersionId: $scenario->active_version_id,
-            context: $data->context,
-            userData: $data->userData,
-            operatorId: $target->id,
-        ));
+        $run = $this->player->createRun(
+            new ScenarioRunData(
+                scenarioId: $scenario->id,
+                scenarioVersionId: $scenario->active_version_id,
+                context: $data->context,
+                userData: $data->userData,
+                operatorId: $target->id,
+            )
+        );
 
         ScenarioRun::query()->where('id', $run->id)->update([
             'created_by' => $target->id,
@@ -76,7 +79,7 @@ final readonly class ScenarioDispatchService
         $this->centrifugo->publish("#user:{$target->id}", [
             'type' => 'start_scenario',
             'run_id' => $run->id,
-            'url' => (string) route('workspace.run', ['run' => $run->id], absolute: false),
+            'url' => (string)route('workspace.run', ['run' => $run->id], absolute: false),
         ]);
 
         return $run->id;

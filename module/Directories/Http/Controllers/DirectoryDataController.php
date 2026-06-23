@@ -17,7 +17,8 @@ final class DirectoryDataController extends Controller
     public function __construct(
         private readonly DirectoryCacheService $cacheService,
         private readonly DirectoryExternalDataService $externalDataService,
-    ) {}
+    ) {
+    }
 
     public function show(Request $request, string $code): AnonymousResourceCollection
     {

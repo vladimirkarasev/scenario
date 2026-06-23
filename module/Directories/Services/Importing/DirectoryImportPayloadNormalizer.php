@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 final class DirectoryImportPayloadNormalizer
 {
     /**
-     * @param  array<string, string> $mapping
+     * @param  array<string, string>  $mapping
      * @return array<string, string>
      */
     public function normalizeMapping(array $mapping): array
@@ -20,7 +20,7 @@ final class DirectoryImportPayloadNormalizer
         $result = [];
 
         foreach ($mapping as $column => $fieldKey) {
-            if (! is_string($fieldKey) || $fieldKey === '') {
+            if (!is_string($fieldKey) || $fieldKey === '') {
                 continue;
             }
 
@@ -34,7 +34,7 @@ final class DirectoryImportPayloadNormalizer
     }
 
     /**
-     * @param  array<int, array<string, mixed>> $fields
+     * @param  array<int, array<string, mixed>>  $fields
      * @return array<int, array<string, mixed>>
      */
     public function normalizeFields(array $fields): array
@@ -45,7 +45,7 @@ final class DirectoryImportPayloadNormalizer
                     'key' => is_string($field['key'] ?? null) ? $field['key'] : '',
                     'name' => is_string($field['name'] ?? null) ? $field['name'] : '',
                     'type' => is_string($field['type'] ?? null) ? $field['type'] : 'string',
-                    'nullable' => (bool) ($field['nullable'] ?? true),
+                    'nullable' => (bool)($field['nullable'] ?? true),
                     'default' => $field['default'] ?? null,
                     'sort_order' => is_int($field['sort_order'] ?? null) ? $field['sort_order'] : 0,
                     'rules' => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
@@ -89,9 +89,9 @@ final class DirectoryImportPayloadNormalizer
     }
 
     /**
-     * @param  array<string, mixed>                     $rawRow
-     * @param  Collection<string, string>               $mapping
-     * @param  Collection<string, array<string, mixed>> $fields
+     * @param  array<string, mixed>  $rawRow
+     * @param  Collection<string, string>  $mapping
+     * @param  Collection<string, array<string, mixed>>  $fields
      * @return array<string, string|null>
      */
     public function prepareRow(array $rawRow, Collection $mapping, Collection $fields): array
@@ -129,7 +129,7 @@ final class DirectoryImportPayloadNormalizer
         }
 
         if (is_scalar($value)) {
-            $normalized = trim((string) $value);
+            $normalized = trim((string)$value);
 
             return $normalized === '' ? null : $normalized;
         }
@@ -142,7 +142,7 @@ final class DirectoryImportPayloadNormalizer
         if (is_string($column)) {
             $raw = $column;
         } elseif (is_int($column) || is_float($column) || is_bool($column)) {
-            $raw = (string) $column;
+            $raw = (string)$column;
         } else {
             return '';
         }

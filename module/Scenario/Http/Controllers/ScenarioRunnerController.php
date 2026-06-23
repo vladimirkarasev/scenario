@@ -17,7 +17,8 @@ final class ScenarioRunnerController extends Controller
 {
     public function __construct(
         private readonly ScenarioPlayerService $scenarioPlayerService,
-    ) {}
+    ) {
+    }
 
     public function start(StartScenarioRunnerRequest $request): JsonResponse
     {

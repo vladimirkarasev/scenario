@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - spare-warehouse-spare'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: spare-warehouse-spare
+  - name: spare-warehouse-spare
     description: 'Управление списком запчастей дилеров'
 paths:
   /spare-warehouse/spare:
@@ -22,34 +18,28 @@ paths:
       summary: 'Получение списка запчастей дилера'
       description: 'Получение списка запчастей дилера'
       parameters:
-        -
-          name: status
+        - name: status
           in: query
           schema:
             type: integer
-        -
-          name: code
+        - name: code
           in: query
           schema:
             type: string
-        -
-          name: name
+        - name: name
           in: query
           schema:
             type: string
-        -
-          name: manufacture
+        - name: manufacture
           in: query
           schema:
             type: string
-        -
-          name: expand
+        - name: expand
           in: query
           description: 'Параметр позволяющий получить в ответе связные данные (spareReference, dealerName, upload)'
           schema:
             type: string
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -65,7 +55,7 @@ paths:
                   $ref: '#/components/schemas/SpareWarehouseSpare'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - spare-warehouse-spare
@@ -93,7 +83,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -109,8 +99,7 @@ paths:
       summary: 'Получение запчасти по ID'
       description: 'Получение запчасти по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id запчасти'
           required: true
@@ -125,7 +114,7 @@ paths:
                 $ref: '#/components/schemas/SpareWarehouseSpare'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -138,8 +127,7 @@ paths:
       summary: 'Изменение запчасти по ID'
       description: 'Изменение запчасти по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id запчасти'
           required: true
@@ -161,7 +149,7 @@ paths:
                 $ref: '#/components/schemas/SpareWarehouseSpare'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

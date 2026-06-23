@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - loyalty-coupon'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: loyalty-coupon
+  - name: loyalty-coupon
     description: 'Купоны программы лояльности'
 paths:
   /loyalty/coupon:
@@ -36,7 +32,7 @@ paths:
                 $ref: '#/components/schemas/LoyaltyCoupon'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -52,8 +48,7 @@ paths:
       summary: 'Удаление купона хешу'
       description: 'Удаление купона по хешу'
       parameters:
-        -
-          name: hash
+        - name: hash
           in: path
           description: hash
           required: true
@@ -62,10 +57,10 @@ paths:
       responses:
         204:
           description: 'Успешное удаление по хешу'
-          content: {  }
+          content: { }
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

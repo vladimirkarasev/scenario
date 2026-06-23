@@ -31,7 +31,7 @@ final class EmbedAuthTokenService
             'user_id' => $user->id,
             'project_id' => $project->id,
             'token_hash' => hash('sha256', $plainToken),
-            'allowed_origin' => (string) $project->host,
+            'allowed_origin' => (string)$project->host,
             'expires_at' => now()->addSeconds(self::LAUNCH_TOKEN_TTL_SECONDS),
         ]);
 
@@ -67,7 +67,7 @@ final class EmbedAuthTokenService
 
         $project = $launchToken->project;
 
-        if (! $project->is_active) {
+        if (!$project->is_active) {
             throw new InvalidTokenException('Project is not active.', 422);
         }
 
@@ -75,14 +75,14 @@ final class EmbedAuthTokenService
             if ($requestOrigin === null) {
                 throw new InvalidTokenException('Origin header is required.', 403);
             }
-            if (! $this->originsMatch($requestOrigin, $launchToken->allowed_origin)) {
+            if (!$this->originsMatch($requestOrigin, $launchToken->allowed_origin)) {
                 throw new InvalidTokenException('Origin not allowed.', 403);
             }
         }
 
         $user = $launchToken->user;
 
-        if (! $this->userInProject($user, $project)) {
+        if (!$this->userInProject($user, $project)) {
             throw new InvalidTokenException('User is not in project.', 403);
         }
 
@@ -115,11 +115,11 @@ final class EmbedAuthTokenService
         $project = $refreshToken->project;
         $user = $refreshToken->user;
 
-        if (! $project->is_active) {
+        if (!$project->is_active) {
             throw new InvalidTokenException('Project is not active.', 422);
         }
 
-        if (! $this->userInProject($user, $project)) {
+        if (!$this->userInProject($user, $project)) {
             throw new InvalidTokenException('User is not in project.', 403);
         }
 
@@ -181,7 +181,7 @@ final class EmbedAuthTokenService
         $plainRefreshToken = bin2hex(random_bytes(40));
 
         $accessTokenKey = $newAccessToken->accessToken->getKey();
-        if (! is_int($accessTokenKey)) {
+        if (!is_int($accessTokenKey)) {
             throw new \UnexpectedValueException('Personal access token key must be integer.');
         }
 
@@ -218,7 +218,7 @@ final class EmbedAuthTokenService
     {
         $origin = rtrim($origin, '/');
 
-        if (! str_contains($origin, '://')) {
+        if (!str_contains($origin, '://')) {
             return 'https://'.$origin;
         }
 

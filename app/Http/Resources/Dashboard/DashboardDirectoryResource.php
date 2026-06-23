@@ -15,7 +15,7 @@ final class DashboardDirectoryResource extends JsonResource
         $importsRaw = data_get($this->resource, 'imports', []);
         $importsArr = is_array($importsRaw) ? $importsRaw : [];
         $imports = collect($importsArr)
-            ->map(static fn (mixed $item): mixed => is_array($item) ? (object) $item : $item);
+            ->map(static fn(mixed $item): mixed => is_array($item) ? (object)$item : $item);
 
         return [
             'id' => data_get($this->resource, 'id'),

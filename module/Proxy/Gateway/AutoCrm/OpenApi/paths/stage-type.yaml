@@ -3,16 +3,12 @@ info:
   title: 'Dealer Network Management - stage-type'
   version: '1.0'
 servers:
-  -
-    url: /api
+  - url: /api
 security:
-  -
-    basicAuth: {  }
-  -
-    bearerAuth: {  }
+  - basicAuth: { }
+  - bearerAuth: { }
 tags:
-  -
-    name: stage-type
+  - name: stage-type
     description: 'Управление Типами этапов'
 paths:
   /lms/stage-type:
@@ -22,28 +18,23 @@ paths:
       summary: 'Получение списка типов этапов'
       description: 'Получение списка типов этапов'
       parameters:
-        -
-          name: id
+        - name: id
           in: query
           schema:
             type: integer
-        -
-          name: name
+        - name: name
           in: query
           schema:
             type: string
-        -
-          name: code
+        - name: code
           in: query
           schema:
             type: string
-        -
-          name: status
+        - name: status
           in: query
           schema:
             type: integer
-        -
-          name: page
+        - name: page
           in: query
           description: 'Номер страницы'
           schema:
@@ -59,7 +50,7 @@ paths:
                   $ref: '#/components/schemas/StageType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
     post:
       tags:
         - stage-type
@@ -87,7 +78,7 @@ paths:
                 $ref: '#/components/schemas/Exception'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         422:
           description: 'Ошибка в параметрах запроса'
           content:
@@ -103,8 +94,7 @@ paths:
       summary: 'Получение Типа этапа по ID'
       description: 'Получение Типа этапа по ID'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id типа этапа'
           required: true
@@ -119,7 +109,7 @@ paths:
                 $ref: '#/components/schemas/StageType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:
@@ -132,8 +122,7 @@ paths:
       summary: 'Изменение Типа этапа'
       description: 'Изменение Типа этапа'
       parameters:
-        -
-          name: id
+        - name: id
           in: path
           description: 'id типа этапа'
           required: true
@@ -155,7 +144,7 @@ paths:
                 $ref: '#/components/schemas/StageType'
         401:
           description: 'Необходима авторизация'
-          content: {  }
+          content: { }
         404:
           description: 'Объект не найден'
           content:

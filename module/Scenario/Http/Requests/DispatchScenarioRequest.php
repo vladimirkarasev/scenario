@@ -29,7 +29,7 @@ final class DispatchScenarioRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v): void {
-            if (! $this->filled('login') && ! $this->filled('external_id')) {
+            if (!$this->filled('login') && !$this->filled('external_id')) {
                 $v->errors()->add('login', 'Необходимо передать login или external_id.');
             }
         });

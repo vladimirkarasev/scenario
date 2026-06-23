@@ -24,6 +24,6 @@ final class ActiveCatalogCategoryIdsQuery
             ->where('model_has_categories.model_type', Scenario::class)
             ->distinct()
             ->pluck('model_has_categories.category_id')
-            ->map(static fn (mixed $id): string => is_scalar($id) ? (string) $id : '');
+            ->map(static fn(mixed $id): string => is_scalar($id) ? (string)$id : '');
     }
 }

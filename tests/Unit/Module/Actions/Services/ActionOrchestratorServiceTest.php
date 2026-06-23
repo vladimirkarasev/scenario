@@ -15,6 +15,7 @@ use Tests\TestCase;
 final class ActionOrchestratorServiceTest extends TestCase
 {
     use RefreshDatabase;
+
     private const TEMPLATE_ID = '00000000-0000-0000-0000-000000000010';
     private const EMAIL_ID = '00000000-0000-0000-0000-000000000011';
     private const SCENARIO_ID = '00000000-0000-0000-0000-000000000007';

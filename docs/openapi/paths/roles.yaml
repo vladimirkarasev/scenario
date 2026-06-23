@@ -1,9 +1,9 @@
 collection:
   get:
-    tags: [Роли]
+    tags: [ Роли ]
     summary: Список ролей
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     parameters:
       - $ref: '../components/parameters.yaml#/PerPage'
       - $ref: '../components/parameters.yaml#/PageNumber'
@@ -27,10 +27,10 @@ collection:
         $ref: '../components/responses.yaml#/Unauthorized'
 
   post:
-    tags: [Роли]
+    tags: [ Роли ]
     summary: Создать роль
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -59,10 +59,10 @@ item:
         type: integer
 
   patch:
-    tags: [Роли]
+    tags: [ Роли ]
     summary: Обновить роль
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -84,11 +84,11 @@ item:
         $ref: '../components/responses.yaml#/ValidationError'
 
   delete:
-    tags: [Роли]
+    tags: [ Роли ]
     summary: Удалить роль
     description: Нельзя удалить роль, если она назначена хотя бы одному пользователю.
     security:
-      - BearerAuth: []
+      - BearerAuth: [ ]
     responses:
       '204':
         description: Роль удалена

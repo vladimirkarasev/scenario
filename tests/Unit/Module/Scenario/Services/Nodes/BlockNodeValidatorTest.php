@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Scenario\Services\Nodes;
 
 use Illuminate\Validation\ValidationException;
-use Module\Scenario\Services\Nodes\BlockNodeValidator;
+use Module\Scenario\Services\Nodes\Block\BlockNodeValidator;
 use Tests\TestCase;
 
 final class BlockNodeValidatorTest extends TestCase
@@ -15,36 +15,7 @@ final class BlockNodeValidatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->validator = new BlockNodeValidator();
-    }
-
-    // ------------------------------------------------------------------ helpers
-
-    /** @param array<array-key, mixed> $fields */
-    private function nodeData(array $fields): array
-    {
-        return ['fields' => $fields];
-    }
-
-    private function field(string $name, string $type = 'input', bool $required = false, mixed ...$extra): array
-    {
-        return array_merge(['name' => $name, 'type' => $type, 'required' => $required], $extra);
-    }
-
-    private function assertPasses(array $nodeData, array $input): void
-    {
-        $this->validator->validate($nodeData, $input);
-        $this->assertTrue(true); // reached without exception
-    }
-
-    private function assertFails(array $nodeData, array $input): ValidationException
-    {
-        try {
-            $this->validator->validate($nodeData, $input);
-            $this->fail('Expected ValidationException was not thrown.');
-        } catch (ValidationException $e) {
-            return $e;
-        }
+        $this->validator = new BlockNodeValidator;
     }
 
     // ------------------------------------------------------------------ empty / no rules
@@ -285,5 +256,34 @@ final class BlockNodeValidatorTest extends TestCase
 
         $this->assertArrayHasKey('name', $e->errors());
         $this->assertArrayHasKey('email', $e->errors());
+    }
+
+    // ------------------------------------------------------------------ helpers
+
+    /** @param  array<array-key, mixed>  $fields */
+    private function nodeData(array $fields): array
+    {
+        return ['fields' => $fields];
+    }
+
+    private function field(string $name, string $type = 'input', bool $required = false, mixed ...$extra): array
+    {
+        return array_merge(['name' => $name, 'type' => $type, 'required' => $required], $extra);
+    }
+
+    private function assertPasses(array $nodeData, array $input): void
+    {
+        $this->validator->validate($nodeData, $input);
+        $this->assertTrue(true); // reached without exception
+    }
+
+    private function assertFails(array $nodeData, array $input): ValidationException
+    {
+        try {
+            $this->validator->validate($nodeData, $input);
+            $this->fail('Expected ValidationException was not thrown.');
+        } catch (ValidationException $e) {
+            return $e;
+        }
     }
 }
