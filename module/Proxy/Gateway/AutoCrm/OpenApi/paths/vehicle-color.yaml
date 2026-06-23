@@ -1,0 +1,121 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-color'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-color
+    description: 'Управление цветами'
+paths:
+  /vehicle-color:
+    get:
+      tags:
+        - vehicle-color
+      summary: 'Получение списка цветов'
+      description: 'Получение списка цветов'
+      parameters:
+        -
+          name: model_id
+          in: query
+          description: 'ID модели'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: code
+          in: query
+          description: Код
+          schema:
+            type: string
+        -
+          name: common_color_id
+          in: query
+          description: 'ID общего цвета'
+          schema:
+            type: integer
+        -
+          name: rgb
+          in: query
+          description: 'RGB цвета'
+          schema:
+            type: string
+        -
+          name: is_deleted
+          in: query
+          description: 'Удалён (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+            default: 0
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\n* **serie_ids** - Список ID серий"
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список цветов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Color'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/vehicle-color/{id}':
+    get:
+      tags:
+        - vehicle-color
+      summary: 'Получение списка цветов по ID'
+      description: 'Получение списка цветов по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id цвета'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **serie_ids** - Список ID серий'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список цветов по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Color'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

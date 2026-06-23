@@ -1,0 +1,163 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - webhook'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: webhook
+    description: 'Управление вебхуками'
+paths:
+  /webhooks/default:
+    get:
+      tags:
+        - webhook
+      summary: 'Получение списка вебхуков'
+      description: 'Получение списка вебхуков'
+      parameters:
+        -
+          name: handler
+          in: query
+          description: Обработчик
+          schema:
+            type: string
+            enum:
+              - lead-created
+              - lead-closed
+              - lead-stage-closed
+              - schedule-worksheet-event-closed
+              - worksheet-event-closed
+              - purchase-closed
+        -
+          name: url
+          in: query
+          description: URL
+          schema:
+            type: string
+        -
+          name: method
+          in: query
+          description: 'HTTP метод'
+          schema:
+            type: string
+            enum:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - HEAD
+              - OPTIONS
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список вебхуков'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - webhook
+      summary: 'Создание вебхука по ID'
+      description: 'Создание вебхука по ID'
+      requestBody:
+        description: Объект
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Webhook'
+        required: true
+      responses:
+        201:
+          description: 'Создан вебхук'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/webhooks/default/{id}':
+    put:
+      tags:
+        - webhook
+      summary: 'Изменение вебхука по ID'
+      description: 'Изменение вебхука по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id вебхука'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Объект
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Webhook'
+        required: true
+      responses:
+        200:
+          description: 'Вебхук изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - webhook
+      summary: 'Удаление вебхука'
+      description: 'Удаление вебхука'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление'
+          content: {  }
+        400:
+          description: 'Ошибка клиента'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

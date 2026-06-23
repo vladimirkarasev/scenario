@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-exchange-status'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-exchange-status
+    description: 'Изменение статуса операции обмена автомобилями'
+paths:
+  '/subaru-erp/vehicle-exchange-status/{id}':
+    put:
+      tags:
+        - vehicle-exchange-status
+      summary: 'Изменение статуса операции обмена автомобилями'
+      description: 'Изменение статуса операции обмена автомобилями'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID операции обмена'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Модель формы изменения статуса операции обмена'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleExchangeStatusForm'
+        required: false
+      responses:
+        201:
+          description: 'Статус успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleExchangeStatusForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Операция обмена не найдена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

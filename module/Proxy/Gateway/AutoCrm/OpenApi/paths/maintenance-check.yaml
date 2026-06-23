@@ -1,0 +1,294 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - maintenance-check'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: maintenance-check
+    description: 'Калькулятор ТО'
+paths:
+  /service/maintenance-check:
+    get:
+      tags:
+        - maintenance-check
+      summary: 'Получение списка ТО для автомобиля'
+      description: 'Получение списка ТО для автомобиля'
+      parameters:
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          schema:
+            type: string
+        -
+          name: modelId
+          in: query
+          description: 'ID модели автомобиля'
+          schema:
+            type: integer
+        -
+          name: generationId
+          in: query
+          description: 'ID поколения автомобиля'
+          schema:
+            type: integer
+        -
+          name: serieId
+          in: query
+          description: 'ID серии автомобиля'
+          schema:
+            type: integer
+        -
+          name: modificationId
+          in: query
+          description: 'ID модификации автомобиля'
+          schema:
+            type: integer
+        -
+          name: equipmentId
+          in: query
+          description: 'ID комплектации автомобиля'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список ТО для автомобиля'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Maintenance'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /service/maintenance-check/check:
+    get:
+      tags:
+        - maintenance-check
+      summary: 'Получение данных о ближайшем ТО'
+      description: 'Получение данных о ближайшем ТО'
+      parameters:
+        -
+          name: dealerCode
+          in: query
+          description: 'Код дилера'
+          schema:
+            type: string
+        -
+          name: modelId
+          in: query
+          description: 'ID модели'
+          schema:
+            type: integer
+        -
+          name: generationId
+          in: query
+          description: 'ID поколения'
+          schema:
+            type: integer
+        -
+          name: serieId
+          in: query
+          description: 'ID серии'
+          schema:
+            type: integer
+        -
+          name: modificationId
+          in: query
+          description: 'ID модификации'
+          schema:
+            type: integer
+        -
+          name: equipmentId
+          in: query
+          description: 'ID комплектации'
+          schema:
+            type: integer
+        -
+          name: saleAt
+          in: query
+          description: 'Дата продажи (YYYY-MM)'
+          schema:
+            type: string
+        -
+          name: age
+          in: query
+          description: 'Возраст автомобиля в месяцах'
+          schema:
+            type: integer
+        -
+          name: mileage
+          in: query
+          description: Пробег
+          schema:
+            type: integer
+        -
+          name: vin
+          in: query
+          description: 'VIN номер'
+          schema:
+            type: string
+        -
+          name: maintenanceNumber
+          in: query
+          description: 'Номер ТО'
+          schema:
+            type: integer
+        -
+          name: additionalWorkIds
+          in: query
+          description: 'Дополнительные работы'
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        201:
+          description: 'Данные по ближайшему ТО'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceCheckResponse'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /service/maintenance-check/price:
+    get:
+      tags:
+        - maintenance-check
+      summary: 'Получение данных о стоимости ближайшего ТО по дилерской сети'
+      description: 'Получение данных о стоимости ближайшего ТО по дилерской сети'
+      parameters:
+        -
+          name: dealerCode
+          in: query
+          description: 'Код дилера'
+          schema:
+            type: string
+        -
+          name: modelId
+          in: query
+          description: 'ID модели'
+          schema:
+            type: integer
+        -
+          name: generationId
+          in: query
+          description: 'ID поколения'
+          schema:
+            type: integer
+        -
+          name: serieId
+          in: query
+          description: 'ID серии'
+          schema:
+            type: integer
+        -
+          name: modificationId
+          in: query
+          description: 'ID модификации'
+          schema:
+            type: integer
+        -
+          name: equipmentId
+          in: query
+          description: 'ID комплектации'
+          schema:
+            type: integer
+        -
+          name: saleAt
+          in: query
+          description: 'Дата продажи (YYYY-MM)'
+          schema:
+            type: string
+        -
+          name: age
+          in: query
+          description: 'Возраст автомобиля в месяцах'
+          schema:
+            type: integer
+        -
+          name: mileage
+          in: query
+          description: Пробег
+          schema:
+            type: integer
+        -
+          name: vin
+          in: query
+          description: 'VIN номер'
+          schema:
+            type: string
+        -
+          name: maintenanceNumber
+          in: query
+          description: 'Номер ТО'
+          schema:
+            type: integer
+        -
+          name: additionalWorkIds
+          in: query
+          description: 'Дополнительные работы'
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        201:
+          description: 'Данные о стоимости ближайшего ТО по дилерской сети'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenanceDealerPriceResponse'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

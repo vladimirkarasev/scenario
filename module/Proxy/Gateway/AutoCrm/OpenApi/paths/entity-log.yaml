@@ -1,0 +1,125 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - entity-log'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: entity-log
+    description: 'Mysales лог'
+paths:
+  /entity-log:
+    get:
+      tags:
+        - entity-log
+      summary: 'Получение списка измененных сущностей'
+      description: 'Получение списка измененных сущностей'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: entity_type
+          in: query
+          description: 'Тип сущности'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус записи'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список клиентов дистрибьютора'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EntityLog'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/entity-log/{id}':
+    get:
+      tags:
+        - entity-log
+      summary: 'Получение записи из лога по ID'
+      description: 'Получение записи из лога по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id записи'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает запись из лога по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityLog'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - entity-log
+      summary: 'Изменение записи'
+      description: 'Изменение записи'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id записи'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Запись из лога mysales'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityLog'
+        required: false
+      responses:
+        200:
+          description: 'Запись успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityLog'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - poll-event'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: poll-event
+    description: 'Опросы анкеты'
+paths:
+  /client-service/event:
+    get:
+      tags:
+        - poll-event
+      summary: 'Получение списка опросов'
+      description: 'Получение списка опросов'
+      parameters:
+        -
+          name: poll_id
+          in: query
+          description: 'ID опроса'
+          schema:
+            type: integer
+        -
+          name: 'astra_page_status[]'
+          in: query
+          description: 'Статус звонка: (0 - Новый, 1 - Соединение, 2 - Номер не обслуживается, 3 - Некорректный номер, 4 - Не берут трубку, 5 - Занято, 6 - Вне зоны доступа, 7 - Автоответчик)'
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: 'astra_page_result[]'
+          in: query
+          description: 'Результат по звонку: (0 - Новый, 1 -  Результативный звонок, 2 - Перезвонить, 3 - Отказ от опроса, 4 - Отказ от записи разговора, 5 - Номер не принадлежит клиенту, 6 - Недозвон, 7 - Некорректный номер, 8 - Апелляция от ДЦ)'
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: 'sendTypes[]'
+          in: query
+          description: "Тип рассылки: (1 - Вручную, 2 - Email, 3 - SMS, 4 - QR-код, 5 - MTT (голосовая рассылка), 6 - WhatsApp, 7 - AstraPage, 8 - Колл-центр)\n"
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: holdingId
+          in: query
+          description: 'ID холдинга'
+          schema:
+            type: integer
+        -
+          name: dealerId
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: integer
+        -
+          name: dealerCode
+          in: query
+          description: 'Код дилера'
+          schema:
+            type: string
+        -
+          name: vin
+          in: query
+          description: VIN
+          schema:
+            type: string
+        -
+          name: client_id
+          in: query
+          description: 'ID клиента'
+          schema:
+            type: integer
+        -
+          name: clientLastName
+          in: query
+          description: 'Фамилия клиента'
+          schema:
+            type: string
+        -
+          name: clientFirstName
+          in: query
+          description: 'Имя клиента'
+          schema:
+            type: string
+        -
+          name: clientMiddleName
+          in: query
+          description: 'Отчество клиента'
+          schema:
+            type: string
+        -
+          name: clientPhone
+          in: query
+          description: 'Телефон клиента'
+          schema:
+            type: string
+        -
+          name: occurredFrom
+          in: query
+          description: 'Дата проведения опроса с (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: occurredTo
+          in: query
+          description: 'Дата проведения опроса по (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: scheduledFrom
+          in: query
+          description: 'Дата планирования опроса с (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: scheduledTo
+          in: query
+          description: 'Дата планирования опроса по (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: purchaseClosedFrom
+          in: query
+          description: 'Дата закрытия ЗН с (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: purchaseClosedTo
+          in: query
+          description: 'Дата закрытия ЗН по (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: worksheetIssuedFrom
+          in: query
+          description: 'Дата возникновения события выдача с (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: worksheetIssuedTo
+          in: query
+          description: 'Дата возникновения события выдача по (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: common_client_id
+          in: query
+          description: 'Клиент дистрибьютора'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей (poll - Информация об опросе)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список опросов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PollEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - poll-event
+      summary: 'Создание анкеты опроса'
+      description: 'Создание анкеты опроса'
+      requestBody:
+        description: 'Модель анкеты опроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollEvent'
+        required: true
+      responses:
+        201:
+          description: 'Анкета опроса успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollEvent'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /client-service/event/link:
+    post:
+      tags:
+        - poll-event
+      summary: 'Создание и получение ссылки анкеты опроса по ID'
+      description: 'Создает ссылку анкеты опроса (если её нет) и возвращает её по ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: integer
+                  description: 'ID анкеты опроса'
+                lifetime:
+                  type: integer
+                  description: 'Время жизни ссылки в днях'
+      responses:
+        200:
+          description: 'Ссылка успешно создана/получена'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PollEventSend'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/client-service/event/{id}':
+    get:
+      tags:
+        - poll-event
+      summary: 'Получение анкеты опроса по ID'
+      description: 'Получение анкеты опроса по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id анкеты опроса'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает анкету опроса по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - poll-event
+      summary: 'Редактирование анкеты опроса по ID'
+      description: 'Редактирование анкеты опроса по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID анкеты опроса'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель анкеты опроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollEvent'
+        required: false
+      responses:
+        200:
+          description: 'Модель анкеты опроса'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Анкета опроса не найдена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

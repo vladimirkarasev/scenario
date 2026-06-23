@@ -1,0 +1,187 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - client-field'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: client-field
+    description: 'Управление значениями атрибутов клиента'
+paths:
+  /client-field:
+    post:
+      tags:
+        - client-field
+      summary: 'Добавление нового значения атрибута клиента'
+      description: 'Добавление нового значения атрибута клиента'
+      requestBody:
+        description: 'Объект Значение атрибута клиента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientField'
+        required: true
+      responses:
+        201:
+          description: 'Новое значение атрибута'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientField'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /client-field/multi:
+    post:
+      tags:
+        - client-field
+      summary: 'Массовое добавление/редактирование значений атрибутов клиентов'
+      description: 'Массовое добавление/редактирование значений атрибутов клиентов'
+      requestBody:
+        description: 'Массив объектов Значение атрибута клиента'
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClientField'
+        required: true
+      responses:
+        200:
+          description: 'Массовое добавление/редактирование значений атрибутов клиентов успешно выполнено'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientField'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/client-field/{id}':
+    get:
+      tags:
+        - client-field
+      summary: 'Получение значения атрибута клиента по ID'
+      description: 'Получение значения атрибута клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID значения атрибута клиента'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает значение атрибут клиента по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientField'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - client-field
+      summary: 'Изменение значения атрибута клиента'
+      description: 'Изменение значения атрибута клиента'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID значения атрибута клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Значение атрибут клиента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientField'
+        required: false
+      responses:
+        200:
+          description: 'Значение атрибута клиента успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientField'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - client-field
+      summary: 'Удаление значения атрибута клиента по ID'
+      description: 'Удаление значения атрибута клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID значения атрибута клиента'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление значения атрибута клиента по ID'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

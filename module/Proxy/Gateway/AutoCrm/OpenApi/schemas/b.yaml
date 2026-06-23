@@ -1,0 +1,360 @@
+openapi: 3.1.0
+components:
+  schemas:
+    BTL:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Уникальный идентификатор BTL мероприятия'
+        type:
+          type: string
+          description: 'Тип мероприятия'
+        name:
+          type: string
+          description: 'Название мероприятия'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        date_from:
+          type: string
+          format: date
+          description: 'Дата начала мероприятия'
+        date_to:
+          type: string
+          format: date
+          description: 'Дата окончания мероприятия'
+        coverage:
+          type: string
+          description: 'Покрытие мероприятия'
+        schedule_by_model:
+          type: boolean
+          description: 'Расписание по моделям'
+        external_page_id:
+          type: integer
+          nullable: true
+          description: 'ID внешней страницы'
+        btl_configurator_id:
+          type: integer
+          nullable: true
+          description: 'ID конфигуратора BTL'
+        user_id:
+          type: integer
+          description: 'ID пользователя-создателя'
+        utm_id:
+          type: integer
+          nullable: true
+          description: 'ID UTM метки'
+        utm_medium_id:
+          type: integer
+          nullable: true
+          description: 'ID UTM medium'
+        created_at:
+          type: string
+          format: date-time
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          format: date-time
+          description: 'Дата обновления'
+        dealer_ids:
+          type: array
+          description: 'Массив ID дилеров, участвующих в мероприятии'
+          items:
+            type: integer
+        request_type_ids:
+          type: array
+          description: 'Массив ID типов заявок для мероприятия'
+          items:
+            type: integer
+        city_ids:
+          type: array
+          description: 'Массив ID городов, где проводится мероприятие (через дилеров)'
+          items:
+            type: integer
+        model_alias_ids:
+          type: array
+          description: 'Массив ID алиасов моделей для мероприятия'
+          items:
+            type: integer
+        dealers:
+          type: array
+          description: 'Полные данные дилеров (доступно через expand=dealers)'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        requestTypes:
+          type: array
+          description: 'Полные данные типов заявок (доступно через expand=requestTypes)'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        model_aliases:
+          type: array
+          description: 'Полные данные алиасов моделей (доступно через expand=model_aliases)'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        links:
+          type: array
+          description: 'Массив ссылок для регистрации (доступно через expand=links)'
+          items:
+            type: object
+            properties:
+              link:
+                type: string
+              source_id:
+                type: integer
+              date_start:
+                type: string
+              date_end:
+                type: string
+              status:
+                type: integer
+        schedules:
+          type: array
+          description: 'Расписание мероприятия (доступно через expand=schedules)'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              date:
+                type: string
+                format: date
+              duration:
+                type: integer
+              model_alias_id:
+                type: integer
+                nullable: true
+              count:
+                type: integer
+        slots:
+          type: array
+          description: 'Слоты мероприятия (доступно через expand=slots)'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              begin_at:
+                type: string
+                format: date-time
+              end_at:
+                type: string
+                format: date-time
+              status:
+                type: string
+        brand:
+          type: object
+          nullable: true
+          description: 'Данные бренда (доступно через expand=brand)'
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+        settings:
+          type: object
+          nullable: true
+          description: 'Данные полей для заполнения (доступно через expand=settings)'
+          properties:
+            common:
+              type: object
+              properties:
+                may_process_personal_data_link:
+                  type: string
+                may_process_personal_data_link_title:
+                  type: string
+                client_confirm_communication_link:
+                  type: string
+                client_confirm_communication_link_title:
+                  type: string
+            fields:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                  name:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                  required:
+                    type: object
+                    properties:
+                      value:
+                        type: integer
+                  hint:
+                    type: string
+                  multiple:
+                    type: integer
+        description:
+          type: string
+          example: 'null'
+          description: 'Описание (доступно через expand=description)'
+        image:
+          type: string
+          example: 'null'
+          description: 'Главное изображение (доступно через expand=image)'
+        additionalImages:
+          type: array
+          description: 'Дополнительные изображения (доступно через expand=additionalImages)'
+          items:
+            type: string
+    Bank:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: Наименование
+        type:
+          type: string
+          description: 'Тип банка (bank, leasing)'
+        client_company_inn:
+          type:
+            - 'null'
+            - string
+          description: 'ИНН клиента'
+        client_company_bic:
+          type:
+            - 'null'
+            - string
+          description: 'БИК клиента'
+        client_company_correspondent_account:
+          type:
+            - 'null'
+            - string
+          description: 'Корреспондентский счет клиента'
+      description: 'Модель бренда'
+    BaseBrand:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код бренда (генерируется автоматически)'
+        name:
+          type: string
+          description: 'Наименование бренда'
+        name_eng:
+          type: string
+          description: 'Наименование бренда (англ)'
+        name_market:
+          type: string
+          description: 'Маркетинговое наименование бренда'
+        logo:
+          type: string
+          description: 'Логотип бренда'
+        importer_db_name:
+          type: string
+          description: 'Название базы импортера'
+        host:
+          type: string
+          description: 'url дистрибуции бренда'
+        token:
+          type: string
+          description: токен
+        ecm_id:
+          type: string
+        is_supported:
+          type: integer
+        origin_id:
+          type: integer
+        is_vin_manufacturer:
+          type: string
+        color:
+          type: string
+          description: 'цвет в формате hex'
+          example: '#2a62ff'
+        is_recent:
+          type: string
+          description: 'актуальный бренд/модель'
+        vehicle_type:
+          type: string
+      description: 'Модель бренд автомобиля'
+      example:
+        id: 1
+        name: Audi
+    Box:
+      type: object
+      description: 'Ящик для отправки писем'
+      required:
+        - box
+        - from_name
+      properties:
+        id:
+          type: integer
+          description: 'ID ящика'
+        box:
+          type: string
+          description: 'E-mail отправителя'
+        from_name:
+          type: string
+          description: 'Имя отправителя'
+        base_url:
+          type: string
+          description: 'Базовый URL для ссылок'
+        subscribe_template:
+          type: string
+          description: 'Шаблон страницы подписки'
+        unsubscribe_template:
+          type: string
+          description: 'Шаблон страницы отписки'
+        is_active:
+          type: integer
+          description: Активный
+          enum:
+            - '0 - Нет'
+            - '1 - Да'
+        user_id:
+          type: integer
+          description: 'ID автора'
+        created_at:
+          type: string
+          description: 'Создано (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        updated_at:
+          type: string
+          description: 'Изменено (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+    Brand:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/BaseBrand/properties/id'
+        name:
+          $ref: '#/components/schemas/BaseBrand/properties/name'
+      description: 'Модель бренда'
+    BroadcastDistributor:
+      type: object
+      description: 'Модель связи рассылки и дистрибьютора'
+      required:
+        - broadcast_id
+        - distributor_id
+      properties:
+        broadcast_id:
+          type: integer
+          description: 'ID рассылки'
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'

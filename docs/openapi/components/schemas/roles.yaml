@@ -1,0 +1,59 @@
+RoleResource:
+  type: object
+  required: [id, type, attributes, relationships]
+  properties:
+    id:
+      type: string
+      description: ID роли (целое число в виде строки)
+      example: "3"
+    type:
+      type: string
+      example: roles
+    attributes:
+      $ref: '#/RoleAttributes'
+    relationships:
+      $ref: '#/RoleRelationships'
+
+RoleAttributes:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Уникальное имя роли
+      example: project_admin
+    guard_name:
+      type: string
+      description: Guard, к которому привязана роль (всегда `web`)
+      example: web
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+RoleRelationships:
+  type: object
+  properties:
+    users:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Количество пользователей с этой ролью
+              example: 5
+
+RoleRequest:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      description: Уникальное имя роли
+      example: project_admin

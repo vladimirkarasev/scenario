@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - user'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: user
+    description: 'Управление пользователями'
+paths:
+  /user:
+    get:
+      tags:
+        - user
+      summary: 'Получение списка пользователей'
+      description: 'Получение списка активных пользователей'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск пользователя по ID'
+          schema:
+            type: integer
+        -
+          name: positionCode
+          in: query
+          description: 'Поиск пользователя по коду должности'
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей\nphotoUrl - Ссылка на фото сотрудника, email - Email пользователя positions - Список должностей пользователя dealer_code - Код дилера"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список пользователей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

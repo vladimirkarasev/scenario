@@ -1,0 +1,1932 @@
+openapi: 3.1.0
+components:
+  schemas:
+    WarehousePublicVehicle:
+      type: object
+      description: Модель
+      properties:
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        vehicle_code:
+          type: string
+          description: 'Код авто'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        model_name:
+          type: string
+          description: 'Наименование модели'
+        model_year_code:
+          type: string
+          description: 'Код модельного года'
+        model_code:
+          type: string
+          description: 'Код модели'
+        body_code:
+          type: string
+          description: 'Код кузова'
+        complectation_code:
+          type: string
+          description: 'Код комплектации'
+        package_code:
+          type: string
+          description: 'Код пакета'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        dealer_contractor_code:
+          type: string
+          description: 'Код контрагента дилера'
+        holding_code:
+          type: string
+          description: 'Код холдинга'
+        vehicle_color:
+          type: string
+          description: 'Цвет автомобиля'
+        vehicle_trim:
+          type: string
+          description: 'Обивка автомобиля'
+        vehicle_vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        vehicle_mpv:
+          type: string
+          description: MPV
+        vehicle_order_no:
+          type: string
+          description: 'Номер заказа'
+        vehicle_base_price:
+          type: string
+          description: 'Базовая цена'
+        vehicle_options_price:
+          type: string
+          description: 'Цена опций'
+        vehicle_is_sold:
+          type: boolean
+          description: 'Автомобиль продан'
+        vehicle_customer_name:
+          type: boolean
+          description: 'Имя клиента'
+        vehicle_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля'
+        vehicle_client_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля для клиента'
+        vehicle_retail_price:
+          type: string
+          description: 'Цена ритейл'
+        vehicle_is_in_stock:
+          type: boolean
+          description: 'Автомобиль на складе'
+        vehicle_receipt_date:
+          type: string
+          description: 'Дата прихода на склад'
+        vehicle_mpv_description:
+          type: string
+          description: 'Описание MPV'
+        price_no:
+          type: string
+          description: 'Номер прайса'
+        vehicle_dealer_payment_period:
+          type: string
+          description: 'Оплата до'
+        vehicle_pts_number:
+          type: string
+          description: 'Номер ПТС'
+        vehicle_pts_issued_at:
+          type: string
+          description: 'Дата выдачи ПТС'
+        transfer_epts_to_dealer_at:
+          type: string
+          description: 'Дата передачи ЭПТС в собственность Дилера'
+        vehicle_engine_number:
+          type: string
+          description: 'Номер двигателя'
+        engine_displacement:
+          type: string
+          description: 'Раб. объём двигателя'
+        vehicle_body_color:
+          type: string
+          description: 'Цвет кузова'
+        vehicle_body_number:
+          type: string
+          description: 'Номер кузова'
+        vehicle_made_by:
+          type: string
+          description: Производитель
+        vehicle_pts_issued_by:
+          type: string
+          description: 'Кем выдан ПТС'
+        vehicle_chassis_number:
+          type: string
+          description: 'Номер шасси'
+        vehicle_type:
+          type: string
+          description: 'Тип автомобиля'
+        vehicle_category:
+          type: string
+          description: Категория
+        vehicle_production_year:
+          type: string
+          description: 'Год производства'
+        planned_production_date:
+          type: string
+          description: 'Планируемая дата производства'
+        production_at:
+          type: string
+          description: 'Дата производства'
+        vehicle_is_for_testdrive:
+          type: boolean
+          description: 'Автомобиль для тест драйвов'
+        status:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          description: Статус
+        status_code:
+          type: string
+          description: 'Код статуса'
+        ptsStatus:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          description: 'Статус ПТС'
+        order_type_code:
+          type: string
+          description: 'Тип заказа'
+        order_type_code_date:
+          type: string
+          description: 'Дата смены типа заказа'
+        internal_status_date:
+          type: string
+          description: 'Дата статуса'
+        vehicle_dealer_sale_at:
+          type: string
+          description: 'Дата продажи'
+        vehicle_dealer_payment_at:
+          type: string
+          description: 'Дата оплаты дилером'
+        vehicle_dealer_payment_sum:
+          type: string
+          description: 'Сумма оплаты'
+        account_number:
+          type: string
+          description: 'Номер счёта'
+        account_date:
+          type: string
+          description: 'Дата счёта'
+        shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата отгрузки от PDI к дилеру'
+        waybill_date:
+          type: string
+          description: 'Дата ТТН'
+        waybill_number:
+          type: string
+          description: 'Номер ТТН'
+        torg_12_date:
+          type: string
+          description: 'Дата УПД'
+        torg_12_number:
+          type: string
+          description: 'Номер УПД'
+        torg_12_sum:
+          type: string
+          description: 'Сумма УПД'
+        defects:
+          type: string
+          description: Дефекты
+        shipping_on_ferry_at:
+          type: string
+          description: 'Дата погрузки на паром'
+        exit_from_port_at:
+          type: string
+          description: 'Дата выхода из порта'
+        enter_in_port_at:
+          type: string
+          description: 'Дата прибытия в порт'
+        arrival_on_customs_at:
+          type: string
+          description: 'Дата прибытия на таможню'
+        exit_from_customs_at:
+          type: string
+          description: 'Дата выхода с таможни'
+        is_allowed_for_shipment:
+          type: string
+          description: 'Разрешен к отгрузке'
+        distribution_warehouse:
+          type: string
+          description: 'Склад для распределения'
+        vector_code:
+          type: string
+          description: 'Вектор код'
+        vehicle_importer_receipt_date:
+          type: string
+          description: 'Дата получения импортёром'
+        number_of_track:
+          type: string
+          description: 'Номер трака'
+        options:
+          type: array
+          description: 'Опции (можно получить больше информации указав expand)'
+          items:
+            oneOf:
+              -
+                type: array
+                items:
+                  type: string
+              -
+                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+        programs:
+          type: array
+          description: 'Программы проверки автомобиля'
+          items:
+            type: object
+            properties: {  }
+        vehicle_pts_status:
+          type: string
+          description: 'Статус ПТС'
+        is_trade_in:
+          type: boolean
+          description: Б\У
+        reserve_comment:
+          type: string
+          description: 'Причина блокировки'
+        reserve_author_id:
+          type: integer
+          description: 'Автор блокировки'
+        internal_status_id:
+          type: integer
+          description: Статус
+        account_price:
+          type: number
+          description: 'Сумма счёта'
+        main_photo:
+          type: string
+          description: 'Основное фото'
+        additional_equipment_list:
+          type: array
+          description: 'Список дополнительного оборудования'
+          items:
+            $ref: '#/components/schemas/AdditionalFeatureOption'
+        is_svo:
+          type: boolean
+          description: 'Признак переоборудованного автомобиля'
+        expected_route_duration_days:
+          type: integer
+          description: 'Ожидаемая длительность остатка маршрута (в днях)'
+        planned_date_delivery_dealer:
+          type: string
+          description: 'Планируемая дата доставки дилеру'
+        vehicle_status_date:
+          type: string
+          description: 'Дата постановки статуса'
+        invoice_number:
+          type: string
+          description: 'Номер инвойса'
+        invoice_date:
+          type: string
+          description: 'Дата инвойса'
+        curb_weight:
+          type: integer
+          description: 'Масса ТС в снаряженном состоянии'
+        shipping_order_number:
+          type: string
+          description: 'Номер заявки на доставку'
+        sale_type_code:
+          type: string
+          description: 'Тип продажи'
+        has_t_box:
+          type: boolean
+          description: 'Наличие T-box'
+        optional_equipment_description:
+          type: string
+          description: 'Дополнительное оборудование'
+        optional_equipment_sum:
+          type: number
+          description: 'Цена дополнительного оборудования'
+        dealer_discount:
+          type: number
+          description: 'Скидка от дилера'
+        vehicleDiscounts:
+          type: array
+          description: 'Список мотивационных программы доступных для автомобиля'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleDiscount'
+        supply_contract_number:
+          type: string
+          description: '№ Договора поставки'
+        request_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата заявки на отгрузку от PDI к дилеру'
+        planned_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Планируемая дата отгрузки от PDI к дилеру'
+        transport_company_date_delivery_dealer:
+          type: string
+          description: 'Дата доставки дилеру ТК'
+        created_at:
+          type: string
+          description: 'Дата и время создания'
+        custom_declaration_number:
+          type: string
+          description: ГТД
+        is_archive:
+          type: boolean
+          description: 'В архиве'
+        is_deleted:
+          type: boolean
+          description: Удалён
+        vehicle_repayment_pts_date:
+          type: string
+          description: 'Дата выкупа ПТС'
+        is_duplicate_pts:
+          type: boolean
+          description: Тип
+        planned_shipment_vehicle_set_from_production_at:
+          type: string
+          description: 'Планируемая дата отгрузки МК c производства'
+        shipment_vehicle_set_from_production_at:
+          type: string
+          description: 'Фактическая дата отгрузки МК c производства'
+        planned_shipment_vehicle_set_to_assembly_at:
+          type: string
+          description: 'Планируемая дата отгрузки МК на сборку'
+        shipment_vehicle_set_to_assembly_at:
+          type: string
+          description: 'Фактическая дата отгрузки МК на сборку'
+        planned_vehicle_set_assembly_at:
+          type: string
+          description: 'Планируемая дата сборки'
+        vehicle_set_assembly_at:
+          type: string
+          description: 'Фактическая дата сборки'
+        readiness_shipment_from_assembly_at:
+          type: string
+          description: 'Дата готовности автомобиля к отгрузке со сборки'
+        planned_shipment_to_dealer_at:
+          type: string
+          description: 'Планируемая дата отправки дилеру'
+        country_id:
+          type: string
+          description: 'Id страны связанного дилера'
+        conditional_sale:
+          type: integer
+          description: 'Условно реализован (0 - Нет, 1 - Да, 2 - Был усл. реализован)'
+        new_iccid:
+          type: string
+          description: 'Новый ICCID'
+        new_iccid2:
+          type: string
+          description: 'Новый ICCID2'
+        description:
+          type: string
+          description: Описание
+        dealer_code_last_changed_at:
+          type: string
+          description: 'Дата изменения кода ДЦ'
+        routePoints:
+          type: array
+          description: 'Список точек маршрута'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleRoutePoint'
+        optionsExtendedChangan:
+          type: array
+          description: 'Список характеристик для Changan'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleOptionsExtendedChangan'
+        vehiclePrices:
+          type: array
+          description: 'Список прайс-листов'
+          items:
+            $ref: '#/components/schemas/VehiclePrice'
+        comment:
+          type: string
+          description: Комментарий
+        quote_period_id:
+          type: integer
+          description: 'Период квотирования'
+        publication_comment:
+          type: string
+          description: 'Комментарий публикации'
+        publication_status:
+          type: integer
+          description: 'Статус публикации'
+        publication_status_date:
+          type: integer
+          description: 'Дата изменения статуса публикации'
+        vehicle_fixed_price:
+          type: string
+          description: 'Фиксированная цена автомобиля'
+        vehicle_is_for_replacement:
+          type: boolean
+          description: 'Подменный автомобиль'
+    WarehouseVehicle:
+      type: object
+      description: Модель
+      properties:
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        vehicle_code:
+          type: string
+          description: 'Код авто'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        model_name:
+          type: string
+          description: 'Наименование модели'
+        model_year_code:
+          type: string
+          description: 'Код модельного года'
+        model_code:
+          type: string
+          description: 'Код модели'
+        body_code:
+          type: string
+          description: 'Код кузова'
+        complectation_code:
+          type: string
+          description: 'Код комплектации'
+        package_code:
+          type: string
+          description: 'Код пакета'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        dealer_contractor_code:
+          type: string
+          description: 'Код контрагента дилера'
+        holding_code:
+          type: string
+          description: 'Код холдинга'
+        vehicle_color:
+          type: string
+          description: 'Цвет автомобиля'
+        vehicle_trim:
+          type: string
+          description: 'Обивка автомобиля'
+        vehicle_vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        vehicle_mpv:
+          type: string
+          description: MPV
+        vehicle_order_no:
+          type: string
+          description: 'Номер заказа'
+        vehicle_base_price:
+          type: string
+          description: 'Базовая цена'
+        vehicle_options_price:
+          type: string
+          description: 'Цена опций'
+        vehicle_is_sold:
+          type: boolean
+          description: 'Автомобиль продан'
+        vehicle_customer_name:
+          type: boolean
+          description: 'Имя клиента'
+        vehicle_fixed_price:
+          type: string
+          description: 'Фиксированная цена автомобиля'
+        vehicle_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля'
+        vehicle_client_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля для клиента'
+        vehicle_invoice_price:
+          type: string
+          description: 'Входная цена'
+        vehicle_retail_price:
+          type: string
+          description: 'Цена ритейл'
+        vehicle_is_in_stock:
+          type: boolean
+          description: 'Автомобиль на складе'
+        vehicle_receipt_date:
+          type: string
+          description: 'Дата прихода на склад'
+        vehicle_mpv_description:
+          type: string
+          description: 'Описание MPV'
+        price_no:
+          type: string
+          description: 'Номер прайса'
+        vehicle_dealer_payment_period:
+          type: string
+          description: 'Оплата до'
+        vehicle_pts_number:
+          type: string
+          description: 'Номер ПТС'
+        vehicle_pts_issued_at:
+          type: string
+          description: 'Дата выдачи ПТС'
+        transfer_epts_to_dealer_at:
+          type: string
+          description: 'Дата передачи ЭПТС в собственность Дилера'
+        vehicle_engine_number:
+          type: string
+          description: 'Номер двигателя'
+        engine_displacement:
+          type: string
+          description: 'Раб. объём двигателя'
+        vehicle_body_color:
+          type: string
+          description: 'Цвет кузова'
+        vehicle_body_number:
+          type: string
+          description: 'Номер кузова'
+        vehicle_made_by:
+          type: string
+          description: Производитель
+        vehicle_pts_issued_by:
+          type: string
+          description: 'Кем выдан ПТС'
+        vehicle_chassis_number:
+          type: string
+          description: 'Номер шасси'
+        vehicle_type:
+          type: string
+          description: 'Тип автомобиля'
+        vehicle_category:
+          type: string
+          description: Категория
+        vehicle_production_year:
+          type: string
+          description: 'Год производства'
+        planned_production_date:
+          type: string
+          description: 'Планируемая дата производства'
+        production_at:
+          type: string
+          description: 'Дата производства'
+        vehicle_is_for_testdrive:
+          type: boolean
+          description: 'Автомобиль для тест драйвов'
+        status:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          description: Статус
+        status_code:
+          type: string
+          description: 'Код статуса'
+        ptsStatus:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          description: 'Статус ПТС'
+        order_type_code:
+          type: string
+          description: 'Тип заказа'
+        order_type_code_date:
+          type: string
+          description: 'Дата смены типа заказа'
+        internal_status_date:
+          type: string
+          description: 'Дата статуса'
+        vehicle_dealer_sale_at:
+          type: string
+          description: 'Дата продажи'
+        vehicle_dealer_payment_at:
+          type: string
+          description: 'Дата оплаты дилером'
+        vehicle_dealer_payment_sum:
+          type: string
+          description: 'Сумма оплаты'
+        account_number:
+          type: string
+          description: 'Номер счёта'
+        account_date:
+          type: string
+          description: 'Дата счёта'
+        shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата отгрузки от PDI к дилеру'
+        waybill_date:
+          type: string
+          description: 'Дата ТТН'
+        waybill_number:
+          type: string
+          description: 'Номер ТТН'
+        torg_12_date:
+          type: string
+          description: 'Дата УПД'
+        torg_12_number:
+          type: string
+          description: 'Номер УПД'
+        torg_12_sum:
+          type: string
+          description: 'Сумма УПД'
+        defects:
+          type: string
+          description: Дефекты
+        shipping_on_ferry_at:
+          type: string
+          description: 'Дата погрузки на паром'
+        exit_from_port_at:
+          type: string
+          description: 'Дата выхода из порта'
+        enter_in_port_at:
+          type: string
+          description: 'Дата прибытия в порт'
+        arrival_on_customs_at:
+          type: string
+          description: 'Дата прибытия на таможню'
+        exit_from_customs_at:
+          type: string
+          description: 'Дата выхода с таможни'
+        is_allowed_for_shipment:
+          type: string
+          description: 'Разрешен к отгрузке'
+        distribution_warehouse:
+          type: string
+          description: 'Склад для распределения'
+        vector_code:
+          type: string
+          description: 'Вектор код'
+        vehicle_importer_receipt_date:
+          type: string
+          description: 'Дата получения импортёром'
+        number_of_track:
+          type: string
+          description: 'Номер трака'
+        options:
+          type: array
+          description: 'Опции (можно получить больше информации указав expand)'
+          items:
+            oneOf:
+              -
+                type: array
+                items:
+                  type: string
+              -
+                $ref: '#/components/schemas/WarehouseVehicleOptionsExpand'
+        programs:
+          type: array
+          description: 'Программы проверки автомобиля'
+          items:
+            type: object
+            properties: {  }
+        vehicle_pts_status:
+          type: string
+          description: 'Статус ПТС'
+        is_trade_in:
+          type: boolean
+          description: Б\У
+        reserve_comment:
+          type: string
+          description: 'Причина блокировки'
+        reserve_author_id:
+          type: integer
+          description: 'Автор блокировки'
+        internal_status_id:
+          type: integer
+          description: Статус
+        account_price:
+          type: number
+          description: 'Сумма счёта'
+        main_photo:
+          type: string
+          description: 'Основное фото'
+        additional_equipment_list:
+          type: array
+          description: 'Список дополнительного оборудования'
+          items:
+            $ref: '#/components/schemas/AdditionalFeatureOption'
+        is_svo:
+          type: boolean
+          description: 'Признак переоборудованного автомобиля'
+        expected_route_duration_days:
+          type: integer
+          description: 'Ожидаемая длительность остатка маршрута (в днях)'
+        planned_date_delivery_dealer:
+          type: string
+          description: 'Планируемая дата доставки дилеру'
+        vehicle_status_date:
+          type: string
+          description: 'Дата постановки статуса'
+        invoice_number:
+          type: string
+          description: 'Номер инвойса'
+        invoice_date:
+          type: string
+          description: 'Дата инвойса'
+        curb_weight:
+          type: integer
+          description: 'Масса ТС в снаряженном состоянии'
+        shipping_order_number:
+          type: string
+          description: 'Номер заявки на доставку'
+        sale_type_code:
+          type: string
+          description: 'Тип продажи'
+        has_t_box:
+          type: boolean
+          description: 'Наличие T-box'
+        optional_equipment_description:
+          type: string
+          description: 'Дополнительное оборудование'
+        optional_equipment_sum:
+          type: number
+          description: 'Цена дополнительного оборудования'
+        dealer_discount:
+          type: number
+          description: 'Скидка от дилера'
+        vehicleDiscounts:
+          type: array
+          description: 'Список мотивационных программы доступных для автомобиля'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleDiscount'
+        supply_contract_number:
+          type: string
+          description: '№ Договора поставки'
+        request_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата заявки на отгрузку от PDI к дилеру'
+        planned_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Планируемая дата отгрузки от PDI к дилеру'
+        transport_company_date_delivery_dealer:
+          type: string
+          description: 'Дата доставки дилеру ТК'
+        created_at:
+          type: string
+          description: 'Дата и время создания'
+        custom_declaration_number:
+          type: string
+          description: ГТД
+        is_archive:
+          type: boolean
+          description: 'В архиве'
+        is_deleted:
+          type: boolean
+          description: Удалён
+        vehicle_repayment_pts_date:
+          type: string
+          description: 'Дата выкупа ПТС'
+        is_duplicate_pts:
+          type: boolean
+          description: Тип
+        planned_shipment_vehicle_set_from_production_at:
+          type: string
+          description: 'Планируемая дата отгрузки МК c производства'
+        shipment_vehicle_set_from_production_at:
+          type: string
+          description: 'Фактическая дата отгрузки МК c производства'
+        planned_shipment_vehicle_set_to_assembly_at:
+          type: string
+          description: 'Планируемая дата отгрузки МК на сборку'
+        shipment_vehicle_set_to_assembly_at:
+          type: string
+          description: 'Фактическая дата отгрузки МК на сборку'
+        planned_vehicle_set_assembly_at:
+          type: string
+          description: 'Планируемая дата сборки'
+        vehicle_set_assembly_at:
+          type: string
+          description: 'Фактическая дата сборки'
+        readiness_shipment_from_assembly_at:
+          type: string
+          description: 'Дата готовности автомобиля к отгрузке со сборки'
+        planned_shipment_to_dealer_at:
+          type: string
+          description: 'Планируемая дата отправки дилеру'
+        country_id:
+          type: string
+          description: 'Id страны связанного дилера'
+        conditional_sale:
+          type: integer
+          description: 'Условно реализован (0 - Нет, 1 - Да, 2 - Был усл. реализован)'
+        new_iccid:
+          type: string
+          description: 'Новый ICCID'
+        new_iccid2:
+          type: string
+          description: 'Новый ICCID2'
+        description:
+          type: string
+          description: Описание
+        dealer_code_last_changed_at:
+          type: string
+          description: 'Дата изменения кода ДЦ'
+        routePoints:
+          type: array
+          description: 'Список точек маршрута'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleRoutePoint'
+        optionsExtendedChangan:
+          type: array
+          description: 'Список характеристик для Changan'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleOptionsExtendedChangan'
+        vehiclePrices:
+          type: array
+          description: 'Список прайс-листов'
+          items:
+            $ref: '#/components/schemas/VehiclePrice'
+        comment:
+          type: string
+          description: Комментарий
+        quote_period_id:
+          type: integer
+          description: 'Период квотирования'
+        publication_comment:
+          type: string
+          description: 'Комментарий публикации'
+        publication_status:
+          type: integer
+          description: 'Статус публикации'
+        publication_status_date:
+          type: integer
+          description: 'Дата изменения статуса публикации'
+        vehicle_is_for_replacement:
+          type: boolean
+          description: 'Подменный автомобиль'
+        part_number:
+          type: integer
+          description: 'Номер партии'
+    WarehouseVehicleAutoruBase:
+      description: 'Базовая информация'
+      properties:
+        modification:
+          type: object
+          $ref: '#/components/schemas/WarehouseVehicleAutoruBaseModification'
+    WarehouseVehicleAutoruBaseModification:
+      description: Модификация
+      properties:
+        engine_type:
+          type: integer
+          description: 'Тип двигателя  (1 - Бензин, 2 - Дизель, 3 - Гибрид, 4 - Электро)'
+        wheel:
+          type: object
+          description: 'Расположение руля'
+        drive:
+          type: object
+          description: Привод
+    WarehouseVehicleDiscount:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id мотивационной программы'
+        name:
+          type: string
+          description: Наименование
+        sum:
+          type: number
+          description: Сумма
+        percent:
+          type: number
+          description: Процент
+        start_at:
+          type: string
+          description: 'Дата начала действия (ГГГГ-ММ-ДД)'
+        finish_at:
+          type: string
+          description: 'Дата окончания действия (ГГГГ-ММ-ДД)'
+        supportProgram:
+          type: array
+          description: 'Категория мотивационной программы'
+          items:
+            $ref: '#/components/schemas/SupportProgram'
+        maxSumFromDealer:
+          oneOf:
+            -
+              type: object
+              properties:
+                value:
+                  oneOf:
+                    -
+                      type: number
+                    -
+                      type: 'null'
+                  description: 'Макс. размер доп. скидки от дилера'
+                ids:
+                  type: array
+                  description: 'Список id скидок'
+                  items:
+                    type: integer
+            -
+              type: 'null'
+          description: 'Макс. размер доп. скидки от дилера'
+        sumFromDealers:
+          type: array
+          items:
+            type: object
+            properties:
+              dealer_id:
+                type: integer
+                description: 'id дилера'
+              sum:
+                oneOf:
+                  -
+                    type: number
+                  -
+                    type: 'null'
+                description: 'Размер доп. скидки от дилера'
+          description: 'Размеры доп. скидок от дилеров'
+      description: 'Модель мотивационной программы автомобиля'
+    WarehouseVehicleGlonass:
+      description: ГЛОНАСС
+      properties:
+        number:
+          type: string
+          description: 'Номер ГЛОНАСС'
+        activation_date:
+          type: string
+          description: 'Дата активации ГЛОНАСС'
+        installation_date:
+          type: string
+          description: 'Дата установки ГЛОНАСС'
+    WarehouseVehicleInternalStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+      description: 'Модель Внутренний статус автомобиля'
+    WarehouseVehicleOptionsExpand:
+      type: object
+      description: 'Модель списка опций автомобиля'
+      properties:
+        vehicle_code:
+          type: string
+          description: 'Код авто'
+        option_code:
+          type: string
+          description: 'Код опции'
+        option_name:
+          type: string
+          description: Наименование
+        option_category:
+          type: string
+          description: 'Категория: O - Oпция, C - Цвет, T - Отделка'
+        option_is_pack:
+          type: string
+          description: 'Является пакетом опций'
+        option_common_price:
+          type: string
+          description: 'Базовая цена'
+        option_base_price:
+          type: string
+          description: 'Цена для пакета'
+        option_short_name:
+          type: string
+          description: 'Сокращённое наименование'
+        option_family_code:
+          type: string
+          description: 'Входит в пакеты'
+    WarehouseVehicleOptionsExtendedChangan:
+      type: object
+      properties:
+        transmission:
+          type: string
+          description: 'Тип коробки передач'
+        engine_value:
+          type: string
+          description: 'Объем двигателя в литрах'
+        drive_type:
+          type: string
+          description: 'Тип привода'
+        engine_power:
+          type: string
+          description: 'Мощность двигателя'
+        mileage:
+          type: string
+          description: Пробег
+      description: 'Модель списка характеристик автомобиля'
+    WarehouseVehicleRoutePoint:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id точки маршрута'
+        name:
+          type: string
+          description: Наименование
+        planned_arrive_at:
+          type: string
+          description: 'Планируемая дата прибытия'
+        arrive_at:
+          type: string
+          description: 'Фактическая дата прибытия'
+        planned_leaving_at:
+          type: string
+          description: 'Планируемая дата выбытия'
+        leaving_at:
+          type: string
+          description: 'Фактическая дата выбытия'
+        is_arrive_late:
+          type: boolean
+          description: 'Прибытие с опозданием'
+        is_leaving_late:
+          type: boolean
+          description: 'Выбытие с опозданием'
+      description: 'Модель точки маршрута автомобиля'
+    WarehouseVehicleUsedAutoru:
+      type: object
+      properties:
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        autoru_mark_id:
+          type: integer
+          description: 'ID бренда (Автору)'
+        autoru_folder_id:
+          type: integer
+          description: 'ID модели (Автору)'
+        autoru_complectation_id:
+          type: integer
+          description: 'ID комплектации (Автору)'
+        autoru_modification_id:
+          type: integer
+          description: 'ID модификации (Автору)'
+        autoru_configuration_id:
+          type: integer
+          description: 'ID конфигурации (Автору)'
+        autoru_color_name:
+          type: integer
+          description: 'Цвет (Автору)'
+        autoru_options:
+          type: array
+          description: 'Опции, формат не определён (любые данные)'
+        vehicle_code:
+          type: string
+          description: 'Код авто'
+        model_name:
+          type: string
+          description: 'Наименование модели'
+        model_year_code:
+          type: string
+          description: 'Код модельного года'
+        body_code:
+          type: string
+          description: 'Код кузова'
+        complectation_code:
+          type: string
+          description: 'Код комплектации'
+        package_code:
+          type: string
+          description: 'Код пакета'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        holding_code:
+          type: string
+          description: 'Код холдинга'
+        vehicle_color:
+          type: string
+          description: 'Цвет автомобиля'
+        vehicle_trim:
+          type: string
+          description: 'Обивка автомобиля'
+        vehicle_vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        vehicle_mpv:
+          type: string
+          description: MPV
+        vehicle_order_no:
+          type: string
+          description: 'Номер заказа'
+        vehicle_base_price:
+          type: string
+          description: 'Базовая цена'
+        vehicle_options_price:
+          type: string
+          description: 'Цена опций'
+        vehicle_is_sold:
+          type: boolean
+          description: 'Автомобиль продан'
+        vehicle_customer_name:
+          type: boolean
+          description: 'Имя клиента'
+        vehicle_fixed_price:
+          type: string
+          description: 'Фиксированная цена автомобиля'
+        vehicle_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля'
+        vehicle_client_color_price:
+          type: string
+          description: 'Цена за цвет автомобиля для клиента'
+        vehicle_invoice_price:
+          type: string
+          description: 'Входная цена'
+        vehicle_retail_price:
+          type: string
+          description: 'Цена ритейл'
+        vehicle_is_in_stock:
+          type: boolean
+          description: 'Автомобиль на складе'
+        vehicle_receipt_date:
+          type: string
+          description: 'Дата прихода на склад'
+        vehicle_mpv_description:
+          type: string
+          description: 'Описание MPV'
+        price_no:
+          type: string
+          description: 'Номер прайса'
+        vehicle_dealer_payment_period:
+          type: string
+          description: 'Оплата до'
+        vehicle_pts_number:
+          type: string
+          description: 'Номер ПТС'
+        vehicle_pts_issued_at:
+          type: string
+          description: 'Дата выдачи ПТС'
+        vehicle_engine_number:
+          type: string
+          description: 'Номер двигателя'
+        engine_displacement:
+          type: string
+          description: 'Раб. объём двигателя'
+        vehicle_body_color:
+          type: string
+          description: 'Цвет кузова'
+        vehicle_body_number:
+          type: string
+          description: 'Номер кузова'
+        vehicle_made_by:
+          type: string
+          description: Производитель
+        vehicle_pts_issued_by:
+          type: string
+          description: 'Кем выдан ПТС'
+        vehicle_chassis_number:
+          type: string
+          description: 'Номер шасси'
+        vehicle_type:
+          type: string
+          description: 'Тип автомобиля'
+        vehicle_category:
+          type: string
+          description: Категория
+        vehicle_production_year:
+          type: string
+          description: 'Год производства'
+        planned_production_date:
+          type: string
+          description: 'Планируемая дата производства'
+        production_at:
+          type: string
+          description: 'Дата производства'
+        vehicle_is_for_testdrive:
+          type: boolean
+          description: 'Автомобиль для тест драйвов'
+        status:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          description: Статус
+        order_type_code:
+          type: string
+          description: 'Тип заказа'
+        order_type_code_date:
+          type: string
+          description: 'Дата смены типа заказа'
+        internal_status_date:
+          type: string
+          description: 'Дата статуса'
+        vehicle_dealer_sale_at:
+          type: string
+          description: 'Дата продажи'
+        vehicle_dealer_payment_at:
+          type: string
+          description: 'Дата оплаты дилером'
+        vehicle_dealer_payment_sum:
+          type: string
+          description: 'Сумма оплаты'
+        account_number:
+          type: string
+          description: 'Номер счёта'
+        account_date:
+          type: string
+          description: 'Дата счёта'
+        shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата отгрузки от PDI к дилеру'
+        waybill_date:
+          type: string
+          description: 'Дата ТТН'
+        waybill_number:
+          type: string
+          description: 'Номер ТТН'
+        torg_12_date:
+          type: string
+          description: 'Дата УПД'
+        torg_12_number:
+          type: string
+          description: 'Номер УПД'
+        torg_12_sum:
+          type: string
+          description: 'Сумма УПД'
+        defects:
+          type: string
+          description: Дефекты
+        shipping_on_ferry_at:
+          type: string
+          description: 'Дата погрузки на паром'
+        exit_from_port_at:
+          type: string
+          description: 'Дата выхода из порта'
+        enter_in_port_at:
+          type: string
+          description: 'Дата прибытия в порт'
+        arrival_on_customs_at:
+          type: string
+          description: 'Дата прибытия на таможню'
+        exit_from_customs_at:
+          type: string
+          description: 'Дата выхода с таможни'
+        is_allowed_for_shipment:
+          type: string
+          description: 'Разрешен к отгрузке'
+        distribution_warehouse:
+          type: string
+          description: 'Склад для распределения'
+        vector_code:
+          type: string
+          description: 'Вектор код'
+        vehicle_importer_receipt_date:
+          type: string
+          description: 'Дата получения импортёром'
+        number_of_track:
+          type: string
+          description: 'Номер трака'
+        options:
+          type: array
+          description: Опции
+          items:
+            type: object
+            properties: {  }
+        programs:
+          type: array
+          description: 'Программы проверки автомобиля'
+          items:
+            type: object
+            properties: {  }
+        vehicle_pts_status:
+          type: string
+          description: 'Статус ПТС'
+        reserve_comment:
+          type: string
+          description: 'Причина блокировки'
+        reserve_author_id:
+          type: integer
+          description: 'Автор блокировки'
+        internal_status_id:
+          type: integer
+          description: Статус
+        main_photo:
+          type: string
+          description: 'Основное фото'
+        additional_equipment_list:
+          type: array
+          description: 'Список дополнительного оборудования'
+          items:
+            $ref: '#/components/schemas/AdditionalFeatureOption'
+        is_svo:
+          type: boolean
+          description: 'Признак переоборудованного автомобиля'
+        expected_route_duration_days:
+          type: integer
+          description: 'Ожидаемая длительность остатка маршрута (в днях)'
+        planned_date_delivery_dealer:
+          type: string
+          description: 'Планируемая дата доставки дилеру'
+        vehicle_status_date:
+          type: string
+          description: 'Дата постановки статуса'
+        invoice_number:
+          type: string
+          description: 'Номер инвойса'
+        invoice_date:
+          type: string
+          description: 'Дата инвойса'
+        curb_weight:
+          type: integer
+          description: 'Масса ТС в снаряженном состоянии'
+        shipping_order_number:
+          type: string
+          description: 'Номер заявки на доставку'
+        sale_type_code:
+          type: string
+          description: 'Тип продажи'
+        is_need_t_box:
+          type: boolean
+          description: 'Требуется установка T-box'
+        optional_equipment_description:
+          type: string
+          description: 'Дополнительное оборудование'
+        optional_equipment_sum:
+          type: number
+          description: 'Цена дополнительного оборудования'
+        dealer_discount:
+          type: number
+          description: 'Скидка от дилера'
+        vehicleDiscounts:
+          type: array
+          description: 'Список мотивационных программы доступных для автомобиля'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicleDiscount'
+        supply_contract_number:
+          type: string
+          description: '№ Договора поставки'
+        request_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Дата заявки на отгрузку от PDI к дилеру'
+        planned_shipment_from_PDI_to_dealer_at:
+          type: string
+          description: 'Планируемая дата отгрузки от PDI к дилеру'
+        transport_company_date_delivery_dealer:
+          type: string
+          description: 'Дата доставки дилеру ТК'
+        created_at:
+          type: string
+          description: 'Дата и время создания'
+        custom_declaration_number:
+          type: string
+          description: ГТД
+        glonass:
+          type: object
+          $ref: '#/components/schemas/WarehouseVehicleGlonass'
+          description: Глонасс
+        is_archive:
+          type: boolean
+          description: 'В архиве'
+        is_deleted:
+          type: boolean
+          description: Удалён
+        vehicle_repayment_pts_date:
+          type: boolean
+          description: 'Дата выкупа ПТС'
+        programs_ids:
+          type: array
+          description: 'ID программ'
+        base:
+          type: object
+          $ref: '#/components/schemas/WarehouseVehicleAutoruBase'
+        pts_type:
+          type: integer
+          description: 'Тип ПТС (0 - Оригинал, 1 - Дубликат, 2 - Электронный)'
+        publication_comment:
+          type: string
+          description: 'Комментарий публикации'
+        publication_status:
+          type: integer
+          description: 'Статус публикации'
+        publication_status_date:
+          type: integer
+          description: 'Дата изменения статуса публикации'
+      description: 'Модель автору'
+    WarehouseVehicleUsedYearlySales:
+      description: 'Отчет по автомобилям с пробегом, сгруппированный по дилеру и по году'
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        sale_year:
+          type: string
+          description: 'Год продажи'
+        sales:
+          type: integer
+          description: 'Объём продаж'
+    WarrantyClaim:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Номер
+        type_id:
+          type: string
+          description: 'ID типа претензии'
+        dealer_name:
+          type: string
+          description: 'Наименование дилера'
+        dealer_address:
+          type: string
+          description: 'Юридический адрес дилера'
+        created_at:
+          type: string
+          description: Дата
+        status:
+          type: string
+          description: Статус
+        type:
+          type: string
+          description: 'Тип претензии'
+        vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        repaired_at:
+          type: string
+          description: 'Дата ремонта'
+        client_complaint:
+          $ref: '#/components/schemas/ClientComplaint'
+          description: Дефект
+        client_complaint_code:
+          type: string
+          description: Код
+        client_complaint_name:
+          type: string
+          description: Наименование
+        client_complaint_function:
+          $ref: '#/components/schemas/ClientComplaint'
+          description: 'Тип дефекта'
+        client_complaint_function_code:
+          type: string
+          description: 'Код типа дефекта'
+        client_complaint_function_name:
+          type: string
+          description: 'Наименование типа дефекта'
+        client_complaint_vfg:
+          $ref: '#/components/schemas/ClientComplaint'
+          description: 'Вид дефекта'
+        client_complaint_vfg_code:
+          type: string
+          description: 'Код вида дефекта'
+        client_complaint_vfg_name:
+          type: string
+          description: 'Наименование вида дефекта'
+        repair_desc_comment:
+          type: string
+          description: 'Комментарий сервисного центра'
+        desc:
+          type: string
+          description: 'Описание проблемы'
+        mileage:
+          type: integer
+          description: Пробег
+        dealer_code:
+          type: string
+          description: 'Код шоурума'
+        revocable_campaign:
+          type: object
+          description: 'Отзывная кампания'
+        revocable_campaign_code:
+          type: string
+          description: 'Код отзывной кампании'
+        revocable_campaign_name:
+          type: string
+          description: 'Наименование отзывной кампании'
+        spares:
+          type: array
+          description: 'Запасные части'
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Артикул
+              name:
+                type: string
+                description: 'Наименование запчасти'
+              is_defective:
+                type: boolean
+                description: 'Причинная деталь'
+              price:
+                type: number
+                description: Цена
+              total_price:
+                type: number
+                description: 'Итогова Цена'
+        other_spares:
+          type: array
+          description: Материалы
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: 'Артикул материала'
+              name:
+                type: string
+                description: 'Наименование материала'
+              price:
+                type: number
+                description: Цена
+              total_price:
+                type: number
+                description: 'Сумма материала'
+        works:
+          type: array
+          description: Работы
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'Код (генерируется автоматически)'
+              code:
+                type: string
+                description: 'Код работы'
+              name:
+                type: string
+                description: 'Наименование работы'
+              responsible:
+                type: string
+                description: Механик
+              count:
+                type: number
+                description: 'Количество работ'
+              request_time:
+                type: number
+                description: 'Трудозатраты в часах'
+              rated_hour_cost:
+                type: number
+                description: 'Стоимость НормоЧаса'
+              total:
+                type: number
+                description: Итого
+        other_works:
+          type: array
+          description: Дополнительные
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'Код (генерируется автоматически)'
+              code:
+                type: string
+                description: 'Код работы'
+              name:
+                type: string
+                description: 'Наименование работы'
+              responsible:
+                type: string
+                description: Механик
+              count:
+                type: number
+                description: 'Количество работ'
+              request_time:
+                type: number
+                description: 'Трудозатраты в часах'
+              rated_hour_cost:
+                type: number
+                description: 'Стоимость НормоЧаса'
+              total:
+                type: number
+                description: Итого
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: Наименование
+        handler:
+          type: string
+          description: Обработчик
+          enum:
+            - lead-created
+            - lead-closed
+            - lead-stage-closed
+            - schedule-worksheet-event-closed
+            - worksheet-event-closed
+            - purchase-closed
+        url:
+          type: string
+          description: URL
+        method:
+          type: string
+          description: 'HTTP метод'
+          enum:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - HEAD
+            - OPTIONS
+        login:
+          type: string
+          description: Логин
+        password:
+          type: string
+          description: Пароль
+        token:
+          type: string
+          description: Токен
+        key:
+          type: string
+          description: 'Приватный ключ для авторизации'
+        cert:
+          type: string
+          description: 'Сертификат для авторизации'
+        format:
+          type: string
+          description: ID
+          enum:
+            - json
+            - xml
+        timeout:
+          type: integer
+          description: 'Время на выполнение запроса(по умолчанию 60 секунд)'
+        useData:
+          type: boolean
+          description: 'Передавать данные в теле запроса'
+        useArray:
+          type: boolean
+          description: 'Передавать данные в виде массива'
+        retryOnError:
+          type: integer
+          description: 'Количество повторных запросов при ошибке'
+        retryOnErrorDelay:
+          type: integer
+          description: 'Задержка между повторными запросами'
+        params:
+          type: array
+          description: 'Параметры запроса'
+        requestMode:
+          type: string
+          description: 'Тип запроса'
+          enum:
+            - params
+            - text
+        requestText:
+          type: string
+          description: 'Текст запроса'
+      description: 'Модель вебхука'
+    Work:
+      required:
+        - code
+        - name
+        - standard_time
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        code:
+          type: string
+          description: 'Код работы'
+        name:
+          type: string
+          description: 'Наименование работы'
+        standard_time:
+          type: number
+          description: 'Стандартное время выполнения'
+      description: 'Модель Работа'
+    WorkTime:
+      type: object
+      properties:
+        begin:
+          type: string
+          description: 'Время начала работы hh:mm'
+        end:
+          type: string
+          description: 'Время окончания работы hh:mm'
+      description: 'Рабочее время'
+    Worksheet:
+      required:
+        - code
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID рабочего листа (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        code:
+          type: string
+          description: 'Код рабочего листа во внешней системе'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        source_id:
+          type: integer
+          description: 'ID источника'
+        cancel_reason_id:
+          type: integer
+          description: 'ID причины отказа'
+        request_id:
+          type: integer
+          description: 'ID лида'
+        payment_type:
+          type: integer
+          description: 'Тип оплаты'
+        is_trade_in:
+          type: integer
+          description: 'Покупка по программе TradeIn'
+        open:
+          type: string
+          description: 'дата открытия рабочего листа в формате dd.MM.yyyy'
+        close:
+          type: string
+          description: 'дата закрытия рабочего листа в формате dd.MM.yyyy'
+        created:
+          type: string
+          description: 'дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'дата изменения в формате dd.MM.yyyy HH:mm:ss'
+        worksheet_update_date:
+          type: string
+          description: 'дата изменения всех связанных объектов рабочего листа в формате dd.MM.yyyy HH:mm:ss'
+        events:
+          type: array
+          description: 'список событий рабочего листа'
+          items:
+            $ref: '#/components/schemas/Event'
+        cars:
+          type: array
+          description: 'список потребностей рабочего листа'
+          items:
+            $ref: '#/components/schemas/Car'
+        client:
+          $ref: '#/components/schemas/ClientResponse'
+        source:
+          $ref: '#/components/schemas/Source'
+        cancelReason:
+          $ref: '#/components/schemas/CancelReason'
+        questionaryEvents:
+          type: array
+          description: 'список анкет рабочего листа'
+          items:
+            $ref: '#/components/schemas/QuestionaryEvent'
+        requestComment:
+          type: string
+          description: 'Комментарий по request_id'
+          nullable: true
+          readOnly: true
+      description: 'Модель Рабочий лист'
+    WorksheetClient:
+      required:
+        - client_id
+        - client_type_id
+        - worksheet_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        client_type_id:
+          type: integer
+          description: 'ID типа клиента'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+      description: 'Модель Клиенты рабочего листа'
+    WorksheetFeatures:
+      type: object
+      properties:
+        consumption:
+          type: integer
+          description: 'Расход 0 - нет, 1 - да'
+        convenience:
+          type: integer
+          description: 'Удобство 0 - нет, 1 - да'
+        security:
+          type: integer
+          description: 'Безопасность 0 - нет, 1 - да'
+        riding:
+          type: integer
+          description: 'Езда 0 - нет, 1 - да'
+        reliability:
+          type: integer
+          description: 'Надежность 0 - нет, 1 - да'
+        style:
+          type: integer
+          description: 'Стиль 0 - нет, 1 - да'
+      description: Предпочтения
+    WorksheetPreferences:
+      type: object
+      properties:
+        features:
+          $ref: '#/components/schemas/WorksheetFeatures'
+        targetPerson:
+          type: string
+          description: 'Для кого приобретается автомобиль'
+          enum:
+            - 'me - для себя'
+            - 'other - для кого-то еще'
+        driveStyle:
+          type: string
+          description: 'Стиль вождения'
+          enum:
+            - 'dynamic - динамичный'
+            - 'calm - спокойный'
+        bodyType:
+          $ref: '#/components/schemas/WorksheetPreferencesBodyType'
+        important:
+          type: string
+          description: 'Что важно'
+        compareAlias:
+          type: integer
+          description: 'Алиас модели для сравнения'
+        operationPlace:
+          type: string
+          description: 'Где будет эксплуатироваться автомобиль'
+          enum:
+            - 'city - в городе'
+            - 'countryside - за городом'
+    WorksheetPreferencesBodyType:
+      type: object
+      properties:
+        sedan:
+          type: integer
+          description: Седан
+        hatchback:
+          type: integer
+          description: Хетчбэк
+        wagon:
+          type: integer
+          description: Универсал
+        crossover:
+          type: integer
+          description: Кроссовер
+      description: 'Тип кузова'
+    WorksheetQuestions:
+      required:
+        - success
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 'Признак успеха'
+        result:
+          $ref: '#/components/schemas/WorksheetQuestionsResult'
+      description: 'Модель Ответа на запросы предпочтения клиента'
+    WorksheetQuestionsResult:
+      type: object
+      properties:
+        isCash:
+          type: boolean
+          description: 'Покупка за наличные'
+        isCredit:
+          type: boolean
+          description: 'Покупка в кредит'
+        isLeasing:
+          type: boolean
+          description: 'Покупка в лизинг'
+        isTradein:
+          type: boolean
+          description: 'Покупка в трейдин'
+        purchasePeriod:
+          type: integer
+          description: 'Возможная дата покупки в днях'
+        preferences:
+          $ref: '#/components/schemas/WorksheetPreferences'
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+      description: 'Модель Предпочтения клиента'

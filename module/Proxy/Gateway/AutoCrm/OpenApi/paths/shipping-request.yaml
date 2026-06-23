@@ -1,0 +1,149 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - shipping-request'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: shipping-request
+    description: 'Управление заявками в ТК'
+paths:
+  /logistic/shipping-request:
+    get:
+      tags:
+        - shipping-request
+      description: 'Получение списка заявок в ТК'
+      summary: 'Получение списка заявок в ТК'
+      parameters:
+        -
+          name: shipping_company_id
+          in: query
+          description: 'ID ТК'
+          schema:
+            type: integer
+        -
+          name: delivery_type
+          in: query
+          description: 'Тип отгрузки (1 - Дилерская, 2 - Перемещение, 3 - самовывоз)'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус (1 - Новая, 2 - Выполнена)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+        -
+          name: page
+          in: query
+          schema:
+            type: integer
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список заявок в ТК'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShippingCompanyRequest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - shipping-request
+      summary: 'Создание заявки в ТК'
+      description: 'Создание заявки в ТК'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingCompanyRequestForm'
+      responses:
+        201:
+          description: 'Заявка успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingCompanyRequest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/logistic/shipping-request/{id}':
+    get:
+      tags:
+        - shipping-request
+      summary: 'Получение заявки в ТК по ID'
+      description: 'Получение заявки в ТК по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заявки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение заявки в ТК по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingCompanyRequest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - shipping-request
+      description: 'Обновление заявки в ТК по ID'
+      summary: 'Обновление заявки в ТК по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заявки'
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingCompanyRequestForm'
+        required: false
+      responses:
+        200:
+          description: 'заявка успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingCompanyRequest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

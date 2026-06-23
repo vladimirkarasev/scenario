@@ -1,0 +1,490 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-order'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-order
+    description: 'Управление заказами'
+paths:
+  '/spare-order-item/{id}':
+    put:
+      tags:
+        - spare-order
+      summary: 'Редактирование линии заказа'
+      description: 'Редактирование линии заказа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id линии'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderItemForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrderItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /spare-order/create:
+    post:
+      tags:
+        - spare-order
+      summary: 'Создание заказа'
+      description: 'Создание заказа'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderCreateForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/spare-order/document/{file_id}':
+    delete:
+      tags:
+        - spare-order
+      summary: 'Удаление документов заказа'
+      description: 'Удаление документов заказа'
+      parameters:
+        -
+          name: file_id
+          in: path
+          description: 'id документа заказа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Документ не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /spare-order/import-history:
+    post:
+      tags:
+        - spare-order
+      summary: 'Импорт исторических заказов ЗЧ'
+      description: 'Импорт исторических заказов запасных частей за указанный период'
+      requestBody:
+        description: 'Параметры импорта исторических заказов'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportHistoryRequest'
+        required: true
+      responses:
+        200:
+          description: 'Возвращает результат импорта'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportHistoryResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Нет прав на импорт исторических данных'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /spare-order/index:
+    get:
+      tags:
+        - spare-order
+      summary: 'Получение списка заказов запчастей'
+      description: 'Получение списка заказов запчастей'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'код заказа'
+          schema:
+            type: string
+        -
+          name: vin
+          in: query
+          description: 'VIN номер авто'
+          schema:
+            type: string
+        -
+          name: article
+          in: query
+          description: 'артикул запчасти'
+          schema:
+            type: string
+        -
+          name: type_id
+          in: query
+          description: 'id типа зч заказа'
+          schema:
+            type: integer
+        -
+          name: order_type_id
+          in: query
+          description: 'id типа заказа'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'статуса заказа'
+          schema:
+            type: integer
+        -
+          name: item_status
+          in: query
+          description: 'статуса линии заказа'
+          schema:
+            type: integer
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          schema:
+            type: integer
+        -
+          name: date_created_from
+          in: query
+          description: 'дата создания с (формат ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: date_created_to
+          in: query
+          description: 'дата создания по (формат ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: date_placement_from
+          in: query
+          description: 'дата размещения с (формат ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: date_placement_to
+          in: query
+          description: 'дата размещения по (формат ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: address_id
+          in: query
+          description: 'ИД адреса'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: 'Получение дочерних сущностей (items)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список заказов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/spare-order/items/{order_id}':
+    get:
+      tags:
+        - spare-order
+      summary: 'Получение всех позиций заказа по ID'
+      description: 'Получение всех позиций заказа по ID'
+      parameters:
+        -
+          name: order_id
+          in: path
+          description: 'id заказа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает элемент заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareOrderItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - spare-order
+      summary: 'Редактирование всех позиций заказа'
+      description: 'Редактирование всех позиций заказа'
+      parameters:
+        -
+          name: order_id
+          in: path
+          description: 'id заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные зч. Поддерживаются поля редактирования линии, в том числе discount_sum (сумма скидки для линии).'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderItemsForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает элемент заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareOrderItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/spare-order/{id}':
+    post:
+      tags:
+        - spare-order
+      summary: 'Редактирование данных заказа'
+      description: 'Редактирование данных заказа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID Заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные заказа'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  description: 'Статус заказа (1 = Новый, 2 = Отправлен, 3 = Не оплачен, 4 = Готов к отгрузке, 7 = Отгружается, 8 = Выполнен, 6 = Отклонен, 5 = Удален, 9 = Готов к отгрузке частично, 10 = Отгружается частично, 11 = Выполнен частично, 12 = Поставляется поставщиком, 13 = Ожидает обеспечения)'
+                external_code:
+                  type: string
+                  description: 'Номер заказа дистрибьютора'
+                pay_sum:
+                  type: number
+                  description: 'Сумма оплаты'
+                payment_status:
+                  type: integer
+                  description: 'Статус оплаты (1 = Не оплачен, 2 = Оплачен, 3 = Частично оплачен)'
+                pay_at:
+                  type: string
+                  description: 'Дата оплаты в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+                  example: 1704110400
+                comment:
+                  type: string
+                  description: Комментарий
+                address_id:
+                  type: integer
+                  description: 'ИД адреса'
+                client_type:
+                  type: integer
+                  description: 'Тип клиента (0 - Физ лицо, 1 - Юр лицо)'
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - spare-order
+      summary: 'Добавление данных о процентах отгрузки и оплаты'
+      description: 'Добавление данных о процентах отгрузки и оплаты'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные о процентах отгрузки и оплаты'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderPercentsQuery'
+        required: true
+      responses:
+        201:
+          description: 'Возвращает обновленные процентные данные заказа'
+          content:
+            application/json:
+              parameters: null
+              schema:
+                $ref: '#/components/schemas/SpareOrderPercents'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Нет прав на загрузку'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/spare-order/{id}/add-document':
+    post:
+      tags:
+        - spare-order
+      summary: 'Прикрепление документов к заказу'
+      description: 'Прикрепление документов к заказу'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  description: Файл
+                  format: binary
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrderDocument'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

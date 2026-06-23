@@ -1,0 +1,210 @@
+collection:
+  get:
+    tags: [Пользователи]
+    summary: Список пользователей
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: search
+        in: query
+        description: Поиск по имени, ФИО, email, логину
+        schema:
+          type: string
+      - name: group_id
+        in: query
+        description: Фильтр по UUID группы
+        schema:
+          type: string
+          format: uuid
+      - $ref: '../components/parameters.yaml#/PerPage'
+    responses:
+      '200':
+        description: Список пользователей (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Пользователи]
+    summary: Создать пользователя
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/users.yaml#/UserStoreRequest'
+    responses:
+      '201':
+        description: Пользователь создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - name: user
+      in: path
+      required: true
+      description: ID пользователя
+      schema:
+        type: integer
+
+  get:
+    tags: [Пользователи]
+    summary: Получить пользователя
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Пользователь с группами
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Пользователи]
+    summary: Обновить пользователя
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/users.yaml#/UserUpdateRequest'
+    responses:
+      '200':
+        description: Обновлённый пользователь
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Пользователи]
+    summary: Удалить пользователя
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Пользователь удалён
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+members:
+  parameters:
+    - name: group
+      in: path
+      required: true
+      description: UUID группы
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    tags: [Группы]
+    summary: Участники группы
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Список участников (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  post:
+    tags: [Группы]
+    summary: Добавить пользователя в группу
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [user_id]
+            properties:
+              user_id:
+                type: integer
+                description: ID пользователя
+                example: 42
+    responses:
+      '204':
+        description: Пользователь добавлен
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+memberItem:
+  parameters:
+    - name: group
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: user
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  delete:
+    tags: [Группы]
+    summary: Удалить пользователя из группы
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Пользователь удалён из группы
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

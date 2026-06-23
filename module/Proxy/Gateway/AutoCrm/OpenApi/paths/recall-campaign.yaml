@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - recall-campaign'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: recall-campaign
+    description: 'Управление отзывными кампаниями'
+paths:
+  /recall-campaign:
+    get:
+      tags:
+        - recall-campaign
+      summary: 'Получение списка отзывных кампаний'
+      description: 'Получение списка отзывных кампаний'
+      parameters:
+        -
+          name: id
+          in: query
+          description: Идентификатор
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: Код
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: type
+          in: query
+          description: 'Тип (1 - Сервисная, 2 - Отзывная)'
+          schema:
+            type: integer
+        -
+          name: export_rosstandart
+          in: query
+          description: 'Выгружать в РосСтандарт (1 - Да, 0 - Нет)'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус (1 - Активно, 2 - Удалено)'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список отзывных кампаний'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecallCampaign'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

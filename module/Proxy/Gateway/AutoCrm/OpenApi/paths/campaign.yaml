@@ -1,0 +1,164 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - campaign'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: campaign
+    description: 'Управление кампаниями'
+paths:
+  /campaign:
+    get:
+      tags:
+        - campaign
+      summary: 'Получение списка кампания'
+      description: 'Получение списка кампания'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          schema:
+            type: string
+        -
+          name: descr
+          in: query
+          schema:
+            type: string
+        -
+          name: is_deleted
+          in: query
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список кампаний'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - campaign
+      summary: 'Добавление новой кампании'
+      description: 'Добавление новой кампании'
+      requestBody:
+        description: 'Объект Campaign'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Campaign'
+        required: true
+      responses:
+        201:
+          description: 'Новая кампания успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/campaign/{id}':
+    get:
+      tags:
+        - campaign
+      summary: 'Получение кампании по ID'
+      description: 'Получение кампании по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id кампании'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает кампанию по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - campaign
+      summary: 'Изменение кампании'
+      description: 'Изменение кампании'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id кампании'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Кампания'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Campaign'
+        required: false
+      responses:
+        200:
+          description: 'Кампания успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

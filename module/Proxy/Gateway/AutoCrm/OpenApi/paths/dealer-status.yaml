@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-status'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-status
+    description: 'Управление статусами дилеров'
+paths:
+  /dealer-status:
+    get:
+      tags:
+        - dealer-status
+      summary: 'Получение статусов дилера'
+      description: 'Получение статусов дилера'
+      parameters:
+        -
+          name: statusName
+          in: query
+          description: 'Имя ошибки'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список статусов дилеров'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

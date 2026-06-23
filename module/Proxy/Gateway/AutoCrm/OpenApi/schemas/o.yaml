@@ -1,0 +1,511 @@
+openapi: 3.1.0
+components:
+  schemas:
+    OptionalEquipmentForm:
+      type: object
+      properties:
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        optional_equipment_sum:
+          type: integer
+          description: 'Стоимость дополнительного оборудования'
+        optional_equipment_description:
+          type: string
+          description: 'Описание дополнительного оборудования'
+      description: 'Модель дополнительного оборудования для автомобиля'
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID заказа'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        common_client_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID клиента'
+        date:
+          type: string
+          format: YYYY-MM-DD
+          description: Дата
+        vin:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: VIN
+        total_amount:
+          type: number
+          description: 'Сумма, оплаченная рублями'
+        total_points:
+          type: number
+          description: 'Сумма, оплаченная баллами'
+        status_id:
+          type: integer
+          description: 'ID статуса'
+        status_external_id:
+          type: string
+          description: 'Внешний ID статуса'
+        payment_method_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID способа оплаты'
+        payment_method_external_id:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Внешний ID способа оплаты'
+        payment_status_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID статуса оплаты'
+        payment_status_external_id:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Внешний ID статуса оплаты'
+        delivery_method_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID способа доставки'
+        delivery_method_external_id:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Внешний ID способа доставки'
+        delivery_address:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Адрес доставки'
+        delivery_amount:
+          oneOf:
+            -
+              type: number
+            -
+              type: 'null'
+          description: 'Сумма доставки'
+        type:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
+        external_service:
+          type: integer
+          description: 'Идентификатор внешней системы, из которой пришёл заказ'
+        source:
+          oneOf:
+            -
+              type: integer
+              enum:
+                - 1
+                - 2
+            -
+              type: 'null'
+          description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
+        check_number:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Номер чека'
+        comment:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: Комментарий
+        email:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: Email
+        positions:
+          type: array
+          description: 'Позиции заказа'
+          items:
+            $ref: '#/components/schemas/OrderPosition'
+        receipts:
+          type: array
+          description: 'Чеки заказа'
+          items:
+            $ref: '#/components/schemas/OrderReceipt'
+        refunds:
+          type: array
+          description: 'Возвраты заказа'
+          items:
+            $ref: '#/components/schemas/OrderRefund'
+      description: Заказ
+    OrderForm:
+      type: object
+      properties:
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        date:
+          type: string
+          format: YYYY-MM-DD
+          description: Дата
+        vin:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: VIN
+        total_amount:
+          type: number
+          description: 'Сумма, оплаченная рублями'
+        total_points:
+          type: number
+          description: 'Сумма, оплаченная баллами'
+        status_id:
+          type: integer
+          description: 'ID статуса'
+        payment_method_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID способа оплаты'
+        payment_status_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID статуса оплаты'
+        delivery_method_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID способа доставки'
+        delivery_address:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Адрес доставки'
+        delivery_amount:
+          oneOf:
+            -
+              type: number
+            -
+              type: 'null'
+          description: 'Сумма доставки'
+        type:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'Тип заказа: 1 - Аксессуары, 2 - Услуги'
+        source:
+          oneOf:
+            -
+              type: integer
+              enum:
+                - 1
+                - 2
+            -
+              type: 'null'
+          description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
+        check_number:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Номер чека'
+        comment:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: Комментарий
+        email:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: Email
+        positions:
+          type: array
+          description: 'Позиции заказа'
+          items:
+            $ref: '#/components/schemas/OrderPositionForm'
+        receipts:
+          type: array
+          description: 'Чеки заказа'
+          items:
+            $ref: '#/components/schemas/OrderReceiptForm'
+      description: 'Форма заказа'
+    OrderPosition:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID позиции заказа'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        name:
+          type: string
+          description: Название
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        amount:
+          type: number
+          description: Сумма
+        action_date:
+          oneOf:
+            -
+              type: string
+              format: date
+            -
+              type: 'null'
+          description: 'Дата действия'
+        expiry_date:
+          oneOf:
+            -
+              type: string
+              format: date
+            -
+              type: 'null'
+          description: 'Дата окончания'
+      description: 'Позиция заказа'
+    OrderPositionForm:
+      type: object
+      properties:
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        name:
+          type: string
+          description: Название
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        amount:
+          type: number
+          description: Сумма
+        action_date:
+          oneOf:
+            -
+              type: string
+              format: date
+            -
+              type: 'null'
+          description: 'Дата действия'
+        expiry_date:
+          oneOf:
+            -
+              type: string
+              format: date
+            -
+              type: 'null'
+          description: 'Дата окончания'
+      description: 'Позиция заказа'
+    OrderReceipt:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID чека заказа'
+        type:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+          description: 'Тип (1 - Приход, 2 - Возврат прихода, 3 - Расход, 4 - Возврат расхода)'
+        url:
+          type: string
+          format: url
+          description: URL
+      description: 'Чек заказа'
+    OrderReceiptForm:
+      type: object
+      properties:
+        type:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+          description: 'Тип (1 - Приход, 2 - Возврат прихода, 3 - Расход, 4 - Возврат расхода)'
+        url:
+          type: string
+          format: url
+          description: URL
+      description: 'Чек заказа'
+    OrderReference:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID объекта справочника'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        name:
+          type: string
+          description: Название
+      description: 'Объект справочника'
+    OrderRefund:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID возврата'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        date:
+          type: string
+          format: YYYY-MM-DD
+          description: Дата
+        total_amount:
+          type: number
+          description: 'Сумма к возврату в рублях'
+        total_points:
+          type: number
+          description: 'Сумма к возврату в баллах'
+        status_id:
+          type: integer
+          description: 'ID статуса'
+        status_external_id:
+          type: string
+          description: 'Внешний ID статуса'
+        reason_id:
+          type: integer
+          description: 'ID причины'
+        reason_external_id:
+          type: string
+          description: 'Внешний ID причины'
+        positions:
+          type: array
+          description: 'Позиции возврата'
+          items:
+            $ref: '#/components/schemas/OrderRefundPosition'
+      description: Возврат
+    OrderRefundForm:
+      type: object
+      properties:
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        date:
+          type: string
+          format: YYYY-MM-DD
+          description: Дата
+        total_amount:
+          type: number
+          description: 'Сумма к возврату в рублях'
+        total_points:
+          type: number
+          description: 'Сумма к возврату в баллах'
+        status_id:
+          type: integer
+          description: 'ID статуса'
+        reason_id:
+          type: integer
+          description: 'ID причины'
+        positions:
+          type: array
+          description: 'Позиции возврата'
+          items:
+            $ref: '#/components/schemas/OrderRefundPositionForm'
+      description: 'Форма возврата'
+    OrderRefundPosition:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID позиции возврата'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        name:
+          type: string
+          description: Название
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        amount:
+          type: number
+          description: Сумма
+      description: 'Позиция возврата'
+    OrderRefundPositionForm:
+      type: object
+      properties:
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        name:
+          type: string
+          description: Название
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        amount:
+          type: number
+          description: Сумма
+      description: 'Позиция возврата'

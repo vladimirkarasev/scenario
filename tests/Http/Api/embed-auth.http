@@ -1,0 +1,154 @@
+@baseUrl        = http://scenario.localhost/api
+@projectUuid    = 00000000-0000-0000-0000-000000000001
+@sharedSecret   = super-secret-key-32-chars-long!!
+
+# After user-register — paste the returned iframe_launch_token here
+@launchToken    = PASTE_LAUNCH_TOKEN_HERE
+
+# After exchange — paste the returned tokens here
+@accessToken    = PASTE_ACCESS_TOKEN_HERE
+@refreshToken   = PASTE_REFRESH_TOKEN_HERE
+
+###
+### ── 1. User Register ─────────────────────────────────────────────────────
+###
+
+### Register new user (creates user + membership + launch token)
+POST {{baseUrl}}/project/{{projectUuid}}/user-register
+Content-Type: application/json
+Authorization: Bearer {{sharedSecret}}
+
+{
+  "login": "user_123",
+  "email": "user@example.com",
+  "name": "Иван Иванов",
+  "external_id": "crm_user_123",
+  "roles": ["client", "manager"]
+}
+
+### Register without email (generates fake email)
+POST {{baseUrl}}/project/{{projectUuid}}/user-register
+Content-Type: application/json
+Authorization: Bearer {{sharedSecret}}
+
+{
+  "login": "user_no_email",
+  "name": "Без Email",
+  "roles": ["client"]
+}
+
+### Register with external_id only (no email, no login match)
+POST {{baseUrl}}/project/{{projectUuid}}/user-register
+Content-Type: application/json
+Authorization: Bearer {{sharedSecret}}
+
+{
+  "login": "some_login",
+  "name": "External User",
+  "external_id": "ext_456",
+  "roles": ["viewer"]
+}
+
+### 404 — project not found
+POST {{baseUrl}}/project/00000000-0000-0000-0000-000000000000/user-register
+Content-Type: application/json
+Authorization: Bearer {{sharedSecret}}
+
+{
+  "login": "user_123",
+  "name": "Test",
+  "roles": ["client"]
+}
+
+### 401 — wrong shared secret
+POST {{baseUrl}}/project/{{projectUuid}}/user-register
+Content-Type: application/json
+Authorization: Bearer wrong-secret
+
+{
+  "login": "user_123",
+  "name": "Test",
+  "roles": ["client"]
+}
+
+### 422 — validation error (missing required fields)
+POST {{baseUrl}}/project/{{projectUuid}}/user-register
+Content-Type: application/json
+Authorization: Bearer {{sharedSecret}}
+
+{}
+
+###
+### ── 2. Exchange ──────────────────────────────────────────────────────────
+###
+
+### Exchange launch token for access + refresh tokens
+# Paste iframe_launch_token from user-register response into @launchToken above
+POST {{baseUrl}}/embed/auth/exchange
+Content-Type: application/json
+Origin: http://scenario.localhost
+
+{
+  "token": "{{launchToken}}"
+}
+
+### Exchange without Origin header (should fail if project.host is set)
+POST {{baseUrl}}/embed/auth/exchange
+Content-Type: application/json
+
+{
+  "token": "{{launchToken}}"
+}
+
+### 401 — token not found
+POST {{baseUrl}}/embed/auth/exchange
+Content-Type: application/json
+
+{
+  "token": "nonexistent-token"
+}
+
+### 422 — missing token field
+POST {{baseUrl}}/embed/auth/exchange
+Content-Type: application/json
+
+{}
+
+###
+### ── 3. Refresh ───────────────────────────────────────────────────────────
+###
+
+### Refresh access token (token rotation)
+# Paste refresh_token from exchange response into @refreshToken above
+POST {{baseUrl}}/embed/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{refreshToken}}"
+}
+
+### 401 — refresh token not found / already rotated
+POST {{baseUrl}}/embed/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "nonexistent-refresh-token"
+}
+
+### 422 — missing field
+POST {{baseUrl}}/embed/auth/refresh
+Content-Type: application/json
+
+{}
+
+###
+### ── 4. Logout ────────────────────────────────────────────────────────────
+###
+
+### Logout (revokes access token + refresh token)
+# Paste access_token from exchange/refresh response into @accessToken above
+POST {{baseUrl}}/embed/auth/logout
+Authorization: Bearer {{accessToken}}
+
+### 401 — no auth
+POST {{baseUrl}}/embed/auth/logout

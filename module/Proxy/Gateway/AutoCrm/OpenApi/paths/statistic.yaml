@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - statistic'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: statistic
+    description: Отчеты
+paths:
+  /statistic/manager:
+    get:
+      tags:
+        - statistic
+      summary: 'Получение статистики по менеджерам'
+      description: 'Получение статистики по менеджерам'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          schema:
+            type: integer
+        -
+          name: from
+          in: query
+          description: 'начальная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: to
+          in: query
+          description: 'конечная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: is_primary
+          in: query
+          description: 'только для по первичным событиям'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает статистику по событиям в разрезе менеджеров'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatisticManager'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /statistic/model:
+    get:
+      tags:
+        - statistic
+      summary: 'Получение статистики по моделям'
+      description: 'Получение статистики по моделям'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          schema:
+            type: integer
+        -
+          name: from
+          in: query
+          description: 'начальная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: to
+          in: query
+          description: 'конечная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: is_primary
+          in: query
+          description: 'только для по первичным событиям'
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: 'Возвращает статистику по событиям в разрезе моделей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatisticModel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /statistic/sales:
+    get:
+      tags:
+        - statistic
+      summary: 'Отчёт по продажам'
+      description: 'Отчёт по продажам'
+      parameters:
+        -
+          name: dealerId
+          in: query
+          description: 'id дилера'
+          schema:
+            type: integer
+        -
+          name: distributorId
+          in: query
+          description: 'id дистрибьютора'
+          schema:
+            type: integer
+        -
+          name: dateFrom
+          in: query
+          description: 'начальная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: dateTo
+          in: query
+          description: 'конечная дата в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: clientType
+          in: query
+          description: 'Тип клиента (0 - Физическое лицо, 1 - Юридическое лицо)'
+          schema:
+            type: integer
+        -
+          name: statisticType
+          in: query
+          description: 'Получение статистики (manual - Вручную, api - API)'
+          schema:
+            type: string
+        -
+          name: 'brandId[]'
+          in: query
+          description: Бренд
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: 'modelId[]'
+          in: query
+          description: Модель
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        200:
+          description: 'Возвращает отчёт по продажам с разбивкой по дням и моделям'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaleReportByDayModel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

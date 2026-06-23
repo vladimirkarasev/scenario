@@ -1,0 +1,76 @@
+CategoryResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      type: string
+      example: category
+    attributes:
+      $ref: '#/CategoryAttributes'
+    relationships:
+      type: object
+      properties:
+        parent:
+          type: object
+          nullable: true
+          description: Родительская категория (если есть)
+          properties:
+            data:
+              $ref: '#/CategoryResource'
+        created_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+        updated_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+
+CategoryAttributes:
+  type: object
+  properties:
+    parent_id:
+      type: string
+      format: uuid
+      nullable: true
+    name:
+      type: string
+      example: Онбординг
+    is_active:
+      type: boolean
+    scenarios_count:
+      type: integer
+      description: Количество сценариев в категории
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+CategoryRequest:
+  type: object
+  required: [name, is_active]
+  properties:
+    parent_id:
+      type: string
+      format: uuid
+      nullable: true
+      description: UUID родительской категории (не может быть самой категорией или её потомком)
+    name:
+      type: string
+      maxLength: 255
+      description: Уникальное название категории
+      example: Онбординг
+    is_active:
+      type: boolean
+      example: true

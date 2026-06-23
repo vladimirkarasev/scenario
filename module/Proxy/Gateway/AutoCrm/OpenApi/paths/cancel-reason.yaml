@@ -1,0 +1,144 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - cancel-reason'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: cancel-reason
+    description: 'Управление причинами отказа'
+paths:
+  /cancel-reason:
+    get:
+      tags:
+        - cancel-reason
+      summary: 'Получение списка причин отказа'
+      description: 'Получение списка причин отказа'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список причин отказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CancelReason'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - cancel-reason
+      summary: 'Добавление новой причины отказа'
+      description: 'Добавление новой причины отказа'
+      requestBody:
+        description: 'Объект Причина отказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelReason'
+        required: true
+      responses:
+        201:
+          description: 'Новая причина отказа успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelReason'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/cancel-reason/{id}':
+    get:
+      tags:
+        - cancel-reason
+      summary: 'Получение причины отказа по ID'
+      description: 'Получение причины отказа по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id причины отказа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает причину отказа по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelReason'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - cancel-reason
+      summary: 'Изменение причины отказа'
+      description: 'Изменение причины отказа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id причины отказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Причина отказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelReason'
+        required: false
+      responses:
+        200:
+          description: 'Причина отказа успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelReason'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

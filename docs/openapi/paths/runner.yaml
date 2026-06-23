@@ -1,0 +1,76 @@
+start:
+  post:
+    tags: [Запуск]
+    summary: Запустить сценарий
+    security:
+      - BearerAuth: []
+    description: >
+      Создаёт новый прогон (`ScenarioRun`) и автоматически продвигает его до
+      первого интерактивного узла. Возвращает ID прогона, который затем
+      используется в `/runner/{runId}/jump`.
+
+      Необходимо передать ровно один из параметров: `scenario_id`, `version_id`
+      или `alias`.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/RunnerStartRequest'
+    responses:
+      '201':
+        description: Прогон создан
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: ID созданного прогона
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+jump:
+  post:
+    tags: [Запуск]
+    summary: Перейти к следующему узлу
+    security:
+      - BearerAuth: []
+    description: >
+      Принимает пользовательский ввод для текущего узла и продвигает прогон
+      вперёд до следующего интерактивного узла. Возвращает полный payload
+      прогона с отрендеренным состоянием текущего узла и историей шагов.
+    parameters:
+      - name: runId
+        in: path
+        required: true
+        description: UUID прогона
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/RunnerJumpRequest'
+    responses:
+      '200':
+        description: Обновлённое состояние прогона
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'

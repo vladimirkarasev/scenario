@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - equipment'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: equipment
+    description: 'Управление комплектациями'
+paths:
+  /equipment:
+    get:
+      tags:
+        - equipment
+      summary: 'Получение списка комплектаций'
+      description: 'Получение списка комплектаций'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID комплектации'
+          schema:
+            type: integer
+        -
+          name: serie_id
+          in: query
+          description: 'ID серии'
+          schema:
+            type: integer
+        -
+          name: model_id
+          in: query
+          description: 'ID модели'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+        -
+          name: country_id
+          in: query
+          description: 'ID страны'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'статус комплектации 1 - только комплектации которые выпускаются (по умолчанию), 3 - комплектации, которые не выпускаются, пустое значение - все комплектации'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран * **modification_ids** - Список ID модификаций'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список комплектаций'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

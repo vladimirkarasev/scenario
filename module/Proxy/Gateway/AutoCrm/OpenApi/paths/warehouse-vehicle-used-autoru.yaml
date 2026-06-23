@@ -1,0 +1,248 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-vehicle-used-autoru'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-vehicle-used-autoru
+    description: 'Управление автомобилями с пробегом (по данным автору)'
+paths:
+  /warehouse/vehicle-used-autoru:
+    get:
+      tags:
+        - warehouse-vehicle-used-autoru
+      summary: 'Получение списка автомобилей с пробегом'
+      description: 'Получение списка автомобилей с пробегом'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Список связанных сущностей. Например:\nphotos.upload - для включения в результат фотографий автомобиля;\nprograms - добавить в ответ список программ верификации автомобиля;\nbase - база авто с данными автору;\noptionsExtended - опции;\n"
+          schema:
+            type: string
+        -
+          name: dealer_code
+          in: query
+          description: 'Код дилера'
+          schema:
+            type: string
+        -
+          name: holding_code
+          in: query
+          description: 'Код холдинга'
+          schema:
+            type: string
+        -
+          name: is_archive
+          in: query
+          description: 'В архиве'
+          schema:
+            type: integer
+        -
+          name: vehicle_is_sold
+          in: query
+          description: Продана
+          schema:
+            type: integer
+        -
+          name: withoutDealerCode
+          in: query
+          description: 'Без кода дилера'
+          schema:
+            type: integer
+        -
+          name: createdFrom
+          in: query
+          description: 'Дата создания с, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: createdTo
+          in: query
+          description: 'Дата создания по, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: internal_status_id
+          in: query
+          description: 'Внутренний статус автомобиля (см. warehouse-vehicle-internal-status)'
+          schema:
+            type: integer
+        -
+          name: vehicle_code
+          in: query
+          description: 'Код автомобиля'
+          schema:
+            type: string
+        -
+          name: saledFrom
+          in: query
+          description: 'Дата продажи с, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: saledTo
+          in: query
+          description: 'Дата продажи по, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: vehicleReceiptDateFrom
+          in: query
+          description: 'Дата прихода на склад с, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: vehicleReceiptDateTo
+          in: query
+          description: 'Дата прихода на склад по, в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: programIds
+          in: query
+          description: 'ID программы проверки автомобиля'
+          schema:
+            type: array
+        -
+          name: readyToBuy
+          in: query
+          description: 'Готовность автомобиля к продаже. 1 - Да, 2 - Нет'
+          schema:
+            type: integer
+        -
+          name: vehicle_vin
+          in: query
+          description: 'VIN автомобиля'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список автомобилей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WarehouseVehicleUsedAutoru'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - warehouse-vehicle-used-autoru
+      summary: 'Добавление нового автомобиля с пробегом (Данные автору)'
+      description: 'Добавление нового автомобиля с пробегом (Данные автору)'
+      requestBody:
+        description: 'Объект WarehouseVehicleUsed'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseVehicleUsedAutoru'
+        required: true
+      responses:
+        201:
+          description: 'Новый автомобиль успешно добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarehouseVehicleUsedAutoru'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/warehouse/vehicle-used-autoru/{id}':
+    get:
+      tags:
+        - warehouse-vehicle-used-autoru
+      summary: 'Получение автомобиля по ID'
+      description: 'Получение автомобиля по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID автомобиля'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Список связанных сущностей. Например: photos.upload - для включения в результат фотографий автомобиля; programs - добавить в ответ список программ верификации автомобиля; base - база авто с данными автору optionsExtended - опции;'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список автомобилей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WarehouseVehicle'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    put:
+      tags:
+        - warehouse-vehicle-used-autoru
+      summary: 'Изменение автомобиля с пробегом (Данные автору)'
+      description: 'Изменение автомобиля с пробегом (Данные автору)'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id пакета'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Автомобиль'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseVehicleUsedAutoru'
+        required: false
+      responses:
+        200:
+          description: 'Автомобиль успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarehouseVehicleUsedAutoru'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,46 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - task-comment'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: task-comment
+    description: 'Комментарии задач'
+paths:
+  /task-comment:
+    post:
+      tags:
+        - task-comment
+      summary: 'Добавление комментария'
+      description: 'Добавление комментария'
+      requestBody:
+        description: 'модель Комментарий'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskComment'
+        required: false
+      responses:
+        200:
+          description: 'Комментарий успешно добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskComment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

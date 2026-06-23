@@ -1,0 +1,84 @@
+Actor:
+  type: object
+  nullable: true
+  description: Пользователь (автор создания или изменения)
+  properties:
+    id:
+      type: integer
+    name:
+      type: string
+      nullable: true
+    login:
+      type: string
+      nullable: true
+
+JsonApiCollection:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: array
+      items:
+        type: object
+    meta:
+      type: object
+      description: Мета-данные (пагинация и др.)
+    links:
+      type: object
+
+JsonApiResourceEnvelope:
+  type: object
+  required: [data]
+  properties:
+    data:
+      type: object
+      required: [id, type, attributes]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        attributes:
+          type: object
+        relationships:
+          type: object
+
+Pagination:
+  type: object
+  required: [current_page, last_page, per_page, total]
+  properties:
+    current_page:
+      type: integer
+      example: 1
+    last_page:
+      type: integer
+      example: 5
+    per_page:
+      type: integer
+      example: 20
+    total:
+      type: integer
+      example: 94
+
+ErrorResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      example: Ресурс не найден.
+
+ValidationErrorResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      example: Поле name обязательно для заполнения.
+    errors:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+      example:
+        name:
+          - Поле name обязательно для заполнения.

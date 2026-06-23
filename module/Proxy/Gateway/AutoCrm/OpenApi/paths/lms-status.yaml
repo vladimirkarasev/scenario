@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - lms-status'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: lms-status
+    description: 'Управление внешними статусами лидов'
+paths:
+  /lms/status:
+    get:
+      tags:
+        - lms-status
+      summary: 'Получение списка статусов лидов'
+      description: 'Получение списка статусов лидов'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          schema:
+            type: string
+        -
+          name: code
+          in: query
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список статусов лидов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LmsStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - lms-status
+      summary: 'Добавление нового статуса лида'
+      description: 'Добавление нового статуса лида'
+      requestBody:
+        description: 'Объект LmsStatus'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LmsStatus'
+        required: true
+      responses:
+        201:
+          description: 'Статус лида успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LmsStatus'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/lms/status/{id}':
+    get:
+      tags:
+        - lms-status
+      summary: 'Получение статуса лида по ID'
+      description: 'Получение статуса лида по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id статуса лида'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает статус лида по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LmsStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - lms-status
+      summary: 'Изменение статуса лида'
+      description: 'Изменение статуса лида'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id статуса лида'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель статус лида'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LmsStatus'
+        required: false
+      responses:
+        200:
+          description: 'Статус лида успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LmsStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

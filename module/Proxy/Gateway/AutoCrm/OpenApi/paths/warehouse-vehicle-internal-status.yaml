@@ -1,0 +1,35 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-vehicle-internal-status'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-vehicle-internal-status
+    description: 'Управление внутренними статусами автомобилей'
+paths:
+  /warehouse/vehicle-internal-status:
+    get:
+      tags:
+        - warehouse-vehicle-internal-status
+      summary: 'Получение списка внутренних статусов автомобилей'
+      description: 'Получение списка внутренних статусов автомобилей'
+      responses:
+        200:
+          description: 'Возвращает список внутренних статусов автомобилей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WarehouseVehicleInternalStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

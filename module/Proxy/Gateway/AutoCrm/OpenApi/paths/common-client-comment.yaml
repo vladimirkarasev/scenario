@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - common-client-comment'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: common-client-comment
+    description: 'Управление комментариями клиентов дистрибьютора'
+paths:
+  /common-client-comment:
+    post:
+      tags:
+        - common-client-comment
+      summary: 'Добавление комментария к клиенту'
+      description: 'Добавление комментария к клиенту'
+      requestBody:
+        description: 'Идентификатор клиента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommonClientComment'
+        required: true
+      responses:
+        201:
+          description: 'Комментарий успешно создан'
+          content: {  }
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

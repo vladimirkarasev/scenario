@@ -1,0 +1,109 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - access-log'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: access-log
+    description: 'Журнал доступов пользователей'
+paths:
+  /access-log:
+    get:
+      tags:
+        - access-log
+      summary: 'Получение журнала доступа пользователей'
+      description: 'Получение журнала доступа пользователей'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: createdAtFrom
+          in: query
+          description: 'Дата создания с'
+          schema:
+            type: date-time
+            pattern: '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$'
+            default: '31.01.2010 12:59'
+        -
+          name: createdAtTo
+          in: query
+          description: 'Дата создания по'
+          schema:
+            type: date-time
+            pattern: '^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$'
+            default: '31.01.2040 12:59'
+        -
+          name: userId
+          in: query
+          description: 'id пользователя'
+          schema:
+            type: integer
+        -
+          name: userName
+          in: query
+          description: 'ФИО пользователя'
+          schema:
+            type: string
+        -
+          name: userEmail
+          in: query
+          description: 'E-mail пользователя'
+          schema:
+            type: string
+        -
+          name: action
+          in: query
+          description: 'Действие. По умолчанию установлен фильтр «действие не пусто», для просмотра всех событий добавьте пустой параметр action в запрос. Действие «вход пользователя» user_login, действие «выход пользователя» user_logout'
+          schema:
+            type: string
+        -
+          name: requestMethod
+          in: query
+          description: 'Тип запроса (GET, POST, ...)'
+          schema:
+            type: string
+        -
+          name: requestUrl
+          in: query
+          description: Url
+          schema:
+            type: string
+        -
+          name: responseCode
+          in: query
+          description: 'Код ответа'
+          schema:
+            type: string
+        -
+          name: userIp
+          in: query
+          description: 'IP пользователя'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список сфер деятельности'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessLog'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Ошибка доступа'
+          content: {  }

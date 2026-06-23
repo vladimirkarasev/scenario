@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - delivery-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: delivery-type
+    description: 'Управление видами отгрузок'
+paths:
+  /logistic/delivery-type:
+    get:
+      tags:
+        - delivery-type
+      description: 'Получение списка Виды отгрузок'
+      summary: 'Получение списка Виды отгрузок'
+      parameters:
+        -
+          name: name
+          in: query
+          description: 'ID заявки в ТК'
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          description: 'Статус (1 - Дилерские, 2 - Перемещения, 3 - Самовывоз)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список Виды отгрузок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/logistic/delivery-type/{id}':
+    get:
+      tags:
+        - delivery-type
+      summary: 'Получение вида отгрузки по ID'
+      description: 'Получение вида отгрузки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id вида отгрузки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение вида отгрузки по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

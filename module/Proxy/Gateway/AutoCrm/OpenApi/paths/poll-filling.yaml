@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - poll-filling'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: poll-filling
+    description: 'Опросы клиентов'
+paths:
+  /client-service/poll-filling/count:
+    post:
+      tags:
+        - poll-filling
+      summary: 'Количество проведённых опросов с разбивкой по дням'
+      description: 'Количество проведённых опросов с разбивкой по дням'
+      requestBody:
+        description: 'Количество проведённых опросов с разбивкой по дням — параметры запроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollFillingCountRequest'
+        required: true
+      responses:
+        200:
+          description: 'Проведённые опросы с разбивкой по дням'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PollFillingCountResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /client-service/poll-filling/report:
+    post:
+      tags:
+        - poll-filling
+      summary: 'Список проведенных опросов'
+      description: 'Список проведенных опросов'
+      requestBody:
+        description: 'Список проведенных опросов — параметры запроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollFillingReportRequest'
+        required: true
+      responses:
+        200:
+          description: 'Список проведенных опросов'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollFillingReportResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /client-service/poll-filling/report-consolidated:
+    post:
+      tags:
+        - poll-filling
+      summary: 'Сводный отчёт по опросам'
+      description: 'Сводный отчёт по опросам'
+      requestBody:
+        description: 'Сводный отчёт по опросам — параметры запроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollFillingReportConsolidatedRequest'
+        required: true
+      responses:
+        200:
+          description: 'Сводный отчёт по опросам'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollFillingReportConsolidatedResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

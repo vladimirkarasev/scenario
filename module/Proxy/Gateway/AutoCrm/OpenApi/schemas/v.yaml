@@ -1,0 +1,636 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Vehicle:
+      required:
+        - brand_id
+        - code
+        - model_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID автомобиля (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        code:
+          type: string
+          description: 'Код автомобиля во внешней системе'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        model_year_id:
+          type: integer
+          description: 'ID модельного года'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        version:
+          type: string
+          description: Комплектация
+        color:
+          type: string
+          description: Цвет
+        vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        job:
+          type: string
+          description: JOB
+        mileage:
+          type: integer
+          description: Пробег
+        reg_number:
+          type: string
+          description: 'Государственный регистрационный номер (формат А777АА77)'
+        is_test_drive:
+          type: integer
+          description: 'Машина для тест драйвов'
+        modification_id:
+          type: integer
+          description: 'ID модификации'
+        production_at:
+          type: string
+          description: 'Дата производства'
+        sale_at:
+          type: string
+          description: 'Дата продажи'
+        warranty_start_at:
+          type: string
+          description: 'Дата начала гарантии'
+        warranty_end_at:
+          type: string
+          description: 'Дата окончания гарантии'
+        mpv:
+          type: string
+          description: MPV
+        vehicle_engine_number:
+          type: string
+          description: 'Номер двигателя'
+        work_history_url:
+          type: string
+          description: 'Ссылка на страницу истории ремонтов и сроков гарантии по VIN'
+      description: 'Модель Автомобиль'
+    VehicleAdditionalEquipmentGroup:
+      required:
+        - is_active
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID источника (генерируется автоматически)'
+        is_active:
+          type: boolean
+          description: 'Флаг активности'
+        name:
+          type: string
+          description: 'Наименование источника'
+      description: 'Модель группа доп. оборудования'
+    VehicleAdditionalEquipmentOption:
+      required:
+        - is_active
+        - models_ids
+        - name
+        - price
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID источника (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        code:
+          type: string
+          description: Код
+        price:
+          type: number
+          description: Цена
+        group_id:
+          type: integer
+          description: 'ID группы'
+        models_ids:
+          type: array
+          description: Модели
+          items:
+            type: integer
+        description:
+          type: string
+          description: 'Описание допа'
+        is_active:
+          type: boolean
+          description: 'Флаг активности'
+      description: 'Модель группа доп. оборудования'
+    VehicleAdditionalEquipmentOptionForm:
+      required:
+        - is_active
+        - name
+        - price
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        code:
+          type: string
+          description: Код
+        price:
+          type: number
+          description: Цена
+        groupId:
+          type: integer
+          description: 'ID группы'
+        brandIds:
+          type: array
+          description: Бренды
+          items:
+            type: integer
+        modelIds:
+          type: array
+          description: Модели
+          items:
+            type: integer
+        description:
+          type: string
+          description: 'Описание допа'
+        is_active:
+          type: boolean
+          description: 'Флаг активности'
+      description: 'Модель группа доп. оборудования'
+    VehicleAdditionalService:
+      required:
+        - additional_service_id
+        - vin
+      type: object
+      properties:
+        additional_service_id:
+          type: integer
+          description: 'id услуги'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        start:
+          type: string
+          description: 'Дата окончания услуги (ГГГГ-ММ-ДД)'
+        end:
+          type: string
+          description: 'Дата начала услуги (ГГГГ-ММ-ДД)'
+        sale_at:
+          type: string
+          description: 'Дата начала услуги (ГГГГ-ММ-ДД)'
+        status:
+          type: integer
+          description: 'Статус. 1 - Активна, 2 - Удалена, 3 - Неактивна'
+      description: 'Модель для добавления дополнительной услуги к автомобилю'
+    VehicleBaseWithPrice:
+      required:
+        - brand_id
+      type: object
+      properties:
+        mpv:
+          type: string
+          description: 'Код MPV'
+        model_year_code:
+          type: string
+          description: 'Код модельного года'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        ref_model_id:
+          type: integer
+          description: 'ID модели'
+        ref_generation_id:
+          type: integer
+          description: 'ID поколения'
+        ref_serie_id:
+          type: integer
+          description: 'ID серии'
+        ref_modification_id:
+          type: integer
+          description: 'ID модификации'
+        ref_equipment_id:
+          type: integer
+          description: 'ID комплектации'
+        price:
+          type: number
+          description: 'Последняя цена'
+      description: 'Расшифровка базы (MPV) с последней ценой'
+    VehicleCheckList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Чек-листа'
+        status:
+          type: integer
+          description: 'Статус (0 - Новая, 1 - Закрыто)'
+        statusName:
+          type: string
+          description: 'Название статуса'
+        total_earned_points:
+          type: integer
+          description: 'Набрано баллов'
+        checkList:
+          $ref: '#/components/schemas/CheckList'
+        blocks:
+          type: array
+          description: Вопросы
+          items:
+            $ref: '#/components/schemas/CheckListBlock'
+      description: Чек-лист
+    VehicleDealerDiscountForm:
+      type: object
+      properties:
+        dealer_discount:
+          type: number
+          description: 'сумма скидки'
+      description: 'Форма изменения скидки от дилера'
+    VehicleDealerSaleAtForm:
+      type: object
+      properties:
+        vehicle_dealer_sale_at:
+          type: string
+          description: 'дата продажи в формате yyyy-MM-dd'
+      description: 'Форма изменения даты продажи автомобиля'
+    VehicleDiscount:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id мотивационной программы'
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        sum:
+          type: number
+          description: Сумма
+        percent:
+          type: number
+          description: Процент
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        modification_id:
+          type: integer
+          description: 'ID модификации'
+        equipment_id:
+          type: integer
+          description: 'ID комплектации'
+        manufacture_year:
+          type: array
+          items:
+            type: integer
+          description: 'Год производства'
+        start_at:
+          type: string
+          description: 'Дата начала действия'
+        finish_at:
+          type: string
+          description: 'Дата окончания действия'
+        maxSumFromDealer:
+          oneOf:
+            -
+              type: object
+              properties:
+                value:
+                  oneOf:
+                    -
+                      type: number
+                    -
+                      type: 'null'
+                  description: 'Макс. размер доп. скидки от дилера'
+                ids:
+                  type: array
+                  description: 'Список id скидок'
+                  items:
+                    type: integer
+            -
+              type: 'null'
+          description: 'Макс. размер доп. скидки от дилера'
+        sumFromDealers:
+          type: array
+          items:
+            type: object
+            properties:
+              dealer_id:
+                type: integer
+                description: 'id дилера'
+              sum:
+                oneOf:
+                  -
+                    type: number
+                  -
+                    type: 'null'
+                description: 'Размер доп. скидки от дилера'
+          description: 'Размеры доп. скидок от дилеров'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+        categories:
+          type: array
+          items:
+            type: integer
+          description: "Список категорий\n`0` - Другое `1` - При покупке в кредит `2` - При покупке в Trade-in или утилизация `3` - При покупке в лизинг `4` - Страхование `5` - Гос. программа"
+        incompatible_discounts:
+          type: array
+          items:
+            type: integer
+          description: 'Список категорий программ, с которыми не сочетается скидка'
+        support_program_sale_types:
+          type: array
+          items:
+            type: integer
+          description: 'Список схем покупок, которые установлены для категории программы'
+      description: 'Модель мотивационной программы автомобиля'
+    VehicleExchangeStatusForm:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: string
+          description: 'Статус операции'
+        comment:
+          type: string
+          description: Комментарий
+      description: 'Смена статуса для операции обмена автомобилями'
+    VehicleMaintenance:
+      type: object
+      properties:
+        mileageHistory:
+          type: array
+          description: 'История изменения пробега автомобиля'
+          items:
+            type: integer
+        averageMileages:
+          type: array
+          description: 'История изменения среднего пробега в день'
+          items:
+            type: number
+        averageMileage:
+          type: number
+          description: 'Средний пробег автомобиля в день'
+        lastMaintenanceDate:
+          type: string
+          description: 'Дата предыдущего ТО'
+        nextMaintenanceDate:
+          type: string
+          description: 'Дата следующего ТО'
+        interServiceGap:
+          type: string
+          description: 'Межсервисный пробег'
+      description: 'Информация о дате следующего ТО автомобиля'
+    VehicleMaintenanceItem:
+      type: object
+      description: 'Запись о прохождении ТО по VIN (с привязкой к типу записи ЭСК)'
+      required:
+        - passed_at
+        - esk_record_type
+      properties:
+        passed_at:
+          type: string
+          format: date
+          description: 'дата прохождения ТО (YYYY-MM-DD)'
+        dealer:
+          type: string
+          nullable: true
+          description: дилер
+        purchase_code:
+          type: string
+          nullable: true
+          description: 'номер заказ-наряда'
+        mileage_km:
+          type: integer
+          nullable: true
+          description: 'пробег, км'
+        esk_record_type:
+          type: array
+          description: 'тип записи ЭСК'
+          minItems: 1
+          items:
+            type: object
+            required:
+              - name
+              - maintenance
+            properties:
+              name:
+                type: string
+                description: наименование
+              maintenance:
+                type: integer
+                description: 'номер ТО'
+              max_period_months:
+                type: integer
+                nullable: true
+                description: 'максимальный срок проведения, мес.'
+    VehicleMileageHistory:
+      type: object
+      description: 'Пробег автомобиля'
+      required:
+        - date
+        - mileage
+        - vin
+      properties:
+        id:
+          type: integer
+          description: 'ID записи истории пробега'
+        date:
+          type: string
+          description: Дата
+        mileage:
+          type: integer
+          description: Пробег
+        vin:
+          type: string
+          description: VIN
+    VehiclePhotoForm:
+      type: object
+      properties:
+        is_main_photo:
+          type: boolean
+          description: 'Признак главного фото'
+        order:
+          type: integer
+          description: 'Порядковый номер'
+        id:
+          type: integer
+          description: 'ID фото'
+      description: Модель
+    VehiclePhotoUploadForm:
+      type: object
+      properties:
+        file:
+          type: string
+          description: 'Файл в формате base64'
+        url:
+          type: string
+          description: 'Ссылка на фото'
+        type:
+          type: integer
+          description: 'Тип файла (1 - Фото автомобиля, 5 - Фото повреждений)'
+        order:
+          type: integer
+          description: 'Порядковый номер'
+        isMainPhoto:
+          type: boolean
+          description: 'Признак главного фото'
+      description: 'Форма для загрузки фото'
+    VehiclePrice:
+      type: object
+      description: 'Прайс-лист на автомобили'
+      properties:
+        id:
+          type: integer
+          description: 'id записи'
+        brand_id:
+          type: integer
+          description: 'id бренда'
+        start_at:
+          type: string
+          description: 'дата начала действия (в формате гггг.мм.дд)'
+        end_at:
+          type: string
+          description: 'дата окончания действия (в формате гггг.мм.дд)'
+        status:
+          type: integer
+          description: 'статус (1 - активен, 0 - не активен)'
+        mpv:
+          type: string
+          description: MPV
+        model_year_code:
+          type: string
+          description: 'код модельного года'
+        production_year:
+          type: integer
+          description: 'год производства'
+        price:
+          type: number
+          description: цена
+        group:
+          type: string
+          description: 'группа прайс-листов'
+        vehicle_type:
+          type: number
+          description: 'тип авто (1 - Тест-драйв, 2 - Подменный)'
+        discounts:
+          type: array
+          description: 'Скидки по "Условия оплаты"'
+          items:
+            $ref: '#/components/schemas/VehiclePricePaymentTermDiscount'
+    VehiclePriceForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id записи'
+        brand_id:
+          type: integer
+          description: 'id бренда'
+        startAt:
+          type: string
+          description: 'дата начала действия (в формате дд.мм.гггг)'
+        endAt:
+          type: string
+          description: 'дата окончания действия (в формате дд.мм.гггг)'
+        status:
+          type: integer
+          description: 'статус (1 - активен, 0 - не активен)'
+        mpv:
+          type: string
+          description: MPV
+        model_year_code:
+          type: string
+          description: 'код модельного года'
+        production_year:
+          type: integer
+          description: 'год производства'
+        price:
+          type: number
+          description: цена
+        vehicle_type:
+          type: integer
+          description: 'тип авто (1 - Тест-драйв, 2 - Подменный)'
+        discounts:
+          type: array
+          description: 'Скидки по "Условия оплаты"'
+          items:
+            $ref: '#/components/schemas/VehiclePricePaymentTermDiscount'
+      description: 'Прайс-лист на автомобили'
+    VehiclePricePaymentTermDiscount:
+      type: object
+      properties:
+        payment_term_id:
+          type: integer
+          description: 'ID условия оплаты'
+        discount:
+          type: number
+          description: Скидка
+      description: 'Скидки по "Условия оплаты"'
+    VehicleVideoForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID видео'
+        url:
+          type: string
+          description: 'Ссылка на видео'
+        order:
+          type: integer
+          description: 'Порядковый номер'
+      description: 'Видео автомобиля'
+    VehicleVideoUploadForm:
+      type: object
+      properties:
+        url:
+          type: string
+          description: 'Ссылка на видео'
+        order:
+          type: integer
+          description: 'Порядковый номер'
+      description: 'Видео автомобиля'
+    VoiceBoxPollEventForm:
+      required:
+        - occurred
+        - satisfaction_index
+      type: object
+      properties:
+        occurred:
+          type: string
+          description: 'Время прохождения опроса в формате "dd.MM.yyyy HH:mm" '
+        satisfaction_index:
+          type: integer
+          description: 'Индекс удовлетворенности'
+        call_status:
+          type: string
+          description: 'Статус звонка'
+        comment:
+          type: string
+          description: Комментарий
+      description: 'Форма опроса для заполнения через VoiceBox'

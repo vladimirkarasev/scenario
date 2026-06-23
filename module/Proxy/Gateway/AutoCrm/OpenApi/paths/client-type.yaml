@@ -1,0 +1,35 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - client-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: client-type
+    description: 'Управление типами клиентов'
+paths:
+  /client-type:
+    get:
+      tags:
+        - client-type
+      summary: 'Получение списка типов клиентов'
+      description: 'Получение списка типов клиентов'
+      responses:
+        200:
+          description: 'Возвращает список типов клиентов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

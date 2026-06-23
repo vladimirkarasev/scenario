@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-order-discount'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-order-discount
+    description: 'Скидки ЗЧ в заказах'
+paths:
+  /service/spare-order-discount:
+    get:
+      tags:
+        - spare-order-discount
+      summary: 'Получение списка скидок по ЗЧ'
+      description: 'Получение списка скидок по ЗЧ'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'Артикул ЗЧ (поиск LIKE)'
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: 'Статус скидки (1 = Активный, 2 = Отключена)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список скидок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareOrderDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    post:
+      tags:
+        - spare-order-discount
+      summary: 'Создание скидки по ЗЧ'
+      description: 'Создание скидки по ЗЧ'
+      requestBody:
+        description: 'Данные скидки'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderDiscount'
+        required: true
+      responses:
+        201:
+          description: 'Новая скидка успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrderDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/spare-order-discount/{id}':
+    get:
+      tags:
+        - spare-order-discount
+      summary: 'Получение скидки по ID'
+      description: 'Получение скидки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID скидки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает скидку'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrderDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - spare-order-discount
+      summary: 'Редактирование скидки по ID'
+      description: 'Редактирование скидки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID скидки'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные скидки'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareOrderDiscount'
+        required: true
+      responses:
+        200:
+          description: 'Возвращает обновлённую скидку'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareOrderDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

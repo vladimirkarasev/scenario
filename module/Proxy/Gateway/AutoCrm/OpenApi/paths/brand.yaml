@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - brand'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: brand
+    description: 'Управление брендами'
+paths:
+  /brand:
+    get:
+      tags:
+        - brand
+      summary: 'Получение списка брендов'
+      description: 'Получение списка брендов'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список брендов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/brand/{id}':
+    get:
+      tags:
+        - brand
+      summary: 'Получение бренда по ID'
+      description: 'Получение бренда по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id бренда'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает бренд по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

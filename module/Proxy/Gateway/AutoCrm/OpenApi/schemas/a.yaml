@@ -1,0 +1,90 @@
+openapi: 3.1.0
+components:
+  schemas:
+    AccessLog:
+      type: object
+      description: 'Модель журнала доступа пользователей'
+      properties:
+        action:
+          type: string
+          description: Действие
+        additional:
+          type: array
+          description: 'Дополнительные данные'
+        createdAt:
+          type: string
+          format: 'DD.MM.YYYY HH:MM'
+          description: 'Дополнительные данные'
+        requestMethod:
+          type: string
+          description: 'Тип запроса'
+        requestUrl:
+          type: string
+          description: Url
+        responseCode:
+          type: string
+          description: 'Код ответа'
+        userAgent:
+          type: string
+          description: 'User-agent пользователя'
+        userEmail:
+          type: string
+          description: 'E-mail пользователя'
+        userId:
+          type: integer
+          description: 'id пользователя'
+        userIp:
+          type: string
+          description: 'IP пользователя'
+        userName:
+          type: string
+          description: 'ФИО пользователя'
+    Activity:
+      required:
+        - client_type
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код сферы деятельности'
+        name:
+          type: string
+          description: Наименование
+        client_type:
+          type: integer
+          description: 'Тип клиента (0 - Физ лицо, 1 - Юр лицо)'
+      description: 'Модель сфера деятельности'
+    AdditionalFeatureOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: Цена
+      description: 'Модель Дополнительное оборудование'
+    Attachment:
+      type: object
+      properties:
+        is_required:
+          type: boolean
+          description: 'Необходимо загрузить файл(ы)'
+        attachment_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentType'
+    AttachmentType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string

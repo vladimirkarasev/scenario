@@ -1,0 +1,77 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - mysales'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: mysales
+    description: 'Интеграция с MySales'
+paths:
+  /mysales/buy/view:
+    get:
+      tags:
+        - mysales
+      summary: 'Получение информации о предпочтениях клиента'
+      description: 'Получение информации о предпочтениях клиента'
+      parameters:
+        -
+          name: need_id
+          in: query
+          description: 'id потребности'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данные о покупке'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MysalesNeedBuyResult'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /mysales/worksheet/questions:
+    get:
+      tags:
+        - mysales
+      summary: 'Получение информации о предпочтениях клиента'
+      description: 'Получение информации о предпочтениях клиента'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'id рабочего листа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данные о предпочтениях клиента'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorksheetQuestions'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

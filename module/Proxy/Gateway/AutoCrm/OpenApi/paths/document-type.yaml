@@ -1,0 +1,48 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - document-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: document-type
+    description: Справочники
+paths:
+  /document-type:
+    get:
+      tags:
+        - document-type
+      summary: 'Получение списка типов документов'
+      description: 'Получение списка типов документов'
+      parameters:
+        -
+          name: entity_type
+          in: query
+          description: 'Тип сущности (1 - Карточка дилера, 2 - Лид, 3 - Гарантийный случай)'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус (active - Активный, deleted - Удаленный)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список типов документов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - loyalty-coupon'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: loyalty-coupon
+    description: 'Купоны программы лояльности'
+paths:
+  /loyalty/coupon:
+    post:
+      tags:
+        - loyalty-coupon
+      summary: 'Добавить купон для списания бонусов по программе лояльности'
+      description: 'Добавить купон для списания бонусов по программе лояльности'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyCouponCreate'
+        required: true
+      responses:
+        200:
+          description: 'Купон для списания бонусов по программе лояльности добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyCoupon'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/loyalty/coupon/{hash}':
+    delete:
+      tags:
+        - loyalty-coupon
+      summary: 'Удаление купона хешу'
+      description: 'Удаление купона по хешу'
+      parameters:
+        -
+          name: hash
+          in: path
+          description: hash
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: 'Успешное удаление по хешу'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

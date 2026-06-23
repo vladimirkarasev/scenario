@@ -1,0 +1,170 @@
+user-register:
+  post:
+    tags: [Регистрация]
+    summary: Регистрация / обновление пользователя проекта
+    description: >
+      Находит пользователя по `external_id` → `email` → `login` (в порядке
+      приоритета), создаёт или обновляет запись, привязывает к проекту,
+      синхронизирует роли и возвращает одноразовый `iframe_launch_token`
+      (TTL 5 минут). Endpoint вызывается **backend-системой клиента**,
+      авторизация — `shared_secret` проекта.
+    security:
+      - SharedSecretAuth: []
+    parameters:
+      - name: projectUuid
+        in: path
+        required: true
+        description: UUID проекта
+        schema:
+          type: string
+          format: uuid
+          example: 018f1a2b-3c4d-7e8f-9a0b-1c2d3e4f5a6b
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/embed-auth.yaml#/ProjectUserRegisterRequest'
+    responses:
+      '200':
+        description: Launch-токен создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/embed-auth.yaml#/IframeLaunchTokenResponse'
+      '401':
+        description: Неверный или отсутствующий `shared_secret`
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Проект не найден
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '422':
+        description: Проект неактивен или ошибка валидации тела запроса
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/common.yaml#/ErrorResponse'
+                - $ref: '../components/schemas/common.yaml#/ValidationErrorResponse'
+
+exchange:
+  post:
+    tags: [Авторизация iframe]
+    summary: Обмен launch-токена на access + refresh токены
+    description: >
+      Принимает одноразовый `iframe_launch_token`, полученный через
+      `/project/{uuid}/user-register`. Проверяет:
+      токен существует, не использован, не истёк; проект активен;
+      пользователь состоит в проекте; заголовок `Origin` совпадает
+      с `project.host` (если задан). Помечает токен использованным,
+      создаёт Sanctum access-токен (TTL 30 мин) и refresh-токен (TTL 7 дней).
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/embed-auth.yaml#/EmbedAuthExchangeRequest'
+    responses:
+      '200':
+        description: Пара токенов выдана
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/embed-auth.yaml#/EmbedTokenPairResponse'
+      '401':
+        description: Токен не найден, истёк или уже использован
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '403':
+        description: Origin не разрешён или пользователь не в проекте
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '422':
+        description: Проект неактивен или ошибка валидации
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/common.yaml#/ErrorResponse'
+                - $ref: '../components/schemas/common.yaml#/ValidationErrorResponse'
+
+refresh:
+  post:
+    tags: [Авторизация iframe]
+    summary: Обновление access-токена (token rotation)
+    description: >
+      Принимает действующий `refresh_token`. Отзывает старый access-токен,
+      создаёт новые access и refresh токены (ротация). Старый refresh-токен
+      помечается отозванным и повторно использован быть не может.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/embed-auth.yaml#/EmbedAuthRefreshRequest'
+    responses:
+      '200':
+        description: Новая пара токенов
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/embed-auth.yaml#/EmbedTokenPairResponse'
+      '401':
+        description: Refresh-токен не найден, отозван или истёк
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '403':
+        description: Пользователь не состоит в проекте
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '422':
+        description: Проект неактивен или ошибка валидации
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/common.yaml#/ErrorResponse'
+                - $ref: '../components/schemas/common.yaml#/ValidationErrorResponse'
+
+logout:
+  post:
+    tags: [Авторизация iframe]
+    summary: Завершение iframe-сессии
+    description: >
+      Отзывает текущий Sanctum access-токен и связанный с ним refresh-токен.
+      Требует `Authorization: Bearer {access_token}`.
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Сессия завершена
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Logged out.
+      '401':
+        description: Токен отсутствует или недействителен
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'

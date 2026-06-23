@@ -1,0 +1,12 @@
+BearerAuth:
+  type: http
+  scheme: bearer
+  description: >
+    Sanctum access-токен (`Authorization: Bearer {access_token}`)
+
+SharedSecretAuth:
+  type: http
+  scheme: bearer
+  description: >
+    `shared_secret` проекта (`Authorization: Bearer {shared_secret}`).
+    Используется только для `/project/{uuid}/user-register`.

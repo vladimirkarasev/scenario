@@ -1,0 +1,85 @@
+UserGroup:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      type: string
+      example: groups
+    attributes:
+      $ref: '#/UserGroupAttributes'
+    relationships:
+      type: object
+      properties:
+        created_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+        updated_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+
+UserGroupAttributes:
+  type: object
+  properties:
+    name:
+      type: string
+      example: Отдел продаж
+    slug:
+      type: string
+      example: sales_team
+      description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
+    ext_id:
+      type: string
+      nullable: true
+      description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
+      example: crm_group_42
+    description:
+      type: string
+      nullable: true
+    is_active:
+      type: boolean
+    members_count:
+      type: integer
+      description: Количество участников группы
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+UserGroupRequest:
+  type: object
+  required: [name, slug]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      example: Отдел продаж
+    slug:
+      type: string
+      maxLength: 255
+      description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
+      example: sales_team
+    ext_id:
+      type: string
+      nullable: true
+      maxLength: 255
+      description: Идентификатор группы во внешней системе
+      example: crm_group_42
+    description:
+      type: string
+      nullable: true
+    is_active:
+      type: boolean
+      example: true

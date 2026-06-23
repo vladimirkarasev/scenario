@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - invoice'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: invoice
+    description: 'Счета на автомобили'
+paths:
+  /bankGuarantee/invoice:
+    get:
+      tags:
+        - invoice
+      summary: 'Получение списка выставленных счетов на автомобили'
+      description: 'Получение списка выставленных счетов на автомобили'
+      parameters:
+        -
+          name: updatedSince
+          in: query
+          description: 'Минимальное время обновления счета в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updatedTill
+          in: query
+          description: 'Максимальное время обновления счета в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: 'Статус дилерского контракта (1 - Активен, 2 - Удален)'
+          schema:
+            type: integer
+        -
+          name: factoringStatus
+          in: query
+          description: 'Статус факторинга (0 - без статуса, 1 - отправлен в залог, 2 - в залоге, 3 - направлен на финансирование, 4 - финансирование подтверждено, 5 - профинансирован, 6 - оплачен банку, 7 - ожидание подтверждения INCADEA)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список выставленных счетов на автомобили'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/bankGuarantee/invoice/{id}':
+    get:
+      tags:
+        - invoice
+      summary: 'Получение выставленного счета на автомобиль по id'
+      description: 'Получение выставленного счета на автомобиль по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id выставленного счета на автомобиль'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает выставленный счет на автомобиль по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - invoice
+      summary: 'Изменение выставленного счета на автомобиль по ID'
+      description: 'Изменение выставленного счета на автомобиль по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id выставленного счета на автомобиль'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель счёт на автомобиль'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+        required: false
+      responses:
+        200:
+          description: 'Счёт на автомобиль успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,78 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - purchase-tag'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: purchase-tag
+    description: 'Управление видами ремонта'
+paths:
+  /purchase-tag:
+    get:
+      tags:
+        - purchase-tag
+      summary: 'Получение списка видов ремонта'
+      description: 'Получение списка  видов ремонта'
+      parameters:
+        -
+          name: status
+          in: query
+          description: 'Статус вида ремонта (0 - активен, 1 - удален)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список видов ремонта'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseTag'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/purchase-tag/{id}':
+    get:
+      tags:
+        - purchase-tag
+      summary: 'Получение вида ремонта по ID'
+      description: 'Получение вида ремонта по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id вида ремонта'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает вид ремонта по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseTag'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

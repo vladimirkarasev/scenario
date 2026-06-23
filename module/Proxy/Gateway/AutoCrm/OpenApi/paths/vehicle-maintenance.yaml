@@ -1,0 +1,71 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-maintenance'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-maintenance
+    description: 'Получение данных о выполнении ТО'
+paths:
+  /vehicle-maintenance:
+    get:
+      tags:
+        - vehicle-maintenance
+      summary: 'Получение данных о прохождении ТО по VIN'
+      description: "Возвращает записи ТО по VIN: дата прохождения ТО, дилер, номер заказ-наряда, пробег, а также информацию о типе записи ЭСК (наименование, номер ТО, максимальный срок проведения). Возвращаются только те записи, у которых есть связь с типом записи ЭСК из справочника /service/esk-record-type.\n"
+      parameters:
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          required: true
+          schema:
+            type: string
+        -
+          name: dateFrom
+          in: query
+          description: 'Дата начала периода (фильтр по дате прохождения ТО)'
+          schema:
+            type: string
+            format: date
+        -
+          name: dateTo
+          in: query
+          description: 'Дата окончания периода (фильтр по дате прохождения ТО)'
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: 'Возвращает список записей ТО по VIN'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleMaintenanceItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Автомобиль по VIN не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

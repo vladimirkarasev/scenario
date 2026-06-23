@@ -1,0 +1,517 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: access-log
+    description: 'Журнал доступов пользователей'
+  -
+    name: activity
+    description: 'Управление сферами деятельности'
+  -
+    name: bank
+    description: 'Управление банками'
+  -
+    name: brand
+    description: 'Управление брендами'
+  -
+    name: btl
+    description: 'Управление BTL мероприятиями'
+  -
+    name: call
+    description: 'Управление журналом звонков'
+  -
+    name: campaign
+    description: 'Управление кампаниями'
+  -
+    name: cancel-reason
+    description: 'Управление причинами отказа'
+  -
+    name: channel
+    description: 'Управление каналами'
+  -
+    name: client
+    description: 'Управление клиентами'
+  -
+    name: client-common-vehicle
+    description: 'Связь клиентов дилера и автомобилей дистрибьютора'
+  -
+    name: client-field
+    description: 'Управление значениями атрибутов клиента'
+  -
+    name: client-type
+    description: 'Управление типами клиентов'
+  -
+    name: common-client
+    description: 'Справочники клиентов дистрибьютора'
+  -
+    name: common-client-comment
+    description: 'Управление комментариями клиентов дистрибьютора'
+  -
+    name: common-client-vehicle
+    description: 'Связь клиентов дистрибьютора и автомобилей дистрибьютора'
+  -
+    name: common-tag
+    description: 'Управление тегами'
+  -
+    name: contract
+    description: 'Управление дилерскими контрактами'
+  -
+    name: damage-report
+    description: 'Работа с отчётами о повреждениях (ОУПТС)'
+  -
+    name: dealer
+    description: 'Управление дилерами'
+  -
+    name: dealer-api-log
+    description: 'Лог ошибок API'
+  -
+    name: dealer-call
+    description: 'Управление журналом звонков дилеров'
+  -
+    name: dealer-check
+    description: 'Проверка дилера'
+  -
+    name: dealer-check-list
+    description: 'Данные чек-листа'
+  -
+    name: dealer-logistic
+    description: 'Управление логистическими данными дилера'
+  -
+    name: dealer-status
+    description: 'Управление статусами дилеров'
+  -
+    name: delivery-type
+    description: 'Управление видами отгрузок'
+  -
+    name: department
+    description: 'Список департаментов'
+  -
+    name: distribution-channel
+    description: 'Каналы реализации'
+  -
+    name: distributor
+    description: 'Управление дистрибьюторами'
+  -
+    name: document-template
+    description: 'Шаблоны документов'
+  -
+    name: document-type
+    description: Справочники
+  -
+    name: entity-log
+    description: 'Mysales лог'
+  -
+    name: equipment
+    description: 'Управление комплектациями'
+  -
+    name: esk-record-type
+    description: 'Типы записей ЭСК'
+  -
+    name: event
+    description: 'Управление событиями'
+  -
+    name: event-type
+    description: 'Управление типами событий'
+  -
+    name: executor-category
+    description: 'Управление категориями исполнителей'
+  -
+    name: external-event
+    description: 'Внешние события'
+  -
+    name: external-event-storage
+    description: 'Хранилище внешних событий'
+  -
+    name: factoring-status
+    description: 'Статус факторинга'
+  -
+    name: field
+    description: 'Управление атрибутами клиента'
+  -
+    name: generation
+    description: 'Управление поколениями'
+  -
+    name: geo
+    description: 'Справочники гео'
+  -
+    name: holding
+    description: 'Управление холдингами'
+  -
+    name: implementation-report
+    description: 'Управление отчетами по реализации'
+  -
+    name: implementation-report-item
+    description: 'Управление строками отчетов по реализации'
+  -
+    name: incadea
+    description: Incadea
+  -
+    name: interest
+    description: 'Управление Обращениями'
+  -
+    name: invoice
+    description: 'Счета на автомобили'
+  -
+    name: legal-entity-type
+    description: 'Типы юридических лиц'
+  -
+    name: lms-status
+    description: 'Управление внешними статусами лидов'
+  -
+    name: lms-tag
+    description: 'Управление lms тегами'
+  -
+    name: logistic-slot
+    description: 'Управление лотами погрузки'
+  -
+    name: loyalty-coupon
+    description: 'Купоны программы лояльности'
+  -
+    name: loyalty-member
+    description: 'Участники программ лояльности'
+  -
+    name: loyalty-program
+    description: 'Программы лояльности'
+  -
+    name: loyalty-transaction
+    description: 'Транзакции участников программы лояльности'
+  -
+    name: mailing-broadcast
+    description: 'E-mail рассылки'
+  -
+    name: mailing-client
+    description: 'Письма по e-mail рассылкам'
+  -
+    name: mailing-event
+    description: 'События e-mail рассылок'
+  -
+    name: maintenance-check
+    description: 'Калькулятор ТО'
+  -
+    name: maintenance-schedule
+    description: 'Управление журналом записи на сервис'
+  -
+    name: manager
+    description: 'Управление менеджерами'
+  -
+    name: model
+    description: 'Управление моделями'
+  -
+    name: model-alias
+    description: 'Управление алиасами моделей'
+  -
+    name: model-year
+    description: 'Управление модельными годами'
+  -
+    name: modification
+    description: 'Управление модификациями'
+  -
+    name: mysales
+    description: 'Интеграция с MySales'
+  -
+    name: nami
+    description: 'Управление отчетами НАМИ'
+  -
+    name: nearest-contact
+    description: 'Управление следующими контактами'
+  -
+    name: need
+    description: 'Управление потребностями'
+  -
+    name: offer
+    description: 'Коммерческое предложение по потребности рабочего листа'
+  -
+    name: order
+    description: 'Управление заказами'
+  -
+    name: order-reference
+    description: 'Управление заказами (Справочники)'
+  -
+    name: payment-term
+    description: 'Управление Условиями оплаты'
+  -
+    name: personal-data-agreement-document-upload
+    description: 'Загрузка скана согласия на обработку ПД'
+  -
+    name: personal-data-agreement-event
+    description: 'Анкеты согласия на обработку персональных данных'
+  -
+    name: personal-data-agreement-event-upload
+    description: 'Подтверждение сканов согласия на обработку ПД'
+  -
+    name: personal-discount
+    description: 'Персональные скидки'
+  -
+    name: personal-discount-client
+    description: 'Персональные скидки для клиентов'
+  -
+    name: poll
+    description: Опросы
+  -
+    name: poll-answer
+    description: 'Ответы к анкетам опросов'
+  -
+    name: poll-event
+    description: 'Опросы анкеты'
+  -
+    name: poll-filling
+    description: 'Опросы клиентов'
+  -
+    name: position
+    description: 'Управление должностями'
+  -
+    name: post-service
+    description: 'Получение списка постов'
+  -
+    name: post-service-type
+    description: 'Получение списка типов постов'
+  -
+    name: purchase
+    description: 'Управление заказ-нарядами'
+  -
+    name: purchase-group
+    description: 'Управление типами оплаты'
+  -
+    name: purchase-payer
+    description: 'Управление плательщиками'
+  -
+    name: purchase-product-type
+    description: 'Управление типами продукта'
+  -
+    name: purchase-spare
+    description: 'Управление запчастями заказ-наряда'
+  -
+    name: purchase-tag
+    description: 'Управление видами ремонта'
+  -
+    name: purchase-type
+    description: 'Управление списком цехов'
+  -
+    name: purchase-work
+    description: 'Управление работами заказ-наряда'
+  -
+    name: recall-campaign
+    description: 'Управление отзывными кампаниями'
+  -
+    name: recall-campaign-vin
+    description: 'Управление VIN номерами отзывных кампаний'
+  -
+    name: reclamation-registry
+    description: 'Сводные ведомости'
+  -
+    name: repair-calc
+    description: 'Калькуляция отложенных работ'
+  -
+    name: request
+    description: 'Управление Лидами'
+  -
+    name: request-invoice
+    description: 'Управление запросами счёта Honda-Moto'
+  -
+    name: request-invoice-configuration
+    description: 'Настройки запросов счёта'
+  -
+    name: request-type
+    description: 'Управление Целями обращений'
+  -
+    name: result
+    description: 'Управление результатами'
+  -
+    name: sale
+    description: 'Управление рапортами'
+  -
+    name: sale-additional-service
+    description: 'Управление дополнительными услугами рапорта'
+  -
+    name: sale-additional-service-price
+    description: 'Управление стоимостью дополнительных услуг'
+  -
+    name: sale-public
+    description: 'Управление рапортами'
+  -
+    name: sale-type
+    description: 'Типы продажи'
+  -
+    name: schedule
+    description: 'График работы сотрудников'
+  -
+    name: serie
+    description: 'Управление сериями'
+  -
+    name: service-note
+    description: 'Сервисные записи'
+  -
+    name: service-spare-availability
+    description: 'Наличия зч'
+  -
+    name: service-spare-complaint
+    description: 'Рекламации ЗЧ'
+  -
+    name: service-spare-group
+    description: 'Управление списком групп, подгрупп ЗЧ'
+  -
+    name: spare-manufacturer
+    description: 'Справочник производителей ЗЧ'
+  -
+    name: service-stock-invoices
+    description: 'Управление списками счетов'
+  -
+    name: shipment
+    description: 'Управление отгрузками'
+  -
+    name: shipping-request
+    description: 'Управление заявками в ТК'
+  -
+    name: simple-discount-programs
+    description: 'Категории мотивационных программ'
+  -
+    name: source
+    description: 'Управление источниками'
+  -
+    name: spare
+    description: 'Управление запчастями'
+  -
+    name: spare-order
+    description: 'Управление заказами'
+  -
+    name: spare-order-discount
+    description: 'Скидки ЗЧ в заказах'
+  -
+    name: spare-reference
+    description: 'Управление запчастями'
+  -
+    name: spare-sale
+    description: 'Документы реализации запасных частей'
+  -
+    name: spare-warehouse-partner
+    description: 'Управление списком контрагентов'
+  -
+    name: spare-warehouse-spare
+    description: 'Управление списком запчастей дилеров'
+  -
+    name: spare-warehouse-transaction
+    description: 'Управление историей движения запчастей дилера'
+  -
+    name: spare-warehouse-transaction-sub-type
+    description: 'Управление списком подтипов запчастей дилеров'
+  -
+    name: spare-warehouse-transfer
+    description: 'Передача данных в СДЭК'
+  -
+    name: staff-activity
+    description: 'Данные по активности персонала'
+  -
+    name: stage
+    description: 'Управление этапами лида'
+  -
+    name: stage-type
+    description: 'Управление Типами этапов'
+  -
+    name: statistic
+    description: Отчеты
+  -
+    name: stock-balance
+    description: 'Управление отчетами по складским остаткам'
+  -
+    name: stock-balance-item
+    description: 'Управление строками отчетов по складским остаткам'
+  -
+    name: subscribe
+    description: 'Управление подписками'
+  -
+    name: task-comment
+    description: 'Комментарии задач'
+  -
+    name: test-drive
+    description: 'Управление тест-драйвами'
+  -
+    name: traffic
+    description: 'Получение данных со счётчиков сайтов'
+  -
+    name: user
+    description: 'Управление пользователями'
+  -
+    name: vehicle
+    description: 'Управление клиентскими автомобилями'
+  -
+    name: vehicle-additional-equipment
+    description: 'Управление доп. оборудованием'
+  -
+    name: vehicle-check-list
+    description: 'Данные чек-листа'
+  -
+    name: vehicle-color
+    description: 'Управление цветами'
+  -
+    name: vehicle-discount
+    description: 'Получение данных по мотивационным программам на автомобили'
+  -
+    name: vehicle-exchange-status
+    description: 'Изменение статуса операции обмена автомобилями'
+  -
+    name: vehicle-maintenance
+    description: 'Получение данных о выполнении ТО'
+  -
+    name: vehicle-mileage-history
+    description: 'История пробега автомобиля'
+  -
+    name: vehicle-price
+    description: 'Получение данных по прайс-листам на автомобили'
+  -
+    name: vehicle-trim
+    description: 'Управление обивкой'
+  -
+    name: voice-box-poll-filling
+    description: 'Заполнение опроса'
+  -
+    name: warehouse-base
+    description: 'Управление расшифровками баз (MPV)'
+  -
+    name: warehouse-public-vehicle
+    description: 'Управление автомобилями'
+  -
+    name: warehouse-stock
+    description: 'Работа с стоком автомобилей'
+  -
+    name: warehouse-vehicle
+    description: 'Управление автомобилями'
+  -
+    name: warehouse-vehicle-internal-status
+    description: 'Управление внутренними статусами автомобилей'
+  -
+    name: warehouse-vehicle-photo
+    description: 'Управление фотографиями автомобилей'
+  -
+    name: warehouse-vehicle-used
+    description: 'Управление автомобилями с пробегом'
+  -
+    name: warehouse-vehicle-used-autoru
+    description: 'Управление автомобилями с пробегом (по данным автору)'
+  -
+    name: warehouse-vehicle-video
+    description: 'Управление видео автомобилей'
+  -
+    name: warranty-claim
+    description: 'Управление рекламациями'
+  -
+    name: webhook
+    description: 'Управление вебхуками'
+  -
+    name: work
+    description: 'Управление работами'
+  -
+    name: worksheet
+    description: 'Управление рабочими листами'
+  -
+    name: worksheet-client
+    description: 'Управление клиентами рабочего листа'

@@ -1,0 +1,256 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-check-list'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-check-list
+    description: 'Данные чек-листа'
+paths:
+  /dealer-check-list:
+    get:
+      tags:
+        - dealer-check-list
+      summary: 'Просмотр чек-листа'
+      description: 'Просмотр чек-листа'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID чек-листа'
+          schema:
+            type: integer
+        -
+          name: external_code
+          in: query
+          description: 'Внешний код чек-листа'
+          schema:
+            type: string
+        -
+          name: dealer_id
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: integer
+        -
+          name: dealer_code
+          in: query
+          description: 'Код дилера'
+          schema:
+            type: string
+        -
+          name: with_questions
+          in: query
+          description: 'С вопросами (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: with_attachments
+          in: query
+          description: 'С файлами (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: dateFrom
+          in: query
+          description: 'Вывод начиная с даты (формат d.m.Y)'
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую (action_plan - план действий, attachments - вложения, comments - комментарии, chart - диаграмма Статистика по блокам)'
+          schema:
+            type: string
+            example: 'action_plan,attachments,comments,chart'
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Чек-листы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerCheckList'
+  /dealer-check-list-survey/answer:
+    post:
+      tags:
+        - dealer-check-list
+      summary: 'Сохранить ответ'
+      description: 'Сохранить ответ'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckListSurvey_Answer'
+        required: true
+      responses:
+        200:
+          description: 'Ответ успешно сохранен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckList'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /dealer-check-list-survey/comment:
+    put:
+      tags:
+        - dealer-check-list
+      summary: 'Добавить комментарий'
+      description: 'Добавить комментарий'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckListSurvey_Comment'
+        required: true
+      responses:
+        200:
+          description: 'Комментарий успешно добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckList'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /dealer-check-list-survey/comment-file:
+    put:
+      tags:
+        - dealer-check-list
+      summary: 'Загрузить файл комментария'
+      description: 'Загрузить файл комментария'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckListSurvey_CommentFile'
+        required: true
+      responses:
+        200:
+          description: 'Файл успешно загружен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckListSurvey_CommentFileUploaded'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /dealer-check-list-survey/evidence-file:
+    put:
+      tags:
+        - dealer-check-list
+      summary: 'Загрузить файл доказательства'
+      description: 'Загрузить файл доказательства'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckListSurvey_EvidenceFile'
+        required: true
+      responses:
+        200:
+          description: 'Файл доказательства успешно загружен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckList'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

@@ -1,0 +1,87 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - bank'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: bank
+    description: 'Управление банками'
+paths:
+  /bank:
+    get:
+      tags:
+        - bank
+      summary: 'Получение списка банков'
+      description: 'Получение списка банков'
+      parameters:
+        -
+          name: type
+          in: query
+          description: 'Тип банка (bank, leasing)'
+          schema:
+            type: string
+            enum:
+              - bank
+              - leasing
+        -
+          name: used_for_factoring
+          in: query
+          description: 'Используется для факторинга (1 - Да, 0 - Нет)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список банков'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bank'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/bank/{id}':
+    get:
+      tags:
+        - bank
+      summary: 'Получение банка по ID'
+      description: 'Получение банка по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id банка'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает банк по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bank'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

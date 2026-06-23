@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - recall-campaign-vin'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: recall-campaign-vin
+    description: 'Управление VIN номерами отзывных кампаний'
+paths:
+  /recall-campaign-vin:
+    get:
+      tags:
+        - recall-campaign-vin
+      summary: 'Получение списка VIN номеров отзывных кампаний'
+      description: 'Получение списка VIN номеров отзывных кампаний'
+      parameters:
+        -
+          name: vin
+          in: query
+          description: VIN
+          schema:
+            type: string
+        -
+          name: revocable_campaign_id
+          in: query
+          description: 'Идентификатор кампании'
+          schema:
+            type: integer
+        -
+          name: complaint_code
+          in: query
+          description: 'Номер рекламации'
+          schema:
+            type: string
+        -
+          name: dealer_id
+          in: query
+          description: 'Идентификатор дилера'
+          schema:
+            type: integer
+        -
+          name: isCompleted
+          in: query
+          description: 'Выполнена (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Параметр позволяющий получить в ответе связные данные (recallCampaign,dealer,vehicle)'
+          schema:
+            type: string
+        -
+          name: repairedFrom
+          in: query
+          description: 'Дата выполнения С (формат dd.mm.yyyy, пример - 01.01.2010)'
+          schema:
+            type: string
+        -
+          name: repairedTo
+          in: query
+          description: 'Дата выполнения ПО (формат dd.mm.yyyy, пример - 01.01.2010)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список VIN номеров отзывных кампаний'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecallCampaignVin'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/recall-campaign-vin/{vin}':
+    get:
+      tags:
+        - recall-campaign-vin
+      summary: 'Получение информации о VIN номере и о отзывных кампаниях к которым он относится'
+      description: 'Получение информации о VIN номере и о отзывных кампаниях к которым он относится'
+      parameters:
+        -
+          name: vin
+          in: path
+          description: VIN
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает информацию о VIN номере и о отзывных кампаниях к которым он относится'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dealerCode:
+                    type: string
+                    description: 'Код дилера (продавшего автомобиль)'
+                  campaigns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RecallCampaignVin'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

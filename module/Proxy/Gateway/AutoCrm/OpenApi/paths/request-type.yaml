@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - request-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: request-type
+    description: 'Управление Целями обращений'
+paths:
+  /lms/request-type:
+    get:
+      tags:
+        - request-type
+      summary: 'Получение списка целей обращения'
+      description: 'Получение списка целей обращения'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          schema:
+            type: string
+        -
+          name: department_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: show_buy
+          in: query
+          schema:
+            type: integer
+        -
+          name: show_credit
+          in: query
+          schema:
+            type: integer
+        -
+          name: show_service
+          in: query
+          schema:
+            type: integer
+        -
+          name: show_trade_in
+          in: query
+          schema:
+            type: integer
+        -
+          name: show_used_vehicle
+          in: query
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nstageTypes - Список типов этапов"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список целей обращения'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - request-type
+      summary: 'Добавление новой цели обращения'
+      description: 'Добавление новой цели обращения'
+      requestBody:
+        description: 'Объект RequestType'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestType'
+        required: true
+      responses:
+        201:
+          description: 'Цель обращения успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestType'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/lms/request-type/{id}':
+    get:
+      tags:
+        - request-type
+      summary: 'Получение Цели обращения по ID'
+      description: 'Получение Цели обращения по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id цели обращения'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nstageTypes - Список типов этапов"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает цель обращения по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - request-type
+      summary: 'Изменение Цели обращения'
+      description: 'Изменение Цели обращения'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id цели обращения'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Цель обращения'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestType'
+        required: false
+      responses:
+        200:
+          description: 'Цель обращения успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

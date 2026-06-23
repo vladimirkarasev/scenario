@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-manufacturer'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-manufacturer
+    description: 'Справочник производителей ЗЧ'
+paths:
+  /spare-manufacturer:
+    get:
+      tags:
+        - spare-manufacturer
+      summary: 'Получение списка производителей ЗЧ'
+      description: 'Получение списка производителей запасных частей'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск по ID (через ",", ";", " ")'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: 'Поиск по наименованию (через ",", ";", " ")'
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: 'Статус производителя'
+          schema:
+            type: string
+            enum:
+              - active
+              - deleted
+      responses:
+        200:
+          description: 'Возвращает список производителей ЗЧ'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PartManufacturer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/spare-manufacturer/{id}':
+    get:
+      tags:
+        - spare-manufacturer
+      summary: 'Получение производителя ЗЧ по ID'
+      description: 'Получение информации о производителе запасных частей по идентификатору'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          description: 'ID производителя ЗЧ'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает производителя ЗЧ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartManufacturer'
+        404:
+          description: 'Производитель не найден'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

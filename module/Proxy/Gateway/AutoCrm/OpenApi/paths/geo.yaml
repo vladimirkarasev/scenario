@@ -1,0 +1,273 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - geo'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: geo
+    description: 'Справочники гео'
+paths:
+  /city:
+    get:
+      tags:
+        - geo
+      summary: 'Получение списка городов'
+      description: 'Получение списка городов'
+      parameters:
+        -
+          name: country_id
+          in: query
+          description: 'Идентификатор страны'
+          schema:
+            type: integer
+        -
+          name: region_id
+          in: query
+          description: 'Идентификатор города'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список городов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/City'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/city/{id}':
+    get:
+      tags:
+        - geo
+      summary: 'Получение города по ID'
+      description: 'Получение города по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id города'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает город по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /country:
+    get:
+      tags:
+        - geo
+      summary: 'Получение списка стран'
+      description: 'Получение списка стран'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список стран'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Country'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/country/{id}':
+    get:
+      tags:
+        - geo
+      summary: 'Получение страны по ID'
+      description: 'Получение страны по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id страны'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает страну по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Country'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /federal-district:
+    get:
+      tags:
+        - geo
+      summary: 'Получение списка федеральных округов'
+      description: 'Получение списка федеральных округов'
+      parameters:
+        -
+          name: country_id
+          in: query
+          description: 'Идентификатор страны'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список федеральных округов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FederalDistrict'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/federal-district/{id}':
+    get:
+      tags:
+        - geo
+      summary: 'Получение федерального округа по ID'
+      description: 'Получение федерального округа по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id федерального округа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает округ по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FederalDistrict'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /region:
+    get:
+      tags:
+        - geo
+      summary: 'Получение списка регионов'
+      description: 'Получение списка регионов'
+      parameters:
+        -
+          name: country_id
+          in: query
+          description: 'Идентификатор страны'
+          schema:
+            type: integer
+        -
+          name: federal_district_id
+          in: query
+          description: 'Идентификатор федерального округа'
+          schema:
+            type: integer
+        -
+          name: kladr_code
+          in: query
+          description: 'Код КЛАДР'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список федеральных округов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/region/{id}':
+    get:
+      tags:
+        - geo
+      summary: 'Получение региона по ID'
+      description: 'Получение региона по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id региона'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает регион по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

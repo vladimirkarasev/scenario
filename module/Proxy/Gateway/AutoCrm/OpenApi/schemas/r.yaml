@@ -1,0 +1,1994 @@
+openapi: 3.1.0
+components:
+  schemas:
+    RecallCampaign:
+      required:
+        - code
+        - name
+        - start_at
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Идентификатор (генерируется автоматически)'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        description_link:
+          type: string
+          description: 'Ссылка на описание'
+        start_at:
+          type: string
+          description: 'Дата начала'
+        end_at:
+          type: string
+          description: 'Дата окончания'
+        reason:
+          type: string
+          description: 'Причина объявления отзывной кампании'
+        repair_action:
+          type: string
+          description: 'Необходимое ремонтное воздействие'
+        repair_time:
+          type: string
+          description: 'Необходимое время на ремонтное воздействие'
+        type:
+          type: integer
+          description: 'Тип (1 - Сервисная, 2 - Отзывная)'
+        status:
+          type: integer
+          description: 'Статус (1 - Активно, 2 - Удалено)'
+        works:
+          type: array
+          description: 'Коды работ'
+          items:
+            $ref: '#/components/schemas/RecallCampaignWork'
+        vins:
+          type: array
+          description: 'VIN номера'
+          items:
+            $ref: '#/components/schemas/RecallCampaignVin'
+        spareParts:
+          type: array
+          description: ЗЧ
+          items:
+            $ref: '#/components/schemas/RecallCampaignSparePart'
+      description: 'Модель отзывная кампания'
+    RecallCampaignSparePart:
+      type: object
+      properties:
+        revocable_campaign_id:
+          type: integer
+          description: 'Идентификатор кампании'
+        code:
+          type: string
+          description: 'Код зч'
+      description: 'Модель зч отзывной кампании'
+    RecallCampaignVin:
+      type: object
+      properties:
+        revocable_campaign_id:
+          type: integer
+          description: 'Идентификатор кампании'
+        vin:
+          type: string
+          description: VIN
+        dealer_id:
+          type: string
+          description: 'Идентификатор дилера'
+        repair_at:
+          type: string
+          description: 'Дата выполнения'
+        mileage:
+          type: string
+          description: Пробег
+        complaint_code:
+          type: string
+          description: 'Номер рекламации'
+        showroomCode:
+          type: string
+          description: 'Код шоурума'
+        recallCampaign:
+          $ref: '#/components/schemas/RecallCampaign'
+        dealer:
+          $ref: '#/components/schemas/Dealer'
+      description: 'Модель VIN номер отзывной кампании'
+    RecallCampaignWork:
+      type: object
+      properties:
+        revocable_campaign_id:
+          type: integer
+          description: 'Идентификатор кампании'
+        code:
+          type: string
+          description: 'Код работы'
+      description: 'Модель работа отзывной кампании'
+    ReclamationRegistry:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID СВР'
+        code:
+          type: string
+          description: 'Номер ведомости'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        dealer_legal_name:
+          type: string
+          description: 'Наименование дилера'
+        period:
+          type: string
+          description: 'Период ведомости в формате dd.mm.yyyy'
+          example: 01.12.2023
+        nds_rate:
+          type: number
+          format: float
+          description: 'Ставка НДС'
+        nds_sum:
+          type: number
+          format: float
+          description: 'Сумма НДС'
+        reclamation_sum:
+          type: number
+          format: float
+          description: 'Общая сумма ГТ в ведомости'
+        reclamations:
+          type: array
+          description: 'Список ГТ в ведомости'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              code:
+                type: string
+              car_vin:
+                type: string
+              work_sum:
+                type: number
+                format: float
+              spare_sum:
+                type: number
+                format: float
+              subcontractor_sum:
+                type: number
+                format: float
+              total_sum:
+                type: number
+                format: float
+    ReclamationRegistryStage:
+      type: object
+      properties:
+        taskStageCode:
+          type: string
+          description: 'Код этапа (system_0, system_1 или user_{id})'
+          example: user_3
+        name:
+          type: string
+          description: 'Название этапа'
+          example: Отклонена
+        documentProvidedAtRequired:
+          type: boolean
+          description: 'Требуется ли дата предоставления документов для перехода на этап'
+    ReclamationRegistryWorkflowRequest:
+      type: object
+      required:
+        - taskStageCode
+      properties:
+        taskStageCode:
+          type: string
+          description: 'Код этапа задачи (например, user_5, system_0, system_1)'
+          example: user_5
+        documentProvidedAt:
+          type: string
+          description: 'Дата предоставления документов в формате dd.MM.yyyy (требуется для некоторых этапов)'
+          example: 15.12.2023
+    ReclamationRegistryWorkflowResponse:
+      type: object
+      properties:
+        save:
+          type: boolean
+          description: 'Признак успешного сохранения'
+        id:
+          type: integer
+          description: 'ID сводной ведомости'
+    Region:
+      required:
+        - country_id
+        - federal_district_id
+        - id
+        - name
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+          example: 1
+        name:
+          maxLength: 255
+          type: string
+          description: 'Название страны'
+          example: 'Республика Адыгея (Адыгея)'
+        english_name:
+          maxLength: 255
+          type: string
+          description: 'Название страны (англ.)'
+          example: 'Agdzabedinskij rajon'
+        okato:
+          maxLength: 255
+          type: string
+          description: 'Код по ОКАТО'
+          example: '79'
+        timezone:
+          maxLength: 255
+          type: string
+          description: 'Часовой пояс'
+          example: Europe/Moscow
+        status:
+          type: integer
+          description: Статус
+          example: 0
+        country_id:
+          type: integer
+          description: 'Идентификатор страны'
+          example: 1
+        federal_district_id:
+          type: integer
+          description: 'Идентификатор федерального округа'
+          example: 2
+        lat:
+          type: number
+          description: Широта
+          example: 44.8229155
+        lng:
+          type: number
+          description: Долгота
+          example: 40.1754463
+      description: 'Модель региона'
+    RepairCalc:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        code:
+          type: string
+          description: 'Код калькуляции'
+        date_next_contact:
+          type: string
+          description: 'Дата следующего контакта (формат: ГГГГ-ММ-ДД)'
+        comment:
+          type: string
+          description: 'Комментарий к Калькуляции'
+        status:
+          type: integer
+          description: 'Статус (1 - Активна, 2 - Выполнена, 3 - Выполнена частично, 4 - Не актуально, 5 - Удалена)'
+        car_id:
+          type: integer
+          description: Авто
+        purchase_id:
+          type: integer
+          description: Заказ-наряд
+        client_id:
+          type: integer
+          description: Клиент
+        dealer_id:
+          type: integer
+          description: Дилер
+        total_sum:
+          type: number
+          description: 'Итоговая сумма'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+      description: Модель
+    RepairCalcForm:
+      required:
+        - car_id
+        - client_id
+        - code
+        - dealer_id
+        - purchase_id
+      type: object
+      properties:
+        client_id:
+          type: integer
+          description: Клиент
+        car_id:
+          type: integer
+          description: Авто
+        dealer_id:
+          type: integer
+          description: Дилер
+        code:
+          type: string
+          description: 'Код калькуляции'
+        date_next_contact:
+          type: string
+          description: 'Дата следующего контакта (формат: ДД.ММ.ГГГ)'
+        comment:
+          type: string
+          description: 'Комментарий к Калькуляции'
+        status:
+          type: integer
+          description: 'Статус (1 - Активна, 2 - Выполнена, 3 - Выполнена частично, 4 - Не актуально, 5 - Удалена)'
+        purchase_id:
+          type: integer
+          description: Заказ-наряд
+        works:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/RepairCalcWorkForm'
+        spares:
+          type: array
+          description: ЗЧ
+          items:
+            $ref: '#/components/schemas/RepairCalcSpareForm'
+      description: 'Обязательно либо комментарий, либо работы, либо ЗЧ'
+    RepairCalcSpare:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        repair_calc_id:
+          type: integer
+          description: Калькуляция
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: 'Цена (руб.)'
+        sum:
+          type: number
+          description: 'Сумма (руб.)'
+        quantity:
+          type: number
+          description: Кол-во
+        status:
+          type: integer
+          description: 'Статус (1 - Рекомендация, 2 - Выполнен, 3 - Отказ)'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+    RepairCalcSpareForm:
+      required:
+        - code
+        - name
+        - price
+        - quantity
+        - sum
+      type: object
+      properties:
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        status:
+          type: integer
+          description: 'Статус (1 - Рекомендация, 2 - Выполнен, 3 - Отказ)'
+        sum:
+          type: number
+          description: Сумма
+    RepairCalcUpdateForm:
+      type: object
+      properties:
+        client_id:
+          type: integer
+          description: Клиент
+        car_id:
+          type: integer
+          description: Авто
+        dealer_id:
+          type: integer
+          description: Дилер
+        code:
+          type: string
+          description: 'Код калькуляции'
+        date_next_contact:
+          type: string
+          description: 'Дата следующего контакта (формат: ДД.ММ.ГГГ)'
+        comment:
+          type: string
+          description: 'Комментарий к Калькуляции'
+        status:
+          type: integer
+          description: 'Статус (1 - Активна, 2 - Выполнена, 3 - Выполнена частично, 4 - Не актуально, 5 - Удалена)'
+        purchase_id:
+          type: integer
+          description: Заказ-наряд
+        works:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/RepairCalcWorkForm'
+        spares:
+          type: array
+          description: ЗЧ
+          items:
+            $ref: '#/components/schemas/RepairCalcSpareForm'
+      description: 'Обязательно либо комментарий, либо работы, либо ЗЧ'
+    RepairCalcView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        code:
+          type: string
+          description: 'Код калькуляции'
+        date_next_contact:
+          type: string
+          description: 'Дата следующего контакта'
+        comment:
+          type: string
+          description: 'Комментарий к Калькуляции'
+        status:
+          type: string
+          description: 'Статус (1 - Активна, 2 - Выполнена, 3 - Выполнена частично, 4 - Не актуально, 5 - Удалена)'
+        car_id:
+          type: integer
+          description: Авто
+        purchase_id:
+          type: integer
+          description: Заказ-наряд
+        client_id:
+          type: integer
+          description: Клиент
+        dealer_id:
+          type: integer
+          description: Дилер
+        total_sum:
+          type: number
+          description: 'Итоговая сумма'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+        works:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/RepairCalcWork'
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/RepairCalcSpare'
+    RepairCalcWork:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        repair_calc_id:
+          type: integer
+          description: Калькуляция
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: 'Цена (руб.)'
+        sum:
+          type: number
+          description: 'Сумма (руб.)'
+        quantity:
+          type: number
+          description: Кол-во
+        status:
+          type: integer
+          description: 'Статус (1 - Рекомендация, 2 - Выполнен, 3 - Отказ)'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+    RepairCalcWorkForm:
+      required:
+        - code
+        - name
+        - price
+        - quantity
+        - sum
+      type: object
+      properties:
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        status:
+          type: integer
+          description: 'Статус (1 - Рекомендация, 2 - Выполнен, 3 - Отказ)'
+        sum:
+          type: number
+          description: Сумма
+    Request:
+      type: object
+      description: 'Модель Лид'
+      properties:
+        id:
+          type: integer
+          description: 'ID лида (генерируется автоматически)'
+        campaign_id:
+          type: integer
+          description: 'ID Кампании'
+        department_id:
+          type: integer
+          description: 'Тип подразделения'
+        request_type_id:
+          type: integer
+          description: 'Цель обращения'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица'
+        client:
+          $ref: '#/components/schemas/ClientRequest'
+        contactPerson:
+          $ref: '#/components/schemas/ClientRequest'
+        channel_id:
+          type: integer
+          description: Канал
+        source_id:
+          type: integer
+          description: Источник
+        dealer_id:
+          type: integer
+          description: Дилер
+        dealerCode:
+          type: string
+          description: 'Код дилера'
+        user_id:
+          type: integer
+          description: 'пользователь, создавший обращение'
+        assigned_id:
+          type: integer
+          description: 'ID сотрудника, назначенного исполнителем по лиду'
+        comment:
+          type: string
+          description: Комментарий
+        is_business:
+          type: integer
+          description: 'Признак юридического лица'
+        business_name:
+          type: string
+          description: 'Название компании'
+        business_inn:
+          type: string
+          description: ИНН
+        business_kpp:
+          type: string
+          description: КПП
+        business_address:
+          type: string
+          description: 'Юридический адрес'
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        birthday_at:
+          type: string
+          description: 'Дата рождения'
+        prefix:
+          type: integer
+          description: Обращение
+        email:
+          type: string
+          description: Email
+        address:
+          type: string
+          description: Адрес
+        may_process_personal_data:
+          type: boolean
+          description: 'клиент согласен на обработку персональных данных'
+        client_confirm_communication:
+          type: boolean
+          description: 'Клиент дал согласие на коммуникацию'
+        communication_method:
+          type: string
+          description: 'Предпочтительный способ связи'
+        brand_id:
+          type: integer
+          description: Марка
+        model_id:
+          type: integer
+          description: Модель
+        procurementCars:
+          type: array
+          description: 'Массив автомобилей поставки'
+          items:
+            $ref: '#/components/schemas/ProcurementCar'
+        generation_id:
+          type: integer
+          description: Поколение
+        serie_id:
+          type: integer
+          description: Серия
+        equipment_id:
+          type: integer
+          description: Комплектация
+        color_id:
+          type: integer
+          description: 'ID цвета экстерьера'
+        trim_id:
+          type: integer
+          description: 'ID цвета интерьера'
+        vin:
+          type: string
+          description: 'вин автомобиля'
+        job:
+          type: string
+          description: 'JOB номер'
+        interest_id:
+          type: integer
+          description: 'ID потребности'
+        is_deal:
+          type: string
+          description: 'есть сделка(РЛ или ЗН)'
+        commonVehicles:
+          type: string
+          description: 'автомобили клиента'
+        utm_id:
+          type: integer
+          description: 'UTM метка'
+        created_at:
+          type: string
+          description: Создано
+        updated_at:
+          type: string
+          description: 'дата изменения'
+        timeleft:
+          type: string
+          description: 'оставшееся время для взятия в работу'
+        canLinkWorksheet:
+          type: boolean
+          description: 'возможность прикрепить РЛ'
+        canLinkPurchase:
+          type: boolean
+          description: 'возможность прикрепить ЗН'
+        canSendWorksheet:
+          type: boolean
+          description: 'возможность отправить РЛ'
+        canSendPurchase:
+          type: boolean
+          description: 'возможность отправить ЗН'
+        is_voximplant:
+          type: string
+          description: 'передан в воксимплант'
+        voximplant_process:
+          type: string
+          description: 'обработан voximplant'
+        voximplant_call_record_url:
+          type: string
+          description: 'Ссылка на разговор в воксимплант'
+        voximplant_call_date:
+          type: string
+          description: 'Дата звонка через воксимплант'
+        voximplant_call_duration:
+          type: string
+          description: 'Продолжительность звонка через воксимплант'
+        voximplant_status:
+          type: integer
+          description: 'ID Статуса звонка через воксимплант'
+        voximplant_status_name:
+          type: string
+          description: 'Статус звонка через воксимплант'
+        voximplant_time_to_first_call:
+          type: string
+          description: 'время до первого звонка'
+        voximplant_is_connect:
+          type: string
+          description: 'был звонок клиенту'
+        voximplantHistory:
+          type: array
+          description: 'История звонков через коллтрекинг'
+          items:
+            $ref: '#/components/schemas/RequestVoximplant'
+        status:
+          type: integer
+          description: 'статус лида'
+        vehicleModel:
+          type: string
+          description: модель
+        vehicleBrand:
+          $ref: '#/components/schemas/BaseBrand'
+        buy:
+          $ref: '#/components/schemas/RequestBuy'
+        credit:
+          $ref: '#/components/schemas/RequestCredit'
+        service:
+          $ref: '#/components/schemas/RequestService'
+        tradeIn:
+          $ref: '#/components/schemas/RequestTradeIn'
+        reserve:
+          $ref: '#/components/schemas/RequestReserve'
+        usedVehicle:
+          $ref: '#/components/schemas/RequestUsedVehicle'
+        source:
+          $ref: '#/components/schemas/Source'
+        requestType:
+          $ref: '#/components/schemas/RequestType'
+        interest:
+          $ref: '#/components/schemas/Interest'
+          readonly: true
+        stages:
+          type: array
+          description: 'этапы лида'
+          items:
+            $ref: '#/components/schemas/Stage'
+        statuses:
+          type: array
+          description: 'внешние статусы лида'
+          items:
+            $ref: '#/components/schemas/RequestStatus'
+        commentsData:
+          type: array
+          description: 'Массив с комментариями по лиду'
+          items:
+            type: string
+        phones:
+          type: array
+          description: 'Номера телефона клиента'
+          items:
+            $ref: '#/components/schemas/CommonClientPhone'
+        workIds:
+          type: array
+          description: 'Список ID работ'
+          items:
+            type: integer
+        gwm_id:
+          type: string
+          description: 'Gwm ID'
+        order_no:
+          type: string
+          description: 'Order No'
+        payment_serial_number:
+          type: string
+          description: 'Payment Serial Number'
+        telegram_profile:
+          type: string
+          description: 'Ссылка на профиль Telegram'
+        vk_profile:
+          type: string
+          description: 'Ссылка на профиль ВКонтакте'
+        ok_profile:
+          type: string
+          description: 'Ссылка на профиль Одноклассники'
+        is_double:
+          type: boolean
+          description: 'Лид является дублем'
+        double_of_id:
+          type: integer
+          description: 'ID дублируемого лида'
+        extra:
+          type: string
+          description: 'Дополнительные данные обращения'
+        carRepairAppDate:
+          type: string
+          format: date
+          description: 'Дата обращения гарантийного ремонта'
+        carRepairEndDate:
+          type: string
+          format: date
+          description: 'Дата окончания ремонта'
+    RequestAiAnalysisCheckListAssessment:
+      description: 'Оценка по результатам проверки чек-листа'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'идентификатор оценки'
+        checklist_template_id:
+          type: integer
+          description: 'идентификатор шаблона чек-листа'
+        title:
+          type: string
+          description: 'наименование оценки'
+        percent_from:
+          type: integer
+          description: 'процент от'
+        percent_to:
+          type: integer
+          description: 'процент до'
+        distributor_id:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: integer
+          description: 'идентификатор дистрибьютора'
+    RequestBuy:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        purchaseDateFrom:
+          type: string
+          description: 'Желаемая дата покупки от (формат dd.MM.yyyy)'
+        purchaseDateTo:
+          type: string
+          description: 'Желаемая дата покупки до (формат dd.MM.yyyy)'
+        testDriveDateFrom:
+          type: string
+          description: 'Желаемая дата тест драйва от (формат dd.MM.yyyy hh:mm)'
+        testDriveDateTo:
+          type: string
+          description: 'Желаемая дата тест драйва до (формат dd.MM.yyyy hh:mm)'
+        testDriveFactAtFrom:
+          type: string
+          description: 'Фактическая дата тест драйва от (формат dd.MM.yyyy hh:mm)'
+        testDriveFactAtTo:
+          type: string
+          description: 'Фактическая дата тест драйва до (формат dd.MM.yyyy hh:mm)'
+        testdrive_supply_location:
+          type: string
+          description: 'Место подачи автомобиля'
+        testdrive_final_point:
+          type: string
+          description: 'Конечный пункт'
+        payment_link:
+          type: string
+          description: 'Ссылка на оплату'
+        price_range:
+          type: integer
+          description: 'Диапазон цен'
+        is_test_drive:
+          type: boolean
+          description: Тест-драйв
+        accessories:
+          type: string
+          description: Аксессуары
+      description: 'Блок Продажа лида'
+    RequestCallAiAnalysis:
+      description: 'Модель результатов обработки звонка лиду через AI'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'идентификатор звонка'
+        transcription:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: string
+          description: 'транскрибация (распознанный текст) звонка'
+        check_list:
+          description: 'результаты проверки чек-листа'
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: object
+              properties:
+                id:
+                  type: int
+                  description: 'идентификатор проверки'
+                check_list_id:
+                  type: int
+                  description: 'идентификатор чек-листа'
+                status:
+                  type: int
+                  description: 'идентификатор статуса'
+                statusName:
+                  type: string
+                  description: статус
+                finished_at:
+                  type: string
+                  description: 'время оценки'
+                total_earned_points:
+                  type: int
+                  description: 'набрано баллов'
+                max_available_points:
+                  type: int
+                  description: 'максимальный балл'
+                percent:
+                  type: int
+                  description: 'процент выполнения'
+                is_final_check_complete:
+                  type: boolean
+                  description: 'финальная оценка пройдена'
+                assessment:
+                  oneOf:
+                    -
+                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    -
+                      type: 'null'
+                distributorAssessment:
+                  oneOf:
+                    -
+                      $ref: '#/components/schemas/RequestAiAnalysisCheckListAssessment'
+                    -
+                      type: 'null'
+                surveys:
+                  type: array
+                  description: 'пункты по результатам проверки чек-листа'
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 'идентификатор опроса'
+                      check_list_id:
+                        type: integer
+                        description: 'идентификатор чек-листа'
+                      question_id:
+                        type: integer
+                        description: 'идентификатор вопроса'
+                      kpi_answer:
+                        oneOf:
+                          -
+                            type: int
+                          -
+                            type: 'null'
+                        description: 'оценка в KPI'
+                      text:
+                        type: string
+                        description: 'текст вопроса'
+                      text_en:
+                        type: string
+                        description: 'текст вопроса на английском'
+                      is_excluded:
+                        type: boolean
+                        description: 'исключен из оценки'
+        call_result:
+          description: 'итоги звонка'
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: string
+        qualification:
+          description: квалификация
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: object
+              properties:
+                is_dissatisfied:
+                  description: 'клиент выразил недовольство'
+                  type: boolean
+                is_offered_consider_other_brands:
+                  description: 'менеджер предлагал рассмотреть другие бренды'
+                  type: boolean
+                is_refused_without_transfer:
+                  description: 'клиент отказался от общения и не удалось договориться о переносе звонка'
+                  type: boolean
+        is_falsified:
+          description: 'фальсификация результата (истинно если результат лида = отказ И результат анализа звонка = успех)'
+          type: bool
+    RequestCredit:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        distance:
+          type: integer
+          description: 'Срок кредита'
+        cost:
+          type: integer
+          description: 'Размер кредита'
+        down_payment:
+          type: integer
+          description: 'Размер первоначального взноса'
+        type:
+          type: boolean
+          description: 'Кредит / Лизинг'
+        is_insurance:
+          type: boolean
+          description: Страхование
+        remaining_payment:
+          type: integer
+          description: 'Остаточный платеж'
+        insurance_company:
+          type: string
+          description: 'Страховая компания'
+        comment:
+          type: string
+          description: 'Комментарии к страхованию'
+        car_cost:
+          type: integer
+          description: 'Стоимость автомобиля'
+        month_payment:
+          type: integer
+          description: 'Ежемесячный платёж'
+        program_name:
+          type: string
+          description: 'Название кредитной программы'
+        rate:
+          type: integer
+          description: 'процентная ставка'
+        visit_at:
+          type: string
+          description: 'Дата и время встречи, запланированное колл центром (формат yyyy-MM-dd HH:mm:ss)'
+      description: 'Блок Кредит лида'
+    RequestFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        document_type_id:
+          type: integer
+          description: 'ID типа документа'
+        name:
+          type: string
+          description: Название
+        extension:
+          type: string
+          description: Расширение
+        mimetype:
+          type: string
+          description: MIME-тип
+        url:
+          type: string
+          description: URL
+      description: 'Файл лида'
+    RequestFile_Upload:
+      required:
+        - file
+      type: object
+      properties:
+        document_type_id:
+          type: integer
+          description: 'ID типа документа'
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+      description: 'Файл лида'
+    RequestInvoice:
+      required:
+        - dealer_id
+        - number
+        - vehicle_dealer_id
+        - vehicle_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID счёта'
+        dealer_id:
+          type: integer
+          description: 'ID дилера запросившего счёт'
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля на складе'
+        vehicle_dealer_id:
+          type: integer
+          description: 'ID дилера за которым числился автомобиль'
+        is_free_stock:
+          type: integer
+          description: 'Автомобиль со свободного стока'
+        status:
+          type: integer
+          description: 'Статус счёта (0 - Запрошен, 1 - Подтвержден, 2 - Отклонен, 3 - Оплачен, 4 - Отгружен, 5 - Ожидание оплаты)'
+        number:
+          type: string
+          description: 'Номер счета во внешней системе'
+        filename:
+          type: string
+          description: 'Название файл счёта'
+        comment:
+          type: string
+          description: Комментарий
+        bank_id:
+          type: integer
+          description: 'ID банка для факторинга (см. /bank)'
+        sale_type_id:
+          type: integer
+          description: 'ID типа продажи (см. /sale-type)'
+        payment_type:
+          type: integer
+          description: 'Тип оплаты (см. /request-invoice/payment-types)'
+        payment_term_id:
+          type: integer
+          description: 'Тип оплаты (см. /payment-term)'
+        statusName:
+          type: string
+          description: 'Статус счёта текстом'
+          readOnly: true
+        vin:
+          type: string
+          description: 'VIN-номер автомобиля'
+          readOnly: true
+        codeAddress:
+          type: string
+          description: 'Код адреса доставки'
+        dealer_external_code:
+          type: string
+          description: 'Внешний код дилера (ранее - код дилера в INCADEA)'
+          readOnly: true
+        order_code:
+          type: string
+          description: 'Код заказа'
+          readOnly: true
+        mtos:
+          type: string
+          description: МТОС
+          readOnly: true
+        dealer_contract_code:
+          type: string
+          description: 'Внешний код договора'
+          readOnly: true
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+          readOnly: true
+        price:
+          type: string
+          description: Цена
+        created_by:
+          type: integer
+          description: 'ID пользователя создавшего счёт'
+          readOnly: true
+        updated_by:
+          type: integer
+          description: 'ID пользователя редактировавшего счёт'
+          readOnly: true
+        created_at:
+          type: string
+          description: 'Дата и время в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+          readOnly: true
+        updated_at:
+          type: string
+          description: 'Дата и время в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+          readOnly: true
+      description: 'Запрос счёта'
+    RequestInvoiceConfiguration:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        dealerIds:
+          type: array
+          items:
+            type: integer
+          description: 'ID дилеров (если пусто — для всех)'
+        brandIds:
+          type: array
+          items:
+            type: integer
+        modelIds:
+          type: array
+          items:
+            type: integer
+        generationIds:
+          type: array
+          items:
+            type: integer
+        serieIds:
+          type: array
+          items:
+            type: integer
+        modificationIds:
+          type: array
+          items:
+            type: integer
+        equipmentIds:
+          type: array
+          items:
+            type: integer
+        colors:
+          type: array
+          items:
+            type: string
+        trims:
+          type: array
+          items:
+            type: string
+        productionYears:
+          type: array
+          items:
+            type: integer
+        logisticStatuses:
+          type: array
+          items:
+            type: string
+        distributionWarehouses:
+          type: array
+          items:
+            type: string
+        vins:
+          type: array
+          items:
+            type: string
+        hasImporterReceiptDate:
+          type: integer
+          nullable: true
+          description: '1 — есть дата, 0 — нет, null — не задано'
+        importerReceiptDateFrom:
+          type: string
+          nullable: true
+          description: d.m.Y
+          example: 01.08.2025
+        importerReceiptDateTo:
+          type: string
+          nullable: true
+          description: d.m.Y
+          example: 30.08.2025
+        isFreeStock:
+          type: integer
+          nullable: true
+          description: '1 — да, 0 — нет, null — не задано'
+        startAt:
+          type: string
+          nullable: true
+          description: 'd.m.Y H:i'
+          example: '18.08.2025 09:25'
+        endAt:
+          type: string
+          nullable: true
+          description: 'd.m.Y H:i'
+          example: '31.12.2025 23:59'
+        isActive:
+          type: boolean
+    RequestInvoiceConfigurationForm:
+      type: object
+      properties:
+        name:
+          type: string
+        dealers:
+          type: array
+          items:
+            type: integer
+          description: 'JSON-массив ID дилеров (если пусто — для всех)'
+        brands:
+          type: array
+          items:
+            type: integer
+        models:
+          type: array
+          items:
+            type: integer
+        generations:
+          type: array
+          items:
+            type: integer
+        series:
+          type: array
+          items:
+            type: integer
+        modifications:
+          type: array
+          items:
+            type: integer
+        equipments:
+          type: array
+          items:
+            type: integer
+        colors:
+          type: array
+          items:
+            type: string
+        trims:
+          type: array
+          items:
+            type: string
+        production_years:
+          type: array
+          items:
+            type: integer
+        logistic_statuses:
+          type: array
+          items:
+            type: string
+        distribution_warehouses:
+          type: array
+          items:
+            type: string
+        vins:
+          type: array
+          items:
+            type: string
+        has_importer_receipt_date:
+          type: integer
+          nullable: true
+          description: '1 — есть дата, 0 — нет, null — не задано'
+        importerReceiptDateFrom:
+          type: string
+          nullable: true
+          description: d.m.Y
+          example: 01.08.2025
+        importerReceiptDateTo:
+          type: string
+          nullable: true
+          description: d.m.Y
+          example: 30.08.2025
+        is_free_stock:
+          type: integer
+          nullable: true
+          description: '1 — да, 0 — нет, null — не задано'
+        start_at:
+          type: string
+          nullable: true
+          description: 'd.m.Y H:i'
+          example: '18.08.2025 09:25'
+        end_at:
+          type: string
+          nullable: true
+          description: 'd.m.Y H:i'
+          example: '31.12.2025 23:59'
+        is_active:
+          type: boolean
+    RequestReserve:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        dealerCode:
+          type: string
+          description: 'Код дилера (если указан, то dealer_id не учитывается в передаче)'
+        estimated_delivery_date:
+          type: string
+          description: 'Ориентировочная дата доставки (формат yyyy-MM-dd hh:mm:ss)'
+        plan_issue_date:
+          type: string
+          description: 'Планируемая дата выдачи (формат yyyy-MM-dd hh:mm:ss)'
+        fact_issue_date:
+          type: string
+          description: 'Фактическая дата выдачи (формат yyyy-MM-dd hh:mm:ss)'
+        contract_link:
+          type: string
+          description: 'Ссылка на договор'
+        contract_number:
+          type: string
+          description: 'Номер договора'
+        contract_date:
+          type: string
+          description: 'Дата договора (формат yyyy-MM-dd hh:mm:ss)'
+        pre_contract_link:
+          type: string
+          description: 'Ссылка на предварительный договор'
+        order_id:
+          type: string
+          description: 'Номер платежа'
+        invoice_link:
+          type: string
+          description: 'Ссылка на счет-фактуру'
+        trade_twelve_link:
+          type: string
+          description: 'Ссылка на ТОРГ-12'
+      description: 'Блок Резерва у лида'
+    RequestService:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        reg_number:
+          type: string
+          description: 'Номер автомобиля для записи на сервис'
+        serviceDateFrom:
+          type: string
+          description: 'Желаемая дата сервиса от (формат dd.MM.yyyy HH:mm)'
+        serviceDateTo:
+          type: string
+          description: 'Желаемая дата сервиса до (формат dd.MM.yyyy HH:mm)'
+        serviceRegisterAt:
+          type: string
+          description: 'Время записи на сервис (формат dd.MM.yyyy HH:mm)'
+        year:
+          type: integer
+          description: 'Год выпуска автомобиля для сервиса'
+        mileage:
+          type: integer
+          description: 'Пробег автомобиля для сервиса'
+      description: 'Блок Сервис у лида'
+    RequestStatus:
+      required:
+        - date
+        - status_code
+        - status_id
+      type: object
+      properties:
+        status_id:
+          type: integer
+          description: 'ID статуса'
+        status_code:
+          type: string
+          description: 'Код статуса'
+        date:
+          type: string
+          description: 'Дата получение статуса (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        comment:
+          type: string
+          description: Комментарий
+      description: 'Внешний статус лида'
+    RequestTradeIn:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        brand_id:
+          type: integer
+          description: 'ID марки автомобиля для передачи в trade-in'
+        model_id:
+          type: integer
+          description: 'ID модели автомобиля для передачи в trade-in'
+        autoru_brand_name:
+          type: string
+          description: 'Name марки в Авто.ру'
+        autoru_folder_name:
+          type: string
+          description: 'Name модели в Авто.ру'
+        year:
+          type: integer
+          description: 'Год выпуска автомобиля для передачи в trade-in'
+        mileage:
+          type: integer
+          description: 'Пробег автомобиля для передачи в trade-in'
+        description:
+          type: string
+          description: 'Описание трейдин'
+      description: 'Блок TradeIn у лида'
+    RequestType:
+      required:
+        - name
+      type: object
+      properties:
+        voximplant_delay:
+          type: integer
+          description: 'Количество часов закрепления подменного номера'
+        id:
+          type: integer
+          description: 'ID цели запроса (генерируется автоматически)'
+        code:
+          type: string
+          description: Код
+        external_code:
+          type: string
+          description: Код
+        _code:
+          type: string
+          description: Код
+        department_id:
+          type: integer
+          description: 'ID департамента'
+        name:
+          type: string
+          description: Название
+        show_buy:
+          type: integer
+          description: 'Наличие блока покупку авто'
+        show_credit:
+          type: integer
+          description: 'Наличие блока Кредит авто'
+        show_service:
+          type: integer
+          description: 'Наличие блока Сервис авто'
+        show_trade_in:
+          type: integer
+          description: 'Наличие блока TradeIn авто'
+        show_used_vehicle:
+          type: integer
+          description: 'Наличие блока Покупка автомобиля с пробегом'
+        status:
+          type: integer
+          description: Статус
+        settings:
+          type: object
+          properties: {  }
+          description: 'доп. настройки, используется в отчётах'
+        created_by:
+          type: integer
+          description: 'ID создавшего пользователя'
+        updated_by:
+          type: integer
+          description: 'ID последнего изменившего пользователя'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+        voximplant_enabled:
+          type: integer
+          description: 'voximplant включен'
+        external_id:
+          type: string
+          description: 'внешний ID'
+        dont_create_request:
+          type: integer
+          description: 'не создавать лид'
+        parent_id:
+          type: integer
+          description: 'ID родителя'
+        next_lead_request_type_id:
+          type: integer
+          description: 'Цель обращения следующего лида'
+        next_lead_interval:
+          type: integer
+          description: 'Создавать новый лид через (дней)'
+        default_channel_id:
+          type: integer
+          description: 'Канал по-умолчанию'
+        name_en:
+          type: string
+          description: 'Название (англ)'
+        consent_priority:
+          type: integer
+          description: 'Приоритетные данные по согласиям'
+        dont_close_all_statuses_is_exists_worksheet_or_purchase:
+          type: integer
+          description: 'Не закрывать этапы лида при взятии в работу если есть РЛ/ЗН'
+        dont_close_all_statuses:
+          type: integer
+          description: 'Не закрывать этапы лида'
+        stageTypes:
+          type: array
+          description: 'Список типов этапов'
+          items:
+            $ref: '#/components/schemas/StageType'
+      description: 'Модель Цель запроса'
+    RequestUsedVehicle:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID лида'
+        purchase_vin:
+          type: string
+          description: 'VIN автомобиля для блока Покупка автомобиля с пробегом'
+        mark_id_autoru:
+          type: integer
+          description: 'ID бренда от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        folder_id:
+          type: integer
+          description: 'ID модели от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        generation_id_autoru:
+          type: integer
+          description: 'ID поколения от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        configuration_id_autoru:
+          type: integer
+          description: 'ID конфигурации от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        modification_id_autoru:
+          type: integer
+          description: 'ID модификации от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        complectation_id_autoru:
+          type: integer
+          description: 'ID комплектации от AutoRu автомобиля для блока Покупка автомобиля с пробегом'
+        color_autoru:
+          type: string
+          description: 'Цвет автомобиля для блока Покупка автомобиля с пробегом'
+        mileage:
+          type: integer
+          description: 'Пробег автомобиля для блока Покупка автомобиля с пробегом'
+      description: 'Блок Покупка автомобиля с пробегом у лида'
+    RequestVoximplant:
+      type: object
+      properties:
+        voximplant_call_record_url:
+          type: string
+          description: 'URL до файла с записью разговора с клиентом'
+        voximplant_call_duration:
+          type: integer
+          description: 'Продолжительность звонка в секундах'
+        voximplant_call_date:
+          type: string
+          description: 'Дата и время звонка в формате yyyy-MM-dd HH:mm:ss'
+        voximplant_phone:
+          type: string
+          description: 'Подменный номер, в формате "+79001234567 доб 12345"'
+        voximplant_status:
+          type: integer
+          description: 'Статус звонка'
+        open_phone:
+          type: boolean
+          description: 'Признак необходимости открыть номер телефона'
+        external_code:
+          type: string
+          nullable: true
+          description: 'Внешний код'
+      description: Модель
+    ReserveVehicleForm:
+      required:
+        - internal_status_id
+        - reserve_comment
+      type: object
+      properties:
+        internal_status_id:
+          type: integer
+          description: 'Заблокирован 1 - свободно, 3 - зарезервировано'
+        reserve_comment:
+          type: string
+          description: 'Причина блокировки'
+      description: 'Модель для резервирования авто'
+    Response:
+      type: object
+      description: 'Модель Лид'
+      properties:
+        id:
+          type: integer
+          description: 'ID лида (генерируется автоматически)'
+        campaign_id:
+          type: integer
+          description: 'ID Кампании'
+        department_id:
+          type: integer
+          description: 'Тип подразделения'
+        request_type_id:
+          type: integer
+          description: 'Цель обращения'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица'
+        client:
+          $ref: '#/components/schemas/ClientResponse'
+        contactPerson:
+          $ref: '#/components/schemas/ClientResponse'
+        channel_id:
+          type: integer
+          description: Канал
+        source_id:
+          type: integer
+          description: Источник
+        dealer_id:
+          type: integer
+          description: Дилер
+        dealerCode:
+          type: string
+          description: 'Код дилера'
+        user_id:
+          type: integer
+          description: 'пользователь, создавший обращение'
+        assigned_id:
+          type: integer
+          description: 'ID сотрудника, назначенного исполнителем по лиду'
+        executor_category_id:
+          type: integer
+          description: 'ID категории исполнителя лида'
+        comment:
+          type: string
+          description: Комментарий
+        is_business:
+          type: integer
+          description: 'Признак юридического лица'
+        business_name:
+          type: string
+          description: 'Название компании'
+        business_inn:
+          type: string
+          description: ИНН
+        business_kpp:
+          type: string
+          description: КПП
+        business_address:
+          type: string
+          description: 'Юридический адрес'
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        birthday_at:
+          type: string
+          description: 'Дата рождения'
+        prefix:
+          type: integer
+          description: Обращение
+        email:
+          type: string
+          description: Email
+        address:
+          type: string
+          description: Адрес
+        may_process_personal_data:
+          type: boolean
+          description: 'клиент согласен на обработку персональных данных'
+        client_confirm_communication:
+          type: boolean
+          description: 'Клиент дал согласие на коммуникацию'
+        communication_method:
+          type: string
+          description: 'Предпочтительный способ связи'
+        brand_id:
+          type: integer
+          description: Марка
+        model_id:
+          type: integer
+          description: Модель
+        procurementCars:
+          type: array
+          description: 'Массив автомобилей поставки'
+          items:
+            $ref: '#/components/schemas/ProcurementCar'
+        generation_id:
+          type: integer
+          description: Поколение
+        serie_id:
+          type: integer
+          description: Серия
+        equipment_id:
+          type: integer
+          description: Комплектация
+        color_id:
+          type: integer
+          description: 'ID цвета экстерьера'
+        trim_id:
+          type: integer
+          description: 'ID цвета интерьера'
+        vin:
+          type: string
+          description: 'вин автомобиля'
+        job:
+          type: string
+          description: 'JOB номер'
+        interest_id:
+          type: integer
+          description: 'ID потребности'
+        is_deal:
+          type: string
+          description: 'есть сделка(РЛ или ЗН)'
+        commonVehicles:
+          type: string
+          description: 'автомобили клиента'
+        utm_id:
+          type: integer
+          description: 'UTM метка'
+        created_at:
+          type: string
+          description: Создано
+        updated_at:
+          type: string
+          description: 'дата изменения'
+        timeleft:
+          type: string
+          description: 'оставшееся время для взятия в работу'
+        canLinkWorksheet:
+          type: boolean
+          description: 'возможность прикрепить РЛ'
+        canLinkPurchase:
+          type: boolean
+          description: 'возможность прикрепить ЗН'
+        canSendWorksheet:
+          type: boolean
+          description: 'возможность отправить РЛ'
+        canSendPurchase:
+          type: boolean
+          description: 'возможность отправить ЗН'
+        worksheet:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: 'уникальный идентификатор рабочего листа в DNM'
+            code:
+              type: string
+              description: 'Код рабочего листа во внешней системе'
+        purchase:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: 'уникальный идентификатор заказ-наряда в DNM'
+            code:
+              type: string
+              description: 'Код заказ-наряда во внешней системе'
+        is_voximplant:
+          type: string
+          description: 'передан в воксимплант'
+        voximplant_process:
+          type: string
+          description: 'обработан voximplant'
+        voximplant_call_record_url:
+          type: string
+          description: 'Ссылка на разговор в воксимплант'
+        voximplant_call_date:
+          type: string
+          description: 'Дата звонка через воксимплант'
+        voximplant_call_duration:
+          type: string
+          description: 'Продолжительность звонка через воксимплант'
+        voximplant_status:
+          type: integer
+          description: 'ID Статуса звонка через воксимплант'
+        voximplant_status_name:
+          type: string
+          description: 'Статус звонка через воксимплант'
+        voximplant_time_to_first_call:
+          type: string
+          description: 'время до первого звонка'
+        voximplant_is_connect:
+          type: string
+          description: 'был звонок клиенту'
+        voximplantHistory:
+          type: array
+          description: 'История звонков через коллтрекинг'
+          items:
+            $ref: '#/components/schemas/RequestVoximplant'
+        status:
+          type: integer
+          description: 'статус лида'
+        vehicleModel:
+          type: string
+          description: модель
+        vehicleBrand:
+          $ref: '#/components/schemas/BaseBrand'
+        buy:
+          $ref: '#/components/schemas/RequestBuy'
+        credit:
+          $ref: '#/components/schemas/RequestCredit'
+        service:
+          $ref: '#/components/schemas/RequestService'
+        tradeIn:
+          $ref: '#/components/schemas/RequestTradeIn'
+        reserve:
+          $ref: '#/components/schemas/RequestReserve'
+        usedVehicle:
+          $ref: '#/components/schemas/RequestUsedVehicle'
+        source:
+          $ref: '#/components/schemas/Source'
+        requestType:
+          $ref: '#/components/schemas/RequestType'
+        interest:
+          $ref: '#/components/schemas/Interest'
+          readonly: true
+        stages:
+          type: array
+          description: 'этапы лида'
+          items:
+            $ref: '#/components/schemas/Stage'
+        statuses:
+          type: array
+          description: 'внешние статусы лида'
+          items:
+            $ref: '#/components/schemas/RequestStatus'
+        phones:
+          type: array
+          description: 'Номера телефона клиента'
+          items:
+            $ref: '#/components/schemas/CommonClientPhone'
+        workIds:
+          type: array
+          description: 'Список ID работ'
+          items:
+            type: integer
+        gwm_id:
+          type: string
+          description: 'Gwm ID'
+        order_no:
+          type: string
+          description: 'Order No'
+        payment_serial_number:
+          type: string
+          description: 'Payment Serial Number'
+        telegram_profile:
+          type: string
+          description: 'Ссылка на профиль Telegram'
+        vk_profile:
+          type: string
+          description: 'Ссылка на профиль ВКонтакте'
+        ok_profile:
+          type: string
+          description: 'Ссылка на профиль Одноклассники'
+        is_double:
+          type: boolean
+          description: 'Лид является дублем'
+        double_of_id:
+          type: integer
+          description: 'ID дублируемого лида'
+        aiAnalysis:
+          description: 'Данные обработки AI'
+          type: object
+          properties:
+            calls:
+              type: array
+              description: 'Транскрибация звонков и анализ результатов'
+              items:
+                $ref: '#/components/schemas/RequestCallAiAnalysis'
+        extra:
+          type: string
+          description: 'Дополнительные данные обращения'
+    Result:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID результата (генерируется автоматически)'
+        name:
+          type: string
+          description: 'Наименование результата'
+        matrix:
+          type: array
+          description: 'Матрица допустимого применения результата'
+          items:
+            type: object
+            properties:
+              request_type_id:
+                type: integer
+                description: 'ID цели обращения'
+              stage_type_id:
+                type: integer
+                description: 'ID типа этапа'
+              result_id:
+                type: integer
+                description: 'ID результата'
+              is_require_worksheet:
+                type: integer
+                description: 'Необходим привязанный рабочий лист'
+              is_require_purchase:
+                type: integer
+                description: 'Необходим привязанный заказ наряд'
+              require_additional_data:
+                type: boolean
+                description: 'Необходима ли дополнительная информация'
+        for_reject:
+          type: integer
+          description: Отказ
+        reject_contract:
+          type: integer
+          description: 'Отказ от контракта'
+      description: 'Модель Результата'

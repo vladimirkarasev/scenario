@@ -1,0 +1,70 @@
+collection:
+  get:
+    tags: [Actions]
+    summary: Список выполнений actions
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: filter[status]
+        in: query
+        schema:
+          type: string
+          enum: [running, success, failed, skipped]
+      - name: filter[action_id]
+        in: query
+        schema:
+          type: integer
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Последние выполнения actions
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+completed:
+  get:
+    tags: [Actions]
+    summary: Список успешно выполненных задач
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: filter[action_id]
+        in: query
+        schema:
+          type: integer
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Успешно выполненные задачи
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+failed:
+  get:
+    tags: [Actions]
+    summary: Список задач с ошибкой
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: filter[action_id]
+        in: query
+        schema:
+          type: integer
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Задачи с ошибкой. Причина ошибки находится в `reason` и `error`.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'

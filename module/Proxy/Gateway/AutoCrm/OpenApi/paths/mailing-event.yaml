@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - mailing-event'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: mailing-event
+    description: 'События e-mail рассылок'
+paths:
+  /mailing/event:
+    get:
+      tags:
+        - mailing-event
+      summary: 'Получение списка событий рассылки'
+      description: 'Получение списка событий рассылки'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск события по ID'
+          schema:
+            type: integer
+        -
+          name: client_id
+          in: query
+          description: 'Поиск события по ID письма'
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          description: 'Тип события'
+          schema:
+            type: integer
+        -
+          name: createdSince
+          in: query
+          description: 'Дата события с (ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: createdTill
+          in: query
+          description: 'Дата события по (ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список событий почтовой рассылки'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/mailing/event/{id}':
+    get:
+      tags:
+        - mailing-event
+      summary: 'Получение события рассылки по ID'
+      description: 'Получение события рассылки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID события'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает событие рассылки по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,287 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - order-reference'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: order-reference
+    description: 'Управление заказами (Справочники)'
+paths:
+  /order/reference/delivery-method:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список способов доставки'
+      summary: 'Получить список способов доставки'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID способа доставки'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список способов доставки'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /order/reference/payment-method:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список способов оплаты'
+      summary: 'Получить список способов оплаты'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID способа оплаты'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список способов оплаты'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /order/reference/payment-status:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список статусов оплаты'
+      summary: 'Получить список статусов оплаты'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID статуса оплаты'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список статусов оплаты'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /order/reference/refund-reason:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список причин возвратов'
+      summary: 'Получить список причин возвратов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID причины возврата'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список причин возвратов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /order/reference/refund-status:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список статусов возвратов'
+      summary: 'Получить список статусов возвратов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID статуса возврата'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список статусов возвратов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /order/reference/status:
+    get:
+      tags:
+        - order-reference
+      description: 'Получить список статусов заказов'
+      summary: 'Получить список статусов заказов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID статуса заказа'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список статусов заказов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

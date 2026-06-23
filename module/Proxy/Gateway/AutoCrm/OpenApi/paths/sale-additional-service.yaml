@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - sale-additional-service'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: sale-additional-service
+    description: 'Управление дополнительными услугами рапорта'
+paths:
+  /sale-additional-service/create:
+    post:
+      tags:
+        - sale-additional-service
+      summary: 'Изменение рапорта'
+      description: 'Добавление дополнительной услуги в рапорте продажи автомобиля'
+      requestBody:
+        description: 'Объект «Модель для добавления дополнительной услуги к рапорту»'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleAdditionalServiceSale'
+        required: true
+      responses:
+        200:
+          description: 'Услуга успешно добавлена'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка валидации данных'
+          content: {  }
+  /sale-additional-service/delete:
+    post:
+      tags:
+        - sale-additional-service
+      summary: 'Изменение рапорта'
+      description: 'Удаление дополнительной услуги из рапорта продажи автомобиля'
+      requestBody:
+        description: 'Объект «Модель для удаления дополнительной услуги из рапорта»'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleAdditionalServiceDelete'
+        required: true
+      responses:
+        200:
+          description: 'Услуга успешно удалена'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка валидации данных'
+          content: {  }
+  '/sale-additional-service/{vin}':
+    get:
+      tags:
+        - sale-additional-service
+      summary: 'Получение списка дополнительных услуг'
+      description: 'Получение списка дополнительных услуг рапорта продажи автомобиля'
+      parameters:
+        -
+          name: vin
+          in: path
+          description: 'VIN автомобиля в рапорте'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список дополнительных услуг'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaleAdditionalService'

@@ -1,0 +1,533 @@
+ActionResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      example: '12'
+    type:
+      type: string
+      example: actions
+    attributes:
+      $ref: '#/ActionAttributes'
+    relationships:
+      type: object
+      properties:
+        runs:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/ActionRun'
+        schedule:
+          type: object
+          properties:
+            data:
+              oneOf:
+                - $ref: '#/ActionSchedule'
+                - type: 'null'
+
+ActionAttributes:
+  type: object
+  properties:
+    name:
+      type: string
+      example: Создать XML заявки
+    key:
+      type: string
+      example: create-lead-xml
+    description:
+      type: string
+      nullable: true
+    type:
+      $ref: '#/ActionType'
+    is_active:
+      type: boolean
+    config:
+      type: object
+      nullable: true
+      additionalProperties: true
+    schema:
+      type: object
+      nullable: true
+      additionalProperties: true
+    ui_schema:
+      type: object
+      nullable: true
+      additionalProperties: true
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ActionType:
+  type: string
+  enum: [email, template_file, proxy_request, excel_report, directory_import]
+  description: >
+    `email` зарегистрирован как тип, но отправка пока не реализована.
+    `template_file` создаёт xml/txt/html по шаблону.
+    `proxy_request` отправляет данные через Proxy module.
+    `excel_report` создаёт xlsx-отчёт.
+    `directory_import` запускает импорт справочника через Directories module.
+
+ActionRequest:
+  type: object
+  required: [name, key, type, is_active]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      example: Создать отчёт по заявкам
+    key:
+      type: string
+      maxLength: 255
+      example: leads-report
+    description:
+      type: string
+      nullable: true
+    type:
+      $ref: '#/ActionType'
+    is_active:
+      type: boolean
+      example: true
+    config:
+      type: object
+      nullable: true
+      additionalProperties: true
+    schema:
+      type: object
+      nullable: true
+      additionalProperties: true
+    ui_schema:
+      type: object
+      nullable: true
+      additionalProperties: true
+
+TemplateFileActionConfig:
+  type: object
+  required: [format, template]
+  properties:
+    format:
+      type: string
+      enum: [xml, txt, html]
+    template:
+      type: string
+      example: '<lead><name>{{ lead.name }}</name></lead>'
+    file_name:
+      type: string
+      nullable: true
+      example: lead.xml
+
+ProxyRequestActionConfig:
+  type: object
+  description: >
+    Action вызывает существующий endpoint модуля Proxy через `endpoint_uuid` и
+    получает ответ Proxy module. Нормализация, валидация, логирование и handler
+    остаются внутри `module/Proxy`.
+  required: [endpoint_uuid]
+  properties:
+    endpoint_uuid:
+      type: string
+      format: uuid
+    method:
+      type: string
+      enum: [GET, POST, PUT, PATCH, DELETE]
+      default: POST
+    headers:
+      type: object
+      additionalProperties: true
+    query:
+      type: object
+      additionalProperties: true
+    payload:
+      type: object
+      additionalProperties: true
+
+ExcelReportActionConfig:
+  type: object
+  required: [columns]
+  properties:
+    file_name:
+      type: string
+      nullable: true
+      example: leads.xlsx
+    sheet_name:
+      type: string
+      nullable: true
+      example: Leads
+    columns:
+      type: array
+      items:
+        type: object
+        required: [header, key]
+        properties:
+          header:
+            type: string
+            example: Email
+          key:
+            type: string
+            example: lead.email
+    rows:
+      type: array
+      nullable: true
+      items:
+        type: object
+        additionalProperties: true
+
+DirectoryImportActionConfig:
+  type: object
+  description: >
+    Action создаёт `DirectoryImport` через `Module\Directories\Services\ImportService`.
+    Сам импорт, версии, mapping, обработка строк и ошибки остаются внутри
+    `module/Directories`.
+  required: [directory_id, source_type, mode, mapping, columns]
+  properties:
+    directory_id:
+      type: string
+      format: uuid
+    source_type:
+      type: string
+      enum: [file, proxy, remote]
+    mode:
+      type: string
+      enum: [create, update, replace]
+    file_disk:
+      type: string
+      nullable: true
+      example: local
+    file_path:
+      type: string
+      nullable: true
+      description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
+      example: actions/leads/leads.xlsx
+    proxy_endpoint_id:
+      type: integer
+      nullable: true
+      description: ID ProxyEndpoint для `source_type=proxy`.
+    proxy_endpoint_uuid:
+      type: string
+      nullable: true
+      description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
+    remote:
+      type: object
+      nullable: true
+      additionalProperties: true
+    mapping:
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        email: email
+        name: name
+    columns:
+      type: array
+      items:
+        type: object
+        required: [key, name]
+        properties:
+          key:
+            type: string
+          name:
+            type: string
+          type:
+            type: string
+            nullable: true
+          nullable:
+            type: boolean
+            nullable: true
+    match_by:
+      type: string
+      nullable: true
+    parent_key_field:
+      type: string
+      nullable: true
+    chunk_size:
+      type: integer
+      nullable: true
+      example: 500
+    activate:
+      type: boolean
+      nullable: true
+    version_id:
+      type: integer
+      nullable: true
+
+ActionExecutionRequest:
+  type: object
+  properties:
+    input:
+      type: object
+      additionalProperties: true
+      example:
+        lead:
+          name: Иван
+          email: ivan@example.com
+
+ActionExecutionResponse:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      enum: [success, failed, skipped]
+    output:
+      type: object
+      nullable: true
+      additionalProperties: true
+    error:
+      type: string
+      nullable: true
+    runs:
+      type: array
+      items:
+        $ref: '#/ActionRun'
+
+ActionRunRequest:
+  type: object
+  properties:
+    execution_mode:
+      type: string
+      enum: [sync, async, chain, batch]
+      description: >
+        Режим выполнения текущего запуска. `chain` выполняет `action_ids`
+        последовательно, `batch` запускает `action_ids` параллельно.
+      example: chain
+    action_ids:
+      type: array
+      description: Основные actions для последовательного или параллельного выполнения.
+      items:
+        type: integer
+      example: [10, 11, 12]
+    before_action_ids:
+      type: array
+      description: Actions, которые выполняются перед основной очередью.
+      items:
+        type: integer
+      example: [7]
+    after_action_ids:
+      type: array
+      description: Actions, которые выполняются после успешной обработки основной очереди.
+      items:
+        type: integer
+      example: [20]
+    failed_action_ids:
+      type: array
+      description: Actions, которые выполняются при ошибке before/main/batch обработки.
+      items:
+        type: integer
+      example: [30]
+    retry:
+      type: object
+      properties:
+        attempts:
+          type: integer
+          minimum: 1
+          example: 3
+        backoff:
+          type: array
+          items:
+            type: integer
+          example: [60, 120, 300]
+    input:
+      type: object
+      additionalProperties: true
+      example:
+        scenario_run_id: 15
+        rows:
+          - lead:
+              email: ivan@example.com
+
+ActionRunResponse:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      enum: [completed, queued]
+    result:
+      type: object
+      nullable: true
+      properties:
+        status:
+          type: string
+          enum: [success, failed, skipped]
+        output:
+          type: object
+          nullable: true
+          additionalProperties: true
+        error:
+          type: string
+          nullable: true
+
+ActionScheduleRequest:
+  type: object
+  required: [enabled, frequency]
+  properties:
+    enabled:
+      type: boolean
+      example: true
+    frequency:
+      type: string
+      enum: [every_minute, hourly, daily, weekly, monthly]
+      example: daily
+    run_at:
+      type: string
+      nullable: true
+      pattern: '^\\d{2}:\\d{2}$'
+      description: >
+        Время запуска в указанной timezone. Для `hourly` используется только
+        минута, для `every_minute` поле игнорируется.
+      example: '09:30'
+    timezone:
+      type: string
+      nullable: true
+      example: Europe/Moscow
+    input:
+      type: object
+      nullable: true
+      additionalProperties: true
+      description: Input, который будет передан в orchestrator.
+      example:
+        source: schedule
+    options:
+      $ref: '#/ActionRunRequest'
+      nullable: true
+    settings:
+      type: object
+      nullable: true
+      properties:
+        day_of_week:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Для weekly. 1 = понедельник, 7 = воскресенье.
+          example: 1
+        day_of_month:
+          type: integer
+          minimum: 1
+          maximum: 31
+          description: Для monthly.
+          example: 1
+
+ActionSchedule:
+  type: object
+  properties:
+    id:
+      type: integer
+    action_id:
+      type: integer
+    enabled:
+      type: boolean
+    frequency:
+      type: string
+      enum: [every_minute, hourly, daily, weekly, monthly]
+    run_at:
+      type: string
+      nullable: true
+    timezone:
+      type: string
+    input:
+      type: object
+      nullable: true
+      additionalProperties: true
+    options:
+      type: object
+      nullable: true
+      additionalProperties: true
+    settings:
+      type: object
+      nullable: true
+      additionalProperties: true
+    last_run_at:
+      type: string
+      format: date-time
+      nullable: true
+    next_run_at:
+      type: string
+      format: date-time
+      nullable: true
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ActionScheduleResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      example: '5'
+    type:
+      type: string
+      example: action-schedules
+    attributes:
+      $ref: '#/ActionSchedule'
+
+ActionRun:
+  type: object
+  properties:
+    id:
+      type: integer
+    action_id:
+      type: integer
+    status:
+      type: string
+      enum: [running, success, failed, skipped]
+    input:
+      type: object
+      nullable: true
+      additionalProperties: true
+    output:
+      type: object
+      nullable: true
+      additionalProperties: true
+    error:
+      type: string
+      nullable: true
+    reason:
+      type: string
+      nullable: true
+      description: Причина ошибки. Для успешных задач `null`.
+    attempts_count:
+      type: integer
+      minimum: 1
+      description: Номер попытки, на которой была создана запись выполнения.
+    started_at:
+      type: string
+      format: date-time
+      nullable: true
+    finished_at:
+      type: string
+      format: date-time
+      nullable: true
+    duration_ms:
+      type: integer
+      nullable: true
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ActionRunListResponse:
+  type: object
+  required: [items, meta]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: '#/ActionRun'
+    meta:
+      type: object
+      properties:
+        total:
+          type: integer

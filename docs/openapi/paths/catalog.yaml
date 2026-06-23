@@ -1,0 +1,53 @@
+get:
+  tags: [Каталог]
+  summary: Сводный каталог (категории + сценарии)
+  security:
+    - BearerAuth: []
+  description: >
+    Возвращает постраничный список элементов каталога. Каждый элемент имеет
+    тип `category` или `scenario` и содержит атрибуты соответствующей
+    сущности.
+  parameters:
+    - name: filter
+      in: query
+      style: deepObject
+      explode: true
+      description: >
+        Фильтры каталога (`filter[q]`, `filter[parent_id]`).
+      schema:
+        type: object
+        properties:
+          q:
+            type: string
+            description: >
+              Текстовый поиск по названию (категории) и названию/описанию (сценарии).
+              Регистронезависимый ILIKE-поиск.
+            example: оформление
+          parent_id:
+            type: string
+            format: uuid
+            nullable: true
+            description: >
+              UUID родительской категории. Если ключ передан с пустым значением —
+              возвращаются элементы корневого уровня (без родителя).
+              При одновременном использовании с `filter[q]` поиск ведётся по всему
+              поддереву указанной категории.
+            example: 018e1b2c-3d4f-7e8a-9b0c-1d2e3f4a5b6c
+    - $ref: '../components/parameters.yaml#/PerPage'
+    - $ref: '../components/parameters.yaml#/Page'
+  responses:
+    '200':
+      description: Список элементов каталога
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '../components/schemas/catalog.yaml#/CatalogItem'
+    '401':
+      $ref: '../components/responses.yaml#/Unauthorized'

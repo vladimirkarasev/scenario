@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-check-list'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-check-list
+    description: 'Данные чек-листа'
+paths:
+  /vehicle-check-list:
+    get:
+      tags:
+        - vehicle-check-list
+      summary: 'Просмотр чек-листа'
+      description: 'Просмотр чек-листа'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID чек-листа'
+          schema:
+            type: integer
+        -
+          name: program_id
+          in: query
+          description: 'ID программы (6 - Honda approved)'
+          schema:
+            type: integer
+        -
+          name: vehicle_vin
+          in: query
+          description: VIN
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: 'Статус (0 - Новая, 1 - Закрыто)'
+          schema:
+            type: integer
+        -
+          name: is_display_showcase
+          in: query
+          description: 'Только для витрины'
+          schema:
+            type: boolean
+        -
+          name: thumbnail_width
+          in: query
+          description: "Ширина превью по умолчанию 100, 'min' = 10, 'max' = 500"
+          schema:
+            type: integer
+        -
+          name: thumbnail_height
+          in: query
+          description: "Высота превью по умолчанию 100, 'min' = 10, 'max' = 500"
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Чек-листы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleCheckList'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

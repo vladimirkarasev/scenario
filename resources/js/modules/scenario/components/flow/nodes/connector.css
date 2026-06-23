@@ -1,0 +1,54 @@
+/* Shared styles for all scenario-flow node components. */
+
+/* Invisible interactive overlay — size-only classes are added per node. */
+.scenario-flow-handle {
+    z-index: 20 !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Connector outline drawn around every node. */
+.scenario-flow-connector {
+    position: absolute;
+    inset: -6px;
+    z-index: 5;
+    pointer-events: none;
+    border: 6px solid rgb(203 213 225 / 0.72);
+    transition: border-color 0.15s ease;
+}
+
+.scenario-flow-connector--rounded { border-radius: 1.50rem; }
+.scenario-flow-connector--circle  { border-radius: 9999px; }
+
+.scenario-flow-connector--diamond {
+    inset: -6px;
+    overflow: visible;
+    border: 0;
+}
+
+.scenario-flow-connector--hexagon {
+    inset: -6px;
+    overflow: visible;
+    border: 0;
+}
+
+.scenario-flow-connector-polygon {
+    fill: none;
+    stroke: rgb(203 213 225 / 0.72);
+    stroke-width: 6px;
+    transition: stroke 0.15s ease;
+}
+
+.scenario-flow-node:has(.scenario-flow-handle:hover) > .scenario-flow-connector,
+.scenario-flow-node:has(.scenario-flow-handle:active) > .scenario-flow-connector,
+.scenario-flow-connector--selected {
+    border-color: rgb(14 165 233);
+}
+
+.scenario-flow-node:has(.scenario-flow-handle:hover) .scenario-flow-connector-polygon,
+.scenario-flow-node:has(.scenario-flow-handle:active) .scenario-flow-connector-polygon,
+.scenario-flow-connector--selected .scenario-flow-connector-polygon {
+    stroke: rgb(14 165 233);
+}

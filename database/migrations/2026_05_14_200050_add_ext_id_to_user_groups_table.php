@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('user_groups', static function (Blueprint $table): void {
+            $table->string('ext_id')->nullable()->unique()->after('slug');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('user_groups', static function (Blueprint $table): void {
+            $table->dropColumn('ext_id');
+        });
+    }
+};

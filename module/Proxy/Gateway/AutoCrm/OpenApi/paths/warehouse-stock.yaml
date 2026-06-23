@@ -1,0 +1,73 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-stock'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-stock
+    description: 'Работа с стоком автомобилей'
+paths:
+  /warehouse/stock/load:
+    post:
+      tags:
+        - warehouse-stock
+      summary: 'Загрузка файла стока'
+      description: 'Загрузка файла стока'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - file
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Email адрес для получения уведомления о результате загрузки'
+                file:
+                  type: string
+                  description: 'Файл стока'
+                  format: binary
+        required: true
+      responses:
+        200:
+          description: 'Задача на загрузку стока добавлена'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notice:
+                    type: string
+                    description: 'Статус обработки файла'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

@@ -1,0 +1,205 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-discount'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-discount
+    description: 'Получение данных по мотивационным программам на автомобили'
+paths:
+  /vehicle-discount:
+    get:
+      tags:
+        - vehicle-discount
+      summary: 'Получить список мотивационных программ на автомобили'
+      description: 'Получить список мотивационных программ на автомобили'
+      parameters:
+        -
+          in: query
+          name: id
+          description: 'ID мотивационной программы'
+          schema:
+            type: integer
+        -
+          in: query
+          name: name
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: brand_id
+          in: query
+          description: 'ID бренда автомобиля'
+          schema:
+            type: integer
+        -
+          name: model_id
+          in: query
+          description: 'ID модели автомобиля'
+          schema:
+            type: integer
+        -
+          name: generation_id
+          in: query
+          description: 'ID поколения автомобиля'
+          schema:
+            type: integer
+        -
+          name: serie_id
+          in: query
+          description: 'ID серии автомобиля'
+          schema:
+            type: integer
+        -
+          name: modification_id
+          in: query
+          description: 'ID модификации автомобиля'
+          schema:
+            type: integer
+        -
+          name: equipment_id
+          in: query
+          description: 'ID комплектации автомобиля'
+          schema:
+            type: integer
+        -
+          in: query
+          name: sumFrom
+          description: 'Сумма с'
+          schema:
+            type: integer
+        -
+          in: query
+          name: sumTo
+          description: 'Сумма по'
+          schema:
+            type: integer
+        -
+          in: query
+          name: manufactureYearFrom
+          description: 'Год выпуска с'
+          schema:
+            type: integer
+        -
+          in: query
+          name: manufactureYearTo
+          description: 'Год выпуска по'
+          schema:
+            type: integer
+        -
+          name: manufacture_year
+          in: query
+          description: 'Год выпуска автомобиля'
+          schema:
+            type: integer
+        -
+          in: query
+          name: 'support_program_id[]'
+          description: 'Категория программы'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          in: query
+          name: isActive
+          description: 'Актуальна (`1` - Да, `2` - Нет)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+        -
+          in: query
+          name: 'notSupportProgramId[]'
+          description: 'Не сочетается с категориями программ'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          in: query
+          name: 'leasingIDs[]'
+          description: 'Лизинговая компания'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          in: query
+          name: allow_dealer_edit_amount
+          description: 'Доступен ввод суммы скидки и компенсации'
+          schema:
+            type: integer
+        -
+          in: query
+          name: activeFrom
+          description: 'Начало с (формат: дд.мм.гггг)'
+          schema:
+            type: string
+        -
+          in: query
+          name: activeTo
+          description: 'Начало по (формат: дд.мм.гггг)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список мотивационных программ'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/vehicle-discount/{id}':
+    get:
+      tags:
+        - vehicle-discount
+      summary: 'Получить данные мотивационной программы по id'
+      description: 'Получить данные мотивационной программы по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id мотивационной программы'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данные мотивационной программы'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

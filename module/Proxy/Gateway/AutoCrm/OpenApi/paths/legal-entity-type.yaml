@@ -1,0 +1,55 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - legal-entity-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: legal-entity-type
+    description: 'Типы юридических лиц'
+paths:
+  /legal-entity-type:
+    get:
+      tags:
+        - legal-entity-type
+      summary: 'Получение списка типов юридических лиц'
+      description: 'Получение списка типов юридических лиц'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: per-page
+          in: query
+          description: 'Количество записей на странице'
+          schema:
+            type: integer
+            default: 20
+        -
+          name: country_id
+          in: query
+          description: 'ID страны'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение списка типов юридических лиц'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LegalEntityType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

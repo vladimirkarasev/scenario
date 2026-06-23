@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - offer'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: offer
+    description: 'Коммерческое предложение по потребности рабочего листа'
+paths:
+  /offer/need:
+    get:
+      tags:
+        - offer
+      summary: 'Получение коммерческого предложения по идентификатору потребности рабочего листа'
+      description: 'Получение коммерческого предложения по идентификатору потребности рабочего листа'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Идентификатор потребности рабочего листа'
+          required: true
+          schema:
+            type: string
+        -
+          name: templateId
+          in: query
+          description: 'ID шаблона документа'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Коммерческое предложение'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeedOffer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка валидации данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /offer/vin:
+    get:
+      tags:
+        - offer
+      summary: 'Получение коммерческого предложения по VIN потребности рабочего листа'
+      description: 'Получение коммерческого предложения по VIN потребности рабочего листа'
+      parameters:
+        -
+          name: vin
+          in: query
+          description: VIN
+          required: true
+          schema:
+            type: string
+        -
+          name: templateId
+          in: query
+          description: 'ID шаблона документа'
+          required: true
+          schema:
+            type: string
+        -
+          name: worksheetId
+          in: query
+          description: 'ID РЛ'
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Коммерческое предложение'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeedOffer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка валидации данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

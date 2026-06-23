@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - mailing-broadcast'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: mailing-broadcast
+    description: 'E-mail рассылки'
+paths:
+  /mailing/broadcast:
+    get:
+      tags:
+        - mailing-broadcast
+      summary: 'Получение списка e-mail рассылок'
+      description: 'Получение списка e-mail рассылок'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск рассылки по ID'
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          description: 'Тип рассылки(1 - массовая, 2 - триггерная)'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус рассылки(0 - запланирована, 1 - рассылается, 2 - отменена, 3 - пауза, 4 - завершена)'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nmessage - Шаблон сообщения, box - Ящик для рассылки, campaign - Кампания, utms - UTM метки, broadcastDistributors - Список дистрибьюторов"
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список рассылок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailBroadcast'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/mailing/broadcast/{id}':
+    get:
+      tags:
+        - mailing-broadcast
+      summary: 'Получение рассылки по ID'
+      description: 'Получение рассылки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID рассылки'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nmessage - Шаблон сообщения, box - Ящик для рассылки, campaign - Кампания, utms - UTM метки, broadcastDistributors - Список дистрибьюторов"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает рассылку по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailBroadcast'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

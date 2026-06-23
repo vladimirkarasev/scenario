@@ -1,0 +1,274 @@
+collection:
+  get:
+    tags: [Actions]
+    summary: Список actions
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: filter[search]
+        in: query
+        description: Поиск по name/key
+        schema:
+          type: string
+      - name: filter[type]
+        in: query
+        schema:
+          $ref: '../components/schemas/actions.yaml#/ActionType'
+      - name: filter[is_active]
+        in: query
+        schema:
+          type: boolean
+      - $ref: '../components/parameters.yaml#/PageNumber'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: JSON:API коллекция actions
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/actions.yaml#/ActionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Actions]
+    summary: Создать action
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/ActionRequest'
+    responses:
+      '201':
+        description: Action создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - name: action
+      in: path
+      required: true
+      description: ID action
+      schema:
+        type: integer
+
+  get:
+    tags: [Actions]
+    summary: Получить action
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Action
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  put:
+    tags: [Actions]
+    summary: Обновить action
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/ActionRequest'
+    responses:
+      '200':
+        description: Action обновлён
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Actions]
+    summary: Удалить action
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Action удалён
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+execute:
+  parameters:
+    - name: action
+      in: path
+      required: true
+      description: ID action
+      schema:
+        type: integer
+
+  post:
+    tags: [Actions]
+    summary: Выполнить action синхронно
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/ActionExecutionRequest'
+    responses:
+      '200':
+        description: Результат синхронного выполнения
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionExecutionResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+run:
+  parameters:
+    - name: action
+      in: path
+      required: true
+      description: ID action-оркестратора или action для запуска
+      schema:
+        type: integer
+
+  post:
+    tags: [Actions]
+    summary: Запустить action через оркестратор
+    description: >
+      Режим, основной список actions и lifecycle hooks передаются в теле запроса:
+      `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`,
+      `failed_action_ids`. Если параметры не переданы, используется текущий action
+      и fallback из `action.config` для старых записей.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/ActionRunRequest'
+    responses:
+      '200':
+        description: Выполнено синхронно
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionRunResponse'
+      '202':
+        description: Поставлено в очередь
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionRunResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+schedule:
+  parameters:
+    - name: action
+      in: path
+      required: true
+      description: ID action
+      schema:
+        type: integer
+
+  get:
+    tags: [Actions]
+    summary: Получить расписание action
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: 'Расписание action или `data: null`, если расписание не задано.'
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/actions.yaml#/ActionScheduleResource'
+                - type: object
+                  properties:
+                    data:
+                      type: 'null'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  put:
+    tags: [Actions]
+    summary: Создать или обновить расписание action
+    description: >
+      Scheduler раз в минуту запускает due-расписания командой
+      `actions:run-scheduled`. В `options` можно передать тот же payload, что и
+      в `POST /actions/{action}/run`: `execution_mode`, `action_ids`,
+      `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/ActionScheduleRequest'
+    responses:
+      '200':
+        description: Расписание сохранено
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionScheduleResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Actions]
+    summary: Удалить расписание action
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Расписание удалено
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

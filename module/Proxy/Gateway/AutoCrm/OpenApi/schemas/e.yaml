@@ -1,0 +1,237 @@
+openapi: 3.1.0
+components:
+  schemas:
+    EntityLog:
+      required:
+        - dealer_id
+        - entity_id
+        - entity_type
+        - id
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        entity_type:
+          type: integer
+          description: 'Тип сущности'
+        entity_id:
+          type: integer
+          description: 'ID сущности'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        status:
+          type: integer
+          description: Статус
+      description: 'Модель Запись лога'
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID комплектации'
+        name:
+          type: string
+          description: Наименование
+        model_id:
+          type: integer
+          description: 'ID модели'
+        series_id:
+          type: integer
+          description: 'ID серии'
+        status:
+          type: integer
+          description: 'Статус (1 — актуальная, 3 — архивная)'
+      description: Комплектация
+    Error:
+      type: object
+      properties:
+        field:
+          type: string
+          description: 'Наименование поля'
+        message:
+          type: string
+          description: 'Описание ошибки'
+      description: 'Модель Ошибка'
+    EskRecordType:
+      type: object
+      description: 'Тип записи ЭСК'
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: 'id записи'
+        name:
+          type: string
+          description: наименование
+        maintenance:
+          type: integer
+          nullable: true
+          description: 'номер ТО'
+        max_period_months:
+          type: integer
+          nullable: true
+          description: 'максимальный срок проведения, мес.'
+    Event:
+      required:
+        - car_id
+        - code
+        - event_type
+        - manager_id
+        - worksheet_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID события (генерируется автоматически)'
+        code:
+          type: string
+          description: 'код события во внешней системе'
+        event_type:
+          type: string
+          description: 'Тип события'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        manager_id:
+          type: integer
+          description: 'ID менеджера'
+        car_id:
+          type: integer
+          description: 'ID потребности'
+        occurred:
+          type: string
+          description: 'Время совершения события в формате "dd.MM.yyyy HH:mm:ss" '
+        status:
+          type: string
+          description: 'Статус события. Может принимать значения "active", "canceled", "planed". Этап "Выдача" не может быть "canceled" (Отменён) после статуса "active" (Активно), также необходимо передавать атрибуты даты scheduled и canceled. Этап "Выдача" не может быть "planed" (Запланирован) после статуса "active" (Активно)'
+        is_primary:
+          type: integer
+          description: 'Признак первичного события'
+        scheduled:
+          type: string
+          description: 'Планируемое время события в формате "dd.MM.yyyy HH:mm:ss"'
+        canceled:
+          type: string
+          description: 'Время отмены события в формате "dd.MM.yyyy HH:mm:ss"'
+        comment:
+          type: string
+          description: Комментарий
+        amount:
+          type: number
+          description: Стоимость
+        discount:
+          type: number
+          description: 'Скидка в процентах (0-100)'
+        created:
+          type: string
+          description: 'Дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'Дата изменения в формате dd.MM.yyyy HH:mm:ss'
+        payment_type:
+          type: string
+          description: 'Тип оплаты'
+        is_trade_in:
+          type: integer
+          description: 'Признак Trade-in'
+        result_id:
+          type: integer
+          description: 'ID причины отказа от контракта или отказа рабочего листа'
+        common_client_google_id:
+          type: string
+          description: 'Google ID клиента дистрибьютора'
+        campaign_id:
+          type: array
+          description: 'Список ID кампаний лидов клиента'
+          items:
+            type: integer
+        source_id:
+          type: array
+          description: 'Список ID источников лидов клиента'
+          items:
+            type: integer
+      description: 'Модель Событие'
+    Exception:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        message:
+          type: string
+          description: 'Описание ошибки'
+        code:
+          type: integer
+          description: 'Код ошибки'
+        status:
+          type: integer
+          description: Статус
+      description: 'Модель Исключение'
+    ExecutorCategory:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID категории исполнителя (генерируется автоматически)'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Название
+      description: 'Модель категория исполнителя'
+    ExternalClientEventStorage:
+      required:
+        - client_id
+        - external_event_id
+      type: object
+      properties:
+        external_event_id:
+          type: integer
+          description: 'ID внешнего события'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        occurred:
+          type: string
+          description: 'Время совершения события в формате "dd.MM.yyyy HH:mm:ss" '
+      description: 'Внешнее событие для клиента дилера'
+    ExternalEvent:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID события'
+        name:
+          type: string
+          description: Наименование
+      description: 'Внешнее событие'
+    ExternalEventStorage:
+      required:
+        - common_client_id
+        - external_event_id
+        - occurred
+      type: object
+      properties:
+        external_event_id:
+          type: integer
+          description: 'ID внешнего события'
+        common_client_id:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        googleId:
+          type: string
+          description: 'Google ID клиента дистрибьютора'
+        occurred:
+          type: string
+          description: 'Время совершения события в формате "dd.MM.yyyy HH:mm:ss" '
+      description: 'Внешнее событие'

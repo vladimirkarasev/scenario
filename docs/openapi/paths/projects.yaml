@@ -1,0 +1,120 @@
+collection:
+  get:
+    tags: [Проекты]
+    summary: Список проектов
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../components/parameters.yaml#/PerPage'
+    responses:
+      '200':
+        description: Список проектов (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/projects.yaml#/ProjectResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Проекты]
+    summary: Создать проект
+    description: Требует роль `project_admin`.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/projects.yaml#/ProjectRequest'
+    responses:
+      '201':
+        description: Проект создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/projects.yaml#/ProjectResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - name: project
+      in: path
+      required: true
+      description: ID проекта
+      schema:
+        type: integer
+
+  get:
+    tags: [Проекты]
+    summary: Получить проект
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Проект
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/projects.yaml#/ProjectResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Проекты]
+    summary: Обновить проект
+    description: Требует роль `project_admin`.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/projects.yaml#/ProjectRequest'
+    responses:
+      '200':
+        description: Обновлённый проект
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/projects.yaml#/ProjectResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Проекты]
+    summary: Удалить проект
+    description: Требует роль `project_admin`.
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Проект удалён
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

@@ -1,0 +1,39 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - document-template'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: document-template
+    description: 'Шаблоны документов'
+paths:
+  /document-template:
+    get:
+      tags:
+        - document-template
+      summary: 'Поиск шаблонов документов'
+      description: 'Поиск шаблонов документов'
+      parameters:
+        -
+          name: type
+          in: query
+          description: Тип
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Шаблоны документов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentTemplate'

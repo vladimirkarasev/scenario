@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - distributor'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: distributor
+    description: 'Управление дистрибьюторами'
+paths:
+  /distributor:
+    get:
+      tags:
+        - distributor
+      summary: 'Получение списка дистрибьюторов'
+      description: 'Получение списка дистрибьюторов'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: 'Наименование дистрибьютора (LIKE-поиск)'
+          schema:
+            $ref: '#/components/schemas/Distributor/properties/name'
+        -
+          name: 'country_id[]'
+          in: query
+          description: 'ID страны'
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        200:
+          description: 'Возвращает список дистрибьюторов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Distributor'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/distributor/{id}':
+    get:
+      tags:
+        - distributor
+      summary: 'Получение дистрибьютора по ID'
+      description: 'Получение дистрибьютора по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID дистрибьютора'
+          required: true
+          schema:
+            $ref: '#/components/schemas/Distributor/properties/id'
+      responses:
+        200:
+          description: 'Возвращает дистрибьютора по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Distributor'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

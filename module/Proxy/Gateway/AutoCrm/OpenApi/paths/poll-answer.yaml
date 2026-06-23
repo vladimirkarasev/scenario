@@ -1,0 +1,83 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - poll-answer'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: poll-answer
+    description: 'Ответы к анкетам опросов'
+paths:
+  '/client-service/poll-answer/{id}':
+    get:
+      tags:
+        - poll-answer
+      summary: 'Ответы на вопросы опроса'
+      description: 'Ответы на вопросы опроса'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID опроса'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает ответы на анкету опроса по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnswerForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Опрос не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - poll-answer
+      summary: 'Ответы на вопросы опроса'
+      description: 'Ответы на вопросы опроса'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID опроса'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель ответов на вопросы опроса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PollAnswerForm'
+        required: false
+      responses:
+        201:
+          description: 'Ответы успешно отредактированы'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollAnswerForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Опрос не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

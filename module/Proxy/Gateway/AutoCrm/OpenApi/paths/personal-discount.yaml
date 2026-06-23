@@ -1,0 +1,79 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - personal-discount'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: personal-discount
+    description: 'Персональные скидки'
+paths:
+  /personal-discount/discount:
+    get:
+      tags:
+        - personal-discount
+      summary: 'Получение списка персональных скидок'
+      description: 'Получение списка персональных скидок'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список персональных скидок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/personal-discount/discount/{id}':
+    get:
+      tags:
+        - personal-discount
+      summary: 'Просмотр персональной скидки'
+      description: 'Просмотр персональной скидки'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID персональной скидки'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель персональной скидки'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalDiscount'
+        required: false
+      responses:
+        201:
+          description: 'Персональная скидка'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalDiscount'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Опрос не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

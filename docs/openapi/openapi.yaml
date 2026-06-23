@@ -1,0 +1,348 @@
+openapi: 3.1.0
+
+info:
+  title: Platform API
+  description: API платформы сценариев
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: Основной сервер
+
+security:
+  - BearerAuth: []
+
+x-tagGroups:
+  - name: Модуль «Сценарии»
+    tags:
+      - Каталог
+      - Сценарии
+      - Версии
+      - Категории
+      - Запуск
+      - Прогоны
+      - Опросы
+  - name: Пользователи
+    tags:
+      - Пользователи
+  - name: Администрирование
+    tags:
+      - Проекты
+      - Роли
+      - Actions
+  - name: Группы доступа
+    tags:
+      - Группы
+  - name: Embed Auth
+    tags:
+      - Регистрация
+      - Авторизация iframe
+
+tags:
+  - name: Каталог
+    description: Сводный каталог категорий и сценариев
+  - name: Сценарии
+    description: CRUD-операции над сценариями
+  - name: Версии
+    description: Управление версиями сценариев
+  - name: Категории
+    description: CRUD-операции над категориями
+  - name: Запуск
+    description: Запуск сценария и прохождение шагов
+  - name: Прогоны
+    description: Административный журнал прогонов — просмотр, создание, управление
+  - name: Опросы
+    description: Список прогонов и просмотр состояния прогона
+  - name: Пользователи
+    description: CRUD-операции над пользователями системы
+  - name: Проекты
+    description: Управление проектами. Запись требует роль `project_admin`.
+  - name: Роли
+    description: Управление ролями (Spatie Permission). Роли назначаются пользователям и используются для авторизации (`project_admin` и др.).
+  - name: Actions
+    description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
+  - name: Группы
+    description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
+  - name: Регистрация
+    description: Регистрация пользователя в проекте и выдача одноразового launch-токена
+  - name: Авторизация iframe
+    description: Обмен launch-токена на access/refresh токены, ротация и выход
+
+paths:
+  /scenarios/catalog:
+    $ref: './paths/catalog.yaml'
+
+  /scenarios:
+    $ref: './paths/scenarios.yaml#/collection'
+  /scenarios/{scenario}:
+    $ref: './paths/scenarios.yaml#/item'
+  /scenarios/{scenario}/duplicate:
+    $ref: './paths/scenarios.yaml#/duplicate'
+
+  /scenarios/{scenario}/versions:
+    $ref: './paths/versions.yaml#/collection'
+  /scenarios/{scenario}/versions/{version}:
+    $ref: './paths/versions.yaml#/item'
+
+  /scenarios/categories:
+    $ref: './paths/categories.yaml#/collection'
+  /scenarios/categories/{category}:
+    $ref: './paths/categories.yaml#/item'
+
+  /scenarios/runner/start:
+    $ref: './paths/runner.yaml#/start'
+  /scenarios/runner/{runId}/jump:
+    $ref: './paths/runner.yaml#/jump'
+
+  /scenario-runs:
+    $ref: './paths/runs.yaml#/collection'
+  /scenario-runs/users:
+    $ref: './paths/runs.yaml#/users'
+  /scenario-runs/{runId}:
+    $ref: './paths/runs.yaml#/item'
+  /scenario-runs/{runId}/continue:
+    $ref: './paths/runs.yaml#/continue'
+  /scenario-runs/{runId}/jump:
+    $ref: './paths/runs.yaml#/jump'
+
+  /scenarios/surveys:
+    $ref: './paths/surveys.yaml#/list'
+  /scenarios/survey/{runId}:
+    $ref: './paths/surveys.yaml#/item'
+
+  /projects:
+    $ref: './paths/projects.yaml#/collection'
+  /projects/{project}:
+    $ref: './paths/projects.yaml#/item'
+
+  /roles:
+    $ref: './paths/roles.yaml#/collection'
+  /roles/{role}:
+    $ref: './paths/roles.yaml#/item'
+
+  /users:
+    $ref: './paths/users.yaml#/collection'
+  /users/{user}:
+    $ref: './paths/users.yaml#/item'
+
+  /groups:
+    $ref: './paths/groups.yaml#/collection'
+  /groups/{group}:
+    $ref: './paths/groups.yaml#/item'
+  /groups/{group}/members:
+    $ref: './paths/users.yaml#/members'
+  /groups/{group}/members/{user}:
+    $ref: './paths/users.yaml#/memberItem'
+
+  /actions:
+    $ref: './paths/actions.yaml#/collection'
+  /actions/{action}:
+    $ref: './paths/actions.yaml#/item'
+  /actions/{action}/execute:
+    $ref: './paths/actions.yaml#/execute'
+  /actions/{action}/run:
+    $ref: './paths/actions.yaml#/run'
+  /actions/{action}/schedule:
+    $ref: './paths/actions.yaml#/schedule'
+
+  /action-runs:
+    $ref: './paths/action-runs.yaml#/collection'
+  /action-runs/completed:
+    $ref: './paths/action-runs.yaml#/completed'
+  /action-runs/failed:
+    $ref: './paths/action-runs.yaml#/failed'
+
+  /project/{projectUuid}/user-register:
+    $ref: './paths/embed-auth.yaml#/user-register'
+  /embed/auth/exchange:
+    $ref: './paths/embed-auth.yaml#/exchange'
+  /embed/auth/refresh:
+    $ref: './paths/embed-auth.yaml#/refresh'
+  /embed/auth/logout:
+    $ref: './paths/embed-auth.yaml#/logout'
+
+components:
+  parameters:
+    ScenarioId:
+      $ref: './components/parameters.yaml#/ScenarioId'
+    VersionId:
+      $ref: './components/parameters.yaml#/VersionId'
+    CategoryId:
+      $ref: './components/parameters.yaml#/CategoryId'
+    RunId:
+      $ref: './components/parameters.yaml#/RunId'
+    PerPage:
+      $ref: './components/parameters.yaml#/PerPage'
+    Page:
+      $ref: './components/parameters.yaml#/Page'
+    PageSize:
+      $ref: './components/parameters.yaml#/PageSize'
+    PageNumber:
+      $ref: './components/parameters.yaml#/PageNumber'
+
+  responses:
+    Unauthorized:
+      $ref: './components/responses.yaml#/Unauthorized'
+    NotFound:
+      $ref: './components/responses.yaml#/NotFound'
+    Forbidden:
+      $ref: './components/responses.yaml#/Forbidden'
+    ValidationError:
+      $ref: './components/responses.yaml#/ValidationError'
+
+  schemas:
+    Actor:
+      $ref: './components/schemas/common.yaml#/Actor'
+    JsonApiCollection:
+      $ref: './components/schemas/common.yaml#/JsonApiCollection'
+    JsonApiResourceEnvelope:
+      $ref: './components/schemas/common.yaml#/JsonApiResourceEnvelope'
+    Pagination:
+      $ref: './components/schemas/common.yaml#/Pagination'
+    ErrorResponse:
+      $ref: './components/schemas/common.yaml#/ErrorResponse'
+    ValidationErrorResponse:
+      $ref: './components/schemas/common.yaml#/ValidationErrorResponse'
+
+    CatalogItem:
+      $ref: './components/schemas/catalog.yaml#/CatalogItem'
+
+    ScenarioResource:
+      $ref: './components/schemas/scenarios.yaml#/ScenarioResource'
+    ScenarioAttributes:
+      $ref: './components/schemas/scenarios.yaml#/ScenarioAttributes'
+    ScenarioItem:
+      $ref: './components/schemas/scenarios.yaml#/ScenarioItem'
+    ScenarioRequest:
+      $ref: './components/schemas/scenarios.yaml#/ScenarioRequest'
+
+    VersionResource:
+      $ref: './components/schemas/versions.yaml#/VersionResource'
+    VersionAttributes:
+      $ref: './components/schemas/versions.yaml#/VersionAttributes'
+    VersionItem:
+      $ref: './components/schemas/versions.yaml#/VersionItem'
+    VersionRequest:
+      $ref: './components/schemas/versions.yaml#/VersionRequest'
+    VersionStatus:
+      $ref: './components/schemas/versions.yaml#/VersionStatus'
+    VersionRevision:
+      $ref: './components/schemas/versions.yaml#/VersionRevision'
+
+    CategoryResource:
+      $ref: './components/schemas/categories.yaml#/CategoryResource'
+    CategoryAttributes:
+      $ref: './components/schemas/categories.yaml#/CategoryAttributes'
+    CategoryRequest:
+      $ref: './components/schemas/categories.yaml#/CategoryRequest'
+
+    RunnerStartRequest:
+      $ref: './components/schemas/runs.yaml#/RunnerStartRequest'
+    RunnerJumpRequest:
+      $ref: './components/schemas/runs.yaml#/RunnerJumpRequest'
+    RunPayload:
+      $ref: './components/schemas/runs.yaml#/RunPayload'
+    RunState:
+      $ref: './components/schemas/runs.yaml#/RunState'
+    RunStep:
+      $ref: './components/schemas/runs.yaml#/RunStep'
+    RunStatus:
+      $ref: './components/schemas/runs.yaml#/RunStatus'
+    ScenarioRunListResponse:
+      $ref: './components/schemas/runs.yaml#/ScenarioRunListResponse'
+    ScenarioRunAdminItem:
+      $ref: './components/schemas/runs.yaml#/ScenarioRunAdminItem'
+    ScenarioRunUser:
+      $ref: './components/schemas/runs.yaml#/ScenarioRunUser'
+    StoreScenarioRunRequest:
+      $ref: './components/schemas/runs.yaml#/StoreScenarioRunRequest'
+    ContinueRunRequest:
+      $ref: './components/schemas/runs.yaml#/ContinueRunRequest'
+    AdminJumpRunRequest:
+      $ref: './components/schemas/runs.yaml#/AdminJumpRunRequest'
+    SurveySummary:
+      $ref: './components/schemas/runs.yaml#/SurveySummary'
+
+    RoleResource:
+      $ref: './components/schemas/roles.yaml#/RoleResource'
+    RoleAttributes:
+      $ref: './components/schemas/roles.yaml#/RoleAttributes'
+    RoleRelationships:
+      $ref: './components/schemas/roles.yaml#/RoleRelationships'
+    RoleRequest:
+      $ref: './components/schemas/roles.yaml#/RoleRequest'
+
+    ProjectResource:
+      $ref: './components/schemas/projects.yaml#/ProjectResource'
+    ProjectAttributes:
+      $ref: './components/schemas/projects.yaml#/ProjectAttributes'
+    ProjectRequest:
+      $ref: './components/schemas/projects.yaml#/ProjectRequest'
+
+    UserResource:
+      $ref: './components/schemas/users.yaml#/UserResource'
+    UserAttributes:
+      $ref: './components/schemas/users.yaml#/UserAttributes'
+    UserStoreRequest:
+      $ref: './components/schemas/users.yaml#/UserStoreRequest'
+    UserUpdateRequest:
+      $ref: './components/schemas/users.yaml#/UserUpdateRequest'
+
+    UserGroup:
+      $ref: './components/schemas/groups.yaml#/UserGroup'
+    UserGroupAttributes:
+      $ref: './components/schemas/groups.yaml#/UserGroupAttributes'
+    UserGroupRequest:
+      $ref: './components/schemas/groups.yaml#/UserGroupRequest'
+
+    ActionResource:
+      $ref: './components/schemas/actions.yaml#/ActionResource'
+    ActionAttributes:
+      $ref: './components/schemas/actions.yaml#/ActionAttributes'
+    ActionType:
+      $ref: './components/schemas/actions.yaml#/ActionType'
+    ActionRequest:
+      $ref: './components/schemas/actions.yaml#/ActionRequest'
+    TemplateFileActionConfig:
+      $ref: './components/schemas/actions.yaml#/TemplateFileActionConfig'
+    ProxyRequestActionConfig:
+      $ref: './components/schemas/actions.yaml#/ProxyRequestActionConfig'
+    ExcelReportActionConfig:
+      $ref: './components/schemas/actions.yaml#/ExcelReportActionConfig'
+    DirectoryImportActionConfig:
+      $ref: './components/schemas/actions.yaml#/DirectoryImportActionConfig'
+    ActionExecutionRequest:
+      $ref: './components/schemas/actions.yaml#/ActionExecutionRequest'
+    ActionExecutionResponse:
+      $ref: './components/schemas/actions.yaml#/ActionExecutionResponse'
+    ActionRunRequest:
+      $ref: './components/schemas/actions.yaml#/ActionRunRequest'
+    ActionRunResponse:
+      $ref: './components/schemas/actions.yaml#/ActionRunResponse'
+    ActionScheduleRequest:
+      $ref: './components/schemas/actions.yaml#/ActionScheduleRequest'
+    ActionSchedule:
+      $ref: './components/schemas/actions.yaml#/ActionSchedule'
+    ActionScheduleResource:
+      $ref: './components/schemas/actions.yaml#/ActionScheduleResource'
+    ActionRun:
+      $ref: './components/schemas/actions.yaml#/ActionRun'
+    ActionRunListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionRunListResponse'
+
+    ProjectUserRegisterRequest:
+      $ref: './components/schemas/embed-auth.yaml#/ProjectUserRegisterRequest'
+    IframeLaunchTokenResponse:
+      $ref: './components/schemas/embed-auth.yaml#/IframeLaunchTokenResponse'
+    EmbedAuthExchangeRequest:
+      $ref: './components/schemas/embed-auth.yaml#/EmbedAuthExchangeRequest'
+    EmbedAuthRefreshRequest:
+      $ref: './components/schemas/embed-auth.yaml#/EmbedAuthRefreshRequest'
+    EmbedTokenPairResponse:
+      $ref: './components/schemas/embed-auth.yaml#/EmbedTokenPairResponse'
+
+  securitySchemes:
+    BearerAuth:
+      $ref: './components/security-schemes.yaml#/BearerAuth'
+    SharedSecretAuth:
+      $ref: './components/security-schemes.yaml#/SharedSecretAuth'

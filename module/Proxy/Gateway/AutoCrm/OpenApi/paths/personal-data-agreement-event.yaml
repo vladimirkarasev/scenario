@@ -1,0 +1,234 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - personal-data-agreement-event'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: personal-data-agreement-event
+    description: 'Анкеты согласия на обработку персональных данных'
+paths:
+  /personal-data-agreement/event:
+    get:
+      tags:
+        - personal-data-agreement-event
+      summary: 'Поиск последней анкеты согласия на обработку персональных данных'
+      description: 'Поиск последней анкеты согласия на обработку персональных данных'
+      parameters:
+        -
+          name: firstName
+          in: query
+          description: Имя
+          required: true
+          schema:
+            type: string
+        -
+          name: lastName
+          in: query
+          description: Фамилия
+          required: true
+          schema:
+            type: string
+        -
+          name: middleName
+          in: query
+          description: Отчество
+          schema:
+            type: string
+        -
+          name: phone
+          in: query
+          description: 'Номер телефона'
+          required: true
+          schema:
+            type: string
+        -
+          name: email
+          in: query
+          description: E-mail
+          schema:
+            type: string
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          schema:
+            type: string
+        -
+          name: middleNameRequired
+          in: query
+          description: 'Отчество обязательно (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: distributorId
+          in: query
+          description: Дистрибьюция
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Анкета согласия на обработку персональных данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка валидации данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - personal-data-agreement-event
+      summary: 'Добавление новой анкеты согласия на обработку персональных данных'
+      description: 'Добавление новой анкеты согласия на обработку персональных данных'
+      requestBody:
+        description: 'Объект PersonalDataAgreementEventCreateForm'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalDataAgreementEventCreateForm'
+        required: true
+      responses:
+        201:
+          description: 'Анкета согласия на обработку персональных данных'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /personal-data-agreement/event/list:
+    get:
+      tags:
+        - personal-data-agreement-event
+      summary: 'Поиск анкеты согласия на обработку персональных данных'
+      description: 'Поиск анкеты согласия на обработку персональных данных'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: string
+        -
+          name: createdSince
+          in: query
+          description: 'Создана с(в формате ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: createdTill
+          in: query
+          description: 'Создана по(в формате ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: withScan
+          in: query
+          description: 'Наличие скана СОПД(1 - да, 2 - нет)'
+          schema:
+            type: integer
+        -
+          name: 'type[]'
+          in: query
+          description: 'Тип анкеты(1 - продажа, 2 - сервис, 3 - BTL)'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: 'status[]'
+          in: query
+          description: 'Статус анкеты(1 - новая, 2 - на рассмотрении, 3 - Подтверждена, 4 - Отклонена, 7 - Скан отсутствует, 9 - Удалена, 10 - Дубль)'
+          schema:
+            type: array
+            items:
+              type: string
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Анкета согласия на обработку персональных данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/personal-data-agreement/event/{id}':
+    get:
+      tags:
+        - personal-data-agreement-event
+      summary: 'Получение анкеты согласия на обработку персональных данных по ID'
+      description: 'Получение анкеты согласия на обработку персональных данных по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID анкеты'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Анкета согласия на обработку персональных данных'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDataAgreementEventWithAppealStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Нет прав'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

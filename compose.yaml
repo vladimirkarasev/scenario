@@ -1,0 +1,181 @@
+services:
+  laravel:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    container_name: scenario-laravel
+    restart: unless-stopped
+    user: "1000:1000"
+    command: ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+    working_dir: /var/www/html
+    ports:
+      - "8000:8080"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      centrifugo:
+        condition: service_started
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: scenario
+      DB_USERNAME: scenario
+      DB_PASSWORD: scenario
+      OCTANE_SERVER: roadrunner
+      RR_HTTP_HOST: 0.0.0.0
+      RR_HTTP_PORT: 8080
+      RR_RPC_PORT: 6001
+      ENABLE_QUEUE_WORKER: "1"
+      ENABLE_SCHEDULER: "1"
+      BROADCAST_CONNECTION: centrifugo
+      BROADCAST_DRIVER: centrifugo
+      CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: scenario-centrifugo-secret
+      CENTRIFUGO_API_KEY: scenario-centrifugo-api-key
+      CENTRIFUGO_URL: http://centrifugo:8000
+      CENTRIFUGO_WS_URL: ws://localhost:8002/connection/websocket
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOG_CHANNEL: stack
+      LOG_STACK: single,socket
+      LOG_SOCKET_URL: buggregator:9913
+      LOG_LEVEL: debug
+      LOG_DEPRECATIONS_CHANNEL: stack
+      VAR_DUMPER_FORMAT: server
+      VAR_DUMPER_SERVER: tcp://buggregator:9912
+      MAIL_MAILER: smtp
+      MAIL_HOST: buggregator
+      MAIL_PORT: 1025
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.scenario.rule=Host(`scenario.localhost`)
+      - traefik.http.routers.scenario.entrypoints=web
+      - traefik.http.services.scenario.loadbalancer.server.port=8080
+    networks:
+      - scenario
+
+  redis:
+    image: redis:7-alpine
+    container_name: scenario-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - scenario
+
+  centrifugo:
+    image: centrifugo/centrifugo:v6
+    container_name: scenario-centrifugo
+    restart: unless-stopped
+    command: ["centrifugo", "-c", "/centrifugo/config.json"]
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./docker/centrifugo/config.json:/centrifugo/config.json:ro
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.scenario-centrifugo.rule=Host(`centrifugo.localhost`)
+      - traefik.http.routers.scenario-centrifugo.entrypoints=web
+      - traefik.http.services.scenario-centrifugo.loadbalancer.server.port=8000
+    networks:
+      - scenario
+
+  postgres:
+    image: postgres:18.3
+    container_name: scenario-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: scenario
+      POSTGRES_USER: scenario
+      POSTGRES_PASSWORD: scenario
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scenario -d scenario"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - scenario
+
+  traefik:
+    image: traefik:v3.4
+    container_name: scenario-traefik
+    restart: unless-stopped
+    profiles:
+      - dev
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - ./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks:
+      - scenario
+
+  buggregator:
+    image: ghcr.io/buggregator/server:latest
+    container_name: scenario-buggregator
+    restart: unless-stopped
+    profiles:
+      - dev
+    expose:
+      - "8000"
+      - "9912"
+      - "9913"
+      - "1025"
+    ports:
+      - "8001:8000"
+      - "1025:1025"
+      - "9912:9912"
+      - "9913:9913"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.buggregator.rule=Host(`buggregator.localhost`)
+      - traefik.http.routers.buggregator.entrypoints=web
+      - traefik.http.services.buggregator.loadbalancer.server.port=8000
+    networks:
+      - scenario
+
+  node:
+    image: node:22-alpine
+    container_name: scenario-node
+    profiles:
+      - tools
+    working_dir: /app
+    user: "1000:1000"
+    volumes:
+      - ./:/app
+    ports:
+      - "5173:5173"
+    networks:
+      - scenario
+
+volumes:
+  postgres_data:
+
+networks:
+  scenario:
+    driver: bridge

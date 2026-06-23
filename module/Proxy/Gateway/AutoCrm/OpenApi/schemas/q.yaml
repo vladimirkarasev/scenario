@@ -1,0 +1,65 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Код
+        question:
+          type: string
+          description: 'Текст вопроса'
+        answer:
+          type: string
+          description: Ответ
+      description: Вопрос
+    QuestionaryEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID анкеты (генерируется автоматически)'
+        questionary_id:
+          type: integer
+          description: 'ID шаблона анкеты'
+        event_id:
+          type: integer
+          description: 'ID события рабочего листа'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        occurred:
+          type: string
+          description: 'Дата проведения в формате dd.MM.yyyy HH:mm:ss'
+        scheduled:
+          type: string
+          description: 'Дата планирования в формате dd.MM.yyyy HH:mm:ss'
+        created:
+          type: string
+          description: 'Дата создания в формате dd.MM.yyyy HH:mm:ss'
+        sends:
+          type: array
+          description: 'список отправок анкеты'
+          items:
+            $ref: '#/components/schemas/QuestionaryEventSend'
+      description: 'Модель Анкета'
+    QuestionaryEventSend:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID отправки анкеты (генерируется автоматически)'
+        type_id:
+          type: integer
+          description: 'ID типа отправки'
+        type_name:
+          type: string
+          description: 'Наименование типа отправки'
+        url:
+          type: string
+          description: 'Внешняя ссылка на анкету'
+        created:
+          type: string
+          description: 'Дата создания в формате dd.MM.yyyy HH:mm:ss'
+      description: 'Модель Отправка Анкеты'

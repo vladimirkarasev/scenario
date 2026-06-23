@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - model'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: model
+    description: 'Управление моделями'
+paths:
+  /model:
+    get:
+      tags:
+        - model
+      summary: 'Получение списка моделей'
+      description: 'Получение списка моделей'
+      parameters:
+        -
+          name: is_recent
+          in: query
+          description: 'признак активности модели 1 - только модели которые выпускаются (по умолчанию), 0 - модели, которые не выпускаются, пустое значение - все модели'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: country_id
+          in: query
+          description: 'ID страны'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список моделей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Model'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/model/{id}':
+    get:
+      tags:
+        - model
+      summary: 'Получение модели по ID'
+      description: 'Получение модели по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id модели'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую * **country_ids** - Список ID стран'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает модель по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

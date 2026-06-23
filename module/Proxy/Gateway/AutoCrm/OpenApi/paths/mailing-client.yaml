@@ -1,0 +1,121 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - mailing-client'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: mailing-client
+    description: 'Письма по e-mail рассылкам'
+paths:
+  /mailing/client:
+    get:
+      tags:
+        - mailing-client
+      summary: 'Получение списка писем почтовой рассылки'
+      description: 'Получение списка писем почтовой рассылки'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID письма'
+          schema:
+            type: integer
+        -
+          name: broadcast_id
+          in: query
+          description: 'ID рассылки'
+          schema:
+            type: integer
+        -
+          name: client_id
+          in: query
+          description: 'ID клиента дилера'
+          schema:
+            type: integer
+        -
+          name: common_client_id
+          in: query
+          description: 'ID клиента дистрибьютора'
+          schema:
+            type: integer
+        -
+          name: object_type
+          in: query
+          description: 'Тип сообщения'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+            description: '1 - Массовая рассылка, 2 - Триггерная рассылка, 3 - Комментарий к лиду, 4 - Опрос, 5 - Анкета'
+        -
+          name: createdSince
+          in: query
+          description: 'Дата создания с (ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: createdTill
+          in: query
+          description: 'Дата создания по (ГГГГ-ММ-ДД)'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список писем почтовой рассылки'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/mailing/client/{id}':
+    get:
+      tags:
+        - mailing-client
+      summary: 'Получение письма по ID'
+      description: 'Получение письма по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID письма'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает письмо по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

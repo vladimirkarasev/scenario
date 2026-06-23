@@ -1,0 +1,139 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - service-spare-complaint'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: service-spare-complaint
+    description: 'Рекламации ЗЧ'
+paths:
+  '/service/spare-complaint/add-document/{irn}':
+    post:
+      tags:
+        - service-spare-complaint
+      summary: 'Прикрепление документов к рекламации ЗЧ'
+      description: 'Прикрепление документов к рекламации ЗЧ'
+      parameters:
+        -
+          name: irn
+          in: path
+          description: 'Код рекламации'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  description: Файл
+                  format: binary
+      responses:
+        200:
+          description: 'Документ успешно прикреплен к рекламации ЗЧ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareComplaintMedia'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/service/spare-complaint/change-status/{irn}':
+    post:
+      tags:
+        - service-spare-complaint
+      summary: 'Изменение статуса рекламации ЗЧ'
+      description: 'Изменение статуса рекламации ЗЧ'
+      parameters:
+        -
+          name: irn
+          in: path
+          description: 'Код рекламации'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Объект SpareComplaintStatusForm'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareComplaintStatusForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: 'Успешный результат'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/spare-complaint/delete-document/{id}':
+    delete:
+      tags:
+        - service-spare-complaint
+      summary: 'Удаление документа в рекламации ЗЧ'
+      description: 'Удаление документа в рекламации ЗЧ'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID документа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление по ID'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

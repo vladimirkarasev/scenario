@@ -1,0 +1,144 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Nami:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи'
+        created_at:
+          type: string
+          description: 'Дата создания (дд.мм.гггг чч:мм)'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        dealer_name:
+          type: string
+          description: 'Юридическое наименование дилера'
+        dealer_marketing_name:
+          type: string
+          description: 'Маркетинговое наименование дилера'
+        brand_name:
+          type: string
+          description: 'Именование бренда'
+        model_name:
+          type: string
+          description: 'Именование модели'
+        vin:
+          type: string
+          description: VIN
+        number_lot:
+          type: string
+          description: 'Номер партии'
+        mileage:
+          type: integer
+          description: Пробег
+        date_call:
+          type: string
+          description: 'Дата звонка (дд.мм.гггг)'
+        images:
+          type: array
+          description: 'Список изображений (где ключом выступает ракурс)'
+          items:
+            type: string
+        archive:
+          type: string
+          description: 'Ссылка на архив файлов'
+      description: 'Отчет НАМИ'
+    NearestContact:
+      required:
+        - code
+        - scheduled
+        - worksheet_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID контакта (генерируется автоматически)'
+        code:
+          type: string
+          description: 'внешний идентификатор'
+        opened:
+          type: string
+          description: 'Время создания выполнения контакта в формате dd.MM.yyyy HH:mm'
+        closed:
+          type: string
+          description: 'Время выполнения контакта в формате dd.MM.yyyy HH:mm'
+        scheduled:
+          type: string
+          description: 'Планируемое время контакта в формате dd.MM.yyyy HH:mm'
+        status:
+          type: integer
+          description: 'Код статуса контакта. 1 - Запланирован, 2 - Совершен, 3 - Отменен'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        scheduled_message:
+          type: string
+          description: 'Комментарий во время планирования'
+        closed_message:
+          type: string
+          description: 'Комментарий во время выполнения'
+        created:
+          type: string
+          description: 'Дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'Дата изменения в формате dd.MM.yyyy HH:mm:ss'
+      description: 'Модель Следующего контакта'
+    Need:
+      required:
+        - code
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID потребности (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        code:
+          type: string
+          description: 'Код потребности/автомобиля во внешней системе'
+        model_id:
+          type: integer
+          description: 'ID модели. Поле обязательно если не передано одно из следующих полей model_alias_id, job, vin, vin_manufacturer'
+        model_alias_id:
+          type: integer
+          description: 'ID алиас модели. Поле обязательно если не передано одно из следующих полей model_id, job, vin, vin_manufacturer'
+        model_year_id:
+          type: integer
+          description: 'ID модельного года'
+        version:
+          type: string
+          description: Комплектация
+        color:
+          type: string
+          description: Цвет
+        vin:
+          type: string
+          description: 'VIN. Поле обязательно если не передано одно из следующих полей model_id, model_alias_id, job, vin_manufacturer'
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя. Поле обязательно если не передано одно из следующих полей model_id, model_alias_id, job, vin'
+        job:
+          type: string
+          description: 'JOB. Поле обязательно если не передано одно из следующих полей model_id, model_alias_id, vin, vin_manufacturer'
+        is_test_drive:
+          type: integer
+          description: 'Машина для тест драйвов'
+        is_main:
+          type: integer
+          description: 'Главная потребность'
+      description: 'Модель Потребность'
+    NeedOffer:
+      type: object
+      description: 'Коммерческое предложение'
+      properties:
+        file_name:
+          type: string
+          description: 'Наименование файла'
+        file:
+          type: string
+          description: 'Файл коммерческого предложения преобразованный в строку и закодированный в base64'

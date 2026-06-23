@@ -1,0 +1,296 @@
+RunnerStartRequest:
+  type: object
+  description: >
+    Необходимо передать ровно один из трёх параметров: `scenario_id`,
+    `version_id` или `alias`.
+  properties:
+    scenario_id:
+      type: string
+      format: uuid
+      nullable: true
+      description: UUID сценария — будет выбрана активная версия
+    version_id:
+      type: string
+      format: uuid
+      nullable: true
+      description: UUID конкретной версии сценария
+    alias:
+      type: string
+      maxLength: 255
+      nullable: true
+      description: Строковый псевдоним сценария
+    context:
+      type: object
+      nullable: true
+      description: Начальные переменные контекста прогона
+      additionalProperties: true
+      example:
+        user_name: Иван
+        score: 10
+    user_data:
+      type: object
+      nullable: true
+      description: Произвольные пользовательские данные (сохраняются в прогоне)
+      additionalProperties: true
+
+RunnerJumpRequest:
+  type: object
+  properties:
+    input:
+      type: object
+      nullable: true
+      description: Пользовательский ввод для текущего узла
+      additionalProperties: true
+      example:
+        answer: Да
+    selected_target_node_id:
+      type: string
+      nullable: true
+      description: ID узла для явного перехода (используется в узлах с ручным выбором ветки)
+
+RunPayload:
+  type: object
+  required: [run]
+  properties:
+    run:
+      $ref: '#/RunState'
+
+RunState:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: UUID прогона
+    scenario_id:
+      type: string
+      format: uuid
+    scenario_name:
+      type: string
+      nullable: true
+    scenario_version_id:
+      type: string
+      format: uuid
+      nullable: true
+    scenario_version_revision_id:
+      type: string
+      format: uuid
+    scenario_version_name:
+      type: string
+      nullable: true
+    scenario_version_created_at:
+      type: string
+      format: date-time
+      nullable: true
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    current_node_id:
+      type: string
+      nullable: true
+      description: ID текущего (активного) узла
+    status:
+      $ref: '#/RunStatus'
+    context:
+      type: object
+      description: Текущий контекст прогона (переменные)
+      additionalProperties: true
+    current_node:
+      type: object
+      nullable: true
+      description: Сырые данные текущего узла из графа
+    rendered:
+      type: object
+      nullable: true
+      description: Отрендеренное содержимое текущего узла (поля, кнопки и т.д.)
+    steps:
+      type: array
+      description: История пройденных шагов (от новых к старым)
+      items:
+        $ref: '#/RunStep'
+
+RunStep:
+  type: object
+  properties:
+    id:
+      type: integer
+    node_id:
+      type: string
+    node_type:
+      type: string
+      description: Тип узла (`block`, `condition`, `end` и др.)
+    input:
+      type: object
+      nullable: true
+      description: Данные, которые пользователь ввёл при прохождении узла
+      additionalProperties: true
+    output:
+      type: object
+      nullable: true
+      description: Вычисленный результат узла
+      additionalProperties: true
+    rendered:
+      type: object
+      nullable: true
+      description: Отрендеренное состояние узла на момент прохождения
+    entered_at:
+      type: string
+      format: date-time
+      nullable: true
+    exited_at:
+      type: string
+      format: date-time
+      nullable: true
+
+RunStatus:
+  type: string
+  enum: [active, completed, failed]
+  description: >
+    - `active` — прогон в процессе
+    - `completed` — прогон завершён
+    - `failed` — прогон прерван по ошибке или по превышению лимита шагов
+
+ScenarioRunListResponse:
+  type: object
+  required: [runs, pagination, total]
+  properties:
+    runs:
+      type: array
+      items:
+        $ref: '#/ScenarioRunAdminItem'
+    pagination:
+      $ref: './common.yaml#/Pagination'
+    total:
+      type: integer
+      description: Общее число прогонов
+
+ScenarioRunAdminItem:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    scenario_id:
+      type: string
+      format: uuid
+    scenario_name:
+      type: string
+      nullable: true
+    scenario_version_id:
+      type: string
+      format: uuid
+      nullable: true
+    scenario_version_created_at:
+      type: string
+      format: date-time
+      nullable: true
+    current_node_id:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/RunStatus'
+    created_by:
+      $ref: '#/ScenarioRunUser'
+    updated_by:
+      $ref: '#/ScenarioRunUser'
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ScenarioRunUser:
+  type: object
+  nullable: true
+  properties:
+    id:
+      type: integer
+    name:
+      type: string
+      nullable: true
+    fio:
+      type: string
+      nullable: true
+    login:
+      type: string
+      nullable: true
+
+StoreScenarioRunRequest:
+  type: object
+  required: [scenario_id]
+  properties:
+    scenario_id:
+      type: string
+      format: uuid
+      description: UUID сценария (обязателен)
+    scenario_version_id:
+      type: string
+      format: uuid
+      nullable: true
+      description: UUID конкретной версии (если не передан — выбирается активная)
+    context:
+      type: object
+      nullable: true
+      description: Начальный контекст прогона
+      additionalProperties: true
+    user_data:
+      type: object
+      nullable: true
+      description: Произвольные пользовательские данные
+      additionalProperties: true
+
+ContinueRunRequest:
+  type: object
+  properties:
+    input:
+      type: object
+      nullable: true
+      description: Пользовательский ввод для текущего узла
+      additionalProperties: true
+    selected_target_node_id:
+      type: string
+      nullable: true
+      description: ID целевого узла при ручном выборе перехода
+
+AdminJumpRunRequest:
+  type: object
+  required: [node_id]
+  properties:
+    node_id:
+      type: string
+      description: ID узла, к которому нужно перейти
+
+SurveySummary:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: UUID прогона
+    scenario_id:
+      type: string
+      format: uuid
+    scenario_name:
+      type: string
+      nullable: true
+    current_node_id:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/RunStatus'
+    created_by:
+      $ref: './common.yaml#/Actor'
+    updated_by:
+      $ref: './common.yaml#/Actor'
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true

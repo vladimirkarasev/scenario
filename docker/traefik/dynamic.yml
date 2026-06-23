@@ -1,0 +1,35 @@
+http:
+  routers:
+    scenario:
+      rule: Host(`scenario.localhost`)
+      entryPoints:
+        - web
+      service: scenario
+
+    scenario-centrifugo:
+      rule: Host(`centrifugo.localhost`)
+      entryPoints:
+        - web
+      service: scenario-centrifugo
+
+    buggregator:
+      rule: Host(`buggregator.localhost`)
+      entryPoints:
+        - web
+      service: buggregator
+
+  services:
+    scenario:
+      loadBalancer:
+        servers:
+          - url: http://scenario-laravel:8080
+
+    scenario-centrifugo:
+      loadBalancer:
+        servers:
+          - url: http://scenario-centrifugo:8000
+
+    buggregator:
+      loadBalancer:
+        servers:
+          - url: http://scenario-buggregator:8000

@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - post-service'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: post-service
+    description: 'Получение списка постов'
+paths:
+  /service/post-service:
+    get:
+      tags:
+        - post-service
+      description: 'Получение списка постов'
+      summary: 'Получение списка постов'
+      parameters:
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: dealer_id
+          in: query
+          description: Дилер
+          schema:
+            type: string
+        -
+          name: type
+          in: query
+          description: Тип
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: integer
+        -
+          name: show_in_schedule
+          in: query
+          description: 'Показывать в журнале записи'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Список постов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostService'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/service/post-service/{id}':
+    get:
+      tags:
+        - post-service
+      description: 'Получение поста по ID'
+      summary: 'Получение поста по ID'
+      parameters:
+        -
+          in: path
+          name: id
+          description: 'id поста'
+          schema:
+            type: integer
+          required: true
+      responses:
+        200:
+          description: 'Возвращает пост по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostService'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

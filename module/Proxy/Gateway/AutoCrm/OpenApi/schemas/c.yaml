@@ -1,0 +1,1512 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Call:
+      required:
+        - call_at
+        - dest
+        - src
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код звонка (генерируется автоматически)'
+        src:
+          type: string
+          description: 'Кто звонил'
+        dest:
+          type: string
+          description: 'Кому звонили'
+        call_at:
+          type: string
+          description: 'Время звонка в формате yyyy-MM-dd HH:mm:ss'
+        answer_at:
+          type: string
+          description: 'Время когда на звонок ответили в формате yyyy-MM-dd HH:mm:ss'
+        hangup_at:
+          type: string
+          description: 'Время звонок завершили в формате yyyy-MM-dd HH:mm:ss'
+        record_url:
+          type: string
+          description: 'Ссылка на запись разговора'
+        record_base64:
+          type: string
+          description: 'Запись разговора в формате base64'
+        user_login:
+          type: string
+          description: 'Логин пользователя в DNM в формате x@x.x'
+      description: 'Модель бренд автомобиля'
+      example:
+        id: 1
+        src: '+79001234567'
+        dest: '+79001234568'
+        call_at: '2019-01-02 23:59:59'
+    Campaign:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID кампании (генерируется автоматически)'
+        name:
+          type: string
+          description: Название
+        descr:
+          type: string
+          description: Описание
+        is_deleted:
+          type: integer
+          description: 'Удален или нет'
+      description: 'Модель Кампания'
+    CancelReason:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID источника (генерируется автоматически)'
+        parent_id:
+          type: integer
+          description: 'ID родительского причины'
+        name:
+          type: string
+          description: 'Наименование причины'
+      description: 'Модель Причина отказа'
+    Car:
+      required:
+        - brand_id
+        - code
+        - model_alias_id
+        - model_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID потребности (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        type:
+          type: string
+          description: 'Тип need - потребность, vehicle - автомобиль'
+        code:
+          type: string
+          description: 'Код потребности/автомобиля во внешней системе'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        model_alias_id:
+          type: integer
+          description: 'ID алиас модели'
+        model_year_id:
+          type: integer
+          description: 'ID модельного года'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        version:
+          type: string
+          description: Комплектация
+        color:
+          type: string
+          description: Цвет
+        vin:
+          type: string
+          description: VIN
+        vin_manufacturer:
+          type: string
+          description: 'VIN производителя'
+        job:
+          type: string
+          description: JOB
+        mileage:
+          type: integer
+          description: Пробег
+        reg_number:
+          type: string
+          description: 'Государственный регистрационный номер (формат А777АА77)'
+        is_test_drive:
+          type: integer
+          description: 'Машина для тест драйвов'
+      description: 'Модель Потребность'
+    Channel:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID канала (генерируется автоматически)'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Название
+        status:
+          type: integer
+          description: 'Состояние 0 - Активна, 1000 - удалено'
+      description: 'Модель Канал'
+    CheckList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Чек-листа'
+        name:
+          type: string
+          description: Наименование
+      description: Чек-лист
+    CheckListAttachment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID файла чек-листа'
+        name:
+          type: string
+          description: Название
+        description:
+          type: string
+          description: Описание
+        url:
+          type: string
+          description: url
+        thumbnail_url:
+          type: string
+          description: 'url превью'
+        mimetype:
+          type: string
+          description: mimetype
+        type:
+          type: string
+          description: 'Тип 0 - Фото, 1 - Другое'
+      description: 'Файлы чек-листа'
+    CheckListBlock:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Чек-листа'
+        name:
+          type: string
+          description: Наименование
+        questions:
+          type: array
+          description: Вопросы
+          items:
+            $ref: '#/components/schemas/CheckListQuestion'
+      description: 'Блок чек-листа'
+    CheckListQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Вопроса'
+        name:
+          type: string
+          description: Вопрос
+        point:
+          type: string
+          description: Балл
+        is_required_comment:
+          type: integer
+          description: 'Требует комментария'
+        is_required_attachment:
+          type: integer
+          description: 'Требует приложения'
+        is_important:
+          type: integer
+          description: Важный
+        is_only_for_distributor:
+          type: integer
+          description: 'Только для дистрибьютора'
+        is_display_showcase:
+          type: integer
+          description: 'Выводить на витрину'
+        answer:
+          type: string
+          description: 'Ответ 1 - Да, 0 - Нет'
+        attachments:
+          type: array
+          description: Файлы
+          items:
+            $ref: '#/components/schemas/CheckListAttachment'
+      description: 'Вопрос чек-листа'
+    City:
+      required:
+        - country_id
+        - id
+        - name
+        - region_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+          example: 1
+        name:
+          maxLength: 255
+          type: string
+          description: 'Название региона'
+          example: Абаза
+        english_name:
+          maxLength: 255
+          type: string
+          description: 'Название региона (англ.)'
+          example: Abaza
+        timezone:
+          maxLength: 255
+          type: string
+          description: 'Часовой пояс'
+          example: Asia/Krasnoyarsk
+        country_id:
+          type: integer
+          description: 'Идентификатор страны'
+          example: 1
+        region_id:
+          type: integer
+          description: 'Идентификатор региона'
+          example: 29
+        lat:
+          type: number
+          description: Широта
+          example: 64.2479758
+        lng:
+          type: number
+          description: Долгота
+          example: 95.1104176
+      description: 'Модель региона'
+    ClientCommonVehicle:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        common_vehicle_id:
+          type: integer
+          description: 'ID авто'
+        own_begin:
+          type: string
+          description: 'Начало владения'
+        own_end:
+          type: string
+          description: 'Начало владения'
+        is_confirmed:
+          type: integer
+          description: 'Признак подтверждения владения (0 - не подтверждено, 1 - подтверждено, 2 - ожидает подтверждения)'
+        confirmed_at:
+          type: string
+          description: 'Дата подтверждения владения'
+        vehicle_reg_number:
+          type: string
+          description: 'Регистр. номер'
+      description: 'Модель связи клиента дилера и автомобиля дистрибьютора'
+    ClientCommonVehicleForm:
+      required:
+        - clientId
+        - vin
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        clientId:
+          type: integer
+          description: 'Идентификатор клиента'
+        vin:
+          type: integer
+          description: 'Vin автомобиля'
+        regNumber:
+          type: string
+          description: 'Регистр. номер'
+        ownBegin:
+          type: string
+          description: 'Начало владения (формат dd.mm.yyyy)'
+        isConfirmed:
+          type: integer
+          description: 'Признак подтверждения владения (0 - не подтверждено, 1 - подтверждено, 2 - ожидает подтверждения)'
+        files:
+          type: array
+          description: 'Массив файлов (POST, multipart/form-data)'
+      description: 'Модель формы связи клиента дилера и автомобиля дистрибьютора'
+    ClientComplaint:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+      description: 'Модель Состояние'
+    ClientField:
+      required:
+        - client_id
+        - field_id
+        - value
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID значения атрибута (генерируется автоматически)'
+        field_id:
+          type: integer
+          description: 'Id атрибута'
+        client_id:
+          type: integer
+          description: 'Id клиента'
+        value:
+          type: string
+          description: 'значение атрибута'
+      description: 'Модель Значение атрибута клиента'
+    ClientIdentifier:
+      required:
+        - client_id
+        - type
+        - value
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID значения атрибута (генерируется автоматически)'
+        type:
+          type: integer
+          description: 'Тип идентификатора 1 - GoogleID, 2 - YandexID, 3 - GITID, 4 - GWM ID, 5 - Номер заказа в ЛК, 6 - Серийный номер оплаты, 7 - Ссылка на профиль Telegram, 8 - Ссылка на профиль ВКонтакте, 9 - Ссылка на профиль Одноклассники'
+        client_id:
+          type: integer
+          description: 'Id клиента'
+        value:
+          type: string
+          description: 'значение атрибута'
+      description: 'Модель Идентификатор клиента в Internet'
+    ClientPhone:
+      required:
+        - id
+        - number
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        number:
+          type: string
+          description: 'Номер телефона +70000000000'
+        type:
+          type: integer
+          description: 'Тип телефона'
+      description: Телефон
+    ClientRequest:
+      required:
+        - code
+        - name
+      type: object
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'
+        type:
+          type: integer
+          description: 'Тип клиента. Значение по умолчанию - 0'
+        name:
+          type: string
+          description: 'Имя клиента физ. лица или представителя юр. лица'
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        city_id:
+          type: string
+          description: 'ID города'
+        phone_hash:
+          type: string
+          description: "md5 хеш телефона длиной 32 символа, результат функции md5('+79991234567')"
+        email:
+          type: string
+          description: Email
+        email_hash:
+          type: string
+          description: "md5 хеш email адреса длиной 32 символа, результат функции md5('support@autocrm.ru')"
+        address:
+          type: string
+          description: Адрес
+        description:
+          type: string
+          description: 'Описание, комментарий'
+        sex:
+          type: boolean
+          description: Пол
+          enum:
+            - false
+        is_potential:
+          type: boolean
+          description: '1 - потенциальный клиент, 0 - уже что-то покупал'
+        code:
+          type: string
+          description: 'Код клиента во внешней системе'
+        client_confirm_communication:
+          type: boolean
+          description: 'согласие на отправку смс и других уведомлений'
+          enum:
+            - false
+        may_process_personal_data:
+          type: boolean
+          description: 'Признак согласия на обработку персональных данных'
+        birthday:
+          type: string
+          description: 'День рождения в формате dd.MM.yyyy'
+        passportType:
+          type: integer
+          description: 'Тип документа (1 - Паспорт РФ, 2 - Загран паспорт, 3 - Удостоверение личности РК)'
+        passportSeries:
+          type: string
+          description: 'Серия паспорта (ограничение 4 символа)'
+        passportNumber:
+          type: string
+          description: 'Номер паспорта (ограничение 6 символов)'
+        passportIdCardNumber:
+          type: string
+          description: 'Номер удостоверения личности (ограничение 9 символов). Используется при passportType = 3'
+        passportIin:
+          type: string
+          description: 'ИИН (ограничение 12 символов). Используется при passportType = 3'
+        passportDateIssue:
+          type: string
+          description: 'Дата выдачи (в формате dd.mm.yyyy)'
+        passportCode:
+          type: string
+          description: 'Код подразделения (ограничение 10 символов)'
+        passportAuthority:
+          type: string
+          description: 'Кем выдан паспорт'
+        driverLicenseNumber:
+          type: string
+          description: 'Номер ВУ (10 символов)'
+        driverLicenseIssuedAt:
+          type: string
+          description: 'Дата выдачи ВУ (в формате dd.mm.yyyy)'
+        driverLicenseIssuedBy:
+          type: string
+          description: 'Кем выдано ВУ'
+        company_legal_form:
+          type: string
+          description: 'Форма собственности'
+          enum:
+            - ООО
+            - АО
+            - ОАО
+            - ТОО
+            - ИП
+            - СООО
+            - ЗАО
+        company_name:
+          type: string
+          description: 'Название юридического лица  (Обязательно если тип: Юр лицо)'
+        company_address:
+          type: string
+          description: 'Адрес юридического лица'
+        company_inn:
+          type: string
+          description: 'ИНН юридического лица'
+        company_kpp:
+          type: string
+          description: 'КПП юридического лица'
+        company_okpo:
+          type: string
+          description: 'ОКПО юридического лица'
+        company_okved:
+          type: string
+          description: 'ОКВЕД юридического лица'
+        company_ogrn:
+          type: string
+          description: 'ОГРН/ОГРНИП (13 или 15 символов)'
+        company_checking_account:
+          type: string
+          description: 'Расчетный счет'
+        company_correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        company_bic:
+          type: string
+          description: БИК
+        contactPosition:
+          type: string
+          description: 'Должность контактного лица'
+        contactDocumentOrder:
+          type: string
+          description: 'Номер документа'
+        contactDocumentDate:
+          type: string
+          description: 'Дата документа'
+        contactDocumentName:
+          type: string
+          description: 'Наименование документа'
+        company_email:
+          type: string
+          description: 'Email юридического лица'
+        cpd:
+          type: string
+          description: 'Скан согласия на обработку ПД'
+        encode_cpd_img:
+          type: string
+          description: 'Картинка преобразованная в строку закодированная в base64'
+        unsubscribeIds:
+          type: array
+          description: 'Массив ID подписок от которых необходимо отписать клиента'
+          items:
+            type: integer
+        phones:
+          type: array
+          description: 'Массив всех телефонов клиента. Переданный массив полностью заменяет существующие данные'
+          items:
+            required:
+              - id
+              - phone
+              - type
+            type: object
+            properties:
+              number:
+                type: string
+                description: 'Номер телефона +70000000000'
+              type:
+                type: integer
+                description: 'Тип телефона'
+            description: 'Модель Телефон клиента дистрибьютора'
+        activity_id:
+          type: integer
+          description: 'Сфера деятельности'
+        tagIds:
+          type: array
+          description: 'Список id тегов'
+          items:
+            type: integer
+        identifierList:
+          type: array
+          description: 'Список идентификаторов клиента в Интернет'
+          items:
+            type: object
+            properties:
+              type:
+                type: integer
+                description: 'Тип идентификатора'
+              value:
+                type: string
+                description: 'Значение идентификатора'
+        personalDataList:
+          type: array
+          description: 'Список согласий клиента'
+          items:
+            type: object
+            properties:
+              type_id:
+                type: integer
+                description: 'Id типа согласия'
+              status_id:
+                type: integer
+                description: 'Id статуса согласия'
+                enum:
+                  - '1 - Активно'
+                  - '2 - Неактивно'
+              startedAt:
+                type: string
+                description: 'Дата получения согласия (в формате dd.mm.yyyy)'
+              expiredAt:
+                type: string
+                description: 'Дата окончания действия согласия (в формате dd.mm.yyyy)'
+        source:
+          type: integer
+          description: 'Источник (0 - Клиент дилера, 1 - Импорт, 2 - Вручную, 3 - Лид, 4 - Анкета СОПД)'
+      description: 'Модель Клиент'
+    ClientResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код клиента (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'
+        type:
+          type: integer
+          description: 'Тип клиента. Значение по умолчанию - 0'
+        city_id:
+          type: string
+          description: 'ID города'
+        block:
+          type: string
+          description: 'Блок (Адрес)'
+        street:
+          type: string
+          description: Улица
+        region_id:
+          type: integer
+          description: 'ID региона'
+        postal_code:
+          type: string
+          description: 'Почтовый код'
+        name:
+          type: string
+          description: 'Имя клиента физ. лица или представителя юр. лица'
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        phone_hash:
+          type: string
+          description: "md5 хеш телефона длиной 32 символа, результат функции md5('+79991234567')"
+        phone:
+          type: string
+          description: 'Телефон клиента'
+        house:
+          type: string
+          description: 'Дом (Адрес)'
+        flat:
+          type: string
+          description: 'Квартира (Адрес)'
+        country_id:
+          type: integer
+          description: 'ID страны'
+        google_id:
+          type: string
+          description: 'Гугл ID'
+        company_phone:
+          type: string
+          description: 'Телефон компании'
+        email:
+          type: string
+          description: Email
+        email_hash:
+          type: string
+          description: "md5 хеш email адреса длиной 32 символа, результат функции md5('support@autocrm.ru')"
+        address:
+          type: string
+          description: Адрес
+        description:
+          type: string
+          description: 'Описание, комментарий'
+        sex:
+          type: boolean
+          description: Пол
+          enum:
+            - false
+        is_potential:
+          type: boolean
+          description: '1 - потенциальный клиент, 0 - уже что-то покупал'
+        code:
+          type: string
+          description: 'Код клиента во внешней системе'
+        client_confirm_communication:
+          type: boolean
+          description: 'согласие на отправку смс и других уведомлений'
+          enum:
+            - false
+        may_process_personal_data:
+          type: boolean
+          description: 'Признак согласия на обработку персональных данных'
+        birthday:
+          type: string
+          description: 'День рождения в формате dd.MM.yyyy'
+        created:
+          type: string
+          description: 'дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'дата изменения в формате dd.MM.yyyy HH:mm:ss'
+        passportType:
+          type: integer
+          description: 'Тип документа (1 - Паспорт РФ, 2 - Загран паспорт, 3 - Удостоверение личности РК)'
+        passportSeries:
+          type: string
+          description: 'Серия паспорта (ограничение 4 символа)'
+        passportNumber:
+          type: string
+          description: 'Номер паспорта (ограничение 6 символов)'
+        passportIdCardNumber:
+          type: string
+          description: 'Номер удостоверения личности (ограничение 9 символов). Используется при passportType = 3'
+        passportIin:
+          type: string
+          description: 'ИИН (ограничение 12 символов). Используется при passportType = 3'
+        passportDateIssue:
+          type: string
+          description: 'Дата выдачи (в формате dd.mm.yyyy)'
+        passportCode:
+          type: string
+          description: 'Код подразделения (ограничение 10 символов)'
+        passportAuthority:
+          type: string
+          description: 'Кем выдан паспорт'
+        driverLicenseNumber:
+          type: string
+          description: 'Номер ВУ (10 символов)'
+        driverLicenseIssuedAt:
+          type: string
+          description: 'Дата выдачи ВУ (в формате dd.mm.yyyy)'
+        driverLicenseIssuedBy:
+          type: string
+          description: 'Кем выдано ВУ'
+        fields:
+          type: array
+          description: 'Значения дополнительных атрибутов клиента'
+          items:
+            $ref: '#/components/schemas/ClientField'
+        company_legal_form:
+          type: string
+          description: 'Форма собственности'
+          enum:
+            - ООО
+            - АО
+            - ОАО
+            - ТОО
+            - ИП
+            - СООО
+            - ЗАО
+        company_name:
+          type: string
+          description: 'Название юридического лица  (Обязательно если тип: Юр лицо)'
+        company_country_id:
+          type: integer
+          description: 'ID страны юр. компании'
+        company_address:
+          type: string
+          description: 'Адрес юридического лица'
+        company_inn:
+          type: string
+          description: 'ИНН юридического лица'
+        company_kpp:
+          type: string
+          description: 'КПП юридического лица'
+        company_okpo:
+          type: string
+          description: 'ОКПО юридического лица'
+        company_okved:
+          type: string
+          description: 'ОКВЕД юридического лица'
+        company_ogrn:
+          type: string
+          description: 'ОГРН/ОГРНИП (13 или 15 символов)'
+        company_checking_account:
+          type: string
+          description: 'Расчетный счет'
+        company_correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        company_bic:
+          type: string
+          description: БИК
+        contactPosition:
+          type: string
+          description: 'Должность контактного лица'
+        contactDocumentOrder:
+          type: string
+          description: 'Номер документа'
+        contactDocumentDate:
+          type: string
+          description: 'Дата документа'
+        contactDocumentName:
+          type: string
+          description: 'Наименование документа'
+        company_email:
+          type: string
+          description: 'Email юридического лица'
+        cpd:
+          type: string
+          description: 'Скан согласия на обработку ПД'
+        phones:
+          type: array
+          description: 'Массив всех телефонов клиента. Переданный массив полностью заменяет существующие данные'
+          items:
+            $ref: '#/components/schemas/ClientPhone'
+        activity_id:
+          type: integer
+          description: 'Сфера деятельности'
+        tags:
+          type: array
+          description: 'Список тегов'
+          items:
+            $ref: '#/components/schemas/CommonTag'
+        identifierList:
+          type: array
+          description: 'Список идентификаторов клиента в Интернет'
+          items:
+            $ref: '#/components/schemas/ClientIdentifier'
+        personalDataList:
+          type: array
+          description: 'Список согласий клиента'
+          items:
+            $ref: '#/components/schemas/PersonalDataClient'
+        source:
+          type: integer
+          description: 'Источник (0 - Клиент дилера, 1 - Импорт, 2 - Вручную, 3 - Лид, 4 - Анкета СОПД)'
+      description: 'Модель Клиент'
+    ClientSubscribeForm:
+      type: object
+      properties:
+        subscribe_list:
+          type: array
+          description: 'ID подписок'
+          items:
+            type: integer
+      description: 'Информация о подписках клиента'
+    ClientType:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+      description: 'Модель тип клиента'
+      example:
+        id: 1
+        name: Плательщик
+    Client_AvatarFile:
+      required:
+        - file
+      type: object
+      properties:
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+      description: 'Файл фото'
+    Color:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        model_id:
+          type: integer
+          description: 'ID модели'
+        rgb:
+          type: string
+          description: RGB
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        common_color_id:
+          type: integer
+          description: 'ID общего цвета'
+        is_deleted:
+          type: integer
+          description: Удалён
+      description: Цвета
+    CommonClient:
+      required:
+        - id
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        type:
+          type: integer
+          description: 'Тип клиента - `1` - Физическое лицо - `2` - Юридическое лицо'
+        source:
+          type: integer
+          description: Источник
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        sex:
+          type: integer
+          description: Пол
+        description:
+          type: string
+          description: Описание
+        client_confirm_communication:
+          type: boolean
+          description: 'Клиент разрешил коммуникации'
+        may_process_personal_data:
+          type: boolean
+          description: 'Клиент дал согласие на обработку персональных данных'
+        process_personal_data_scan:
+          type: string
+          description: 'Скан согласия на обработку ПД'
+        company_name:
+          type: string
+          description: 'Название компании'
+        birthday_at:
+          type: string
+          description: 'Дата рождения'
+        address:
+          type: string
+          description: Адрес
+        address_juridical:
+          type: string
+          description: 'Юридический адрес'
+        company_country_id:
+          type: integer
+          description: 'ID страны юр. лица'
+        company_inn:
+          type: string
+          description: ИНН
+        company_ogrn:
+          type: string
+          description: 'ОГРН/ОГРНИП (13 или 15 символов)'
+        company_checking_account:
+          type: string
+          description: 'Расчетный счет'
+        company_correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        company_bic:
+          type: string
+          description: БИК
+        postal_code:
+          type: string
+          description: 'Почтовый индекс'
+        country_id:
+          type: integer
+          description: 'ID страны'
+        region_id:
+          type: integer
+          description: 'ID региона'
+        city_id:
+          type: integer
+          description: 'ID города'
+        street:
+          type: string
+          description: Улица
+        house:
+          type: string
+          description: 'Номер дома'
+        block:
+          type: string
+          description: Корпус
+        flat:
+          type: string
+          description: 'Номер квартиры'
+        passportType:
+          type: integer
+          description: 'Тип документа (1 - Паспорт РФ, 2 - Загран паспорт, 3 - Удостоверение личности РК)'
+        passportSeries:
+          type: string
+          description: 'Серия паспорта (ограничение 4 символа)'
+        passportNumber:
+          type: string
+          description: 'Номер паспорта (ограничение 6 символов)'
+        passportIdCardNumber:
+          type: string
+          description: 'Номер удостоверения личности (ограничение 9 символов). Используется при passportType = 3'
+        passportIin:
+          type: string
+          description: 'ИИН (ограничение 12 символов). Используется при passportType = 3'
+        passportDateIssue:
+          type: string
+          description: 'Дата выдачи (в формате dd.mm.yyyy)'
+        passportCode:
+          type: string
+          description: 'Код подразделения (ограничение 10 символов)'
+        passportAuthority:
+          type: string
+          description: 'Кем выдан паспорт'
+        commonClientIdentifiers:
+          type: array
+          description: 'Список идентификаторов клиента в Internet'
+          items:
+            $ref: '#/components/schemas/CommonClientIdentifier'
+        phones:
+          type: array
+          description: 'Список телефонов'
+          items:
+            $ref: '#/components/schemas/CommonClientPhone'
+        emails:
+          type: array
+          description: 'Список e-mails'
+          items:
+            $ref: '#/components/schemas/CommonClientEmail'
+        tags:
+          type: array
+          description: 'Список тегов'
+          items:
+            $ref: '#/components/schemas/CommonTag'
+        clientPhones:
+          type: array
+          description: 'Телефоны клиента (при редактировании)'
+          items:
+            type: string
+        newClientEmails:
+          type: array
+          description: 'Список E-mail для добавления'
+          items:
+            type: string
+        newClientPhones:
+          type: array
+          description: 'Список телефонов для добавления'
+          items:
+            type: string
+        newClientPhoneTypes:
+          type: array
+          description: 'Список типов телефонов для добавления'
+          items:
+            type: integer
+        newTags:
+          type: array
+          description: 'Список id тегов'
+          items:
+            type: integer
+        clientPhoneTypes:
+          type: array
+          description: 'Типы телефонов клиента (при редактировании)'
+          items:
+            type: integer
+        clientPhonesToDelete:
+          type: array
+          description: 'Индекс телефона для удаления'
+          items:
+            type: integer
+        google_id:
+          type: string
+          description: 'Google ID'
+        created_at:
+          type: string
+          description: 'Дата создания'
+          readOnly: true
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+          readOnly: true
+        client_id:
+          type: integer
+          description: 'ID клиента дилера'
+        warehouseVehicle:
+          type: array
+          description: 'Автомобили клиента (Только при отправке expand=warehouseVehicles)'
+          items:
+            $ref: '#/components/schemas/WarehouseVehicle'
+      description: 'Модель Клиент дистрибьютора'
+    CommonClientComment:
+      required:
+        - comment
+        - common_client_id
+      type: object
+      properties:
+        common_client_id:
+          type: integer
+          description: 'Идентификатор клиента'
+        comment:
+          type: string
+          description: 'Идентификатор клиента'
+          example: Test
+      description: 'Модель Клиент дистрибьютора'
+    CommonClientEmail:
+      required:
+        - email
+        - id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        email:
+          type: string
+          description: Email
+      description: 'Модель Email клиента дистрибьютора'
+    CommonClientIdentifier:
+      required:
+        - common_client_id
+        - type
+        - value
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID значения атрибута (генерируется автоматически)'
+        type:
+          type: integer
+          description: 'Тип идентификатора 1 - GoogleID, 2 - YandexID, 3 - GITID'
+        common_client_id:
+          type: integer
+          description: 'Id клиента дистрибьютора'
+        value:
+          type: string
+          description: 'значение атрибута'
+      description: 'Модель Идентификатор клиента дистрибьютора в Internet'
+    CommonClientPhone:
+      required:
+        - id
+        - phone
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        phone:
+          type: string
+          description: 'Номер телефона +70000000000'
+        type:
+          type: integer
+          description: 'Тип телефона'
+      description: 'Модель Телефон клиента дистрибьютора'
+    CommonClientVehicle:
+      required:
+        - common_client_id
+        - vin
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        vin:
+          type: string
+          description: 'VIN машины'
+          example: XXX
+        common_client_id:
+          type: integer
+          description: 'Идентификатор клиента'
+          example: 2
+      description: 'Модель автомобиль'
+    CommonClientVehicleResponse:
+      type: object
+      description: 'Автомобиль клиента'
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        common_client_id:
+          type: integer
+          description: 'Идентификатор клиента дистрибьютора'
+          example: 2
+        common_vehicle_id:
+          type: integer
+          description: 'Идентификатор автомобиля'
+          example: 2
+        is_used_vehicle:
+          type: boolean
+          description: 'Флаг Б/У автомобиля'
+          example: false
+        vehicle_reg_number:
+          type: string
+          description: 'Регистрационный номер автомобиля'
+          example: Е325КЕ156
+        vehicle_mileage:
+          type: integer
+          description: 'Пробег автомобиля'
+          example: 0
+        user_id:
+          type: integer
+          description: 'ID клиента'
+          example: 2
+        owner_status:
+          description: 'Статус владельца'
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID
+            name:
+              type: integer
+              description: 'Название статуса'
+        is_sale_new:
+          type: boolean
+          description: 'Флаг новой продажи'
+          example: true
+        source_type:
+          description: 'Тип источника'
+          type: object
+          properties:
+            id:
+              type: integer
+              description: ID
+            name:
+              type: integer
+              description: 'Название типа источника'
+        source_id:
+          type: integer
+          description: 'ID источника'
+          example: 2
+        commonVehicle:
+          type: object
+          description: 'Данные авто (Выводиться при указании expand=commonVehicle)'
+          $ref: '#/components/schemas/CommonVehicleResponse'
+    CommonTag:
+      required:
+        - color
+        - id
+        - is_deleted
+        - name
+        - order
+        - tag_type
+        - type
+        - alias
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        color:
+          type: string
+          description: Цвет
+          example: '#000080'
+        type:
+          type: integer
+          description: Тип
+        order:
+          type: integer
+          description: 'Определяет порядок сортировки'
+        is_deleted:
+          type: integer
+          description: 'Признак удаления'
+        tag_type:
+          type: integer
+          description: 'Тип тега'
+        alias:
+          type: string
+          description: 'Псевдоним тега'
+      description: 'Модель Тег'
+    CommonVehicleResponse:
+      type: object
+      description: 'Данные автомобиля клиента'
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        brand_id:
+          type: integer
+          description: Бренд
+          example: 152
+        model_id:
+          type: integer
+          description: Модель
+          example: 17458
+        model_year_id:
+          type: integer
+          description: 'Модельный год'
+          example: 13
+        generation_id:
+          type: integer
+          description: Поколение
+          example: 11584
+        serie_id:
+          type: integer
+          description: Серия
+          example: 52999
+        modification_id:
+          type: integer
+          description: Модификация
+          example: 242223
+        equipment_id:
+          type: integer
+          description: Комплектация
+          example: 12042
+        mileage:
+          type: integer
+          description: Пробег
+          example: 43917
+        vin:
+          type: string
+          description: VIN
+          example: XZGFF06A2KA304518
+        reg_number:
+          type: string
+          description: 'Гос номер'
+          example: В777РА164
+        seller_id:
+          type: integer
+          description: Продавец
+          example: 155
+        sale_at:
+          type: string
+          description: 'Дата продажи (YYYY-MM-DD)'
+          example: 1589500800
+        warranty_end_at:
+          type: string
+          description: 'Дата окончания гарантии (YYYY-MM-DD)'
+          example: 1621036800
+        user_id:
+          type: integer
+          description: Автор
+          example: 0
+        created_at:
+          type: string
+          description: 'Создано (YYYY-MM-DD HH:MM:SS)'
+          example: 1598530396
+        updated_at:
+          type: string
+          description: 'Обновлено (YYYY-MM-DD HH:MM:SS)'
+          example: 1703758767
+        code:
+          type: string
+          description: Код
+          example: XZGFF06A2KA304518
+        mpv:
+          type: string
+          example: KQ043285450F300002
+        mpv_description:
+          type: string
+          example: 'F7 ELITE'
+        production_year:
+          type: string
+          description: 'Год производства'
+          example: 2019
+        production_date:
+          type: string
+          description: 'Дата производства'
+          example: 1575936000
+        model_year_code:
+          type: string
+          description: 'Код модельного года'
+          example: '00'
+        model_code:
+          type: string
+          description: 'Модельный код'
+          example: KQ0
+        body_code:
+          type: string
+          example: '00'
+        equipment_code:
+          type: string
+          description: 'Код комплектации'
+          example: 45
+        package_code:
+          type: string
+          example: CC6465UM22B
+        vin_manufacturer:
+          type: string
+        responsible_dealer_id:
+          type: integer
+          description: 'ID ответственного дилера'
+          example: 284
+        service_segment_id:
+          type: integer
+          description: Сегмент
+        warranty_start_at:
+          type: string
+          description: 'Дата начала гарантии (YYYY-MM-DD)'
+          example: 1621036800
+        note:
+          type: string
+          description: Примечание
+        special_marks:
+          type: string
+          description: Отметки
+        warranty_mileage:
+          type: string
+          description: 'Гарантийный пробег'
+        warranty_through_box:
+          type: string
+          description: 'Дата окончания гарантии от сквозной коррозии'
+        color_code:
+          type: string
+          example: XXX
+    Contract:
+      required:
+        - code
+        - credit_line_amount
+        - end_date
+        - holding_code
+        - dealer_code
+        - name
+        - start_date
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID дилерского контракта (генерируется автоматически)'
+        code:
+          type: string
+          description: 'Внешний код договора'
+        name:
+          type: string
+          description: Название
+        start_date:
+          type: string
+          description: 'Дата начала действия (формат 2019-05-12)'
+        end_date:
+          type: string
+          description: 'Дата окончания действия (формат 2019-05-12)'
+        holding_code:
+          type: string
+          description: 'Код дилера в INCADEA'
+        dealer_code:
+          type: string
+          description: 'Код шоурума'
+        type:
+          type: integer
+          description: 'Тип дилерского контракта (1 - Consignment, 2 - DPA, 3 - DPA 120, 4 - Test drive, 5 - Consignment 100% предоплата, 6 - Test drive 100% предоплата, 7 - Факторинг на товарные авто, 8 - Факторинг на тестовые авто, 9 - Retail, 10 - Консигнация сервис, 11 - Факторинг сервис, 12 - Розница сервис, 13 - Предоплата сервис, 14 - Комиссия сервис, 15 - Постоплата сервис)'
+        credit_line_amount:
+          type: number
+          description: 'Размер одобренной кредитной линии'
+        used_part_of_credit_line:
+          type: number
+          description: 'Использованная часть кредитной линии'
+        bank_inn:
+          type: string
+          description: 'ИНН банка'
+        status:
+          type: integer
+          description: 'Состояние 1 - Активен, 0 - Удален'
+      description: 'Модель Дилерский контракт'
+    Country:
+      required:
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+          example: 1
+        name:
+          maxLength: 255
+          type: string
+          description: 'Название страны'
+          example: Россия
+        phone_code:
+          maxLength: 255
+          type: string
+          description: 'Код страны'
+          example: '7'
+        alias:
+          maxLength: 255
+          type: string
+          description: Псевдоним
+          example: RU
+      description: 'Модель страны'

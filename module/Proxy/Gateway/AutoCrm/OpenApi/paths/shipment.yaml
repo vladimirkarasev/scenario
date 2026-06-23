@@ -1,0 +1,170 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - shipment'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: shipment
+    description: 'Управление отгрузками'
+paths:
+  /logistic/shipment:
+    get:
+      tags:
+        - shipment
+      description: 'Получение списка отгрузок'
+      summary: 'Получение списка отгрузок'
+      parameters:
+        -
+          name: request_id
+          in: query
+          description: 'ID заявки в ТК'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус (1 - Заявлено, 2 - Принято, 3 - Отгружено, 4 - Доставлено, 5 - Передано в ТК, 6 - Запланировано, 7 - Удалена)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+        -
+          name: delivery_type
+          in: query
+          description: 'Тип отгрузки (1 - Дилерская, 2 - Перемещение, 3 - Самовывоз)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+        -
+          name: export_document_number
+          in: query
+          description: 'номер документа'
+          schema:
+            type: 'integer      -'
+        -
+          name: export_document_type
+          in: query
+          description: 'Тип документа (1 - Экспедиторская расписка, 2 - Поручение экспедитору, 3 - Поручение экспедитору ТК)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список отгрузок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shipment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - shipment
+      summary: 'Создание отгрузки'
+      description: 'Создание отгрузки'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentForm'
+      responses:
+        201:
+          description: 'Отгрузка успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/logistic/shipment/{id}':
+    get:
+      tags:
+        - shipment
+      summary: 'Получение отгрузки по ID'
+      description: 'Получение отгрузки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id отгрузки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение отгрузки по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - shipment
+      description: 'Обновление данных отгрузок по id'
+      summary: 'Обновление данных отгрузок по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: ID
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentForm'
+        required: false
+      responses:
+        200:
+          description: 'отгрузка успешно изменена'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - stage'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: stage
+    description: 'Управление этапами лида'
+paths:
+  /lms/stage/finish:
+    put:
+      tags:
+        - stage
+      summary: 'Завершение этапа лида'
+      description: 'Завершение этапа лида'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'id этапа лида'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Этап лида'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StageForm'
+        required: true
+      responses:
+        200:
+          description: 'Этап лида успешно закрыт'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stage'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/lms/stage/{id}':
+    get:
+      tags:
+        - stage
+      summary: 'Получение этапа лида по ID'
+      description: 'Получение этапа лида по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID этапа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данные об этапе лида'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stage'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

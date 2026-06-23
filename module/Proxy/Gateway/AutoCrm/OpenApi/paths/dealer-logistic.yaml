@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-logistic'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-logistic
+    description: 'Управление логистическими данными дилера'
+paths:
+  /dealer-logistic:
+    get:
+      tags:
+        - dealer-logistic
+      summary: 'Получение списка логистических данных дилера'
+      description: 'Получение списка логистических данных дилера'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          description: "Тип доставки: `1` - а/м `2` - з/ч\n"
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+      responses:
+        200:
+          description: 'Возвращает список логистических данных дилера'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerLogistic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer-logistic
+      summary: 'Создание логистических данных дилера'
+      description: 'Создание логистических данных дилера'
+      requestBody:
+        description: 'модель Логистические данные дилера'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerLogisticForm'
+        required: false
+      responses:
+        200:
+          description: 'Данные успешно созданы'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerLogistic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /dealer-logistic-address:
+    get:
+      tags:
+        - dealer-logistic
+      summary: 'Получение списка логистических адресов дилера'
+      description: 'Получение списка логистических адресов дилера'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: integer
+        -
+          name: id
+          in: query
+          description: 'ID логистического адреса'
+          schema:
+            type: integer
+        -
+          name: external_code
+          in: query
+          description: 'внешний ID логистического адреса'
+          schema:
+            type: string
+        -
+          name: is_additional
+          in: query
+          description: 'Дополнительный адрес доставки'
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список логистических адресов дилера'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerLogisticAddress'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer-logistic
+      summary: 'Создание логистического адреса дилера по ID'
+      description: 'Создание логистического адреса дилера по ID'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          required: true
+          schema:
+            type: integer
+        -
+          name: type
+          in: query
+          description: "Тип доставки: `1` - а/м `2` - з/ч\n"
+          required: true
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+      requestBody:
+        description: 'модель логистического адреса дилера'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerLogisticAddressForm'
+        required: false
+      responses:
+        200:
+          description: 'Адрес успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerLogisticAddress'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/dealer-logistic-address/{id}':
+    get:
+      tags:
+        - dealer-logistic
+      summary: 'Получение логистического адреса дилера по ID'
+      description: 'Получение логистического адреса дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID логистического адреса'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает логистический адрес по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerLogisticAddress'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer-logistic
+      summary: 'Изменение логистического адреса дилера по ID'
+      description: 'Изменение логистического адреса дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID логистического адреса'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель логистического адреса дилера'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerLogisticAddressForm'
+        required: false
+      responses:
+        200:
+          description: 'Адрес успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerLogistic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - dealer-logistic
+      summary: 'Удаление логистического адреса дилера по ID'
+      description: 'Удаление логистического адреса дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Успешное удаление по ID'
+          content: {  }
+        400:
+          description: 'Ошибка клиента'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/dealer-logistic/{id}':
+    put:
+      tags:
+        - dealer-logistic
+      summary: 'Изменение логистических данных дилера по ID'
+      description: 'Изменение логистических данных дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID логистических данных'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notify_email:
+                  description: 'mail для уведомления дилера об отгрузке'
+                  type: string
+        required: true
+      responses:
+        200:
+          description: 'Возвращает логистические данные дилера по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerLogistic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

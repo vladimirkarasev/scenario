@@ -1,0 +1,150 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - worksheet-client'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: worksheet-client
+    description: 'Управление клиентами рабочего листа'
+paths:
+  /worksheet-client:
+    get:
+      tags:
+        - worksheet-client
+      summary: 'Получение списка клиентов рабочего листа'
+      description: 'Получение списка клиентов рабочего листа'
+      parameters:
+        -
+          name: worksheet_id
+          in: query
+          description: 'ID рабочего листа'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список рабочих листов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorksheetClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - worksheet-client
+      summary: 'Добавление нового клиента в рабочий лист'
+      description: 'Добавление нового клиента в рабочий лист'
+      requestBody:
+        description: 'Объект Клиент рабочего листа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorksheetClient'
+        required: true
+      responses:
+        201:
+          description: 'Клиент успешно добавлен в рабочий лист'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorksheetClient'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/worksheet-client/{id}':
+    get:
+      tags:
+        - worksheet-client
+      summary: 'Получение клиента рабочего листа'
+      description: 'Получение клиента рабочего листа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id связи клиент-рабочий лист'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает связь клиент-рабочий лист по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorksheetClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - worksheet-client
+      summary: 'Изменение связи клиент-рабочий лист'
+      description: 'Изменение связи клиент-рабочий лист'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id связи клиент-рабочий лист'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Клиент рабочего листа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorksheetClient'
+        required: false
+      responses:
+        200:
+          description: 'Рабочий лист успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorksheetClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

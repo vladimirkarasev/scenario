@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - personal-discount-client'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: personal-discount-client
+    description: 'Персональные скидки для клиентов'
+paths:
+  /personal-discount/client:
+    get:
+      tags:
+        - personal-discount-client
+      summary: 'Получение списка персональных скидок клиента'
+      description: 'Получение списка персональных скидок клиента'
+      parameters:
+        -
+          name: discount_id
+          in: query
+          description: 'ID персональной скидки'
+          schema:
+            type: integer
+        -
+          name: common_client_id
+          in: query
+          description: 'ID клиента дистрибьютора'
+          schema:
+            type: integer
+        -
+          name: client_id
+          in: query
+          description: 'ID клиента дилера'
+          schema:
+            type: integer
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          schema:
+            type: integer
+        -
+          name: loyalty_member_id
+          in: query
+          description: 'ID участника программы лояльности'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'Статус скидки'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список персональных скидок клиента'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDiscountClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/personal-discount/client/{id}/issue':
+    post:
+      tags:
+        - personal-discount-client
+      summary: 'Выдача скидки клиенты по ID скидки и ID клиента'
+      description: 'Выдача скидки клиенту'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id скидки'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую discount - Скидка'
+          schema:
+            type: string
+      requestBody:
+        description: 'модель выдача скидки'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueDiscount'
+        required: false
+      responses:
+        200:
+          description: 'Персональная скидка'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonalDiscountClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

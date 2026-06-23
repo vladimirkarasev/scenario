@@ -1,0 +1,339 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer
+    description: 'Управление дилерами'
+paths:
+  /dealer:
+    get:
+      tags:
+        - dealer
+      summary: 'Получение списка дилеров'
+      description: 'Получение списка дилеров'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск дилера по ID'
+          schema:
+            type: integer
+        -
+          name: distributor_id
+          in: query
+          description: 'Поиск дилера по дистрибьютору'
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Поиск дилера по коду'
+          schema:
+            type: string
+        -
+          name: contractor_code
+          in: query
+          description: 'Поиск контрагента по коду'
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей. `contractors` - Список контрагентов дилера\n"
+          schema:
+            type: string
+        -
+          name: dealer_type
+          in: query
+          description: "Поиск дилера по типу: `1` - Продажи, сервис, запчасти `2` - Сервис, запчасти `3` - Продажи `4` - Запчасти `5` - Продажи, запчасти `6` - Независимая сервисная станция `7` - Параллельный импорт\n"
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+        -
+          name: name
+          in: query
+          description: 'Поиск дилера по названию'
+          schema:
+            type: string
+        -
+          name: marketing_name
+          in: query
+          description: 'Поиск дилера по маркетинговому названию'
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: "Поиск дилеров по статусу ('active', 'deleted', 'all'). По умолчанию показываются только активные дилеры\n"
+          schema:
+            type: string
+            enum:
+              - active
+              - deleted
+              - all
+        -
+          name: updatedSince
+          in: query
+          description: 'Минимальное время обновления клиентов в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updatedTill
+          in: query
+          description: 'Максимальное время обновления клиентов в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: holding_code
+          in: query
+          description: 'Код холдинга'
+          schema:
+            type: string
+        -
+          name: tag
+          in: query
+          description: 'Поиск дилеров по тэгу. Способ соединения тегов и/или указывается в параметре tagLogic'
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        -
+          name: tagLogic
+          in: query
+          description: 'Способ соединения тегов и/или'
+          schema:
+            type: string
+            default: and
+            enum:
+              - and
+              - or
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список дилеров'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dealer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer
+      summary: 'Создание дилера'
+      description: 'Создание дилера'
+      requestBody:
+        description: 'модель Дилер'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerForm'
+        required: false
+      responses:
+        200:
+          description: 'Дилер успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/dealer/license/{id}':
+    get:
+      tags:
+        - dealer
+      summary: 'Список лицензий дилера по его ID'
+      description: 'Список лицензий дилера по его ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID дилера'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список лицензий дилера по его ID'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  1:
+                    type: string
+                    description: 'Основная услуга'
+                  2:
+                    type: string
+                    description: 'Модуль 1С'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer
+      summary: 'Обновление списка лицензий дилера по ID дилера'
+      description: 'Обновление списка лицензий дилера по ID дилера'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID дилера'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'список лицензий дилера'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                1:
+                  type: string
+                  description: 'Основная услуга'
+                2:
+                  type: string
+                  description: 'Модуль 1С'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает список лицензий дилера'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  1:
+                    type: string
+                    description: 'Основная услуга'
+                  2:
+                    type: string
+                    description: 'Модуль 1С'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/dealer/{id}':
+    get:
+      tags:
+        - dealer
+      summary: 'Получение дилера по ID'
+      description: 'Получение дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID дилера'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает дилера по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer
+      summary: 'Изменение дилера'
+      description: 'Изменение дилера'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id дилера'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Дилер'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerForm'
+        required: false
+      responses:
+        200:
+          description: 'Дилер успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

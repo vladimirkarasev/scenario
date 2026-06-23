@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare
+    description: 'Управление запчастями'
+paths:
+  /spare:
+    get:
+      tags:
+        - spare
+      summary: 'Получение списка запчастей'
+      description: 'Получение списка запчастей'
+      responses:
+        200:
+          description: 'Возвращает список запчастей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Spare'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/spare/{id}':
+    get:
+      tags:
+        - spare
+      summary: 'Получение запчасти по ID'
+      description: 'Получение запчасти по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id запчасти'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает запчасть по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Spare'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

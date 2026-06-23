@@ -1,0 +1,25 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Generation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID поколения'
+        name:
+          type: string
+          description: Наименование
+        model_id:
+          type: integer
+          description: 'ID модели'
+        year_begin:
+          type: string
+          description: 'Год начала производства'
+        year_end:
+          type: string
+          description: 'Год окончания производства'
+        is_recent:
+          type: integer
+          description: Актуальное
+      description: Поколение

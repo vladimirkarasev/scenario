@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - lms-tag'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: lms-tag
+    description: 'Управление lms тегами'
+paths:
+  /lms-tag:
+    get:
+      tags:
+        - lms-tag
+      summary: 'Получение списка lms тегов'
+      description: 'Получение списка lms тегов'
+      parameters:
+        -
+          name: name
+          in: query
+          description: 'Наименование тега'
+          schema:
+            type: string
+        -
+          name: name_en
+          in: query
+          description: 'Наименование тега на английском'
+          schema:
+            type: string
+        -
+          name: parent_id
+          in: query
+          description: 'ID родительского тега'
+          schema:
+            type: integer
+        -
+          name: id
+          in: query
+          description: 'ID тега'
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Код тега'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список lms тегов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LmsTag'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

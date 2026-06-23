@@ -1,0 +1,71 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - staff-activity'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: staff-activity
+    description: 'Данные по активности персонала'
+paths:
+  /staff/staff-activity:
+    get:
+      tags:
+        - staff-activity
+      summary: 'Получение данных по активности персонала'
+      description: 'Получение данных по активности персонала'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'Код ДЦ'
+          required: true
+          schema:
+            type: string
+        -
+          name: from
+          in: query
+          description: 'Дата с, формат ДД.ММ.ГГГГ'
+          required: true
+          schema:
+            type: string
+        -
+          name: to
+          in: query
+          description: 'Дата по, формат ДД.ММ.ГГГГ'
+          required: true
+          schema:
+            type: string
+        -
+          name: 'type[]'
+          in: query
+          description: 'Признак типа документа (1 - Рабочие листы,  2 - Заказ-наряды)'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данных по активности персонала'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StaffActivity'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

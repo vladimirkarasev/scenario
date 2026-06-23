@@ -1,0 +1,680 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - service-stock-invoices'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: service-stock-invoices
+    description: 'Управление списками счетов'
+paths:
+  /service/invoice:
+    get:
+      tags:
+        - service-stock-invoices
+      summary: 'Get list of invoices'
+      description: 'Returns a list of invoices'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    date:
+                      type: string
+                      format: date
+                      example: '2023-04-11'
+                    sum:
+                      type: string
+                      example: '123.00'
+                    sum_nds:
+                      type: string
+                      example: '123.00'
+                    sum_total:
+                      type: string
+                      example: '123.00'
+                    upload_id:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+                    created_by:
+                      type: string
+                      example: 'null'
+                    updated_by:
+                      type: string
+                      example: 'null'
+                    cs_assembly_status_id:
+                      type: integer
+                      nullable: true
+                      description: 'ID статуса сборки на ЦС (справочник)'
+                      example: 3
+                    cargo_place_number:
+                      type: string
+                      nullable: true
+                      description: 'Номер(а) грузового места (может содержать несколько значений одной строкой)'
+                      example: 'A-01, A-02'
+                    track_number:
+                      type: string
+                      nullable: true
+                      description: 'Номер отправления (трек номер)'
+                      example: RU123456789CN
+                    delivery_date:
+                      type: string
+                      format: date
+                      nullable: true
+                      description: 'Дата доставки отправления ТК (YYYY-MM-DD)'
+                      example: '2025-12-10'
+                    tc_delivery_status:
+                      type: string
+                      nullable: true
+                      description: 'Статус доставки транспортной компании (текст)'
+                      example: 'В пути'
+                    packing_places_upload_id:
+                      type: integer
+                      nullable: true
+                      description: 'ID файла с упаковочными местами (Upload)'
+                      example: 1001
+    post:
+      tags:
+        - service-stock-invoices
+      summary: 'Create new invoice'
+      description: 'Creates a new invoice'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+                - sum
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: '2023-04-11'
+                  description: 'Дата счета'
+                sum:
+                  type: string
+                  example: '123.00'
+                  description: 'Сумма без НДС'
+                sum_nds:
+                  type: string
+                  example: '23.00'
+                  description: 'Сумма НДС'
+                sum_total:
+                  type: string
+                  example: '146.00'
+                  description: 'Итоговая сумма с НДС'
+                upload_id:
+                  type: integer
+                  nullable: true
+                  description: 'ID загруженного файла счета'
+                num:
+                  type: string
+                  nullable: true
+                  description: 'Номер счета'
+                cs_assembly_status_id:
+                  type: integer
+                  nullable: true
+                  description: 'ID статуса сборки на ЦС (справочник CsAssemblyStatus)'
+                cargo_place_number:
+                  type: string
+                  nullable: true
+                  description: 'Номер(а) грузовых мест (через запятую)'
+                track_number:
+                  type: string
+                  nullable: true
+                  description: 'Трек-номер отправления'
+                delivery_date:
+                  type: string
+                  format: date
+                  nullable: true
+                  description: 'Дата доставки транспортной компанией'
+                tc_delivery_status:
+                  type: string
+                  nullable: true
+                  description: 'Статус доставки транспортной компании'
+                packing_places_upload_id:
+                  type: integer
+                  nullable: true
+                  description: 'ID файла с упаковочными местами'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  date:
+                    type: string
+                    format: date
+                    example: '2023-04-11'
+                  sum:
+                    type: string
+                    example: '123.00'
+                  upload_id:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  created_by:
+                    type: string
+                    example: 'null'
+                  updated_by:
+                    type: string
+                    example: 'null'
+                  num:
+                    type: string
+                  cs_assembly_status_id:
+                    type: integer
+                    nullable: true
+                    description: 'ID статуса сборки на ЦС (справочник)'
+                  cargo_place_number:
+                    type: string
+                    nullable: true
+                  track_number:
+                    type: string
+                    nullable: true
+                  delivery_date:
+                    type: string
+                    format: date
+                    nullable: true
+                  tc_delivery_status:
+                    type: string
+                    nullable: true
+                  packing_places_upload_id:
+                    type: integer
+                    nullable: true
+  '/service/invoice-order-item/{parent_id}':
+    get:
+      tags:
+        - service-stock-invoices
+      summary: 'Получение всех линий счета заказа'
+      description: 'Получение всех линий счета заказа'
+      parameters:
+        -
+          name: parent_id
+          in: path
+          description: 'Ид связи счета/заказа (InvoiceOrder)'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список линий заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceOrderItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    post:
+      tags:
+        - service-stock-invoices
+      summary: 'Добавить линию заказа в счета к заказу'
+      description: 'Добавить линию заказа в счета к заказу'
+      parameters:
+        -
+          name: parent_id
+          in: path
+          description: 'Ид связи счета/заказа (InvoiceOrder)'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные зч'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceOrderItem'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает элемент заказа'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceOrderItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/invoice-order/{invoice_id}':
+    get:
+      tags:
+        - service-stock-invoices
+      summary: 'Получение всех линий счета заказа'
+      description: 'Получение всех линий счета заказа'
+      parameters:
+        -
+          name: invoice_id
+          in: path
+          description: 'id счета'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список линий заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    post:
+      tags:
+        - service-stock-invoices
+      summary: 'Прикрепить заказ к счету'
+      description: 'Прикрепить заказ к счету'
+      parameters:
+        -
+          name: invoice_id
+          in: path
+          description: 'id счета'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные зч'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceOrder'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает элемент заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - service-stock-invoices
+      summary: 'Очистить все связи счета с заказами'
+      description: 'Удаляет все связи (InvoiceOrder) для указанного invoice_id'
+      parameters:
+        -
+          name: invoice_id
+          in: path
+          description: 'id счета'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешно удалено'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/invoice-order/{invoice_id}/{order_id}':
+    delete:
+      tags:
+        - service-stock-invoices
+      summary: 'Удалить прикрепленный заказ в счете'
+      description: 'Удалить прикрепленный заказ в счете'
+      parameters:
+        -
+          name: invoice_id
+          in: path
+          description: 'id счета'
+          required: true
+          schema:
+            type: integer
+        -
+          name: order_id
+          in: path
+          description: 'id заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Данные зч'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceOrder'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает элемент заказа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvoiceOrder'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/invoice/{id}':
+    get:
+      tags:
+        - service-stock-invoices
+      summary: 'Get view of invoices'
+      description: 'Returns a view of invoices'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id отчета по складским остаткам'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  date:
+                    type: string
+                    format: date
+                    example: '2023-04-11'
+                  sum:
+                    type: string
+                    example: '123.00'
+                  sum_nds:
+                    type: string
+                    example: '123.00'
+                  sum_total:
+                    type: string
+                    example: '123.00'
+                  upload_id:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  created_by:
+                    type: string
+                    example: 'null'
+                  updated_by:
+                    type: string
+                    example: 'null'
+                  cs_assembly_status_id:
+                    type: integer
+                    nullable: true
+                    description: 'ID статуса сборки на ЦС (справочник)'
+                    example: 3
+                  cargo_place_number:
+                    type: string
+                    nullable: true
+                    description: 'Номер(а) грузового места (может содержать несколько значений одной строкой)'
+                    example: 'A-01, A-02'
+                  track_number:
+                    type: string
+                    nullable: true
+                    description: 'Номер отправления (трек номер)'
+                    example: RU123456789CN
+                  delivery_date:
+                    type: string
+                    format: date
+                    nullable: true
+                    description: 'Дата доставки отправления ТК (YYYY-MM-DD)'
+                    example: '2025-12-10'
+                  tc_delivery_status:
+                    type: string
+                    nullable: true
+                    description: 'Статус доставки транспортной компании (текст)'
+                    example: 'В пути'
+                  packing_places_upload_id:
+                    type: integer
+                    nullable: true
+                    description: 'ID файла с упаковочными местами (Upload)'
+                    example: 1001
+    patch:
+      tags:
+        - service-stock-invoices
+      summary: 'update a invoice'
+      description: 'update invoice'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - date
+                - sum
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: '2023-04-11'
+                sum:
+                  type: string
+                  example: '123.00'
+                sum_nds:
+                  type: string
+                  example: '123.00'
+                sum_total:
+                  type: string
+                  example: '123.00'
+                upload_id:
+                  type: integer
+                payment_date:
+                  type: string
+                  format: date
+                  example: '2023-04-11'
+                num:
+                  type: string
+                cs_assembly_status_id:
+                  type: integer
+                  nullable: true
+                cargo_place_number:
+                  type: string
+                  nullable: true
+                track_number:
+                  type: string
+                  nullable: true
+                delivery_date:
+                  type: string
+                  format: date
+                  nullable: true
+                tc_delivery_status:
+                  type: string
+                  nullable: true
+                packing_places_upload_id:
+                  type: integer
+                  nullable: true
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  date:
+                    type: string
+                    format: date
+                    example: '2023-04-11'
+                  sum:
+                    type: string
+                    example: '123.00'
+                  sum_nds:
+                    type: string
+                    example: '123.00'
+                  sum_total:
+                    type: string
+                    example: '123.00'
+                  upload_id:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                  created_by:
+                    type: string
+                    example: 'null'
+                  updated_by:
+                    type: string
+                    example: 'null'
+                  payment_date:
+                    type: string
+                    example: '2023-04-11'
+                  num:
+                    type: string
+                  cs_assembly_status_id:
+                    type: integer
+                    nullable: true
+                    description: 'ID статуса сборки на ЦС (справочник)'
+                  cargo_place_number:
+                    type: string
+                    nullable: true
+                  track_number:
+                    type: string
+                    nullable: true
+                  delivery_date:
+                    type: string
+                    format: date
+                    nullable: true
+                  tc_delivery_status:
+                    type: string
+                    nullable: true
+                  packing_places_upload_id:
+                    type: integer
+                    nullable: true
+    put:
+      tags:
+        - service-stock-invoices
+      summary: 'update a invoice payment status'
+      description: 'update invoice payment status'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - payment_date
+                - status
+              type: object
+              properties:
+                payment_date:
+                  type: string
+                  format: date
+                  example: '2023-04-11'
+                payment_status:
+                  type: string
+                  example: Оплачен
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoice_id:
+                    type: integer
+                    example: 1
+                  payment_status:
+                    type: string
+                    example: Оплачен
+                  payment_date:
+                    type: string
+                    format: date
+                    example: '2023-04-11'

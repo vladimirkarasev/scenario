@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-base'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-base
+    description: 'Управление расшифровками баз (MPV)'
+paths:
+  /warehouse/base/with-last-price:
+    get:
+      tags:
+        - warehouse-base
+      summary: 'Получение списка баз'
+      description: 'Получение списка баз'
+      parameters:
+        -
+          name: brand_id
+          in: query
+          description: 'ID бренда'
+          schema:
+            type: integer
+        -
+          name: no_translated
+          in: query
+          description: 'Признак расшифрованности базы'
+          schema:
+            type: string
+            enum:
+              - translated
+              - not-translated
+        -
+          name: is_actual
+          in: query
+          description: 'Признак актуальности'
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+      responses:
+        200:
+          description: 'Возвращает список баз с последними ценами'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleBaseWithPrice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

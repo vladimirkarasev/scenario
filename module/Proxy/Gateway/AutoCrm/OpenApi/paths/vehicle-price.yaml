@@ -1,0 +1,220 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-price'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-price
+    description: 'Получение данных по прайс-листам на автомобили'
+paths:
+  /warehouse/vehicle-price:
+    get:
+      tags:
+        - vehicle-price
+      summary: 'Получить список прайс-листов на автомобили'
+      description: 'Получить список прайс-листов на автомобили'
+      parameters:
+        -
+          name: mpv
+          in: query
+          description: MPV
+          schema:
+            type: string
+        -
+          name: country
+          in: query
+          description: 'id страны'
+          schema:
+            type: integer
+        -
+          name: group_id
+          in: query
+          description: 'id группы прайс-листов'
+          schema:
+            type: integer
+        -
+          name: brand_id
+          in: query
+          description: 'id бренда'
+          schema:
+            type: string
+        -
+          name: production_year
+          in: query
+          description: 'год производства'
+          schema:
+            type: integer
+        -
+          name: model_id
+          in: query
+          description: 'id модели'
+          schema:
+            type: integer
+        -
+          name: generation_id
+          in: query
+          description: 'id поколения'
+          schema:
+            type: integer
+        -
+          name: serie_id
+          in: query
+          description: 'id серии'
+          schema:
+            type: integer
+        -
+          name: modification_id
+          in: query
+          description: 'id модификации'
+          schema:
+            type: integer
+        -
+          name: equipment_id
+          in: query
+          description: 'id комплектации'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: 'статус(1 - активен, 0 - не активен)'
+          schema:
+            type: integer
+        -
+          name: dateFrom
+          in: query
+          description: 'дата начала действия'
+          schema:
+            type: string
+        -
+          name: dateTo
+          in: query
+          description: 'дата окончания действия'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список прайс-листов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehiclePrice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - vehicle-price
+      summary: 'Добавить прайс-лист'
+      description: 'Добавить прайс-лист'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePriceForm'
+        required: true
+      responses:
+        200:
+          description: 'Прайс-лист добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclePrice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/warehouse/vehicle-price/{id}':
+    get:
+      tags:
+        - vehicle-price
+      summary: 'Получить данные прайс-листа по id'
+      description: 'Получить данные прайс-листа по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id прайс-листа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает данные участника'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehiclePrice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - vehicle-price
+      summary: 'Изменить данные прайс-листа по id'
+      description: 'Изменить данные прайс-листа по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id прайс-листа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePriceForm'
+        required: true
+      responses:
+        200:
+          description: 'Возвращает данные прайс-листа'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehiclePrice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

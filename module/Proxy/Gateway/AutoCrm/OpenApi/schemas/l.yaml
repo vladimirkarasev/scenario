@@ -1,0 +1,949 @@
+openapi: 3.1.0
+components:
+  schemas:
+    LeasingLkRequest:
+      required:
+        - vehicle_vin
+        - bank_id
+      properties:
+        vehicle_vin:
+          type: string
+          description: 'VIN автомобился'
+        bank_id:
+          type: integer
+          description: 'ID банка / лизинговой компании'
+        contract_number:
+          type: string
+          description: 'Номер договора лизинга'
+        contract_date:
+          type: string
+          description: 'Дата договора лизинга'
+        end_date:
+          type: string
+          description: 'Дата окончания лизинга'
+        payment_sum:
+          type: string
+          description: 'Лизинговый платеж'
+        sum:
+          type: string
+          description: 'Сумма лизинга'
+        expired:
+          type: string
+          description: 'Срок лизинга'
+      LeasingLkResponse:
+        required:
+          - sale_id
+        properties:
+          sale_id:
+            type: integer
+            description: 'ID рапорта'
+          vehicle_vin:
+            type: string
+            description: 'VIN автомобился'
+          bank_id:
+            type: integer
+            description: 'ID банка / лизинговой компании'
+          contract_number:
+            type: string
+            description: 'Номер договора лизинга'
+          contract_date:
+            type: string
+            description: 'Дата договора лизинга'
+          end_date:
+            type: string
+            description: 'Дата окончания лизинга'
+          payment_sum:
+            type: string
+            description: 'Лизинговый платеж'
+          sum:
+            type: string
+            description: 'Сумма лизинга'
+          expired:
+            type: string
+            description: 'Срок лизинга'
+    LeasingLkResponse:
+      required:
+        - sale_id
+      properties:
+        sale_id:
+          type: integer
+          description: 'ID рапорта'
+        vehicle_vin:
+          type: string
+          description: 'VIN автомобился'
+        bank_id:
+          type: integer
+          description: 'ID банка / лизинговой компании'
+        contract_number:
+          type: string
+          description: 'Номер договора лизинга'
+        contract_date:
+          type: string
+          description: 'Дата договора лизинга'
+        end_date:
+          type: string
+          description: 'Дата окончания лизинга'
+        payment_sum:
+          type: string
+          description: 'Лизинговый платеж'
+        sum:
+          type: string
+          description: 'Сумма лизинга'
+        expired:
+          type: string
+          description: 'Срок лизинга'
+    LegalEntityType:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id типа'
+        name:
+          type: string
+          description: 'Краткое наименование'
+        full_name:
+          type: string
+          description: 'Полное наименование'
+        order:
+          type: integer
+          description: 'Порядок сортировки'
+        code_okopf:
+          type: integer
+          description: 'Код ОКОПФ'
+        countries:
+          type: array
+          description: 'Список идентификаторов стран'
+          items:
+            type: integer
+      description: 'Модель типа юридического лица'
+      example:
+        id: 1
+        name: ООО
+        full_name: 'Общество с ограниченной ответственностью'
+        order: 100
+        code_okopf: 12300
+        countries:
+          - 1
+          - 2
+    LmsStatus:
+      required:
+        - code
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID статуса'
+        name:
+          type: string
+          description: Наименование
+        code:
+          type: string
+          description: Код
+        parent_id:
+          type: string
+          description: 'ID родительского статуса'
+      description: 'Внешний статус лида'
+    LmsTag:
+      required:
+        - id
+        - name
+        - created_at
+        - updated_at
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        parent_id:
+          type: integer
+          description: 'ID родительского тега'
+        user_id:
+          type: integer
+          description: 'ID пользователя'
+        name:
+          type: string
+          description: Наименование
+        name_en:
+          type: string
+          description: 'Наименование на английском'
+        created_at:
+          type: string
+          description: 'Дата создания в формате yyyy-MM-dd HH:mm:ss'
+        updated_at:
+          type: string
+          description: 'Дата обновления в формате yyyy-MM-dd HH:mm:ss'
+        code:
+          type: string
+          description: 'Код тега'
+        color:
+          type: string
+          description: Цвет
+          example: '#000080'
+      description: 'Модель Lms Тег'
+    LogisticSlot:
+      type: object
+      description: 'Модель лот погрузки'
+      required:
+        - warehouse_id
+        - shipping_company_id
+        - date
+        - time_from
+        - time_to
+        - company_inn
+        - company_kpp
+        - legal_address
+        - driver
+        - passport_data
+        - proxy_number
+        - proxy_date
+        - route
+        - carrier_number
+        - carrier_model
+        - trailer_number
+        - trailer_model
+        - trailer_model
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        warehouse_id:
+          type: integer
+          description: 'ID склада отгрузки'
+        shipping_company_id:
+          type: integer
+          description: 'ID транспортной компании'
+        date:
+          type: string
+          description: 'Дата, в формате ДД.ММ.ГГГГ'
+        time_from:
+          type: string
+          description: 'Время с'
+        time_to:
+          type: string
+          description: 'Время по'
+        company_inn:
+          type: string
+          description: 'ИНН ТК'
+        company_kpp:
+          type: string
+          description: 'КПП ТК'
+        legal_address:
+          type: string
+          description: 'Юридический адрес ТК'
+        driver:
+          type: string
+          description: Водитель
+        passport_data:
+          type: string
+          description: 'Паспортные данные'
+        proxy_number:
+          type: string
+          description: '№ доверенности'
+        proxy_date:
+          type: string
+          description: 'Дата доверенности, в формате ДД.ММ.ГГГГ'
+        route:
+          type: string
+          description: Рейс
+        carrier_number:
+          type: string
+          description: 'Номер автовоза'
+        carrier_model:
+          type: string
+          description: 'Модель автовоза'
+        trailer_number:
+          type: string
+          description: 'Номер прицепа'
+        trailer_model:
+          type: string
+          description: 'Модель прицепа'
+        power_of_attorney:
+          type: string
+          description: 'Файл с доверенностью на водителя'
+        special_price:
+          type: float
+          description: 'Специальная стоимость'
+        distant_city_calculation:
+          type: boolean
+          description: 'Расчёт по дальнему городу'
+        incomplete_lot_calculation:
+          type: boolean
+          description: 'Расчёт по неполному лоту'
+        createdAt:
+          type: string
+          description: 'Дата/время создания, в формате dd.MM.yyyy HH:mm'
+        shipments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shipment'
+    LogisticSlotForm:
+      type: object
+      description: 'Модель лот погрузки'
+      required:
+        - warehouse_id
+        - shipping_company_id
+        - date
+        - time_from
+        - time_to
+        - company_inn
+        - company_kpp
+        - legal_address
+        - driver
+        - passport_data
+        - proxy_number
+        - proxy_date
+        - route
+        - carrier_number
+        - carrier_model
+        - trailer_number
+        - trailer_model
+        - trailer_model
+        - shipments
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        warehouse_id:
+          type: integer
+          description: 'ID склада отгрузки'
+        shipping_company_id:
+          type: integer
+          description: 'ID транспортной компании'
+        date:
+          type: string
+          description: 'Дата, в формате ДД.ММ.ГГГГ'
+        time_from:
+          type: string
+          description: 'Время с'
+        time_to:
+          type: string
+          description: 'Время по'
+        company_inn:
+          type: string
+          description: 'ИНН ТК'
+        company_kpp:
+          type: string
+          description: 'КПП ТК'
+        legal_address:
+          type: string
+          description: 'Юридический адрес ТК'
+        driver:
+          type: string
+          description: Водитель
+        passport_data:
+          type: string
+          description: 'Паспортные данные'
+        proxy_number:
+          type: string
+          description: '№ доверенности'
+        proxy_date:
+          type: string
+          description: 'Дата доверенности, в формате ДД.ММ.ГГГГ'
+        route:
+          type: string
+          description: Рейс
+        carrier_number:
+          type: string
+          description: 'Номер автовоза'
+        carrier_model:
+          type: string
+          description: 'Модель автовоза'
+        trailer_number:
+          type: string
+          description: 'Номер прицепа'
+        trailer_model:
+          type: string
+          description: 'Модель прицепа'
+        special_price:
+          type: float
+          description: 'Специальная стоимость'
+        distant_city_calculation:
+          type: boolean
+          description: 'Расчёт по дальнему городу'
+        'incomplete lot_calculation':
+          type: boolean
+          description: 'Расчёт по неполному лоту'
+        shipment_ids:
+          type: array
+          description: 'ID отгрузок'
+    LoyaltyBenefit:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+        program_id:
+          type: integer
+          description: 'id программы'
+        name:
+          type: string
+          description: Наименование
+        code:
+          type: string
+          description: Код
+    LoyaltyCondition:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'Тип условия'
+          enum:
+            - confirmed
+            - vehicles
+            - expenses
+        compare:
+          type: string
+          description: Сравнение
+          enum:
+            - '>'
+            - '<'
+            - '='
+        value:
+          type: integer
+          description: Значение
+    LoyaltyCoupon:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+        member_id:
+          type: integer
+          description: 'id участника'
+        amount:
+          type: integer
+          description: сумма
+        hash:
+          type: string
+          description: хеш
+        status:
+          type: integer
+          description: Статус
+        created_at:
+          type: string
+          description: 'дата создания'
+        updated_at:
+          type: string
+          description: 'дата изменения'
+      description: 'Участник программы лояльности'
+    LoyaltyCouponCreate:
+      type: object
+      properties:
+        member_id:
+          type: integer
+          description: 'id участника'
+        amount:
+          type: integer
+          description: сумма
+      description: 'Участник программы лояльности'
+    LoyaltyLevel:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+        program_id:
+          type: integer
+          description: 'id программы лояльности'
+        name:
+          type: string
+          description: Название
+        order:
+          type: integer
+          description: Сортировка
+        is_irreducible:
+          type: boolean
+          description: Неснижаемый
+        condition_merge:
+          type: string
+          description: 'Объединение условий'
+          enum:
+            - or
+            - and
+        benefits:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoyaltyBenefit'
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoyaltyCondition'
+    LoyaltyMember:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+        phone:
+          type: string
+          description: Телефон
+        client_id:
+          type: integer
+          description: 'id клиента дилера'
+        distributor_id:
+          type:
+            - 'null'
+            - integer
+          description: Дистрибьюция
+        status:
+          type: integer
+          description: Статус
+        points:
+          type: integer
+          description: Баллы
+        pointsWithBlocked:
+          type: integer
+          description: 'Баллы + заблокированные баллы'
+        pointsExpiredAt:
+          type: string
+          description: 'Баллы действительны до (дата, формат dd.mm.yyyy)'
+        programs:
+          type: array
+          description: 'Список программ лояльности'
+          items:
+            $ref: '#/components/schemas/LoyaltyMemberProgram'
+        levels:
+          type: array
+          description: 'Список уровней программ лояльности'
+          items:
+            $ref: '#/components/schemas/LoyaltyLevel'
+        privateBenefits:
+          type: array
+          description: 'Список индивидуально назначенных участнику бонусов'
+          items:
+            $ref: '#/components/schemas/LoyaltyBenefit'
+        coupons:
+          type: array
+          description: 'Список купонов участника'
+          items:
+            $ref: '#/components/schemas/LoyaltyCoupon'
+        vehicles:
+          type: array
+          description: 'Список автомобилей участника'
+          items:
+            $ref: '#/components/schemas/LoyaltyMemberVehicle'
+      description: 'Участник программы лояльности'
+    LoyaltyMemberCreate:
+      required:
+        - phone
+        - program_id
+      type: object
+      properties:
+        client_id:
+          type: integer
+          description: 'id клиента дилера'
+        status:
+          type: integer
+          description: 'Статус участника программы лояльности'
+        phone:
+          type: string
+          description: 'Телефон участника (в формате +79001234567)'
+        program_id:
+          type: integer
+          description: 'id программы лояльности'
+        distributorId:
+          type: integer
+          description: 'id дистрибьютора'
+        name:
+          type: string
+          description: 'Имя клиента'
+        lastName:
+          type: string
+          description: 'Фамилия клиента'
+        email:
+          type: string
+          description: E-mail
+        clientConfirmCommunication:
+          type: boolean
+          description: 'Клиент дал согласие на коммуникацию'
+        mayProcessPersonalData:
+          type: boolean
+          description: 'Признак согласия на обработку персональных данных'
+        code:
+          type: string
+          description: 'Код клиента'
+        identifierList:
+          type: array
+          description: 'Список идентификаторов клиента в Интернет'
+          items:
+            $ref: '#/components/schemas/ClientIdentifier'
+      description: 'Данные для создания участника программы лояльности'
+    LoyaltyMemberExternalEvent:
+      type: object
+      required:
+        - external_event_id
+        - occurred
+      properties:
+        external_event_id:
+          type: integer
+          description: 'id внешнего события'
+        occurred:
+          type: string
+          description: 'Дата возникновения внешнего события (дата, формат ДД.ММ.ГГГГ ЧЧ:ММ:СС)'
+      description: 'Программы лояльности участника'
+    LoyaltyMemberPrivateBenefit:
+      type: object
+      required:
+        - benefitId
+      properties:
+        id:
+          type: integer
+          description: 'id участника программы лояльности'
+        benefitIds:
+          type: array
+          items:
+            type: integer
+            description: 'id преимущества'
+      description: 'Преимущества участника программы лояльности'
+    LoyaltyMemberProgram:
+      type: object
+      properties:
+        program_id:
+          type: integer
+          description: 'id программы лояльности'
+        points:
+          type: integer
+          description: Баллы
+        points_expired_at:
+          type:
+            - 'null'
+            - string
+          description: 'Баллы действительны до (дата, формат dd.mm.yyyy)'
+      description: 'Программы лояльности участника'
+    LoyaltyMemberUpdate:
+      required:
+        - phone
+      type: object
+      properties:
+        phone:
+          type: string
+          description: 'Телефон участника (в формате +79001234567)'
+        distributorId:
+          type:
+            - 'null'
+            - integer
+          description: 'id дистрибьютора'
+        status:
+          type: string
+          description: Статус
+      description: 'Данные для изменения участника программы лояльности'
+    LoyaltyMemberVehicle:
+      type: object
+      properties:
+        vin:
+          type: string
+          description: 'VIN-номер автомобиля'
+        vehicle_reg_number:
+          type: string
+          description: 'Рег. номер автомобиля'
+        own_begin:
+          type: string
+          description: 'Дата начала владения (ГГГГ-ММ-ДД)'
+        own_end:
+          type: string
+          description: 'Дата окончания владения (ГГГГ-ММ-ДД)'
+        is_confirmed:
+          type: boolean
+          description: 'Автомобиль подтвержден'
+        status:
+          type: integer
+          description: Статус
+      description: 'Автомобиль участника программы лояльности'
+    LoyaltyMemberVehicleCreate:
+      type: object
+      properties:
+        vin:
+          type: string
+          description: 'VIN-номер автомобиля'
+        id:
+          type: integer
+          description: 'id участника программы лояльности'
+        isConfirmed:
+          type: integer
+          description: 'Признак подтверждения владения (0 - не подтверждено, 1 - подтверждено, 2 - ожидает подтверждения)'
+      description: 'Данные для добавления автомобиля участника программы лояльности'
+    LoyaltyMemberVehicleUpdate:
+      type: object
+      properties:
+        isConfirmed:
+          type: integer
+          description: 'Признак подтверждения владения (0 - не подтверждено, 1 - подтверждено, 2 - ожидает подтверждения)'
+      description: 'Данные для изменения автомобиля участника программы лояльности'
+    LoyaltyMemberVehicleVerification:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID верификации'
+        member_id:
+          type: integer
+          description: 'ID участника программы лояльности'
+        program_id:
+          type: integer
+          description: 'ID программы лояльности'
+        task_stage_slug:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Псевдоним этапа задачи'
+        task_stage:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID этапа задачи'
+        task_stage_name:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Этап задачи'
+        result_id:
+          oneOf:
+            -
+              type: integer
+            -
+              type: 'null'
+          description: 'ID результата'
+        result_name:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: Результат
+        comment:
+          oneOf:
+            -
+              type: string
+            -
+              type: 'null'
+          description: 'Комментарий для клиента'
+        files:
+          type: array
+          description: 'Массив файлов'
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'ID файла верификации'
+              upload:
+                $ref: '#/components/schemas/Upload'
+              type:
+                type: integer
+                enum:
+                  - 1
+                  - 2
+                description: 'Тип `1` - Лицевая сторона СТС `2` - Обратная сторона СТС'
+      description: 'Верификация автомобиля участника программы лояльности'
+    LoyaltyMemberVehicleVerificationForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID участника программы лояльности'
+        program_id:
+          type: integer
+          description: 'ID программы лояльности'
+        files:
+          type: array
+          description: 'Массив файлов'
+          items:
+            type: object
+            properties:
+              file:
+                type: string
+                description: 'Содержимое файла в формате Base64'
+              type:
+                type: integer
+                enum:
+                  - 1
+                  - 2
+                description: 'Тип `1` - Лицевая сторона СТС `2` - Обратная сторона СТС'
+      description: 'Данные для верификации автомобиля участника программы лояльности'
+    LoyaltyProgram:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id
+        name:
+          type: string
+          description: Название
+        distributor_id:
+          type:
+            - 'null'
+            - integer
+          description: Дистрибьюция
+        status:
+          type: integer
+          description: Статус
+        expiration_days:
+          type: integer
+          description: 'Срок действия баллов при не активности (дней)'
+        expiration_days_strict:
+          type:
+            - 'null'
+            - integer
+          description: 'Срок действия баллов независимо от активности (дней)'
+        max_points:
+          type:
+            - 'null'
+            - integer
+          description: 'Максимальное количество получаемых баллов'
+        max_points_days_limit:
+          type:
+            - 'null'
+            - integer
+          description: 'Период для расчета максимального количества баллов (дней)'
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoyaltyLevel'
+      description: 'Программа лояльности'
+    LoyaltyTransaction:
+      type: object
+      description: 'Транзакция лояльности'
+      properties:
+        id:
+          type: integer
+          description: ID
+        member_id:
+          type: integer
+          description: 'ID участника'
+        program_id:
+          type:
+            - 'null'
+            - integer
+          description: 'ID программы лояльности'
+        amount:
+          type: integer
+          description: Баллы
+        code:
+          type: string
+          description: код
+        datetime:
+          type: string
+          description: 'Дата и время транзакции в формате дд.мм.гггг чч:мм'
+        status:
+          type: integer
+          description: 'Статус транзакции (1 — активна, 2 — удалена, 3 — списание баллов по истечению, 4 — резерв)'
+        comment:
+          type: string
+          description: Комментарий
+        description:
+          type: string
+          description: Описание
+        dealer_name:
+          type: string
+          description: 'Маркетинговое название дилера'
+        dealer_code:
+          type: string
+          description: 'Код шоурума дилера'
+        vin:
+          type: string
+          description: 'VIN автомобиля (ЗН/рапорт/РЛ, для РЛ — первый вин из списка)'
+        purchase_id:
+          type: integer
+          description: 'ID заказ-наряда'
+        purchase_code:
+          type: string
+          description: 'Код заказ-наряда'
+        sale_id:
+          type: integer
+          description: 'ID рапорта'
+        spare_sale_id:
+          type: integer
+          description: 'ID реализации ЗЧ'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        data:
+          type: object
+          properties: {  }
+          description: 'Дополнительные данные по транзакции(parts - запасные части, works - работы)'
+        external_order_number:
+          type: string
+          description: 'Внешний номер заказа'
+    LoyaltyTransactionCreate:
+      required:
+        - amount
+        - member_id
+      type: object
+      description: 'Транзакция лояльности'
+      properties:
+        member_id:
+          type: integer
+          description: 'ID участника (обязательное поле)'
+        program_id:
+          type:
+            - 'null'
+            - integer
+          description: 'ID программы лояльности'
+        amount:
+          type: integer
+          description: 'Баллы (обязательное поле)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        purchase_id:
+          type: integer
+          description: 'ID заказ-наряда'
+        purchase_code:
+          type: string
+          description: 'Код заказ-наряда'
+        sale_id:
+          type: integer
+          description: 'ID рапорта'
+        spare_sale_id:
+          type: string
+          description: 'ID реализации ЗЧ'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        description:
+          type: string
+          description: Описание
+        comment:
+          type: string
+          description: Комментарий
+        external_order_number:
+          type: string
+          description: 'Внешний номер заказа'
+        status:
+          type: integer
+          description: 'Статус транзакции (1 — активна, 2 — удалена, 3 — списание баллов по истечению, 4 — резерв)'
+    LoyaltyTransactionUpdate:
+      type: object
+      description: 'Транзакция лояльности'
+      properties:
+        purchase_id:
+          type: integer
+          description: 'ID заказ-наряда'
+        purchase_code:
+          type: string
+          description: 'Код заказ-наряда'
+        sale_id:
+          type: integer
+          description: 'ID рапорта'
+        spare_sale_id:
+          type: string
+          description: 'ID реализации ЗЧ'
+        worksheet_id:
+          type: integer
+          description: 'ID рабочего листа'
+        description:
+          type: string
+          description: Описание
+        comment:
+          type: string
+          description: Комментарий
+        status:
+          type: integer
+          description: 'Статус транзакции (1 — активна, 2 — удалена, 3 — списание баллов по истечению, 4 — резерв)'

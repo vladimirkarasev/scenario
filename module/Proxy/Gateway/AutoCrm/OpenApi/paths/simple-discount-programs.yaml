@@ -1,0 +1,121 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - simple-discount-programs'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: simple-discount-programs
+    description: 'Категории мотивационных программ'
+paths:
+  /simple-discount/programs:
+    get:
+      tags:
+        - simple-discount-programs
+      summary: 'Получение списка категорий мотивационных программ'
+      description: 'Получение списка категорий мотивационных программ'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск по ID'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: 'Поиск по названию'
+          schema:
+            type: string
+        -
+          name: distributor_id
+          in: query
+          description: 'Поиск по дистрибьютору'
+          schema:
+            type: integer
+        -
+          name: system_code
+          in: query
+          description: 'Поиск по системному коду'
+          schema:
+            type: string
+        -
+          name: active
+          in: query
+          description: 'Активность (0 - Не активен, 1 - Активен)'
+          schema:
+            type: integer
+        -
+          name: mark_required
+          in: query
+          description: 'Особые отметки (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: 'types[]'
+          in: query
+          style: form
+          explode: true
+          description: "Поиск по схемам покупок: `1` - Наличные `2` - Кредит `3` - Лизинг `4` - Трейдин\n"
+          schema:
+            type: array
+            items:
+              type: integer
+              enum:
+                - 1
+                - 2
+                - 3
+                - 4
+        -
+          name: 'typesOfSales[]'
+          in: query
+          style: form
+          explode: true
+          description: "Поиск по типам продаж: см sale-type\n"
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: is_test_drive
+          in: query
+          description: '0 - Нет, 1 - Да'
+          schema:
+            type: integer
+        -
+          name: is_internal
+          in: query
+          description: 'Внутренняя категория (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: is_marketplace
+          in: query
+          description: 'Для маркетплейсов (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список дилеров'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleDiscountPrograms'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

@@ -1,0 +1,374 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - order'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: order
+    description: 'Управление заказами'
+paths:
+  /order/order:
+    get:
+      tags:
+        - order
+      description: 'Получить список заказов'
+      summary: 'Получить список заказов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID заказа'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: client_id
+          in: query
+          description: 'ID клиента'
+          schema:
+            type: integer
+        -
+          name: common_client_id
+          in: query
+          description: 'ID клиента дистрибьютора'
+          schema:
+            type: integer
+        -
+          name: date_from
+          in: query
+          description: 'Дата с'
+          schema:
+            type: string
+            format: YYYY-MM-DD
+        -
+          name: date_to
+          in: query
+          description: 'Дата по'
+          schema:
+            type: string
+            format: YYYY-MM-DD
+        -
+          name: vin
+          in: query
+          description: VIN
+          schema:
+            type: string
+        -
+          name: status_id
+          in: query
+          description: 'ID статуса'
+          schema:
+            type: integer
+        -
+          name: payment_method_id
+          in: query
+          description: 'ID способа оплаты'
+          schema:
+            type: integer
+        -
+          name: payment_status_id
+          in: query
+          description: 'ID статуса оплаты'
+          schema:
+            type: integer
+        -
+          name: delivery_method_id
+          in: query
+          description: 'ID способа доставки'
+          schema:
+            type: integer
+        -
+          name: source
+          in: query
+          description: 'Источник заказа: 1 - мобильное приложение, 2 - сайт'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+            nullable: true
+      responses:
+        200:
+          description: 'Возвращает список заказов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - order
+      description: 'Создать заказ'
+      summary: 'Создать заказ'
+      requestBody:
+        description: 'Форма заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderForm'
+        required: true
+      responses:
+        201:
+          description: 'Заказ успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/order/order/{id}':
+    get:
+      tags:
+        - order
+      description: 'Получить заказ по ID'
+      summary: 'Получить заказ по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID заказа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает заказ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - order
+      description: 'Обновить заказ по ID'
+      summary: 'Обновить заказ по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Форма заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderForm'
+        required: true
+      responses:
+        201:
+          description: 'Заказ успешно обновлён'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - order
+      description: 'Удалить заказ по ID'
+      summary: 'Удалить заказ по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID заказа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Заказ успешно удалён'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/order/refund/{id}':
+    put:
+      tags:
+        - order
+      description: 'Обновить возврат по ID'
+      summary: 'Обновить возврат по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID возврата'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Форма возврата'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRefundForm'
+        required: true
+      responses:
+        201:
+          description: 'Возврат успешно обновлён'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRefund'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - order
+      description: 'Удалить возврат по ID'
+      summary: 'Удалить возврат по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID возврата'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Возврат успешно удалён'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/order/refund/{orderId}':
+    post:
+      tags:
+        - order
+      description: 'Создать возврат'
+      summary: 'Создать возврат'
+      parameters:
+        -
+          name: orderId
+          in: path
+          description: 'ID заказа'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Форма возврата'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRefundForm'
+        required: true
+      responses:
+        201:
+          description: 'Возврат успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderRefund'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

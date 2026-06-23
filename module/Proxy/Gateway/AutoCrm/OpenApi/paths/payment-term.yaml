@@ -1,0 +1,178 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - payment-term'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: payment-term
+    description: 'Управление Условиями оплаты'
+paths:
+  /payment-term:
+    get:
+      tags:
+        - payment-term
+      summary: 'Получение списка условий оплаты'
+      description: 'Получение списка условий оплаты'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: Название
+          schema:
+            type: string
+        -
+          name: types
+          in: query
+          description: Тип
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - test-drive
+                - replacement
+                - consignment
+              example: test-drive
+        -
+          name: show_in_request
+          in: query
+          description: 'Отображать в запросе счета'
+          schema:
+            type: boolean
+        -
+          name: active
+          in: query
+          description: Активность
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: 'Возвращает список условий оплаты'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentTerm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - payment-term
+      summary: 'Создание условия оплаты'
+      description: 'Создание условия оплаты'
+      requestBody:
+        description: 'Модель условия оплаты'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentTerm'
+        required: true
+      responses:
+        201:
+          description: 'Условие оплаты успешно изменено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentTerm'
+        400:
+          description: 'Ошибка валидации'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Условие оплаты не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/payment-term/{id}':
+    get:
+      tags:
+        - payment-term
+      summary: 'Просмотр условия оплаты'
+      description: 'Просмотр условия оплаты'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id условия оплаты'
+          required: true
+          schema:
+            type: integer
+      responses:
+        201:
+          description: 'Условие оплаты'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentTerm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Условие оплаты не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - payment-term
+      summary: 'Изменение условия оплаты'
+      description: 'Изменение условия оплаты'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id условия оплаты'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель условия оплаты'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentTerm'
+        required: false
+      responses:
+        201:
+          description: 'Условие оплаты успешно изменено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentTerm'
+        400:
+          description: 'Ошибка валидации'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Условие оплаты не найдено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

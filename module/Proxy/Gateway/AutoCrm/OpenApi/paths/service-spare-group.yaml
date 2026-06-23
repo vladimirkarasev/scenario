@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - service-spare-group'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: service-spare-group
+    description: 'Управление списком групп, подгрупп ЗЧ'
+paths:
+  /service/spare-group:
+    post:
+      tags:
+        - service-spare-group
+      summary: 'Создание новой группы/подгруппы ЗЧ'
+      description: 'Создание новой группы/подгруппы ЗЧ'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - type
+                - name
+              type: object
+              properties:
+                type:
+                  description: Тип
+                  type: integer
+                name:
+                  description: Наименование
+                  type: string
+                alias:
+                  description: Алиас
+                  type: string
+                name_eng:
+                  description: 'Наименование (англ.)'
+                  type: string
+                user_id:
+                  description: 'id пользователя'
+                  type: integer
+                created_at:
+                  description: 'Дата создания'
+                  type: string
+                updated_at:
+                  description: 'Дата изменения'
+                  type: string
+        required: true
+      responses:
+        200:
+          description: 'Группа/подгруппа ЗЧ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareGroup'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /service/spare-group/index:
+    get:
+      tags:
+        - service-spare-group
+      summary: 'Список групп, подгрупп ЗЧ'
+      description: 'Список групп, подгрупп ЗЧ'
+      parameters:
+        -
+          name: type
+          in: query
+          description: Тип
+          schema:
+            type: integer
+        -
+          name: alias
+          in: query
+          description: Алиас
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: name_eng
+          in: query
+          description: 'Наименование (англ.)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Список групп, подгрупп ЗЧ'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareGroup'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/service/spare-group/{id}':
+    put:
+      tags:
+        - service-spare-group
+      summary: 'Изменение группы/подгруппы ЗЧ'
+      description: 'Изменение группы/подгруппы ЗЧ'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id группы/подгруппы ЗЧ'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - type
+                - name
+              type: object
+              properties:
+                type:
+                  description: Тип
+                  type: integer
+                name:
+                  description: Наименование
+                  type: string
+                alias:
+                  description: Алиас
+                  type: string
+                name_eng:
+                  description: 'Наименование (англ.)'
+                  type: string
+                user_id:
+                  description: 'id пользователя'
+                  type: integer
+                created_at:
+                  description: 'Дата создания'
+                  type: string
+                updated_at:
+                  description: 'Дата изменения'
+                  type: string
+        required: true
+      responses:
+        200:
+          description: 'Группа/подгруппа ЗЧ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareGroup'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    get:
+      tags:
+        - service-spare-group
+      summary: 'Просмотр группы/подгруппы ЗЧ'
+      description: 'Просмотр группы/подгруппы ЗЧ'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id группы/подгруппы ЗЧ'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Группа/подгруппа ЗЧ'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareGroup'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

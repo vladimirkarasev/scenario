@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - purchase-work'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: purchase-work
+    description: 'Управление работами заказ-наряда'
+paths:
+  /purchase-work:
+    get:
+      tags:
+        - purchase-work
+      summary: 'Получение списка работ заказ нарядов'
+      description: 'Получение списка работ заказ нарядов'
+      parameters:
+        -
+          name: purchase_id
+          in: query
+          description: 'ID заказ наряда'
+          required: true
+          schema:
+            type: string
+        -
+          name: code
+          in: query
+          description: 'Внешний код работы заказ наряда'
+          required: false
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          description: 'Наименование работы по автомобилю'
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список работ заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseWork'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - purchase-work
+      summary: 'Добавление новой работы в заказ наряд'
+      description: 'Добавление новой работы в заказ наряд'
+      requestBody:
+        description: 'Объект PurchaseWork'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseWork'
+        required: true
+      responses:
+        201:
+          description: 'Новая работа в заказ-наряде успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseWork'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/purchase-work/{id}':
+    get:
+      tags:
+        - purchase-work
+      summary: 'Получение работы заказ-наряда по ID'
+      description: 'Получение работы заказ-наряда по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id работы заказ-наряда'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает работу заказ-наряд по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseWork'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - purchase-work
+      summary: 'Изменение работы заказ-наряда'
+      description: 'Изменение работы заказ-наряда'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id работы заказ-наряда'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Работа заказ-наряда'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseWork'
+        required: false
+      responses:
+        200:
+          description: 'Работа заказ-наряда успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseWork'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

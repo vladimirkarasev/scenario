@@ -1,0 +1,246 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-warehouse-transfer'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-warehouse-transfer
+    description: 'Передача данных в СДЭК'
+paths:
+  /spare-warehouse/spare-warehouse-transfer:
+    get:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Получение списка перемещений запасных частей'
+      description: 'Получение списка записей о перемещениях запасных частей'
+      parameters:
+        -
+          name: spareWarehouseFromId
+          in: query
+          description: Склад-отправитель
+          schema:
+            type: integer
+        -
+          name: spareWarehouseToId
+          in: query
+          description: Склад-получатель
+          schema:
+            type: integer
+        -
+          name: dateFrom
+          in: query
+          description: 'Дата начала диапазона поиска'
+          schema:
+            type: string
+            format: date
+        -
+          name: dateTo
+          in: query
+          description: 'Дата конца диапазона поиска'
+          schema:
+            type: string
+            format: date
+        -
+          name: article
+          in: query
+          description: 'Артикул запасной части'
+          schema:
+            type: string
+        -
+          name: number
+          in: query
+          description: 'Номер перемещения'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список перемещений запасных частей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareWarehouseTransfer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Создание нового перемещения запасных частей'
+      description: 'Добавление новой записи о перемещении запасных частей'
+      requestBody:
+        description: 'Объект перемещения'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareWarehouseTransfer'
+        required: true
+      responses:
+        201:
+          description: 'Перемещение успешно создано'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransfer'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /spare-warehouse/spare-warehouse-transfer/batch-create:
+    post:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Массовое создание перемещений запасных частей'
+      description: 'Позволяет создать несколько записей о перемещении запасных частей за один запрос.'
+      requestBody:
+        description: 'Массив объектов перемещений'
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpareWarehouseTransfer'
+        required: true
+      responses:
+        201:
+          description: 'Перемещения успешно созданы'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    $ref: '#/components/schemas/SpareWarehouseTransfer'
+                  errors:
+                    type: array
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /spare-warehouse/spare-warehouse-transfer/batch-update:
+    put:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Массовое обновление перемещений запасных частей'
+      description: 'Позволяет обновить несколько записей о перемещении запасных частей за один запрос.'
+      requestBody:
+        description: 'Массив объектов перемещений с обновленными данными'
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpareWarehouseTransfer'
+        required: true
+      responses:
+        200:
+          description: 'Перемещения успешно обновлены'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    $ref: '#/components/schemas/SpareWarehouseTransfer'
+                  errors:
+                    type: array
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/spare-warehouse/spare-warehouse-transfer/{id}':
+    get:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Получение перемещения по ID'
+      description: 'Получение информации о перемещении по его ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи перемещения'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает запись о перемещении'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransfer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - spare-warehouse-transfer
+      summary: 'Редактирование перемещения по ID'
+      description: 'Обновление записи о перемещении запасных частей'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи перемещения'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Объект перемещения'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareWarehouseTransfer'
+        required: true
+      responses:
+        200:
+          description: 'Перемещение успешно обновлено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransfer'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,238 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - event'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: event
+    description: 'Управление событиями'
+paths:
+  /event:
+    get:
+      tags:
+        - event
+      summary: 'Получение списка событий'
+      description: 'Получение списка событий'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'id события во внешней системе'
+          schema:
+            type: string
+        -
+          name: car_id
+          in: query
+          description: 'id потребности'
+          schema:
+            type: integer
+        -
+          name: event_type
+          in: query
+          description: 'Тип события'
+          schema:
+            type: string
+        -
+          name: is_primary
+          in: query
+          description: 'Признак первичного события'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: string
+        -
+          name: worksheet_id
+          in: query
+          description: 'id рабочего листа'
+          schema:
+            type: integer
+        -
+          name: brand_id
+          in: query
+          description: 'id бренда потребности'
+          schema:
+            type: integer
+        -
+          name: result_id
+          in: query
+          description: 'id результата'
+          schema:
+            type: integer
+        -
+          name: occurred_from
+          in: query
+          description: 'минимальное время завершения события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: occurred_to
+          in: query
+          description: 'максимальное время завершения события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: created_from
+          in: query
+          description: 'минимальное время создания события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: created_to
+          in: query
+          description: 'максимальное время создания события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_from
+          in: query
+          description: 'минимальное время обновления события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_to
+          in: query
+          description: 'максимальное время обновления события в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: 'common_client_google_id[]'
+          in: query
+          description: 'Google ID клиента дистрибьютора'
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список событий'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - event
+      summary: 'Добавление нового события'
+      description: 'Добавление нового события'
+      requestBody:
+        description: 'Объект Событие'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        201:
+          description: 'Новое событие успешно создано'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/event/{id}':
+    get:
+      tags:
+        - event
+      summary: 'Получение события по ID'
+      description: 'Получение события по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id события'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает событие по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - event
+      summary: 'Изменение события'
+      description: 'Изменение события'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id события'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Событие'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: false
+      responses:
+        200:
+          description: 'Событие успешно изменено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

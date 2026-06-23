@@ -1,0 +1,510 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - client'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: client
+    description: 'Управление клиентами'
+paths:
+  /client:
+    get:
+      tags:
+        - client
+      summary: 'Получение списка клиентов'
+      description: 'Получение списка клиентов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID клиента'
+          schema:
+            type: integer
+        -
+          name: tagId
+          in: query
+          description: 'ID тегов'
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Код клиента во внешней системе'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: 'Имя клиента'
+          schema:
+            type: string
+        -
+          name: middle_name
+          in: query
+          description: 'Отчество клиента'
+          schema:
+            type: string
+        -
+          name: last_name
+          in: query
+          description: 'Фамилия клиента'
+          schema:
+            type: string
+        -
+          name: phone
+          in: query
+          description: 'Телефон клиента'
+          schema:
+            type: string
+        -
+          name: contactPersonPhone
+          in: query
+          description: 'Телефон контактного лица'
+          schema:
+            type: string
+        -
+          name: email
+          in: query
+          description: 'E-mail клиента'
+          schema:
+            type: string
+        -
+          name: company_inn
+          in: query
+          description: 'ИНН компании'
+          schema:
+            type: string
+        -
+          name: google_id
+          in: query
+          description: 'Google ID'
+          schema:
+            type: string
+        -
+          name: created_from
+          in: query
+          description: 'Минимальное время создания клиентов в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: created_to
+          in: query
+          description: 'Максимальное время создания клиентов в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_from
+          in: query
+          description: 'Минимальное время обновления клиентов в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_to
+          in: query
+          description: 'Максимальное время обновления клиентов в формате dd.MM.yyyy HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: source
+          in: query
+          description: 'Источник (0 - Клиент дилера, 1 - Импорт, 2 - Вручную, 3 - Лид, 4 - Анкета СОПД)'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nsubscriptions - Список подписок клиента, fields - Дополнительные поля, clientIdentifiers - Идентификаторы клиента в Internet, driverLicense - Данные ВУ"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список клиентов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - client
+      summary: 'Добавление нового клиента'
+      description: 'Добавление нового клиента'
+      requestBody:
+        description: 'Объект Client'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+        required: true
+      responses:
+        201:
+          description: 'Новый клиент успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/client-identificator/{type}/{value}':
+    delete:
+      tags:
+        - client
+      summary: 'Удаление идентификатора клиента'
+      description: 'Удаление идентификатора клиента по типу и значению'
+      parameters:
+        -
+          name: type
+          in: path
+          description: "Тип идентификатора клиента. Возможные значения:\n  - 1 — Google ID\n  - 2 — Yandex ID\n  - 3 — Git ID\n  - 4 — GWM ID (если применимо)\n  - 5 — Номер заказа в личном кабинете\n  - 6 — Серийный номер оплаты\n  - 7 — Ссылка на профиль Telegram\n  - 8 — Ссылка на профиль ВКонтакте\n  - 9 — Ссылка на профиль Одноклассники\n"
+          required: true
+          schema:
+            type: string
+        -
+          name: value
+          in: path
+          description: 'Значение идентификатора'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Идентификатор клиента успешно удалён'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Идентификатор успешно удалён'
+        400:
+          description: 'Ошибка клиента'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/client/{id}':
+    get:
+      tags:
+        - client
+      summary: 'Получение клиента по ID'
+      description: 'Получение клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nsubscriptions - Список подписок клиента fields - Дополнительные поля"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает клиента по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommonClient'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - client
+      summary: 'Изменение клиента'
+      description: 'Изменение клиента'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Клиент'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+        required: false
+      responses:
+        200:
+          description: 'Клиент успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/client/{id}/avatar':
+    get:
+      tags:
+        - client
+      summary: 'Получение фото клиента по ID'
+      description: 'Получение фото клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает клиента по ID'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Upload'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - client
+      summary: 'Добавление фото клиенту по ID'
+      description: 'Добавление фото клиенту по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Файл фото клиента. Поддерживаются следующие типы файлов jpeg, png, gif. Максимальный размер 15 Mb.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client_AvatarFile'
+        required: false
+      responses:
+        200:
+          description: 'Файл фото клиента'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Upload'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - client
+      summary: 'Удаление фото у клиента дилера'
+      description: 'Удаление фото у клиента дилера'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Успешное удаление по ID'
+          content: {  }
+        400:
+          description: 'Ошибка клиента'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/client/{id}/external-event':
+    post:
+      tags:
+        - client
+      summary: 'Добавление внешнего события клиенту по ID'
+      description: 'Добавление внешнего события клиенту по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Клиент'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalClientEventStorage'
+        required: false
+      responses:
+        200:
+          description: 'Внешнее событие'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalClientEventStorage'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/client/{id}/subscribe':
+    get:
+      tags:
+        - client
+      summary: 'Получение списка подписок клиента по ID'
+      description: 'Получение списка подписок клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает клиента по ID'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscribe'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - client
+      summary: 'Изменение подписок клиента по ID'
+      description: 'Изменение подписок клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Клиент'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientSubscribeForm'
+        required: false
+      responses:
+        200:
+          description: 'Список подписок успешно изменен'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscribe'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

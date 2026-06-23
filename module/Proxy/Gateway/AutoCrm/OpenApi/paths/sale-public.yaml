@@ -1,0 +1,249 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - sale-public'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: sale-public
+    description: 'Управление рапортами'
+paths:
+  /sale-public:
+    post:
+      tags:
+        - sale-public
+      summary: 'Создание рапорта'
+      description: 'Создание рапорта'
+      requestBody:
+        description: 'Объект рапорт'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalePublic'
+        required: true
+      responses:
+        201:
+          description: 'Рапорт успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalePublic'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /sale-public/leasing:
+    put:
+      tags:
+        - sale-public
+      summary: 'Передача данных по лизингу'
+      description: 'Передача данных по лизингу из ЛК'
+      requestBody:
+        description: 'Объект рапорт'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeasingLkRequest'
+        required: true
+      responses:
+        201:
+          description: 'Данные успешно добавлены'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeasingLkResponse'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/sale-public/{id}':
+    put:
+      tags:
+        - sale-public
+      summary: 'Изменение рапорта'
+      description: 'Изменение рапорта'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id рапорта'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель рапорта'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalePublic'
+        required: false
+      responses:
+        200:
+          description: 'Рапорт успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalePublic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/sale-public/{id}/{vin}':
+    get:
+      tags:
+        - sale-public
+      summary: 'Получение по ID'
+      description: 'Получение по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id рапорта'
+          required: true
+          schema:
+            type: integer
+        -
+          name: vin
+          in: path
+          description: 'VIN-номер автомобиля'
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает рапорт по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalePublic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/sale-public/{vin}':
+    get:
+      tags:
+        - sale-public
+      summary: 'Получение списка рапортов'
+      description: 'Получение списка рапортов'
+      parameters:
+        -
+          name: date_from
+          in: query
+          description: 'дата рапорта ОТ в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: date_to
+          in: query
+          description: 'дата рапорта ДО в формате dd.MM.yyyy'
+          schema:
+            type: string
+        -
+          name: vin
+          in: path
+          description: 'VIN-номер автомобиля'
+          required: true
+          schema:
+            type: string
+        -
+          name: created_from
+          in: query
+          description: 'дата создания рапорта ОТ в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: created_to
+          in: query
+          description: 'дата создания рапорта ПО в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_from
+          in: query
+          description: 'дата обновления рапорта ОТ в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: updated_to
+          in: query
+          description: 'дата обновления рапорта ДО в формате yyyy-MM-dd HH:mm:ss'
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую dealer - Дилер source - Источник bank - Банк additionalServices - Дополнительные услуги'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: state
+          in: query
+          description: 'all — искать все рапорты, new (по умолчанию) — только новые автомобили, used — только б/у автомобили'
+          schema:
+            type: string
+            enum:
+              - all
+              - new
+              - used
+      responses:
+        200:
+          description: 'Возвращает список рапортов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SalePublic'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

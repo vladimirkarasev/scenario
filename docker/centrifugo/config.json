@@ -1,0 +1,33 @@
+{
+  "log": {
+    "level": "debug"
+  },
+  "client": {
+    "token": {
+      "hmac_secret_key": "scenario-centrifugo-secret"
+    },
+    "allowed_origins": [
+      "http://localhost:8000",
+      "http://scenario.localhost",
+      "http://centrifugo.localhost"
+    ]
+  },
+  "http_api": {
+    "key": "scenario-centrifugo-api-key"
+  },
+  "admin": {
+    "enabled": true,
+    "password": "scenario-admin",
+    "secret": "scenario-admin-secret"
+  },
+  "channel": {
+    "namespaces": [
+      {
+        "name": "directory-import"
+      },
+      {
+        "name": "scenario-run"
+      }
+    ]
+  }
+}

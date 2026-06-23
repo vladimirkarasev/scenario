@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - external-event-storage'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: external-event-storage
+    description: 'Хранилище внешних событий'
+paths:
+  /external-event-storage:
+    post:
+      tags:
+        - external-event-storage
+      summary: 'Получение данных о внешнем событии'
+      description: 'Получение данных о внешнем событии'
+      requestBody:
+        description: 'Объект ExternalEventStorage'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalEventStorage'
+        required: true
+      responses:
+        201:
+          description: 'Новая событие успешно добавлено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalEventStorage'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

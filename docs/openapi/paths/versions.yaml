@@ -1,0 +1,116 @@
+collection:
+  parameters:
+    - $ref: '../components/parameters.yaml#/ScenarioId'
+
+  get:
+    tags: [Версии]
+    summary: Список версий сценария
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Список версий (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/versions.yaml#/VersionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  post:
+    tags: [Версии]
+    summary: Создать версию сценария
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/versions.yaml#/VersionRequest'
+    responses:
+      '201':
+        description: Версия создана
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/versions.yaml#/VersionItem'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - $ref: '../components/parameters.yaml#/ScenarioId'
+    - $ref: '../components/parameters.yaml#/VersionId'
+
+  get:
+    tags: [Версии]
+    summary: Получить версию сценария
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Версия
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/versions.yaml#/VersionResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Версии]
+    summary: Обновить версию сценария
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/versions.yaml#/VersionRequest'
+    responses:
+      '200':
+        description: Обновлённая версия
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/versions.yaml#/VersionItem'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Версии]
+    summary: Удалить версию сценария
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Результат удаления
+        content:
+          application/json:
+            schema:
+              type: object
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

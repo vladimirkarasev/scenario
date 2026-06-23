@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - module
+    level: 10
+    ignoreErrors:
+        - '#Unsafe usage of new static#'
+        # Known Larastan limitation: BelongsTo/HasMany/HasOne TDeclaringModel is not covariant
+        - '#Template type TDeclaringModel on class .* is not covariant#'
+        - '#but returns Illuminate\\Database\\Eloquent\\Relations\\(BelongsTo|BelongsToMany|HasMany|HasOne|MorphToMany)<.*\$this.*>#'
+        # Known Larastan limitation: HasOne TDeclaringModel covariance
+        - '#Template type TChildModel on class .* is not covariant#'

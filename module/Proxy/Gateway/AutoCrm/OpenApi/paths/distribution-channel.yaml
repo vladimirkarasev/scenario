@@ -1,0 +1,41 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - distribution-channel'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: distribution-channel
+    description: 'Каналы реализации'
+paths:
+  /service/distribution-channel:
+    get:
+      tags:
+        - distribution-channel
+      summary: 'Получение списка каналов реализации'
+      description: 'Получение списка каналов реализации'
+      responses:
+        200:
+          description: 'Возвращает cписок каналов реализации'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DistributionChannel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

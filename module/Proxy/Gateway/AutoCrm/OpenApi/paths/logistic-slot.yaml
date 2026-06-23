@@ -1,0 +1,148 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - logistic-slot'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: logistic-slot
+    description: 'Управление лотами погрузки'
+paths:
+  /logistic/slot:
+    get:
+      tags:
+        - logistic-slot
+      description: 'Получение списка лотов погрузки'
+      summary: 'Получение списка лотов погрузки'
+      parameters:
+        -
+          name: warehouse_id
+          in: query
+          description: 'ID склада отгрузки'
+          schema:
+            type: integer
+        -
+          name: shipping_company_id
+          in: query
+          description: 'ID транспортной компании'
+          schema:
+            type: integer
+        -
+          name: date
+          in: query
+          description: 'Дата формат ДД.ММ.ГГГГ'
+          schema:
+            type: string
+        -
+          name: route
+          in: query
+          description: Рейс
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список лотов погрузки'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LogisticSlot'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - logistic-slot
+      summary: 'Создание лота погрузки'
+      description: 'Создание лота погрузки'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogisticSlotForm'
+      responses:
+        201:
+          description: 'Отгрузка успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogisticSlot'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/logistic/slot/{id}':
+    get:
+      tags:
+        - logistic-slot
+      summary: 'Получение лота погрузки по ID'
+      description: 'Получение лота погрузки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id лота погрузки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение отгрузки по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogisticSlot'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - logistic-slot
+      description: 'Обновление лота погрузки по ID'
+      summary: 'Обновление лота погрузки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id лота погрузки'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogisticSlotForm'
+        required: false
+      responses:
+        200:
+          description: 'лот погрузки успешно изменен'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,1644 @@
+openapi: 3.1.0
+components:
+  schemas:
+    ImplementationReport:
+      required:
+        - date
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID отчета'
+        dealer_id:
+          type: string
+          description: 'ID дилера'
+        date:
+          type: string
+          description: 'Период (в формате YYYY-mm-dd)'
+        valid:
+          type: boolean
+          description: Статус
+        created_at:
+          type: string
+          description: 'Дата создания отчета'
+        updated_at:
+          type: string
+          description: 'Дата редактирования отчета'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImplementationReportItem'
+      description: 'Модель отчет по реализации'
+    ImplementationReportItem:
+      required:
+        - article
+        - channel
+        - cost
+        - count
+        - doc_date
+        - doc_number
+        - implementation_report_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID строки отчета, генерируется автоматически'
+        implementation_report_id:
+          type: integer
+          description: 'ID отчета по реализации'
+        article:
+          type: string
+        count:
+          type: integer
+          description: Количество
+        cost:
+          type: number
+          description: 'Закупочная стоимость за единицу без НДС'
+        price:
+          type: number
+          description: 'Стоимость конечной реализации за единицу, с НДС'
+        channel:
+          type: string
+          description: 'Канал реализации'
+        doc_number:
+          type: string
+          description: 'Номер документа реализации'
+        doc_date:
+          type: string
+          description: 'Дата документа реализации (в формате YYYY-mm-dd)'
+      description: 'Модель строка отчета по реализации'
+    ImportHistoryRequest:
+      type: object
+      required:
+        - connector
+        - date_from
+        - date_to
+        - dealer_id
+      properties:
+        connector:
+          type: integer
+          description: 'ID коннектора для импорта'
+          example: 6
+        date_from:
+          type: string
+          description: 'Дата начала периода импорта в формате ДД.ММ.ГГГГ'
+          example: 01.01.2024
+        date_to:
+          type: string
+          description: 'Дата окончания периода импорта в формате ДД.ММ.ГГГГ'
+          example: 31.12.2024
+        dealer_id:
+          type: array
+          items:
+            type: integer
+          description: 'Массив ID дилеров для импорта'
+          example:
+            - 2
+      description: 'Запрос на импорт исторических заказов ЗЧ'
+    ImportHistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 'Успешность выполнения'
+          example: true
+        url_file:
+          type: string
+          description: 'URL файла с результатами импорта'
+          example: 'https://52bb3d86-982f-40ea-bece-aa8a49debb77.selstorage.ru/2025/10/16/history-orders-68f1021fbc292.json'
+        uploadId:
+          type: integer
+          description: 'ID загрузки файла'
+          example: 11091982
+      description: 'Ответ на запрос импорта исторических заказов ЗЧ'
+    Incadea:
+      required:
+        - dealer_code
+        - vehicle_vin
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        vehicle_vin:
+          type: string
+          description: 'VIN автомобиля'
+        order_type_code:
+          type: string
+          description: 'Тип заказа'
+        order_type_code_date:
+          type: string
+          description: 'Дата смены типа заказа в формате yyyy-mm-dd'
+        planned_delivery_at:
+          type: string
+          description: 'Планируемая дата выдачи в формате yyyy-mm-dd'
+        vehicle_dealer_sale_at:
+          type: string
+          description: 'Дата продажи в формате yyyy-mm-dd'
+        vehicle_receipt_date:
+          type: string
+          description: 'Дата прихода на склад в формате yyyy-mm-dd'
+        status:
+          type: string
+          description: 'Статус записи'
+          enum:
+            - 'active - Новая'
+            - 'deleted - Выполнена'
+            - 'error - Ошибка'
+            - 'progress - Обрабатывается'
+        comment:
+          type: string
+          description: 'Описание ошибки'
+      description: 'Модель запись из истории изменений автомобиля на складе'
+    Interest:
+      required:
+        - first_name
+        - last_name
+        - request_type_id
+        - source_id
+      type: object
+      description: 'Модель Обращение'
+      properties:
+        id:
+          type: integer
+          description: 'ID обращения (генерируется автоматически)'
+        activity_id:
+          type: integer
+          description: 'ID сферы деятельности'
+        add_more_time:
+          type: integer
+          description: 'Добавлено время в минутах к KPI'
+        additional_request_type_id:
+          type: integer
+          description: 'Уточняющая цель обращения'
+        address:
+          type: string
+          description: 'Адрес клиента'
+        available_dealers:
+          type: string
+          description: 'Доступные дилеры'
+        birthday_at:
+          type: string
+          description: 'День рождения клиента (гггг-мм-дд)'
+          example: 949276800
+        block:
+          type: string
+          description: Корпус
+        brand_id:
+          type:
+            - 'null'
+            - integer
+          description: 'ID марки автомобиля'
+        brochure_link:
+          type: string
+          description: 'Ссылка на файл'
+        btl_id:
+          type: integer
+          description: 'BTL мероприятие'
+        business_address:
+          type: string
+          description: 'Юридический адрес'
+        business_bic:
+          type: string
+          description: БИК
+        business_checking_account:
+          type: string
+          description: 'Расчетный счет'
+        business_correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        business_inn:
+          type: string
+          description: ИНН
+        business_kpp:
+          type: string
+          description: КПП
+        business_name:
+          type: string
+          description: 'Наименование компании'
+        business_ogrn:
+          type: string
+          description: 'ОГРН/ОГРНИП (13 или 15 символов)'
+        buy__accessories:
+          type: string
+          description: Аксессуары
+        buy__payment_link:
+          type: string
+          description: 'Ссылка на оплату'
+        buy__purchase_at_from:
+          type: string
+          description: 'Желаемая дата покупки от (гггг-мм-дд)'
+          example: 949276800
+        buy__purchase_at_to:
+          type: string
+          description: 'Желаемая дата покупки до (гггг-мм-дд)'
+          example: 949276800
+        buy__testdrive_date_from:
+          type: string
+          description: 'Желаемая дата тест драйва от (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        buy__testdrive_date_to:
+          type: string
+          description: 'Желаемая дата тест драйва до (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        buy__testdrive_fact_at_from:
+          type: string
+          description: 'Фактическая дата тест драйва от (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        buy__testdrive_fact_at_to:
+          type: string
+          description: 'Фактическая дата тест драйва до (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        buy__testdrive_final_point:
+          type: string
+          description: 'Конечный пункт'
+        buy__testdrive_supply_location:
+          type: string
+          description: 'Место подачи автомобиля'
+        call_duration_calltracking:
+          type: integer
+          description: 'Продолжительность звонка calltracking, сек'
+        call_result_calltracking:
+          type: integer
+          description: 'Результат по звонку'
+        campaign_id:
+          type: integer
+          description: 'ID кампании'
+        channel_id:
+          type: integer
+          description: 'ID канала'
+        city_id:
+          type: integer
+          description: 'ID города'
+        client_confirm_communication:
+          type: boolean
+          description: 'Клиент дал согласие на коммуникацию'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        color_id:
+          type: integer
+          description: 'ID цвета экстерьера'
+        comment:
+          type: string
+          description: Комментарий
+        common_client_id:
+          type: integer
+          description: 'id клиента дистрибьютора'
+        communication_method:
+          type: integer
+          description: 'Предпочтительный метод связи'
+          enum:
+            - '1 — телефон'
+            - '2 — email'
+            - '3 — sms'
+        contact_at:
+          type: string
+          description: 'Желаемая дата контакта (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        contact_document_date:
+          type: string
+          description: 'Дата документа (гггг-мм-дд)'
+          example: 949276800
+        contact_document_name:
+          type: string
+          description: 'Наименование документа'
+        contact_document_order:
+          type: string
+          description: 'Номер документа'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица для юр. лица'
+        contact_position:
+          type: string
+          description: 'Должность контактного лица'
+        contact_since:
+          type: string
+          description: 'когда клиент хочет, чтобы с ним связались (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        country_id:
+          type: integer
+          description: 'ID страны'
+        create_interest_id:
+          type: integer
+          description: null
+        create_lead_since:
+          type: string
+          description: 'Создать лид после указанной даты (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        created_at:
+          type: string
+          description: 'Дата создания (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+          readOnly: true
+        created_by:
+          type: integer
+          description: 'ID кем создано'
+          readOnly: true
+        credit__car_cost:
+          type: number
+          description: 'Стоимость автомобиля'
+        credit__comment:
+          type: string
+          description: 'Комментарии к страхованию'
+        credit__cost:
+          type: number
+          description: 'Размер кредита'
+        credit__distance:
+          type: integer
+          description: 'Срок кредита'
+        credit__down_payment:
+          type: number
+          description: 'Размер первоначального взноса'
+        credit__insurance_company:
+          type: string
+          description: 'Страховая компания'
+        credit__is_insurance:
+          type: boolean
+          description: Страхование
+        credit__month_payment:
+          type: integer
+          description: 'Ежемесячный платёж'
+        credit__program_name:
+          type: string
+          description: 'Название кредитной программы'
+        credit__rate:
+          type: integer
+          description: 'процентная ставка'
+        credit__remaining_payment:
+          type: number
+          description: 'Остаточный платеж'
+        credit__type:
+          type: integer
+          description: 'Тип кредита'
+          enum:
+            - '1 — Кредит'
+            - '2 — Лизинг'
+        credit__visit_at:
+          type: string
+          description: 'Дата и время встречи, запланированное колл центром (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора (обязательно для заполнения в обращениях с type = call-center, если у пользователя, под которым создается обращение, не указана или указано более чем 1 дистрибуция)'
+        do_not_disturb:
+          type: boolean
+          description: 'Не беспокоить'
+        driver_license_issued_at:
+          type: string
+          description: 'Дата выдачи ВУ (гггг-мм-дд)'
+          example: 949276800
+        driver_license_issued_by:
+          type: string
+          description: 'Кем выдано ВУ'
+        driver_license_number:
+          type: string
+          description: 'Номер ВУ (10 символов)'
+        email:
+          type: string
+          description: 'Адрес электронной почты клиента'
+          format: email
+        equipment_id:
+          type: integer
+          description: Комплектация
+        executor_category_id:
+          type: integer
+          description: 'ID категории исполнителя'
+        external_guid:
+          type: string
+          description: 'Внешний GUID'
+        extra:
+          type: string
+          description: 'дополнительные данные'
+        federal_district_id:
+          type: integer
+          description: 'ID федерального округа'
+        fill_at:
+          type: string
+          description: 'Дата заполнения формы в формате (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        first_name:
+          type: string
+          description: 'Имя клиента'
+        flat:
+          type: string
+          description: Квартира
+        generation_id:
+          type: integer
+          description: Поколение
+        google_id:
+          type: string
+          description: 'Google ID'
+        house:
+          type: string
+          description: Дом
+        internal_comment:
+          type: string
+          description: Комментарий
+        ip_address:
+          type: string
+          description: 'IP пользователя'
+        is_business:
+          type: boolean
+          description: 'Тип клиента 1 - юрлицо 0 - физлицо'
+        is_fleet:
+          type: boolean
+          description: 'Корпоративная продажа'
+        is_marked_as_double:
+          type: boolean
+          description: Дубликат
+        is_secret_customer:
+          type: boolean
+          description: 'Секретный покупатель'
+        is_test:
+          type: boolean
+          description: 'признак тестового обращения'
+        is_valid_phone:
+          type: boolean
+          description: 'признак наличия телефона или емейла для того что бы можно было связаться с клиентом'
+        is_vip:
+          type: boolean
+          description: 'VIP обращение'
+        job:
+          type: string
+          description: 'JOB номер'
+        last_name:
+          type: string
+          description: 'Фамилия клиента'
+        lead_delete_info:
+          type: string
+          description: 'информация кто и когда удалил лид, который является дублем'
+        link_form:
+          type: string
+          description: 'Ссылка для формы-страницы'
+        lk_agree_dealer_upload_id:
+          type: integer
+          description: null
+        lk_api:
+          type: string
+          description: 'ссылка на личный кабинет'
+        lk_bill_upload_id:
+          type: integer
+          description: 'id загруженного в ЛК счета'
+        lk_issue_agree_at:
+          type: string
+          description: 'согласованная дата выдачи в ЛК (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        lk_issue_at:
+          type: string
+          description: 'желаемая дата выдачи в ЛК (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        lk_order_token:
+          type: string
+          description: 'id заказа в личном кабинете'
+        lk_pay_method:
+          type: integer
+          description: 'способ оплаты в личном кабинете'
+        lk_visit_agree_at:
+          type: string
+          description: 'согласованная дата визита в ЛК (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        lk_visit_at:
+          type: string
+          description: 'желаемая дата визита в ЛК (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        may_process_personal_data:
+          type: boolean
+          description: 'Признак согласия на обработку персональных данных'
+        middle_name:
+          type: string
+          description: 'Отчество клиента'
+        model_alias_id:
+          type: integer
+          description: 'Алиас модели'
+        model_id:
+          type: integer
+          description: 'ID модели автомобиля'
+        model_name:
+          type: string
+          description: 'Наименование модели автомобиля'
+        need_credit:
+          type: boolean
+          description: 'Признак интереса кредита'
+        need_service:
+          type: boolean
+          description: 'Признак обращения на сервис'
+        need_test_drive:
+          type: boolean
+          description: 'Признак интереса тест-драйва'
+        need_trade_in:
+          type: boolean
+          description: 'Признак интереса в tradein'
+        need_used_vehicle:
+          type: boolean
+          description: 'Признак интереса покупки автомобиля с пробегом'
+        need_add_service:
+          type: boolean
+          description: 'Дополнительная услуга сервиса'
+        passport_authority:
+          type: string
+          description: 'Кем выдан паспорт'
+        passport_code:
+          type: string
+          description: 'Код подразделения (ограничение 10 символов)'
+        passport_date_issue:
+          type: string
+          description: 'Дата выдачи паспорта (гггг-мм-дд)'
+          example: 949276800
+        passport_iin:
+          type: string
+          description: 'ИИН (ограничение 12 символов). Используется при passport_type = 3'
+        passport_number:
+          type: string
+          description: 'Номер паспорта (ограничение 6 символов)'
+        passport_number_id:
+          type: string
+          description: 'Номер удостоверения личности (ограничение 9 символов). Используется при passport_type = 3'
+        passport_series:
+          type: string
+          description: 'Серия паспорта (ограничение 4 символа)'
+        passport_type:
+          type: integer
+          description: 'Тип документа'
+          enum:
+            - '1 - Паспорт РФ'
+            - '2 - Загран. паспорт'
+            - '3 - Удостоверение личности РК'
+        pay_amount:
+          type: number
+          description: 'Сумма оплаты'
+        pay_message:
+          type: string
+          description: 'Сообщение об ошибке'
+        pay_status:
+          type: integer
+          description: 'Статус оплаты'
+        phone:
+          type: string
+          description: 'Номер телефона клиента'
+          example: 79001234567.0
+        placing_id:
+          type: integer
+          description: 'Маркетинговое мероприятие'
+        postal_code:
+          type: string
+          description: Индекс
+        prefix:
+          type: string
+          description: 'Код обращения к клиенту'
+          enum:
+            - '0 — Ms'
+            - '1 — Mr'
+        price_range:
+          type: integer
+          description: 'Диапазон цен'
+        procurement_id:
+          type: integer
+          description: 'id закупки'
+        purchase_id:
+          type: integer
+          description: 'ID заказ наряда'
+        region_id:
+          type: integer
+          description: 'ID Региона'
+        request_subtype_id:
+          type: integer
+          description: 'ID типа жалобы'
+        request_type_id:
+          type: integer
+          description: 'ID цели обращения'
+        responsible_id:
+          type: integer
+          description: Ответственный
+        result_id:
+          type: integer
+          description: 'результат лида для колл-центра'
+        serie_id:
+          type: integer
+          description: Серия
+        service__mileage:
+          type: integer
+          description: 'Пробег автомобиля для сервиса'
+        service__reg_number:
+          type: string
+          description: 'Номер автомобиля для записи на сервис'
+        service__service_at_from:
+          type: string
+          description: 'Желаемая дата сервиса от (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        service__service_at_to:
+          type: string
+          description: 'Желаемая дата сервиса до (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        service__service_register_at:
+          type: string
+          description: 'Время записи на сервис (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        service__year:
+          type: integer
+          description: 'Год выпуска автомобиля для сервиса'
+        service_manager_id:
+          type: integer
+          description: 'ID сотрудника для проведения обслуживания'
+        site_id:
+          type: string
+          description: 'Site ID'
+        trim_id:
+          type: integer
+          description: 'ID цвета интерьера'
+        source_id:
+          type: integer
+          description: 'ID источника'
+        status:
+          type: integer
+          description: 'Статус обращения'
+          enum:
+            - '0 - Новый'
+            - '1 - Отказ'
+            - '2 - Передан дилеру'
+            - '3 - Перезвонить'
+            - '4 - Скрыто'
+        street:
+          type: string
+          description: Улица
+        timezone:
+          type: string
+          description: 'Временная зона клиента'
+          example: Europe/Moscow
+        title_form:
+          type: string
+          description: 'Название формы-страницы'
+        trade_in__brand_id:
+          type: integer
+          description: 'ID марки автомобиля для передачи в trade-in'
+        trade_in__description:
+          type: string
+          description: 'Описание трейдин'
+        trade_in__mileage:
+          type: integer
+          description: 'Пробег автомобиля для передачи в trade-in'
+        trade_in__model_id:
+          type: integer
+          description: 'ID модели автомобиля для передачи в trade-in'
+        trade_in__year:
+          type: integer
+          description: 'Год выпуска автомобиля для передачи в trade-in'
+        trigger_id:
+          type: integer
+          description: 'триггер, который создал данное обращение'
+        type:
+          type: string
+          description: 'Тип обращения'
+          enum:
+            - 'lead - Лид'
+            - 'call-center - Колл-центр'
+            - 'calltracking - Коллтрекинг'
+          default: lead
+        updated_at:
+          type: string
+          description: 'Дата обновления (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+          readOnly: true
+        used_vehicle_purchase_color_autoru:
+          type: string
+          description: 'Цвет для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_complectation_id_autoru:
+          type: integer
+          description: 'ID комплектации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_configuration_id_autoru:
+          type: integer
+          description: 'ID конфигурации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_folder_id_autoru:
+          type: integer
+          description: 'ID модели от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_generation_id_autoru:
+          type: integer
+          description: 'ID поколения от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_mark_id_autoru:
+          type: integer
+          description: 'ID бренда от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_mileage:
+          type: string
+          description: 'Пробег для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_modification_id_autoru:
+          type: integer
+          description: 'ID модификации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_vin:
+          type: string
+          description: 'VIN для блока Покупка автомобиля с пробегом'
+        user_id:
+          type: integer
+          description: 'пользователь, создавший обращение'
+          readOnly: true
+        utm_campaign:
+          type: string
+          description: 'UTM campaign'
+        utm_content:
+          type: string
+          description: 'UTM content'
+        utm_id:
+          type: integer
+          description: 'Идентификатор UTM метки'
+        utm_medium:
+          type: string
+          description: 'UTM medium'
+        utm_source:
+          type: string
+          description: 'UTM source'
+        utm_term:
+          type: string
+          description: 'UTM term'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        car_repair_app_date:
+          type: string
+          description: 'Дата обращения гарантийного ремонта ДД.ММ.ГГГГ'
+        workIds:
+          type: array
+          description: 'Список ID работ'
+          items:
+            type: integer
+        work_phone:
+          type: string
+          description: 'Рабочий телефон'
+        yandex_id:
+          type: string
+          description: 'Yandex ID'
+        maintenance_schedule:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: integer
+                description: 'ID мастера'
+              from:
+                type: string
+                description: 'Дата/время с, формат ДД.ММ.ГГГГ ЧЧ:ММ'
+              to:
+                type: string
+                description: 'Дата/время по, формат ДД.ММ.ГГГГ ЧЧ:ММ'
+        external_system_id:
+          type: integer
+          description: 'Идентификатор внешней системы (1 - Calltouch)'
+        voximplant_call_record_url:
+          type: string
+          description: 'ID родительской записи'
+        voximplant_call_date:
+          type: string
+          description: 'Дата и время звонка в формате yyyy-MM-dd HH:mm:ss'
+        voximplant_call_duration:
+          type: integer
+          description: 'Продолжительность звонка в секундах'
+        voximplant_status:
+          type: integer
+          description: 'ID Статуса звонка'
+        voximplant_external_code:
+          type: string
+          nullable: true
+          description: 'Внешний код'
+    InterestContactPerson:
+      required:
+        - client_confirm_communication
+        - may_process_personal_data
+        - name
+      type: object
+      properties:
+        client_confirm_communication:
+          type: boolean
+          description: 'согласие на отправку смс и других уведомлений'
+        email:
+          type: string
+          description: email
+        last_name:
+          type: string
+          description: фамилия
+        may_process_personal_data:
+          type: boolean
+          description: 'согласие на обработку персональных данных'
+        middle_name:
+          type: string
+          description: отчество
+        name:
+          type: string
+          description: имя
+        phone:
+          type: string
+          description: 'мобильный телефон'
+      description: 'Контактное лицо обращения'
+    InterestForm:
+      required:
+        - first_name
+        - last_name
+        - request_type_id
+        - source_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID обращения (генерируется автоматически)'
+        campaign_id:
+          type: integer
+          description: 'ID кампании'
+        request_type_id:
+          type: integer
+          description: 'ID цели обращения'
+        additional_request_type_id:
+          type: integer
+          description: 'Уточняющая цель обращения'
+        source_id:
+          type: integer
+          description: 'ID источника'
+        channel_id:
+          type: integer
+          description: 'ID канала. При выборе канала CAR_REPAIR обязательны поля: vin, brand_id, model_id, dealer_id, car_repair_app_date. VIN должен существовать на складе, марка и модель должны соответствовать VIN на складе'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        distributor_id:
+          type: integer
+          description: 'id дистрибьютора'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        is_secret_customer:
+          type: boolean
+          description: 'Секретный покупатель'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица Получение списка осуществляется методом <a href="#!/client/get_client" target="_blank">client</a>'
+        is_business:
+          type: boolean
+          description: 'Тип клиента 1 - юрлицо 0 - физлицо'
+          enum:
+            - false
+        business_name:
+          type: string
+          description: 'Наименование компании'
+        business_inn:
+          type: string
+          description: ИНН
+        business_kpp:
+          type: string
+          description: КПП
+        business_address:
+          type: string
+          description: 'Юридический адрес'
+        business_ogrn:
+          type: string
+          description: 'ОГРН/ОГРНИП (13 или 15 символов)'
+        business_checking_account:
+          type: string
+          description: 'Расчетный счет'
+        business_correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        business_bic:
+          type: string
+          description: БИК
+        contact_position:
+          type: string
+          description: 'Должность контактного лица'
+        contact_document_order:
+          type: string
+          description: 'Номер документа'
+        contactDocumentDate:
+          type: string
+          description: 'Дата документа в формате d.m.Y'
+        contact_document_name:
+          type: string
+          description: 'Наименование документа'
+        activity_id:
+          type: integer
+          description: 'ID сферы деятельности'
+        prefix:
+          type: integer
+          description: 'Код обращения к клиенту 1 - Mr 0 - Ms'
+        first_name:
+          type: string
+          description: 'Имя клиента'
+        middle_name:
+          type: string
+          description: 'Отчество клиента'
+        last_name:
+          type: string
+          description: 'Фамилия клиента'
+        birthday:
+          type: string
+          description: 'День рождения клиента в формате dd.MM.yyyy'
+        address:
+          type: string
+          description: 'Адрес клиента'
+        passport_type:
+          type: integer
+          description: 'Тип документа (1 - Паспорт РФ, 2 - Загран паспорт, 3 - Удостоверение личности РК)'
+        passport_series:
+          type: string
+          description: 'Серия паспорта (ограничение 4 символа)'
+        passport_number:
+          type: string
+          description: 'Номер паспорта (ограничение 6 символов)'
+        passport_number_id:
+          type: string
+          description: 'Номер удостоверения личности (ограничение 9 символов). Используется при passport_type = 3'
+        passport_iin:
+          type: string
+          description: 'ИИН (ограничение 12 символов)'
+        passportDateIssue:
+          type: string
+          description: 'Дата выдачи паспорта (формат yyyy-mm-dd)'
+        passport_code:
+          type: string
+          description: 'Код подразделения (ограничение 10 символов)'
+        passport_authority:
+          type: string
+          description: 'Кем выдан паспорт'
+        driver_license_number:
+          type: string
+          description: 'Номер ВУ (10 символов)'
+        driver_license_issued_at:
+          type: string
+          description: 'Дата выдачи ВУ (формат yyyy-mm-dd)'
+        driver_license_issued_by:
+          type: string
+          description: 'Кем выдано ВУ'
+        comment:
+          type: string
+          description: Комментарий
+        work_phone:
+          type: string
+          description: 'Номер рабочего телефона клиента'
+        country_id:
+          type: integer
+          description: 'ID страны'
+        region_id:
+          type: integer
+          description: 'ID региона'
+        city_id:
+          type: integer
+          description: 'ID города'
+        postal_code:
+          type: string
+          description: 'Почтовый индекс'
+        street:
+          type: string
+          description: Улица
+        house:
+          type: string
+          description: Дом
+        block:
+          type: string
+          description: Корпус
+        flat:
+          type: string
+          description: Квартира
+        phone:
+          type: string
+          description: 'Номер телефона клиента'
+        email:
+          type: string
+          description: 'Адрес электронной почты клиента'
+          format: email
+        communication_method:
+          type: integer
+          description: 'Предпочтительный метод связи 1 - телефон 2 - email 3 - sms'
+        may_process_personal_data:
+          type: boolean
+          description: 'Признак согласия на обработку персональных данных'
+        client_confirm_communication:
+          type: boolean
+          description: 'Клиент дал согласие на коммуникацию'
+        do_not_disturb:
+          type: boolean
+          description: 'Не беспокоить'
+        brand_id:
+          type:
+            - 'null'
+            - integer
+          description: 'ID марки автомобиля'
+        model_id:
+          type: integer
+          description: 'ID модели автомобиля'
+        model_alias_id:
+          type: integer
+          description: 'ID альяса модели автомобиля'
+        model_name:
+          type: string
+          description: 'Наименование модели автомобиля'
+        color_id:
+          type: integer
+          description: 'ID цвета экстерьера'
+        trim_id:
+          type: integer
+          description: 'ID цвета интерьера'
+        vin:
+          type: string
+          description: 'VIN автомобиля. Обязательно при коде канала CAR_REPAIR. Должен существовать на складе дилера'
+        car_repair_app_date:
+          type: string
+          description: 'Дата обращения гарантийного ремонта ДД.ММ.ГГГГ. Обязательно при коде канала CAR_REPAIR'
+        job:
+          type: string
+          description: 'JOB номер'
+        ip_address:
+          type: string
+          description: 'IP пользователя'
+        need_credit:
+          type: boolean
+          description: 'Признак интереса кредита'
+        need_test_drive:
+          type: boolean
+          description: 'Признак интереса тест-драйва'
+        need_trade_in:
+          type: boolean
+          description: 'Признак интереса в tradein'
+        need_service:
+          type: boolean
+          description: 'Признак обращения на сервис'
+        need_used_vehicle:
+          type: boolean
+          description: 'Признак интереса покупки автомобиля с пробегом'
+        need_add_service:
+          type: boolean
+          description: 'Дополнительная услуга сервиса'
+        with_tradein:
+          type: boolean
+          description: 'Признак наличия tradein'
+        with_credit:
+          type: boolean
+          description: 'Признак наличия кредита'
+        with_leasing:
+          type: boolean
+          description: 'Признак наличия лизинга'
+        fill_datetime:
+          type: string
+          description: 'Дата заполнения. Формат - таймстамп.'
+        internal_comment:
+          type: string
+          description: Комментарий
+        placing_id:
+          type: integer
+          description: 'Маркетинговое мероприятие'
+        btl_id:
+          type: integer
+          description: 'BTL мероприятие'
+        add_more_time:
+          type: integer
+          description: 'Добавлено время ва минутах к KPI'
+        result_id:
+          type: integer
+          description: 'ID результата'
+        tradein_data:
+          type: object
+          properties:
+            brand_id:
+              type: integer
+              description: 'ID бренда'
+            model_id:
+              type: integer
+              description: 'ID модели'
+            year:
+              type: integer
+              description: 'год выпуска'
+            mileage:
+              type: integer
+              description: пробег
+          description: 'данные автомобиля tradein'
+        buy__purchaseDateFrom:
+          type: string
+          description: 'Желаемая дата покупки с (дд.мм.гггг)'
+          example: 31.01.2000
+        buy__purchaseDateTo:
+          type: string
+          description: 'Желаемая дата покупки по (дд.мм.гггг)'
+          example: 31.01.2000
+        buy__testdriveDateFrom:
+          type: string
+          description: 'Желаемая дата тест драйва с (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        buy__testdriveDateTo:
+          type: string
+          description: 'Желаемая дата тест драйва по (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        buy__testdriveFactAtFrom:
+          type: string
+          description: 'Фактическая дата тест драйва с (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        buy__testdriveFactAtTo:
+          type: string
+          description: 'Фактическая дата тест драйва по (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        buy__testdrive_supply_location:
+          type: integer
+          description: 'Место подачи автомобиля'
+        buy__testdrive_final_point:
+          type: integer
+          description: 'Конечный пункт'
+        buy__payment_link:
+          type: integer
+          description: 'Ссылка на оплату'
+        buy__accessories:
+          type: string
+          description: Аксессуары
+        creditType:
+          type: integer
+          description: 'Тип кредита (1 - кредит, 2 - лизинг)'
+        credit__distance:
+          type: integer
+          description: 'Срок кредита'
+        credit__down_payment:
+          type: integer
+          description: 'Размер первоначального взноса'
+        credit__cost:
+          type: integer
+          description: 'Размер кредита'
+        credit__car_cost:
+          type: integer
+          description: 'Стоимость автомобиля'
+        credit__month_payment:
+          type: integer
+          description: 'Ежемесячный платёж'
+        credit__program_name:
+          type: string
+          description: 'Название кредитной программы'
+        credit__rate:
+          type: integer
+          description: 'процентная ставка'
+        credit__remaining_payment:
+          type: integer
+          description: 'Остаточный платеж'
+        credit__is_insurance:
+          type: boolean
+          description: Страхование
+        credit__insurance_company:
+          type: string
+          description: 'Страховая компания'
+        credit__comment:
+          type: string
+          description: 'Комментарии к страхованию'
+        credit_visit_datetime:
+          type: string
+          description: 'Дата и время встречи, запланированное колл центром (формат dd.MM.yyyy HH:mm)'
+        service__reg_number:
+          type: string
+          description: 'Номер автомобиля для записи на сервис'
+        service__serviceDateFrom:
+          type: string
+          description: 'Желаемая дата сервиса с (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        service__serviceDateTo:
+          type: string
+          description: 'Желаемая дата сервиса по (дд.мм.гггг чч:мм)'
+          example: '31.01.2000 23:59'
+        service__year:
+          type: integer
+          description: 'Год выпуска автомобиля для сервиса'
+        service__mileage:
+          type: integer
+          description: 'Пробег автомобиля для сервиса'
+        trade_in__brand_id:
+          type: integer
+          description: 'ID марки автомобиля для передачи в trade-in'
+        trade_in__model_id:
+          type: integer
+          description: 'ID модели автомобиля для передачи в trade-in'
+        trade_in__year:
+          type: integer
+          description: 'Год выпуска автомобиля для передачи в trade-in'
+        trade_in__mileage:
+          type: integer
+          description: 'Пробег автомобиля для передачи в trade-in'
+        trade_in__brand_id_autoru:
+          type: string
+          description: 'Name марки в Авто.ру'
+        trade_in__folder_id_autoru:
+          type: string
+          description: 'Name модели в Авто.ру'
+        trade_in__description:
+          type: string
+          description: 'Описание трейдин'
+        used_vehicle_purchase_vin:
+          type: string
+          description: 'VIN для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_mark_id_autoru:
+          type: integer
+          description: 'ID бренда от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_folder_id_autoru:
+          type: integer
+          description: 'ID модели от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_generation_id_autoru:
+          type: integer
+          description: 'ID поколения от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_configuration_id_autoru:
+          type: integer
+          description: 'ID конфигурации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_modification_id_autoru:
+          type: integer
+          description: 'ID модификации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_complectation_id_autoru:
+          type: integer
+          description: 'ID комплектации от AutoRu для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_color_autoru:
+          type: string
+          description: 'Цвет для блока Покупка автомобиля с пробегом'
+        used_vehicle_purchase_mileage:
+          type: integer
+          description: 'Пробег для блока Покупка автомобиля с пробегом'
+        price_range:
+          type: integer
+          description: 'Диапазон цен'
+        link_form:
+          type: string
+          description: 'Ссылка для формы-страницы'
+        title_form:
+          type: string
+          description: 'Название формы-страницы'
+        external_guid:
+          type: string
+          description: 'Внешний GUID'
+        available_dealers:
+          type: string
+          description: 'Доступные дилеры'
+        timezone:
+          type: string
+          description: 'Временная зона клиента'
+        status:
+          type: integer
+          description: 'Статус обращения 0 - Новый 1 - Отказ 2 - Передан дилеру 3 - Перезвонить'
+        created_at:
+          type: string
+          description: 'Дата создания'
+          readOnly: true
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+          readOnly: true
+        is_vip:
+          type: boolean
+          description: 'VIP обращение 1 - да 0 - нет'
+          enum:
+            - false
+        contact_at:
+          type: string
+          description: 'Желаемая дата контакта (формат dd.MM.yyyy HH:mm)'
+        utm_id:
+          type: integer
+          description: 'Идентификатор UTM метки'
+        utm_source:
+          type: string
+          description: 'UTM source'
+        utm_medium:
+          type: string
+          description: 'UTM medium'
+        utm_campaign:
+          type: string
+          description: 'UTM campaign'
+        utm_content:
+          type: string
+          description: 'UTM content'
+        utm_term:
+          type: string
+          description: 'UTM term'
+        dontCreateRequest:
+          type: boolean
+          description: 'Признак создания Лида (false - создать лид, true - не создавать лид)'
+          default: false
+        call_duration_calltracking:
+          type: integer
+          description: 'Продолжительность звонка calltracking, сек'
+        call_result_calltracking:
+          type: integer
+          description: 'Результат по звонку'
+        type:
+          type: string
+          description: 'Тип обращения lead - Лид(по умолчанию), call-center - Колл-центр, calltracking - Коллтрекинг'
+          enum:
+            - lead
+            - call-center
+            - calltracking
+        subscription_ids:
+          type: array
+          description: 'Список ID подписок'
+          items:
+            type: integer
+        tag_ids:
+          type: array
+          description: 'Список ID тегов'
+          items:
+            type: integer
+        google_id:
+          type: string
+          description: 'Google ID'
+        site_id:
+          type: string
+          description: 'Site ID'
+        gwm_id:
+          type: string
+          description: 'Gwm ID'
+        telegram_profile:
+          type: string
+          description: 'Ссылка на профиль Telegram'
+        vk_profile:
+          type: string
+          description: 'Ссылка на профиль ВКонтакте'
+        ok_profile:
+          type: string
+          description: 'Ссылка на профиль Одноклассники'
+        order_no:
+          type: string
+          description: 'Order No'
+        payment_serial_number:
+          type: string
+          description: 'Payment Serial Number'
+        executor_category_id:
+          type: integer
+          description: 'ID категории исполнителя'
+        pay_status:
+          type: integer
+          description: 'Статус оплаты (1 - Новый, 2 - Ожидание, 3 - Успех, 4 - Ошибка, 5 - Отмена, 6 - Возвращен)'
+        pay_amount:
+          type: integer
+          description: 'Сумма оплаты в рублях'
+        pay_message:
+          type: string
+          description: 'Сообщение об ошибке'
+        workIds:
+          type: array
+          description: 'Список ID работ'
+          items:
+            type: integer
+        brochure_link:
+          type: string
+          description: 'Ссылка на файл'
+        externalEvents:
+          type: array
+          description: 'Список ID внешних событий клиента'
+          items:
+            type: integer
+        externalStatuses:
+          type: array
+          description: 'Список ID внешних статусов обработки лида'
+          items:
+            type: integer
+        contactPerson:
+          $ref: '#/components/schemas/InterestContactPerson'
+        base64_files:
+          type: array
+          description: 'Массив файлов в формате base64'
+          items:
+            $ref: '#/components/schemas/InterestUploadForm'
+        attached_files:
+          type: string
+          description: "Массив файлов. Если вместе с обращением необходимо передать файлы, нужно сменить `Content-type` на `multipart/form-data`. Файлы передаются в теле запроса, как при обычной передаче формы c файлами методом `POST`.\n```php $ch = curl_init(); curl_setopt($ch, CURLOPT_URL, \"http://dsfsubaru.local/api/lms/interest\"); curl_setopt($ch, CURLOPT_POST, true); curl_setopt($ch, CURLOPT_HEADER, true); curl_setopt(\n    $ch,\n    CURLOPT_HTTPHEADER,\n    ['Authorization: Bearer m5e']\n); curl_setopt($ch, CURLOPT_POSTFIELDS, [\n    'attached_files[0]' => new CURLFile('0.jpeg'),\n    'attached_files[1]' => new CURLFile('1.jpeg'),\n    'attached_files[2]' => new CURLFile('2.jpeg'),\n    'request_type_id' => 4, // Запрос специального предложения\n    'source_id' => 5, //Интернет (2)  Сайт бренда/марки\n    'first_name' => 'Иван',\n    'last_name' => 'Иванов',\n    'phone' => '+79092359095',\n    'dealer_id' => 1, //ООО \"АМКапитал\"\n]); curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); $result = curl_exec($ch); curl_close($ch);\nprint_r($result); ```"
+        maintenance_schedule:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: integer
+                description: 'ID мастера'
+              from:
+                type: string
+                description: 'Дата/время с, формат ДД.ММ.ГГГГ ЧЧ:ММ'
+              to:
+                type: string
+                description: 'Дата/время по, формат ДД.ММ.ГГГГ ЧЧ:ММ'
+          description: 'слоты записи на сервис'
+        lmsCode:
+          type: string
+          description: 'LMS код'
+        external_system_id:
+          type: integer
+          description: 'Идентификатор внешней системы (1 - Calltouch)'
+        voximplant_call_record_url:
+          type: string
+          description: 'ID родительской записи'
+        voximplant_call_duration:
+          type: integer
+          description: 'Продолжительность звонка в секундах'
+        voximplant_call_date:
+          type: string
+          description: 'Дата и время звонка в формате yyyy-MM-dd HH:mm:ss'
+        voximplant_status:
+          type: integer
+          description: 'Статус звонка'
+        voximplant_external_code:
+          type: string
+          nullable: true
+          description: 'Внешний код'
+      description: 'Модель Обращение'
+    InterestUploadForm:
+      required:
+        - file
+      type: object
+      properties:
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+      description: 'Файл обращения'
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'ID счёта'
+        number:
+          type: string
+          description: 'Номер счёта'
+        invoice_date:
+          type: string
+          description: 'Дата счёта'
+        brand_id:
+          type: string
+          description: 'Бренд автомобиля'
+        model_id:
+          type: string
+          description: 'Модель автомобиля'
+        mpv:
+          type: string
+          description: 'Описание MPV'
+        vin:
+          type: string
+          description: 'VIN-номер автомобиля'
+        vehicle_price:
+          type: number
+          description: 'Цена автомобиля'
+        nds:
+          type: number
+          description: НДС
+        bank_name:
+          type: string
+          description: 'Банк получателя'
+        inn:
+          type: string
+          description: 'ИНН дистрибьютора'
+        kpp:
+          type: string
+          description: 'КПП дистрибьютора'
+        bik:
+          type: string
+          description: 'БИК дистрибьютора'
+        juridical_name:
+          type: string
+          description: 'Юридическое название дистрибьютора'
+        corespondent_account:
+          type: string
+          description: 'Корреспондентский дистрибьютора'
+        settlement_account:
+          type: string
+          description: 'Расчетный счёт дистрибьютора'
+        boss_name:
+          type: string
+          description: 'Руководитель дистрибьютора'
+        accountant_name:
+          type: string
+          description: 'Бухгалтер дистрибьютора'
+        address:
+          type: string
+          description: 'Адрес дистрибьютора'
+        postal_code:
+          type: string
+          description: 'Почтовый индекс дистрибьютора'
+        phone:
+          type: string
+          description: 'Телефон дистрибьютора'
+        dealer_code:
+          type: string
+          description: 'Код шоурума'
+        holding_code:
+          type: string
+          description: 'Код INCADEA'
+        dealer_legal_form:
+          type: string
+          description: 'Форма собственности дилера'
+        dealer_legal_entity:
+          type: string
+          description: 'Юридическое лицо дилера'
+        dealer_postal_code:
+          type: string
+          description: 'Почтовый индекс дилера'
+        dealer_country:
+          type: string
+          description: 'Страна дилера'
+        dealer_region:
+          type: string
+          description: 'Регион дилера'
+        dealer_area:
+          type: string
+          description: 'Район дилера'
+        dealer_city:
+          type: string
+          description: 'Город дилера'
+        dealer_settlement:
+          type: string
+          description: 'Населенный пункт дилера'
+        dealer_street:
+          type: string
+          description: 'Улица дилера'
+        dealer_house:
+          type: string
+          description: 'Дом / Владение / Здание дилера'
+        dealer_flat:
+          type: string
+          description: 'Корпус / Строение / Литера / Сооружение дилера'
+        dealer_block:
+          type: string
+          description: 'Квартира / Офис / Помещение / Комната дилера'
+        foundation:
+          type: string
+          description: Основание
+        contractCode:
+          type: string
+          description: 'Код контракта'
+        distributionType:
+          type: integer
+          description: 'Вид отгрузки(1 - Consigmnet, 2 - DPA, 3 - DPA 120, 4 - Test drive, 5 - Consigmnet 100% предоплата, 6 - Test drive 100% предоплата, 7 - Факторинг на товарные авто, 8 - Факторинг на тестовые авто)'
+        status:
+          type: integer
+          description: 'Статус 1 - активный, 2 - удален'
+        factoringStatus:
+          type: integer
+          description: 'Статус факторинга (0 - без статуса, 1 - отправлен в залог, 2 - в залоге, 3 - направлен на финансирование, 4 - финансирование подтверждено, 5 - профинансирован, 6 - оплачен банку, 7 - ожидание подтверждения INCADEA)'
+      description: 'Модель счёт на автомобиль'
+    InvoiceOrder:
+      type: object
+      description: 'Модель связи заказа со счетом'
+      properties:
+        id:
+          type: integer
+          description: 'Ид связи счета/заказа'
+        invoice_id:
+          type: integer
+          description: 'Ид счета'
+        order_id:
+          type: integer
+          description: 'Ид заказа'
+        sum:
+          type: integer
+          description: Сумма
+        sum_nds:
+          type: integer
+          description: НДС
+        sum_total:
+          type: integer
+          description: Итого
+        quantity:
+          type: integer
+          description: Кол-во
+    InvoiceOrderItem:
+      type: object
+      description: 'Модель связи линии заказа и связи заказа со счетом'
+      properties:
+        id:
+          type: integer
+          description: 'Ид модели'
+        parent_id:
+          type: integer
+          description: 'Ид связи счета/заказа (InvoiceOrder)'
+        sum_total:
+          type: number
+          description: 'Цена линии'
+        sum_nds:
+          type: number
+          description: 'Цена линии'
+        sum:
+          type: number
+          description: 'Цена линии'
+        item_id:
+          type: number
+          description: 'Ид линии заказа'
+    IssueDiscount:
+      required:
+        - vin
+      type: object
+      properties:
+        commonClientId:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        clientId:
+          type: integer
+          description: 'ID клиента дилера'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        amount:
+          type: number
+          description: 'Размер скидки'
+        description:
+          type: string
+          description: 'Причина выдачи скидки'
+      description: 'Выдача персональной скидки'

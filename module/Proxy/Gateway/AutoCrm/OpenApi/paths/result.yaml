@@ -1,0 +1,75 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - result'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: result
+    description: 'Управление результатами'
+paths:
+  /lms/result:
+    get:
+      tags:
+        - result
+      summary: 'Получение списка результатов'
+      description: 'Получение списка результатов'
+      parameters:
+        -
+          name: for_lead
+          in: query
+          description: 'Выводить только результаты для лидов (1 - да, 0 - нет)'
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: for_reject
+          in: query
+          description: 'Выводить только результаты для отказов (1 - да, 0 - нет)'
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: reject_contract
+          in: query
+          description: 'Выводить только результаты для отказов от контрактов (1 - да, 0 - нет)'
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: "Получение дополнительных полей, можно передать несколько значений через запятую\nmatrix - Матрица допустимого применения результата"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список результатов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Result'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

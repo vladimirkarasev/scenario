@@ -1,0 +1,70 @@
+ProjectResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      description: Внутренний числовой ID (в виде строки)
+      example: "1"
+    type:
+      type: string
+      example: projects
+    attributes:
+      $ref: '#/ProjectAttributes'
+
+ProjectAttributes:
+  type: object
+  properties:
+    uuid:
+      type: string
+      format: uuid
+      description: Публичный UUID проекта (используется во внешних интеграциях)
+    name:
+      type: string
+      example: Мой проект
+    sitekey:
+      type: string
+      example: my-site
+    host:
+      type: string
+      example: example.com
+    shared_secret:
+      type: string
+      description: Секрет для подписи запросов из внешних систем
+      example: supersecretkey32charslong00000000
+    is_active:
+      type: boolean
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ProjectRequest:
+  type: object
+  required: [name, sitekey, host, shared_secret, is_active]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      example: Мой проект
+    sitekey:
+      type: string
+      maxLength: 255
+      example: my-site
+    host:
+      type: string
+      maxLength: 255
+      example: example.com
+    shared_secret:
+      type: string
+      minLength: 32
+      maxLength: 255
+      description: Минимум 32 символа
+      example: supersecretkey32charslong00000000
+    is_active:
+      type: boolean
+      example: true

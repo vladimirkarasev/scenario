@@ -1,0 +1,179 @@
+@baseUrl = http://scenario.localhost
+@apiUrl = {{baseUrl}}/api
+@token = Bearer joR1tJjw7WBCLlbOAbXp8bXr8a6ZqIKb7J1V1nxu31cae330
+
+@echoUuid    = c3d4e5f6-0002-0000-0000-000000000001
+@leadUuid    = c3d4e5f6-0002-0000-0000-000000000001
+@endpointId  = 1
+@requestId   = 00000000-0000-0000-0000-000000000000
+
+###
+### Test Echo (POST — multidimensional array)
+###
+
+### Echo — массив элементов
+POST {{baseUrl}}/api/proxies/{{echoUuid}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "items": [
+    {"id": 1, "name": "Первый элемент", "code": "first"},
+    {"id": 2, "name": "Второй элемент", "code": "second"},
+    {"id": 3, "name": "Третий элемент",  "code": "third"}
+  ]
+}
+
+### Echo — пустой массив (nullable)
+POST {{baseUrl}}/api/proxies/{{echoUuid}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{}
+
+### Echo — получить список полей
+GET {{baseUrl}}/api/proxies/{{echoUuid}}/fields
+Authorization: {{token}}
+Accept: application/json
+
+###
+### Test Lead (POST)
+###
+
+### Lead — полный набор полей
+POST {{baseUrl}}/api/proxies/{{leadUuid}}?source=site
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "first_name": "Иван",
+  "last_name": "Иванов",
+  "phone": "+79990000001",
+  "email": "ivan@example.com",
+  "comment": "Интересует Belgee X50",
+  "dealer_id": 5
+}
+
+### Lead — минимальный (только телефон)
+POST {{baseUrl}}/api/proxies/{{leadUuid}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "phone": "+79990000002"
+}
+
+### Lead — без телефона (ожидаем 422 Unprocessable)
+POST {{baseUrl}}/api/proxies/{{leadUuid}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "first_name": "Иван",
+  "email": "no-phone@example.com"
+}
+
+### Lead — получить список полей
+GET {{baseUrl}}/api/proxies/{{leadUuid}}/fields
+Authorization: {{token}}
+Accept: application/json
+
+###
+### Admin — Endpoints CRUD
+###
+
+### Список всех эндпоинтов
+GET {{apiUrl}}/proxy/endpoints
+Authorization: {{token}}
+Accept: application/json
+
+### Показать конкретный эндпоинт
+GET {{apiUrl}}/proxy/endpoints/{{endpointId}}
+Authorization: {{token}}
+Accept: application/json
+
+### Поля эндпоинта (по UUID)
+GET {{baseUrl}}/api/proxies/{{echoUuid}}/fields
+Authorization: {{token}}
+Accept: application/json
+
+### Обновить эндпоинт (деактивировать)
+PUT {{apiUrl}}/proxy/endpoints/{{endpointId}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "Test Echo (обновлено)",
+  "description": "Обновлённое описание",
+  "is_active": false
+}
+
+### Активировать обратно
+PUT {{apiUrl}}/proxy/endpoints/{{endpointId}}
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "is_active": true
+}
+
+###
+### Admin — Лог запросов
+###
+
+### Все запросы
+GET {{apiUrl}}/proxy/requests
+Authorization: {{token}}
+Accept: application/json
+
+### Фильтр по эндпоинту
+GET {{apiUrl}}/proxy/requests?filter[endpoint_id]={{endpointId}}
+Authorization: {{token}}
+Accept: application/json
+
+### Детали конкретного запроса
+GET {{apiUrl}}/proxy/requests/{{requestId}}
+Authorization: {{token}}
+Accept: application/json
+
+###
+### Токены пользователей
+###
+
+### Список токенов пользователя (id=1)
+GET {{apiUrl}}/users/1/tokens
+Authorization: {{token}}
+Accept: application/json
+
+### Создать токен
+POST {{apiUrl}}/users/1/tokens
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "postman-test"
+}
+
+### Создать токен с датой истечения
+POST {{apiUrl}}/users/1/tokens
+Authorization: {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name": "temp-token",
+  "expires_at": "2026-12-31"
+}
+
+### Отозвать токен (id=1)
+DELETE {{apiUrl}}/users/1/tokens/1
+Authorization: {{token}}
+Accept: application/json

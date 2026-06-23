@@ -1,0 +1,1073 @@
+openapi: 3.1.0
+components:
+  schemas:
+    MailBroadcast:
+      type: object
+      description: 'Модель почтовой рассылки'
+      properties:
+        id:
+          type: integer
+          description: 'ID рассылки'
+        type:
+          type: integer
+          description: Тип
+          enum:
+            - '1 - Массовая рассылка'
+            - '2 - Триггерная рассылка'
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        broadcast_date:
+          type: string
+          description: 'Дата рассылки(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        box_id:
+          type: integer
+          description: 'ID ящика'
+        box_mail:
+          type: string
+          description: 'Ящик отправителя'
+        box_from_name:
+          type: string
+          description: 'Имя отправителя'
+        campaign_id:
+          type: integer
+          description: 'ID кампании'
+        campaign_name:
+          type: string
+          description: 'Наименование кампании'
+        campaign_description:
+          type: string
+          description: 'Описание кампании'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '0 - запланирована,'
+            - '1 - рассылается,'
+            - '2 - отменена,'
+            - '3 - пауза,'
+            - '4 - завершена'
+        message_id:
+          type: integer
+          description: 'ID шаблона'
+        user_id:
+          type: integer
+          description: 'ID автора'
+        created_at:
+          type: string
+          description: 'Создано (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        updated_at:
+          type: string
+          description: 'Изменено (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        message:
+          type: array
+          items:
+            $ref: '#/components/schemas/MailMessage'
+        box:
+          type: array
+          items:
+            $ref: '#/components/schemas/Box'
+        campaign:
+          type: array
+          items:
+            $ref: '#/components/schemas/Campaign'
+        broadcastDistributors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BroadcastDistributor'
+        utms:
+          type: array
+          items:
+            $ref: '#/components/schemas/Utm'
+    MailClient:
+      type: object
+      description: 'Модель сообщения почтовой рассылки'
+      properties:
+        id:
+          type: integer
+          description: 'ID сообщения'
+        broadcast_id:
+          type: integer
+          description: 'ID рассылки'
+        client_id:
+          type: integer
+          description: 'ID клиента дилера'
+        common_client_id:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '0 - В ожидании'
+            - '1 - В работе'
+            - '2 - Отсутствует e-mail'
+            - '3 - Плохой e-mail'
+            - '4 - Отправлено'
+            - '5 - Ожидает подтверждения подписки'
+            - '99 - Не настроен UniOne'
+        reject_reason:
+          type: integer
+          description: 'Причина возврата'
+          enum:
+            - '0 - Жёсткий возврат'
+            - '1 - Мягкий возврат'
+            - '4 - Другое'
+            - '5 - Некорректный отправитель'
+            - '6 - Некорректный email'
+            - '7 - Превышен тестовый лимит'
+            - '8 - Нет подписи'
+            - '9 - Отклонено в соответствии с правилом'
+            - '10 - Отклонено'
+            - '11 - Отсутствует Email'
+        reject_extend_reason:
+          type: integer
+          description: 'Детальная причина возврата'
+          enum:
+            - '1 - Адрес не существует'
+            - '2 - Адрес не используется'
+            - '3 - Письмо было временно отклонено и позднее будет осуществлена повторная попытка доставки'
+            - '4 - Адрес удален'
+            - '5 - Почтовый ящик переполнен'
+            - '6 - Письмо отвергнуто как спам'
+            - '7 - Письмо было отклонено по причине наличия IP-адреса или домена отправителя в каком-то из чёрных списков'
+            - '8 - По мнению сервера получателя, письмо превышает допустимый размер'
+            - '9 - Адресат ранее отписался от ваших рассылок'
+            - '10 - Адрес помечен как постоянно недоступный по причине многократных ошибок доставки на этот адрес'
+            - '11 - Отправка отменена, так как email адрес временно недоступен'
+            - '12 - Домен не принимает почту или не существует'
+            - '13 - Домен не принимает почту из-за неверной настройки на стороне получателя'
+            - '14 - Доставка не удалась по иным причинам'
+            - '15 - Отправка отменена из-за блокировки рассылки как спама'
+            - '16 - Письмо не было отправлено из-за несогласованности его частей, или было утеряно из-за сбоя на нашей стороне'
+            - '17 - Неизвестно'
+            - '18 - Отправка отменена системой из-за блокировки рассылки как спама (на более поздней стадии)'
+            - '19 - Внутренний сбой, необходима переотправка письма'
+            - '20 - Отправка отменена по причине недоступности адреса'
+        created_at:
+          type: string
+          description: 'Дата добавления(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        type:
+          type: string
+          description: 'Сервис рассылки'
+          enum:
+            - 'uniOne - Unisender'
+            - 'local - Локальный почтовый сервер'
+            - '3 - Комментарий к лиду'
+            - '4 - Опрос'
+            - '5 - Анкета'
+        mail_id:
+          type: string
+          description: 'Идентификатор сообщения в сервисе рассылки'
+        last_try_at:
+          type: string
+          description: 'Последняя попытка отправки(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        sent_date:
+          type: string
+          description: 'Отправлено(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        delivery_date:
+          type: string
+          description: 'Доставлено(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        open_date:
+          type: string
+          description: 'Открыто(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        click_date:
+          type: string
+          description: 'Переход(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        check_date:
+          type: string
+          description: 'Последняя проверка статуса(ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        object_type:
+          type: integer
+          description: 'Тип сообщения'
+          enum:
+            - '1 - Массовая рассылка'
+            - '2 - Триггерная рассылка'
+            - '3 - Комментарий к лиду'
+            - '4 - Опрос'
+            - '5 - Анкета'
+        context_id:
+          type: integer
+          description: 'ID контекста'
+        comment_id:
+          type: integer
+          description: 'ID комментария лида'
+        email:
+          type: string
+          description: 'E-mail получателя'
+        broadcast_ab_test_id:
+          type: integer
+          description: 'ID A/B теста'
+        ab_test:
+          type: integer
+          description: 'Участвует в A/B тесте'
+    MailEvent:
+      type: object
+      description: 'Модель события почтовой рассылки'
+      properties:
+        id:
+          type: integer
+          description: 'ID события'
+        client_id:
+          type: integer
+          description: 'ID сообщения'
+        type:
+          type: integer
+          description: 'Тип события'
+          enum:
+            - '1 - Открытие'
+            - '2 - Переход по ссылке'
+            - '3 - Отписка'
+            - '4 - Отправлено'
+            - '5 - Доставлено'
+            - '6 - Повторная подписка'
+            - '7 - Ошибка доставки'
+            - '8 - Спам'
+        ip:
+          type: integer
+          description: 'IP адрес'
+        user_agent:
+          type: string
+          description: 'User Agent'
+        created_at:
+          type: string
+          description: 'Дата события (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        link:
+          type: string
+          description: Ссылка
+        os:
+          type: string
+          description: 'Операционная система'
+        os_version:
+          type: string
+          description: 'Версия операционной системы'
+        browser:
+          type: string
+          description: Браузер
+        browser_version:
+          type: string
+          description: 'Версия браузера'
+        browser_language:
+          type: string
+          description: 'Язык браузера'
+        device_type:
+          type: integer
+          description: 'Тип устройства'
+          enum:
+            - '1 - Телефон'
+            - '2 - Планшет'
+            - '3 - Десктоп'
+            - '4 - Другое'
+        country_iso:
+          type: string
+          description: 'Код страны'
+        region_iso:
+          type: string
+          description: 'Код региона'
+        lat:
+          type: number
+          description: Широта
+        lng:
+          type: number
+          description: Долгота
+        reject_reason:
+          type: integer
+          description: 'Причина возврата'
+          enum:
+            - '0 - Жёсткий возврат'
+            - '1 - Мягкий возврат'
+            - '4 - Другое'
+            - '5 - Некорректный отправитель'
+            - '6 - Некорректный email'
+            - '7 - Превышен тестовый лимит'
+            - '8 - Нет подписи'
+            - '9 - Отклонено в соответствии с правилом'
+            - '10 - Отклонено'
+            - '11 - Отсутствует Email'
+        reject_extend_reason:
+          type: integer
+          description: 'Детальная причина возврата'
+          enum:
+            - '1 - Адрес не существует'
+            - '2 - Адрес не используется'
+            - '3 - Письмо было временно отклонено и позднее будет осуществлена повторная попытка доставки'
+            - '4 - Адрес удален'
+            - '5 - Почтовый ящик переполнен'
+            - '6 - Письмо отвергнуто как спам'
+            - '7 - Письмо было отклонено по причине наличия IP-адреса или домена отправителя в каком-то из чёрных списков'
+            - '8 - По мнению сервера получателя, письмо превышает допустимый размер'
+            - '9 - Адресат ранее отписался от ваших рассылок'
+            - '10 - Адрес помечен как постоянно недоступный по причине многократных ошибок доставки на этот адрес'
+            - '11 - Отправка отменена, так как email адрес временно недоступен'
+            - '12 - Домен не принимает почту или не существует'
+            - '13 - Домен не принимает почту из-за неверной настройки на стороне получателя'
+            - '14 - Доставка не удалась по иным причинам'
+            - '15 - Отправка отменена из-за блокировки рассылки как спама'
+            - '16 - Письмо не было отправлено из-за несогласованности его частей, или было утеряно из-за сбоя на нашей стороне'
+            - '17 - Неизвестно'
+            - '18 - Отправка отменена системой из-за блокировки рассылки как спама (на более поздней стадии)'
+            - '19 - Внутренний сбой, необходима переотправка письма'
+            - '20 - Отправка отменена по причине недоступности адреса'
+    MailMessage:
+      type: object
+      description: 'Модель шаблона письма'
+      properties:
+        id:
+          type: integer
+          description: 'ID шаблона'
+        campaign_id:
+          type: integer
+          description: 'ID кампании'
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        context:
+          type: string
+          description: Контекст
+        template_id:
+          type: integer
+          description: 'ID версии шаблона'
+        status:
+          type: integer
+          description: 'Статус холдинга'
+          enum:
+            - '0 - Остановлен'
+            - '1 - Активен'
+            - '2 - Удален'
+        subject:
+          type: string
+          description: 'Наименование холдинга'
+        text:
+          type: string
+          description: 'Текстовая версия'
+        html:
+          type: string
+          description: 'HTML версия'
+        amp:
+          type: string
+          description: 'AMP версия'
+        unsubscribe_domain:
+          type: string
+          description: 'Базовый URL для страницы отписки'
+        user_id:
+          type: integer
+          description: 'ID автора'
+        created_at:
+          type: string
+          description: 'Создано (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        updated_at:
+          type: string
+          description: 'Изменено (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+    Maintenance:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: 'Номер ТО'
+        age:
+          type: integer
+          description: 'Рекомендуемый возраст автомобиля'
+        mileage:
+          type: integer
+          description: 'Рекомендуемый пробег автомобиля'
+        comment:
+          type: string
+          description: Комментарий
+        workCount:
+          type: number
+          description: 'Количество нормо-часов'
+        sparePriceAt:
+          type: string
+          description: 'Дата актуализации стоимости запчастей'
+        spareAdditionalWorkPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости запчастей для доп. работ'
+        workPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости нормо-часа ТО'
+        additionalWorkPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости нормо-часа доп. работ'
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/MaintenanceSpare'
+        works:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/MaintenanceWork'
+        additionalWorks:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/MaintenanceAdditionalWork'
+      description: 'Техническое обслуживание'
+    MaintenanceAdditionalWork:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Количество
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/MaintenanceWorkSpare'
+        is_additional_required:
+          type: boolean
+          description: 'Обязательная доп. работа ТО'
+        additional_frequency_in_mileage:
+          type: integer
+          description: 'Периодичность доп. работы в км'
+        additional_frequency_in_month:
+          type: integer
+          description: 'Периодичность доп. работы в мес'
+        isToCalc:
+          type: boolean
+          description: 'Признак необходимости включения в расчёт'
+      description: 'Дополнительная работа'
+    MaintenanceCheckAdditionalWork:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Количество
+        price:
+          type: number
+          description: Стоимость
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/MaintenanceCheckWorkSpare'
+      description: 'Дополнительная работа'
+    MaintenanceCheckResponse:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: 'Номер ТО'
+        age:
+          type: integer
+          description: 'Рекомендуемый возраст автомобиля'
+        mileage:
+          type: integer
+          description: 'Рекомендуемый пробег автомобиля'
+        sparePrice:
+          type: number
+          description: 'Стоимость запчастей'
+        workPrice:
+          type: number
+          description: 'Стоимость работ'
+        additionalWorkSparePrice:
+          type: number
+          description: 'Стоимость запчастей для дополнительных работ'
+        additionalWorkPrice:
+          type: number
+          description: 'Стоимость дополнительных работ'
+        maintenancePrice:
+          type: number
+          description: 'Стоимость ТО (только при варианте расчёта общая стоимость)'
+        totalPrice:
+          type: number
+          description: 'Общая стоимость ТО'
+        discountSparePrice:
+          type: number
+          description: 'Скидка на ЗЧ в шаблоне ТО, в %'
+        workCount:
+          type: number
+          description: 'Количество нормо-часов'
+        mpv:
+          type: string
+          description: MPV
+        color:
+          type: string
+          description: Цвет
+        comment:
+          type: string
+          description: Комментарий
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/MaintenanceCheckSpare'
+        works:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/MaintenanceWork'
+        additionalWorks:
+          type: array
+          description: Работы
+          items:
+            $ref: '#/components/schemas/MaintenanceCheckAdditionalWork'
+      description: 'Техническое обслуживание'
+    MaintenanceCheckSpare:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Кол-во
+        price:
+          type: number
+          description: Стоимость
+      description: Запчасть
+    MaintenanceCheckWorkSpare:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Кол-во
+        price:
+          type: number
+          description: Стоимость
+      description: Запчасть
+    MaintenanceDealerPriceResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 'Код дилера'
+        sparesPrice:
+          type: number
+          description: 'Стоимость запчастей'
+        workPrice:
+          type: number
+          description: 'Стоимость работ'
+        additionalWorkSparePrice:
+          type: number
+          description: 'Стоимость запчастей для дополнительных работ'
+        additionalWorkPrice:
+          type: number
+          description: 'Стоимость дополнительных работ'
+        maintenancePrice:
+          type: number
+          description: 'Стоимость ТО (только при варианте расчёта общая стоимость)'
+        totalPrice:
+          type: number
+          description: 'Общая стоимость ТО'
+        discountSparePrice:
+          type: number
+          description: 'Скидка на ЗЧ в шаблоне ТО, в %'
+        sparePriceAt:
+          type: string
+          description: 'Дата актуализации стоимости запчастей'
+        spareAdditionalWorkPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости запчастей для доп. работ'
+        workPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости нормо-часа ТО'
+        additionalWorkPriceAt:
+          type: string
+          description: 'Дата актуализации стоимости нормо-часа доп. работ'
+      description: 'Стоимость технического обслуживания'
+    MaintenanceSchedule:
+      type: object
+      description: 'Модель Журнал записи на сервис'
+      required:
+        - code
+        - station_id
+        - service_from
+        - service_to
+        - status
+        - occupying_type
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        code:
+          type: string
+          description: 'Код журнала'
+        station_id:
+          type: integer
+          description: 'ID поста СТО ДЦ'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        service_from:
+          type: string
+          description: 'Дата планируемых работ с, в формате dd.MM.yyyy HH:mm'
+        service_to:
+          type: string
+          description: 'Дата планируемых работ по, в формате dd.MM.yyyy HH:mm'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Отмена'
+            - '3 - Бронь'
+        occupying_type:
+          type: integer
+          description: 'Тип занятости'
+          enum:
+            - '1 - Запись'
+            - '2 - Блокировка'
+        accept_from:
+          type: string
+          description: 'Дата планируемого приема автомобиля с, в формате dd.MM.yyyy HH:mm'
+        accept_to:
+          type: string
+          description: 'Дата планируемого приема автомобиля по, в формате dd.MM.yyyy HH:mm'
+        acceptor_id:
+          type: integer
+          description: 'ID мастера приемщика на прием авто'
+        issue_from:
+          type: string
+          description: 'Дата планируемой выдачи автомобиля с, в формате dd.MM.yyyy HH:mm'
+        issue_to:
+          type: string
+          description: 'Дата планируемой выдачи автомобиля по, в формате dd.MM.yyyy HH:mm'
+        issued_by_id:
+          type: string
+          description: 'ID мастера приемщика на выдачу авто'
+        client_id:
+          type: string
+          description: 'ID клиента'
+        contact_person_id:
+          type: string
+          description: 'ID контактного лица'
+        car_id:
+          type: string
+          description: 'ID автомобиля'
+        request_reason:
+          type: string
+          description: 'Причина обращения'
+        transfer_count:
+          type: string
+          description: 'Количество переносов'
+        event_type:
+          type: string
+          description: 'Тип контакта'
+          enum:
+            - 'call - Звонок'
+            - 'visit - Визит'
+            - 'internet - Интернет обращение'
+            - 'cold-call - Холодный звонок'
+    MaintenanceScheduleForm:
+      type: object
+      description: 'Форма журнала записи на сервис'
+      required:
+        - code
+        - status
+        - occupying_type
+      properties:
+        code:
+          type: string
+          description: 'Код записи журнала'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Отмена'
+        occupying_type:
+          type: integer
+          description: 'Тип занятости'
+          enum:
+            - '1 - Запись'
+            - '2 - Блокировка'
+        accept_from:
+          type: string
+          description: 'Дата планируемого приема автомобиля с, в формате dd.MM.yyyy HH:mm'
+        accept_to:
+          type: string
+          description: 'Дата планируемого приема автомобиля по, в формате dd.MM.yyyy HH:mm'
+        acceptor_id:
+          type: integer
+          description: 'ID мастера приемщика на прием авто'
+        issue_from:
+          type: string
+          description: 'Дата планируемой выдачи автомобиля с, в формате dd.MM.yyyy HH:mm'
+        issue_to:
+          type: string
+          description: 'Дата планируемой выдачи автомобиля по, в формате dd.MM.yyyy HH:mm'
+        issued_by_id:
+          type: string
+          description: 'ID мастера приемщика на выдачу авто'
+        client_id:
+          type: string
+          description: 'ID клиента'
+        contact_person_id:
+          type: string
+          description: 'ID контактного лица'
+        car_id:
+          type: string
+          description: 'ID автомобиля'
+        request_reason:
+          type: string
+          description: 'Причина обращения'
+        event_type:
+          type: string
+          description: 'Тип контакта'
+          enum:
+            - 'call - Звонок'
+            - 'visit - Визит'
+            - 'internet - Интернет обращение'
+            - 'cold-call - Холодный звонок'
+        stations:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceStationSchedule'
+          description: 'Список записей на станции'
+    MaintenanceSpare:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Кол-во
+      description: Запчасть
+    MaintenanceStationSchedule:
+      type: object
+      description: 'Модель Записи на станцию сервиса'
+      required:
+        - station_id
+        - service_from
+        - service_to
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        schedule_id:
+          type: integer
+          description: 'ID записи'
+        station_id:
+          type: integer
+          description: 'ID поста СТО ДЦ'
+        service_from:
+          type: string
+          description: 'Дата планируемых работ с, в формате dd.MM.yyyy HH:mm'
+        service_to:
+          type: string
+          description: 'Дата планируемых работ по, в формате dd.MM.yyyy HH:mm'
+        request_reason:
+          type: string
+          description: 'Причина обращения'
+        blocking_reason:
+          type: string
+          description: 'Причина блокировки'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Отмена'
+    MaintenanceStationScheduleForm:
+      type: object
+      description: 'Форма журнала записи на пост сервиса'
+      required:
+        - status
+        - service_from
+        - service_to
+        - station_id
+      properties:
+        schedule_id:
+          type: integer
+          description: 'ID записи на сервис'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Отмена'
+        service_from:
+          type: string
+          description: 'Дата начала работ с автомобилем (дата начала блокировки поста), в формате dd.MM.yyyy HH:mm'
+        service_to:
+          type: string
+          description: 'Дата окончания работ с автомобилем (дата окончания блокировки поста), в формате dd.MM.yyyy HH:mm'
+        station_id:
+          type: integer
+          description: 'ID поста'
+        request_reason:
+          type: string
+          description: 'Причина обращения'
+        blocking_reason:
+          type: string
+          description: 'Причина блокировки'
+    MaintenanceWork:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Наименование
+      description: Работа
+    MaintenanceWorkSpare:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        count:
+          type: number
+          description: Кол-во
+      description: Запчасть
+    Manager:
+      required:
+        - code
+        - email
+        - first_name
+        - last_name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID менеджера (генерируется автоматически)'
+        code:
+          type: string
+          description: 'Код менеджера во внешней системе'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        first_name:
+          type: string
+          description: Имя
+        last_name:
+          type: string
+          description: Фамилия
+        middle_name:
+          type: string
+          description: Отчество
+        email:
+          type: string
+          description: Email
+        birthday:
+          type: string
+          description: 'День рождения в формате dd.MM.yyyy'
+        employment:
+          type: string
+          description: 'Дата приема на работу в формате dd.MM.yyyyy'
+        position_list:
+          type: array
+          description: 'Список должностей. Получение списка должностей осуществляется методом <a href="#!/position/get_position" target="_blank">position</a>'
+          items:
+            $ref: '#/components/schemas/Position'
+        status:
+          type: string
+          description: 'Состояние менеджера'
+          enum:
+            - 'active - активный'
+            - 'deleted - удален/уволен'
+        role:
+          type: string
+          description: 'Роль (при создании возможно только две роли: dealer, dealer-service)'
+        photo:
+          type: string
+          description: Фотография
+        show_in_maintenance_schedule:
+          type: boolean
+          description: 'Участие в журнале записи'
+      description: 'Модель Менеджер'
+    Model:
+      required:
+        - brand_id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID модели (генерируется автоматически)'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        name:
+          type: string
+          description: 'Наименование модели'
+        is_recent:
+          type: integer
+          description: 'Актуальная или нет'
+        is_commercial:
+          type: integer
+          description: 'Коммерческий или нет'
+      description: 'Модель Модель автомобиля'
+    ModelAlias:
+      required:
+        - brand_id
+        - id
+        - model_id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        generation_name:
+          type: string
+          description: 'Название поколения'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        is_new:
+          type: integer
+          description: 'Признак - новая модель'
+        modification_id:
+          type: integer
+          description: 'ID модификации'
+        equipment_id:
+          type: integer
+          description: 'ID комплектации'
+        modification:
+          $ref: '#/components/schemas/Modification'
+        equipment:
+          $ref: '#/components/schemas/Equipment'
+      description: 'Модель Алиас моделей'
+    ModelYear:
+      required:
+        - model_id
+        - year
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID модельного года (генерируется автоматически)'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        year:
+          type: integer
+          description: Год
+        is_recent:
+          type: boolean
+          description: Актуальность
+      description: 'Модель Модельный год'
+    Modification:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID модификации'
+        name:
+          type: string
+          description: Наименование
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        start_production_year:
+          type: integer
+          description: 'Год начала производства'
+        end_production_year:
+          type: integer
+          description: 'Год окончания производства'
+        is_recent:
+          type: integer
+          description: Актуальная
+      description: Модификация
+    MysalesNeedBuy:
+      type: object
+      properties:
+        discounts:
+          type: array
+          description: 'ID скидок'
+          items:
+            type: integer
+        dealerDiscount:
+          $ref: '#/components/schemas/MysalesNeedBuyDealerDiscount'
+        additional_equipments:
+          type: array
+          description: 'ID выбранного дополнительного оборудования'
+          items:
+            type: integer
+        tradein:
+          type: boolean
+          description: 'Выбран трейдин'
+        credit:
+          $ref: '#/components/schemas/MysalesNeedBuyCredit'
+      description: 'Выбранные параметры покупки'
+    MysalesNeedBuyCredit:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id кредитной программы'
+        period:
+          type: integer
+          description: 'Срок кредита в месяцах'
+        initial_fee:
+          type: integer
+          description: 'Первоначальный платеж'
+        bank_id:
+          type: integer
+          description: 'id банка'
+        item_id:
+          type: integer
+          description: 'id кредитной программа банка'
+        life_insurance:
+          type: boolean
+          description: 'Наличие страхования жизни'
+        with_equipment:
+          type: boolean
+          description: 'Стоимость дополнительного оборудования включено в кредит'
+        with_casco:
+          type: boolean
+          description: 'Стоимость каско включено в кредит'
+        casco_is_default:
+          type: boolean
+          description: 'Каско обязательно'
+        casco_price:
+          type: number
+          description: 'Стоимость каско'
+      description: 'Параметры кредита'
+    MysalesNeedBuyDealerDiscount:
+      type: object
+      properties:
+        enabled:
+          type: integer
+          description: 'Выбрана - 1 или нет - 0'
+        value:
+          type: number
+          description: 'Размер скидки'
+      description: 'Скидка дилера'
+    MysalesNeedBuyResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 'Признак успеха'
+        selected:
+          $ref: '#/components/schemas/MysalesNeedBuy'
+      description: 'Данные о покупке потребности'

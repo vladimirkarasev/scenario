@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - executor-category'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: executor-category
+    description: 'Управление категориями исполнителей'
+paths:
+  /lms/executor-category:
+    get:
+      tags:
+        - executor-category
+      summary: 'Получение списка категорий исполнителей'
+      description: 'Получение списка категорий исполнителей'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список категорий исполнителей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExecutorCategory'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/lms/executor-category/{id}':
+    get:
+      tags:
+        - executor-category
+      summary: 'Получение категории исполнителя по ID'
+      description: 'Получение категории исполнителя по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id категории исполнителя'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает категорию исполнителя по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutorCategory'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

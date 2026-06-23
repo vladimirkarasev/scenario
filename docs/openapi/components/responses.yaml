@@ -1,0 +1,27 @@
+Unauthorized:
+  description: Не аутентифицирован
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ErrorResponse'
+
+NotFound:
+  description: Ресурс не найден
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ErrorResponse'
+
+Forbidden:
+  description: Недостаточно прав
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ErrorResponse'
+
+ValidationError:
+  description: Ошибки валидации
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ValidationErrorResponse'

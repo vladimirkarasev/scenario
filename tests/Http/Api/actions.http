@@ -1,0 +1,190 @@
+@baseUrl = http://scenario.localhost/api
+@actionId = 1
+@action2Id = 2
+@action3Id = 3
+@credentialId = 1
+
+###
+### Actions CRUD
+###
+
+### List actions
+GET {{baseUrl}}/actions
+
+### Create action — sync HTTP request
+POST {{baseUrl}}/actions
+Content-Type: application/json
+
+{
+  "name": "Send to CRM",
+  "key": "send_to_crm",
+  "description": "Sends lead data to external CRM via HTTP",
+  "type": "http_request",
+  "is_active": true,
+  "config": {
+    "execution_mode": "sync",
+    "url": "https://crm.example.com/api/leads",
+    "method": "POST"
+  }
+}
+
+### Create action — async with retry
+POST {{baseUrl}}/actions
+Content-Type: application/json
+
+{
+  "name": "Notify CRM async",
+  "key": "notify_crm_async",
+  "type": "http_request",
+  "is_active": true,
+  "config": {
+    "execution_mode": "async",
+    "url": "https://crm.example.com/api/leads",
+    "method": "POST",
+    "retry": {
+      "attempts": 3,
+      "backoff": [60, 300, 900]
+    }
+  }
+}
+
+### Create action — chain (form email → send email → send to CRM)
+POST {{baseUrl}}/actions
+Content-Type: application/json
+
+{
+  "name": "Lead pipeline chain",
+  "key": "lead_pipeline_chain",
+  "type": "custom",
+  "is_active": true,
+  "config": {
+    "execution_mode": "chain",
+    "action_ids": [{{action2Id}}, {{action3Id}}]
+  }
+}
+
+### Create action — batch (parallel notifications)
+POST {{baseUrl}}/actions
+Content-Type: application/json
+
+{
+  "name": "Parallel notifications",
+  "key": "parallel_notifications",
+  "type": "custom",
+  "is_active": true,
+  "config": {
+    "execution_mode": "batch",
+    "action_ids": [{{action2Id}}, {{action3Id}}]
+  }
+}
+
+### Update action
+PUT {{baseUrl}}/actions/{{actionId}}
+Content-Type: application/json
+
+{
+  "name": "Send to CRM (updated)",
+  "is_active": true,
+  "config": {
+    "execution_mode": "async",
+    "url": "https://crm.example.com/api/leads",
+    "method": "POST",
+    "retry": {
+      "attempts": 5,
+      "backoff": [30, 120, 600, 1800, 3600]
+    }
+  }
+}
+
+### Delete action
+DELETE {{baseUrl}}/actions/{{actionId}}
+
+###
+### Run (trigger) endpoint
+###
+
+### Run — sync (returns 200 + result inline)
+POST {{baseUrl}}/actions/{{actionId}}/run
+Content-Type: application/json
+
+{
+  "input": {
+    "name": "Ivan Petrov",
+    "phone": "+79001234567",
+    "email": "ivan@example.com"
+  }
+}
+
+### Run — async (returns 202 queued), passing scenario_run_id for WS broadcast
+POST {{baseUrl}}/actions/{{actionId}}/run
+Content-Type: application/json
+
+{
+  "input": {
+    "scenario_run_id": 42,
+    "name": "Ivan Petrov",
+    "phone": "+79001234567"
+  }
+}
+
+### Run — no input (defaults to sync)
+POST {{baseUrl}}/actions/{{actionId}}/run
+Content-Type: application/json
+
+{}
+
+### Run — chain or batch action (returns 202 queued)
+POST {{baseUrl}}/actions/{{actionId}}/run
+Content-Type: application/json
+
+{
+  "input": {
+    "scenario_run_id": 7,
+    "form_data": {
+      "name": "Maria",
+      "model": "Belgee X50"
+    }
+  }
+}
+
+###
+### Action credentials
+###
+
+### List credentials
+GET {{baseUrl}}/action-credentials
+
+### Create credential
+POST {{baseUrl}}/action-credentials
+Content-Type: application/json
+
+{
+  "name": "CRM API Key",
+  "type": "api_key",
+  "config": {
+    "header": "X-Api-Key",
+    "value": "secret-token-here"
+  }
+}
+
+### Update credential
+PUT {{baseUrl}}/action-credentials/{{credentialId}}
+Content-Type: application/json
+
+{
+  "name": "CRM API Key (updated)",
+  "config": {
+    "header": "X-Api-Key",
+    "value": "new-secret-token"
+  }
+}
+
+### Delete credential
+DELETE {{baseUrl}}/action-credentials/{{credentialId}}
+
+###
+### Action runs (history)
+###
+
+### List action runs
+GET {{baseUrl}}/action-runs

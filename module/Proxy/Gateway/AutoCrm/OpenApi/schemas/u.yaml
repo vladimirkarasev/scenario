@@ -1,0 +1,83 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Upload:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID файла'
+        name:
+          type: string
+          description: 'Название файла'
+        url:
+          type: string
+          description: Файл
+        size:
+          type: string
+          description: Размер
+        mimetype:
+          type: string
+          description: 'MIME-тип файла'
+      description: 'Модель загруженного файла'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID пользователя'
+        fullName:
+          type: string
+          description: 'Полное имя пользователя'
+        email:
+          type: string
+          description: 'Email пользователя'
+        dealer_id:
+          type: int
+          description: 'id ДЦ (для дилерской роли)'
+        dealer_ids:
+          type: array
+          description: 'id ДЦ (для холдинговой роли)'
+          items:
+            type: integer
+        dealer_code:
+          description: 'Код дилера'
+        positions:
+          type: array
+          description: 'Список должностей пользователя'
+          items:
+            $ref: '#/components/schemas/Position'
+    Utm:
+      type: object
+      description: 'Модель UTM-метки'
+      required:
+        - code
+        - name
+      properties:
+        id:
+          type: integer
+          description: 'ID холдинга'
+        type:
+          type: integer
+          description: 'Тип UTM метки'
+          enum:
+            - '1 - source'
+            - '2 - medium'
+            - '3 - campaign'
+            - '4 - content'
+            - '5 - term'
+        name:
+          type: string
+          description: 'Наименование холдинга'
+        traffic_source_id:
+          type: integer
+          description: 'ID источника трафика'
+        user_id:
+          type: integer
+          description: 'ID автора'
+        created_at:
+          type: string
+          description: 'Создано (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        updated_at:
+          type: string
+          description: 'Изменено (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'

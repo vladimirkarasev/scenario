@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-vehicle-photo'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-vehicle-photo
+    description: 'Управление фотографиями автомобилей'
+paths:
+  /warehouse/vehicle-photo/create:
+    post:
+      tags:
+        - warehouse-vehicle-photo
+      summary: 'Загрузить фото (base64 или url)'
+      description: 'Загрузить фото (base64 или url)'
+      parameters:
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Форма для загрузки фото'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePhotoUploadForm'
+        required: false
+      responses:
+        200:
+          description: 'Фото успешно загружено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclePhotoForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /warehouse/vehicle-photo/delete:
+    delete:
+      tags:
+        - warehouse-vehicle-photo
+      summary: 'Удалить фото по его ID'
+      description: 'Удалить фото по его ID'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID фото'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Фото удалено'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content: {  }
+  /warehouse/vehicle-photo/update:
+    patch:
+      tags:
+        - warehouse-vehicle-photo
+      summary: 'Изменить фото по его ID'
+      description: 'Изменить фото по его ID'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID фото'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Форма для изменения фото'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePhotoForm'
+        required: false
+      responses:
+        200:
+          description: 'Данные измененного фото'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclePhotoForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content: {  }

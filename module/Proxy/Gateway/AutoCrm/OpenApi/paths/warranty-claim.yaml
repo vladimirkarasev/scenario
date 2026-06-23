@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warranty-claim'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warranty-claim
+    description: 'Управление рекламациями'
+paths:
+  /service/warranty-claim:
+    get:
+      tags:
+        - warranty-claim
+      summary: 'Список рекламаций'
+      description: 'Список рекламаций'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: date_create_from
+          in: query
+          description: 'Дата создания от'
+          schema:
+            type: string
+        -
+          name: date_create_to
+          in: query
+          description: 'Дата создания до'
+          schema:
+            type: string
+        -
+          name: date_change_status_from
+          in: query
+          description: 'Дата смены этапа от'
+          schema:
+            type: string
+        -
+          name: date_change_status_to
+          in: query
+          description: 'Дата смены этапа до'
+          schema:
+            type: string
+        -
+          name: change_status_name
+          in: query
+          description: 'Наименование этапа'
+          schema:
+            type: string
+        -
+          name: status_name
+          in: query
+          description: 'Наименование текущего этапа'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список рекламаций'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WarrantyClaim'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/warranty-claim/{id}':
+    get:
+      tags:
+        - warranty-claim
+      summary: 'Получение рекламации по ID'
+      description: 'Получение рекламации по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id рекламации'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает рекламацию по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WarrantyClaim'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

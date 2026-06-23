@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - reclamation-registry'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: reclamation-registry
+    description: 'Сводные ведомости'
+paths:
+  /reclamation-registry:
+    get:
+      tags:
+        - reclamation-registry
+      summary: 'Получить список СВР'
+      parameters:
+        -
+          name: dealer_code
+          in: query
+          schema:
+            type: string
+          description: 'Код дилера для фильтрации'
+        -
+          name: month
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: 'Месяц периода'
+        -
+          name: year
+          in: query
+          schema:
+            type: integer
+          description: 'Год периода'
+      responses:
+        200:
+          description: 'Список СВР'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReclamationRegistry'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /reclamation-registry/stages:
+    get:
+      tags:
+        - reclamation-registry
+      summary: 'Получить список доступных этапов workflow'
+      responses:
+        200:
+          description: 'Список этапов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReclamationRegistryStage'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/reclamation-registry/{id}/workflow':
+    put:
+      tags:
+        - reclamation-registry
+      summary: 'Обновить этап workflow СВР'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 'id СВР'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReclamationRegistryWorkflowRequest'
+      responses:
+        200:
+          description: 'Статус сохранения'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclamationRegistryWorkflowResponse'
+        400:
+          description: 'Ошибка валидации'
+          content:
+            application/json:
+              schema:
+                $ref: '../schema/Exception.yaml#/components/schemas/Exception'
+        404:
+          description: 'Сводная ведомость не найдена'
+          content:
+            application/json:
+              schema:
+                $ref: '../schema/Exception.yaml#/components/schemas/Exception'

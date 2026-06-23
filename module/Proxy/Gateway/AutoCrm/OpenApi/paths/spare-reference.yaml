@@ -1,0 +1,242 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-reference'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-reference
+    description: 'Управление запчастями'
+paths:
+  /spare-reference:
+    get:
+      tags:
+        - spare-reference
+      summary: 'Получение списка запчастей'
+      description: 'Получение списка запчастей'
+      parameters:
+        -
+          name: expand
+          in: query
+          description: "Параметр позволяющий получить в ответе связные данные. Можно передать несколько значений через запятую.\nДоступные значения: - priceType - Типы цен - replaces - Заменяемые запчасти - filePhotos - Фото - group_ids - ИД групп - sub_group_ids - ИД подгрупп - balance_types - Остатки по типам запчастей (режим \"Указывать для типа цены ЗЧ\", требует настройку в конфигураторе) - balance_warehouses_only - Остатки по складам без типов (режим \"Указывать для склада\", требует настройку в конфигураторе) - balance_warehouses - Остатки по типам и складам (режим \"Указывать для типа цены ЗЧ/Склада\", требует настройку в конфигураторе)\nПримечание: Поля балансов зависят от настройки \"Способ передачи остатков на складах дистрибьютора\" в конфигураторе. В ответе будет присутствовать только одно поле, соответствующее текущему режиму настройки."
+          schema:
+            type: string
+            example: 'priceType,replaces,balance_types'
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: type_id
+          in: query
+          description: 'Тип (1 — запчасть, 2 — аксессуар)'
+          schema:
+            type: integer
+            enum:
+              - 1
+              - 2
+        -
+          name: external_id
+          in: query
+          description: 'Внешний ID'
+          schema:
+            type: string
+        -
+          name: manufacturer_ids
+          in: query
+          description: 'Фильтр по производителям ЗЧ (массив ID производителей)'
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        200:
+          description: 'Возвращает список запчастей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - spare-reference
+      summary: 'Создание запчасти'
+      description: 'Создание запчасти'
+      requestBody:
+        description: 'Данные заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareReferenceForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает запчасть'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/spare-reference/delivery/{article}':
+    patch:
+      tags:
+        - spare-reference
+      summary: 'Передача информации о поставке ЗЧ'
+      description: 'Передача информации о поставке ЗЧ'
+      parameters:
+        -
+          name: article
+          in: path
+          description: 'Артикул запчасти'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Данные поставки'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                spare_count_in_delivery:
+                  type: integer
+                  description: 'Количество ЗЧ в поставке'
+                spare_delivery_at:
+                  type: string
+                  description: 'Ожидаемая дата поставки ЗЧ yyyy-MM-dd'
+      responses:
+        200:
+          description: 'Возвращает запчасть'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /spare-reference/upload-package:
+    post:
+      tags:
+        - spare-reference
+      summary: 'Пакетная отправка ЗЧ'
+      description: 'Пакетная отправка ЗЧ'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  description: "JSON файл с массивом объектов запчастей. Каждый объект должен содержать поля: code (string) - артикул запчасти, name (string) - наименование, unit_package (integer) - единица упаковки, group_name (string) - название группы, sub_group_name (string) - название подгруппы, note (string) - примечание, is_mark (boolean) - наличие маркировки, recomended_retail_price (number) - рекомендованная розничная цена, balance (number) - остаток, max_cnt (number) - максимальное количество, prices (object) - объект с ценами по типам (ключи - ID типов цен, значения - цены).\nПример структуры файла: [{\"code\":\"5006200XKQ11A8L\",\"name\":\"НАКЛАДКА ЗАЩИТНАЯ\",\"unit_package\":1,\"group_name\":\"Запасные части\",\"sub_group_name\":\"Запасные части HAVAL\",\"note\":\"\",\"is_mark\":false,\"recomended_retail_price\":3185,\"balance\":0,\"max_cnt\":0,\"prices\":{\"4\":2195,\"5\":2524,\"6\":2392}}]"
+                  format: binary
+      responses:
+        200:
+          description: 'Возвращает загруженный файл'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareReferenceFile'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/spare-reference/{article}':
+    get:
+      tags:
+        - spare-reference
+      summary: 'Просмотр запчасти'
+      description: 'Просмотр запчасти'
+      parameters:
+        -
+          name: article
+          in: path
+          description: 'Артикул запчасти'
+          required: true
+          schema:
+            type: string
+        -
+          name: expand
+          in: query
+          description: "Параметр позволяющий получить в ответе связные данные. Можно передать несколько значений через запятую.\nДоступные значения: - priceType - Типы цен - replaces - Заменяемые запчасти - filePhotos - Фото - group_ids - ИД групп - sub_group_ids - ИД подгрупп - balance_types - Остатки по типам запчастей (режим \"Указывать для типа цены ЗЧ\", требует настройку в конфигураторе) - balance_warehouses_only - Остатки по складам без типов (режим \"Указывать для склада\", требует настройку в конфигураторе) - balance_warehouses - Остатки по типам и складам (режим \"Указывать для типа цены ЗЧ/Склада\", требует настройку в конфигураторе)\nПримечание: Поля балансов зависят от настройки \"Способ передачи остатков на складах дистрибьютора\" в конфигураторе. В ответе будет присутствовать только одно поле, соответствующее текущему режиму настройки."
+          schema:
+            type: string
+            example: 'priceType,replaces,balance_types'
+      responses:
+        200:
+          description: 'Возвращает запчасть'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    post:
+      tags:
+        - spare-reference
+      summary: 'Редактирование запчасти'
+      description: 'Редактирование запчасти'
+      parameters:
+        -
+          name: article
+          in: path
+          description: 'Артикул запчасти'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: 'Данные заказа'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareReferenceForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает запчасть'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareReference'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

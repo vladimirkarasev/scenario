@@ -1,0 +1,174 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - service-spare-availability'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: service-spare-availability
+    description: 'Наличия зч'
+paths:
+  /service/spare-availability:
+    get:
+      tags:
+        - service-spare-availability
+      summary: 'Список наличия зч'
+      description: 'Список наличия зч'
+      parameters:
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: ext
+          in: query
+          description: 'Внешний код'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Список наличия зч'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareAvailability'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - service-spare-availability
+      summary: 'Создание наличия зч'
+      description: 'Создание наличия зч'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - ext
+                - color
+              type: object
+              properties:
+                name:
+                  description: Наименование
+                  type: string
+                ext:
+                  description: 'Внешний код'
+                  type: string
+                color:
+                  description: 'цвет (#FFFFFF)'
+                  type: string
+        required: true
+      responses:
+        200:
+          description: 'Наличие зч'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareAvailability'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/service/spare-availability/{id}':
+    put:
+      tags:
+        - service-spare-availability
+      summary: 'Изменение наличия зч'
+      description: 'Изменение наличия зч'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id наличия зч'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - ext
+                - color
+              type: object
+              properties:
+                name:
+                  description: Наименование
+                  type: string
+                ext:
+                  description: 'Внешний код'
+                  type: string
+                color:
+                  description: 'цвет (#FFFFFF)'
+                  type: string
+        required: true
+      responses:
+        200:
+          description: 'Наличия зч'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareAvailability'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    get:
+      tags:
+        - service-spare-availability
+      summary: 'Просмотр наличия зч'
+      description: 'Просмотр наличия зч'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id наличия зч'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Наличие зч'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareAvailability'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

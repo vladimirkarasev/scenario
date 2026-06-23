@@ -1,0 +1,62 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - personal-data-agreement-document-upload'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: personal-data-agreement-document-upload
+    description: 'Загрузка скана согласия на обработку ПД'
+paths:
+  /personal-data-agreement/document/upload:
+    put:
+      tags:
+        - personal-data-agreement-document-upload
+      summary: 'Загрузка скана согласия на обработку ПД'
+      description: 'Загрузка скана согласия на обработку ПД'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalDataAgreementDocumentForm'
+        required: true
+      responses:
+        201:
+          description: 'скан СОПД успешно загружен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalDataAgreementEventUpload'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        403:
+          description: 'Нет прав на загрузку'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

@@ -1,0 +1,1486 @@
+openapi: 3.1.0
+components:
+  schemas:
+    PartManufacturer:
+      type: object
+      description: 'Модель производителя запасных частей'
+      properties:
+        id:
+          type: integer
+          description: 'ID производителя'
+        name:
+          type: string
+          description: 'Наименование производителя'
+        status:
+          type: string
+          description: 'Статус производителя'
+          enum:
+            - active
+            - deleted
+          example: active
+    PaymentTerm:
+      required:
+        - name
+        - types
+        - year
+        - discount_percent
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: Название
+        types:
+          type: array
+          description: 'Тип (test-drive - Тест-драйв, replacement - Подменный, consignment - Консигнация)'
+        year:
+          type: integer
+          description: 'Год выпуска'
+        discount_percent:
+          type: float
+          description: Скидка
+          example: 1.5
+        show_in_request:
+          type: boolean
+          description: 'Отображать в запросе счета'
+        active:
+          type: boolean
+          description: Активность
+      description: 'Условия оплаты'
+    PersonalDataAgreementDocumentForm:
+      required:
+        - file
+      type: object
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID дилера (обязателен для ролей дистрибьютора)'
+        file:
+          type: string
+          description: 'Файл скана анкеты СОПД в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+      description: 'Файл скана анкеты СОПД'
+    PersonalDataAgreementEvent:
+      type: object
+      description: 'Модель анкеты согласия на обработку персональных данных'
+      properties:
+        id:
+          type: integer
+          description: 'ID анкеты'
+        uuid:
+          type: string
+          description: UUID
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        client_id:
+          type: integer
+          description: 'ID клиента дилера'
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        gender:
+          type: integer
+          description: 'Пол (1 - Мужчина, 2 - Женщина)'
+        phones:
+          type: array
+          description: Телефоны
+          items:
+            $ref: '#/components/schemas/PersonalDataAgreementPhone'
+        emails:
+          type: array
+          items:
+            type: string
+          description: E-mail
+        birthday_at:
+          type: string
+          description: 'Дата рождения (ДД.ММ.ГГГГ)'
+        passportType:
+          type: integer
+          description: 'Тип документа удостоверяющего личность (1 - Паспорт РФ, 2 - Загран. паспорт)'
+        passportSeries:
+          type: string
+          description: 'Серия документа'
+        passportNumber:
+          type: string
+          description: 'Номе документа'
+        passportIssueDate:
+          type: string
+          description: 'Дата выдачи (ДД.ММ.ГГГГ)'
+        passportAuthority:
+          type: string
+          description: 'Кем выдан'
+        postal_code:
+          type: string
+          description: 'Почтовый индекс'
+        city:
+          type: string
+          description: Город
+        address:
+          type: string
+          description: Адрес
+        may_process_personal_data:
+          type: integer
+          description: 'Согласие на обработку персональных данных дилером'
+        client_confirm_communication:
+          type: integer
+          description: 'Согласие на коммуникацию с дилером'
+        may_process_personal_data_third_person:
+          type: integer
+          description: 'Согласие на обработку персональных данных третьими лицами'
+        client_confirm_communication_third_person:
+          type: integer
+          description: 'Согласие на коммуникацию с третьим лицами'
+        third_person_list_confirmed:
+          type: integer
+          description: 'Согласие с перечнем третьих лиц'
+        role:
+          type: integer
+          description: 'Роль (1 - Владелец, 2 - Пользователь автомобиля)'
+        type:
+          type: integer
+          description: 'Тип анкеты (1 - Продажа, 2 - Сервис)'
+        brand_id:
+          type: integer
+          description: 'Бренд автомобиля'
+        model_id:
+          type: integer
+          description: 'Модель автомобиля'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        date:
+          type: string
+          description: 'Дата посещения (ДД.ММ.ГГГГ)'
+        generateLink:
+          type: string
+          description: 'Ссылка для генерации печатной формы анкеты согласия на обработку персональных данных'
+        cpd:
+          type: string
+          description: 'Скан анкеты согласия на обработку персональных данных'
+        status:
+          type: integer
+          description: '1 - Ошибки заполнения, 2 - На рассмотрении, 3 - Подтверждена, 4 - Отклонена, 7 - Скан отсутствует, 9 - Удалена, 10 - Повторная'
+    PersonalDataAgreementEventCreateForm:
+      type: object
+      description: 'Модель формы создания анкеты согласия на обработку персональных данных'
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        first_name:
+          type: string
+          required: true
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          required: true
+          description: Фамилия
+        middleNameRequired:
+          type: boolean
+          description: 'Отчество обязательно (по умолчанию значение = Да)'
+        gender:
+          type: integer
+          required: true
+          description: 'Пол (1 - Мужчина, 2 - Женщина)'
+        phone:
+          type: string
+          description: Телефон
+        phoneType:
+          type: integer
+          description: 'Тип телефона (1 - Мобильный, 2 - Рабочий, 3 - Домашний)'
+        email:
+          type: string
+          description: E-mail
+        birthdayAt:
+          type: string
+          required: true
+          description: 'Дата рождения (ДД.ММ.ГГГГ)'
+        passportType:
+          type: integer
+          required: true
+          description: 'Тип документа удостоверяющего личность (1 - Паспорт РФ, 2 - Загран. паспорт)'
+        passportSeries:
+          type: string
+          description: 'Серия документа'
+        passportNumber:
+          type: string
+          required: true
+          description: 'Номе документа'
+        passportIssueDate:
+          type: string
+          required: true
+          description: 'Дата выдачи (ДД.ММ.ГГГГ)'
+        passportAuthority:
+          type: string
+          required: true
+          description: 'Кем выдан'
+        postal_code:
+          type: string
+          description: 'Почтовый индекс'
+        address:
+          type: string
+          required: true
+          description: Адрес
+        role:
+          type: integer
+          required: true
+          description: 'Роль (1 - Владелец, 2 - Пользователь автомобиля)'
+        type:
+          type: integer
+          required: true
+          description: 'Тип анкеты (1 - Продажа, 2 - Сервис)'
+        brand_id:
+          type: integer
+          required: true
+          description: 'Бренд автомобиля'
+        model_id:
+          type: integer
+          description: 'Модель автомобиля'
+        vin:
+          type: string
+          required: true
+          description: 'VIN автомобиля'
+        date:
+          type: string
+          required: true
+          description: 'Дата посещения (ДД.ММ.ГГГГ)'
+    PersonalDataAgreementEventUpload:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        upload_id:
+          type: integer
+          description: 'ID документа согласия на обработку персональных данных'
+        status:
+          type: integer
+          description: 'Код статуса обработки документа'
+        created_at:
+          type: string
+          description: 'Время создания'
+          format: 'yyyy-MM-dd HH:mm:ss'
+        updated_at:
+          type: string
+          description: 'Время обновления'
+          format: 'yyyy-MM-dd HH:mm:ss'
+        created_by:
+          type: integer
+          description: 'ID пользователя загрузившего СОПД'
+        updated_by:
+          type: integer
+          description: 'ID пользователя редактировавшего СОПД'
+      description: 'Файл СОПД'
+    PersonalDataAgreementEventUploadForm:
+      required:
+        - mayProcessPersonalData
+        - status
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: 'UUID анкеты СОПД'
+        status:
+          type: integer
+          description: 'Статус проверки (1 - успех, 2 - ошибка, 3 - отклонен)'
+        mayProcessPersonalData:
+          type: boolean
+          description: 'Согласие на обработку персональных данных'
+        code:
+          type: string
+          description: 'Код брака'
+      description: 'Модель загрузки результата проверки скана согласия на обработку персональных данных'
+    PersonalDataAgreementEventWithAppealStatus:
+      allOf:
+        -
+          $ref: '#/components/schemas/PersonalDataAgreementEvent'
+        -
+          properties:
+            appeal_status:
+              oneOf:
+                -
+                  type: string
+                -
+                  type: 'null'
+              description: 'Статус апелляции'
+    PersonalDataAgreementPhone:
+      type: object
+      description: 'Модель телефона в анкете согласия на обработку персональных данных'
+      properties:
+        phone:
+          type: string
+          description: 'Номер телефона'
+        type:
+          type: integer
+          description: 'Тип (1 - Мобильный, 2 - Рабочий, 3 - Домашний)'
+    PersonalDataAgreementPrintForm:
+      type: object
+      properties:
+        event_id:
+          type: integer
+          description: 'ID СОПД'
+        client_name:
+          type: string
+          description: 'Имя клиента, для которого сгенерирована печатная форма СОПД'
+        base64_content:
+          type: string
+          description: 'печатная форма СОПД в Base64'
+      description: 'Запрос на получение печатной форма СОПД'
+    PersonalDataClient:
+      required:
+        - client_id
+        - type_id
+        - status_id
+        - started_at
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID значения атрибута (генерируется автоматически)'
+        type_id:
+          type: integer
+          description: 'Id типа согласия'
+        client_id:
+          type: integer
+          description: 'Id клиента'
+        status_id:
+          type: integer
+          description: 'Id статуса согласия'
+          enum:
+            - '1 - Активно'
+            - '2 - Неактивно'
+        started_at:
+          type: string
+          description: 'Дата получения согласия'
+        expired_at:
+          type: string
+          description: 'Дата окончания действия согласия'
+      description: 'Модель согласия клиента'
+    PersonalDiscount:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID персональной скидки'
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        valid_from:
+          type: string
+          description: 'Дата начала активации'
+        valid_to:
+          type: string
+          description: 'Дата окончания активации'
+        valid_interval:
+          type: integer
+          description: 'Срок активации (дней)'
+        is_reusable:
+          type: boolean
+          description: 'Многоразовая для клиента'
+        is_reusable_for_vehicle:
+          type: boolean
+          description: 'Многоразовая для автомобиля'
+        issue_limit:
+          type: integer
+          description: 'Лимит выдачи'
+        activation_limit:
+          type: integer
+          description: 'Лимит активации'
+        discount_value:
+          type: integer
+          description: 'Размер скидки, руб'
+      description: 'Персональная скидка'
+    PersonalDiscountClient:
+      type: object
+      properties:
+        discount_id:
+          type: integer
+          description: 'ID скидки'
+        common_client_id:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        client_id:
+          type: integer
+          description: 'ID клиента дилера'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        code:
+          type: string
+          description: 'Код для активации скидки'
+        amount:
+          type: number
+          description: 'Размер скидки'
+        description:
+          type: string
+          description: 'Причина выдачи скидки'
+        issued_dealer_id:
+          type: integer
+          description: 'ID дилера выдавшего скидку'
+        issued_at:
+          type: string
+          description: 'Дата выдачи'
+        activated_dealer_id:
+          type: integer
+          description: 'ID дилера активировавшего скидку'
+        activated_at:
+          type: string
+          description: 'Дата активации'
+        activationLink:
+          type: string
+          description: 'Ссылка для активации скидки'
+        activate_till:
+          type: string
+          description: 'Дата окончания срока активации (YYYY-MM-DD)'
+        status:
+          type: integer
+          description: Статус
+      description: 'Персональная скидка клиента'
+    Poll:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID опроса'
+        type:
+          type: integer
+          description: 'Тип (0 - На одной странице, 1 - Пошаговое заполнение по блокам, 2 - Пошаговое заполнение по вопросам)'
+        name:
+          type: string
+          description: Название
+        context:
+          type: integer
+          description: 'Контекст (1 - Рабочий лист, 2 - Клиент, 3 - Заказ-наряд, 4 - Планирование Yandex.Courier)'
+        template:
+          type: string
+          description: Шаблон
+        template_beginning:
+          type: string
+          description: 'Шаблон начала разговора'
+        template_end:
+          type: string
+          description: 'Шаблон окончания разговора'
+        is_only_for_distributor:
+          type: integer
+          description: 'Только для дистрибьютора'
+        is_deleted:
+          type: integer
+          description: Удалён
+        blocks:
+          type: array
+          description: Блоки
+          items:
+            $ref: '#/components/schemas/PollBlock'
+      description: 'Запрос счёта'
+    PollAnswer:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID ответа'
+        text:
+          type: string
+          description: Текст
+        external_code:
+          type: string
+          description: 'Внешний код'
+        point:
+          type: integer
+          description: Балл
+        need_comment:
+          type: integer
+          description: 'Нужен комментарий'
+        is_exclusive:
+          type: integer
+          description: 'Эксклюзивный ответ'
+        is_deleted:
+          type: integer
+          description: Удалён
+        ord:
+          type: integer
+          description: Порядок
+      description: 'Ответы опроса'
+    PollAnswerForm:
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          type: object
+          properties: {  }
+          description: 'Данные ответов на вопросы'
+        scheduledAt:
+          type: string
+          description: 'Дата и время планирования опросов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+        date:
+          type: string
+          description: 'Дата и время получения ответов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+        mode:
+          type: integer
+          description: 'Режим поиска вопросов(1 - по внешнему коду, 2 - по внутреннему идентификатору)'
+        externalId:
+          type: string
+          description: 'Внешний идентификатор'
+        astraPageStatus:
+          type: integer
+          description: 'статус звонка (0 - Новый, 1 - Соединение, 2 - Номер не обслуживается, 3 - Некорректный номер, 4 - Не берут трубку, 5 - Занято, 6 - Вне зоны доступа, 7 - Автоответчик)'
+        astraPageResult:
+          type: integer
+          description: 'результат по звонку (0 - Новый, 1 -  Результативный звонок, 2 - Перезвонить, 3 - Отказ от опроса, 4 - Отказ от записи разговора, 5 - Номер не принадлежит клиенту, 6 - Недозвон, 7 - Некорректный номер, 8 - Апелляция от ДЦ)'
+        privacy:
+          type: integer
+          description: 'Конфиденциальность (0 - нет, 1 - частичная анонимность, 2 - полная анонимность)'
+        state:
+          type: integer
+          description: 'Состояние (0 - Отменено, 1 - Запланировано, 2 - Завершено, 3 - Ожидает заполнения, 4 - Частично заполнено, 5 - Заполнено клиентом, 6 - Ссылка просрочена, 7 - Заполнено клиентской службой, 8 - Просрочен, 9 - Удалено)'
+        source:
+          type: integer
+          description: 'Источник (1 - Вручную, 2 - По E-mail, 3 - По SMS, 4 - По QR-коду, 5 - По телефону (MTT), 6 - По Whatsapp, 7 - По телефону (AstraPage))'
+        sends:
+          type: array
+          description: 'Отправки анкеты опроса'
+          items:
+            $ref: '#/components/schemas/PollEventSend'
+      description: 'Ответы на вопросы опроса'
+    PollBlock:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID блока'
+        name:
+          type: string
+          description: Название
+        is_deleted:
+          type: integer
+          description: Удалён
+        ord:
+          type: integer
+          description: Порядок
+        questions:
+          type: array
+          description: Вопросы
+          items:
+            $ref: '#/components/schemas/PollQuestion'
+      description: 'Блок опроса'
+    PollEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID анкеты опроса'
+        assignee_id:
+          type: integer
+          description: 'Автор изменений'
+        poll_id:
+          type: integer
+          description: 'ID опроса'
+        dealer_id:
+          type: integer
+          description: Дилер
+        nps_type_id:
+          type: integer
+          description: NPS
+        worksheet_id:
+          type: integer
+          description: 'Рабочий лист'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        purchase_id:
+          type: integer
+          description: З\Н
+        occurred_at:
+          type: integer
+          description: 'Дата возникновения события'
+        scheduled:
+          type: string
+          description: 'Дата планирования опроса (формат dd.MM.yyyy hh:mm)'
+        comment:
+          type: string
+          description: Комментарий
+        state:
+          type: integer
+          description: Состояние
+        satisfaction_index:
+          type: integer
+          description: 'Индекс удовлетворенности'
+        point:
+          type: integer
+          description: Баллы
+        user_id:
+          type: integer
+          description: 'Автор изменений'
+        created_at:
+          type: string
+          description: 'Создано (формат yyyy-MM-dd hh:mm:ss)'
+        updated_at:
+          type: string
+          description: 'Обновлено (формат yyyy-MM-dd hh:mm:ss)'
+        is_reported:
+          type: integer
+          description: Отчет
+        published_at:
+          type: string
+          description: 'Дата публикации (формат yyyy-MM-dd hh:mm:ss)'
+        event_id:
+          type: integer
+          description: Событие
+        client_fill:
+          type: integer
+          description: 'Заполнен клиент'
+        call_status:
+          type: string
+          description: 'Статус MTT-звонка'
+        yandex_courier_planning_location_id:
+          type: integer
+          description: 'Места планирования яндекс курьера'
+        privacy:
+          type: integer
+          description: 'Конфиденциальность (0 - Нет, 1 - Частичная анонимность, 2 - Полная анонимность)'
+        external_id:
+          type: string
+          description: 'Внешний идентификатор'
+        created_by:
+          type: integer
+          description: 'Кем создан'
+        assignee_appointed_at:
+          type: string
+          description: 'Дата прикрепления (формат yyyy-MM-dd hh:mm:ss)'
+        request_id:
+          type: integer
+          description: Запрос
+        sale_id:
+          type: integer
+          description: Рапорт
+        astra_page_status:
+          type: integer
+          description: 'Статус AP-звонка'
+        astra_page_result:
+          type: integer
+          description: 'Результат по AP-звонку'
+        astra_page_enable:
+          type: integer
+          description: 'Доступ к API для AP'
+        common_client_id:
+          type: integer
+          description: Клиент
+        source:
+          type: integer
+          description: 'Источник проведения'
+        warehouse_vehicle_id:
+          type: integer
+          description: 'Автомобиль на складе'
+        vin:
+          type: string
+          description: VIN
+        link:
+          $ref: '#/components/schemas/PollEventSend'
+        client:
+          type: object
+          description: Клиент
+          properties:
+            id:
+              type: integer
+              description: 'Код клиента (генерируется автоматически)'
+            fullName:
+              type: string
+              description: 'Полное имя'
+            type:
+              type: integer
+              description: 'Тип клиента. Значение по умолчанию - 0'
+            name:
+              type: string
+              description: 'Имя клиента физ. лица или представителя юр. лица'
+            middle_name:
+              type: string
+              description: Отчество
+            last_name:
+              type: string
+              description: Фамилия
+            sex:
+              type: integer
+              description: Пол
+            birthday:
+              type: string
+              description: 'День рождения (формат yyyy-MM-dd)'
+            company_legal_form:
+              type: string
+              description: 'Форма собственности'
+              enum:
+                - ООО
+                - АО
+                - ОАО
+                - ТОО
+                - ИП
+                - СООО
+                - ЗАО
+            company_name:
+              type: string
+              description: 'Название юридического лица  (Обязательно если тип: Юр лицо)'
+            phones:
+              type: array
+              description: 'Массив всех телефонов клиента. Переданный массив полностью заменяет существующие данные'
+              items:
+                $ref: '#/components/schemas/ClientPhone'
+        poll:
+          type: object
+          description: 'Приходит если отправить expand=poll'
+          properties:
+            id:
+              type: integer
+              description: 'ID опроса'
+            type:
+              type: integer
+              description: 'Тип (0 - На одной странице, 1 - Пошаговое заполнение по блокам, 2 - Пошаговое заполнение по вопросам)'
+            name:
+              type: string
+              description: Название
+            context:
+              type: integer
+              description: 'Контекст (1 - Рабочий лист, 2 - Клиент, 3 - Заказ-наряд, 4 - Планирование Yandex.Courier)'
+            template:
+              type: string
+              description: Шаблон
+            template_beginning:
+              type: string
+              description: 'Шаблон начала разговора'
+            template_end:
+              type: string
+              description: 'Шаблон окончания разговора'
+            is_only_for_distributor:
+              type: integer
+              description: 'Только для дистрибьютора'
+            is_deleted:
+              type: integer
+              description: Удалён
+      description: 'Анекта опроса'
+    PollEventSend:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        url:
+          type: string
+          description: 'Внешняя ссылка на опрос'
+        send_type:
+          type: integer
+          description: 'Тип отправки опроса (2 - По E-mail, 3 - По SMS, 6 - По Whatsapp)'
+        date_end:
+          type: string
+          description: 'Дата окончания действия ссылки'
+        status:
+          type: boolean
+          description: 'Статус ссылки (2 - Включена, 1 - Отключена)'
+      description: 'Отправка опроса'
+    PollFillingCountRequest:
+      required:
+        - occurredFrom
+        - occurredTo
+      type: object
+      properties:
+        occurredFrom:
+          type: string
+          description: 'Проведен с (формат: дд.мм.гггг)'
+        occurredTo:
+          type: string
+          description: 'Проведен по (формат: дд.мм.гггг)'
+      description: 'Количество проведённых опросов с разбивкой по дням — параметры запроса'
+    PollFillingCountResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          description: 'Дата (формат: дд.мм.гггг)'
+        count:
+          type: integer
+          description: Количество
+      description: 'Количество проведённых опросов с разбивкой по дням — ответ'
+    PollFillingReportConsolidatedRequest:
+      required:
+        - scheduledFrom
+        - scheduledTo
+      type: object
+      properties:
+        scheduledFrom:
+          type: string
+          description: 'Запланирован с (формат: дд.мм.гггг)'
+        scheduledTo:
+          type: string
+          description: 'Запланирован по (формат: дд.мм.гггг)'
+      description: 'Сводный отчёт по опросам — параметры запроса'
+    PollFillingReportConsolidatedResponse:
+      type: object
+      properties:
+        headers:
+          type: object
+          description: Заголовки
+        rows:
+          type: array
+          description: Строки
+          items:
+            type: array
+            items:
+              type: string
+              description: Значения
+      description: 'Сводный отчёт по опросам — ответ'
+    PollFillingReportRequest:
+      required:
+        - occurredFrom
+        - occurredTo
+      type: object
+      properties:
+        occurredFrom:
+          type: string
+          description: 'Проведен с (формат: дд.мм.гггг)'
+        occurredTo:
+          type: string
+          description: 'Проведен по (формат: дд.мм.гггг)'
+        passed:
+          type: integer
+          description: 'Пройденные опросы'
+      description: 'Количество проведённых опросов с разбивкой по дням — параметры запроса'
+    PollFillingReportResponse:
+      type: object
+      properties:
+        headers:
+          type: object
+          description: Заголовки
+        rows:
+          type: array
+          description: Строки
+          items:
+            type: array
+            items:
+              type: string
+              description: Значения
+      description: 'Количество проведённых опросов с разбивкой по дням — ответ'
+    PollQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID вопроса'
+        text:
+          type: string
+          description: Текст
+        annotation:
+          type: string
+          description: Примечание
+        external_code:
+          type: string
+          description: 'Внешний код'
+        is_required:
+          type: integer
+          description: 'Ответ обязателен'
+        answer_type:
+          type: integer
+          description: 'Тип ответа (1 - Множественный выбор, 2 - Выбор, 3 - Множественный выбор (чекбоксы), 4 - Выбор (радио-кнопки), 5 - Бренд/модель, 6 - Комментарий)'
+        is_deleted:
+          type: integer
+          description: Удалён
+        ord:
+          type: integer
+          description: Порядок
+        answers:
+          type: array
+          description: Ответы
+          items:
+            $ref: '#/components/schemas/PollAnswer'
+      description: 'Вопросы опроса'
+    PollReport:
+      type: object
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        dealer_name:
+          type: string
+          description: 'Название дилера'
+        employees:
+          type: array
+          description: Сотрудники
+          items:
+            $ref: '#/components/schemas/PollReportEmployer'
+      description: 'Отчёт по CSI (Сервис)'
+    PollReportBlock:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID блока'
+        name:
+          type: string
+          description: 'Название блока'
+        csi_index:
+          type: string
+          description: Оценка
+      description: 'Блок опроса'
+    PollReportEmployer:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID сотрудника'
+        questions:
+          type: array
+          description: Вопросы
+          items:
+            $ref: '#/components/schemas/PollReportBlock'
+      description: Сотрудник
+    Position:
+      required:
+        - code
+        - id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID должности (генерируется автоматически)'
+        code:
+          type: string
+          description: 'системный код MANAGER - менеджер, ACCEPTOR - мастер приемщик,  ROP - Руководитель отдела продаж, MECHANIC - Механик, CS - Клиентская служба, MARKETING - Маркетинг'
+        name:
+          type: string
+          description: Название
+      description: 'Модель Должность'
+    PostService:
+      type: object
+      description: 'Модель Пост'
+      required:
+        - name
+        - name_en
+        - dealer_id
+        - code
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        name_en:
+          type: string
+          description: 'Наименование (англ.)'
+        code:
+          type: string
+          description: Код
+        dealer_id:
+          type: integer
+          description: Дилер
+        type:
+          type: array
+          description: Тип
+          items:
+            $ref: '#/components/schemas/PostServiceType'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Удалено'
+        show_in_schedule:
+          type: boolean
+          description: 'Показывать в журнале записи'
+    PostServiceType:
+      type: object
+      description: 'Модель Тип постов'
+      required:
+        - name
+        - name_en
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        name_en:
+          type: string
+          description: 'Наименование (англ.)'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Активно'
+            - '2 - Удалено'
+    ProcurementCar:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        procurement_id:
+          type: integer
+          description: 'ID поставки'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        modification_id:
+          type: integer
+          description: 'ID модификации'
+        equipment_id:
+          type: integer
+          description: 'ID комплектации'
+        color_id:
+          type: integer
+          description: 'ID цвета'
+        quantity:
+          type: integer
+          description: Количество
+        mpv:
+          type: string
+          description: MPV
+      description: 'Автомобили поставки'
+    Purchase:
+      required:
+        - car_id
+        - client_id
+        - code
+        - tags
+        - acceptAt
+      type: object
+      description: 'Модель Заказ-наряд'
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        dealer:
+          $ref: '#/components/schemas/Dealer'
+        code:
+          type: string
+          description: 'Код заказ-наряда'
+        dateOpen:
+          type: string
+          description: 'Дата открытия заказ-наряда в формате dd.MM.yyyy Обязательно для заказ-наряда'
+        dateClose:
+          type: string
+          description: 'Дата закрытия заказ-наряда в формате dd.MM.yyyy'
+        acceptAt:
+          type: string
+          description: 'Дата/время приема автомобиля в формате yyyy-MM-dd HH:mm:ss Обязательное для заявки'
+        issueAt:
+          type: string
+          description: 'Дата/время выдачи автомобиля в формате yyyy-MM-dd HH:mm:ss'
+        acceptor_id:
+          type: integer
+          description: 'ID мастера приемщика. Получение списка сотрудников осуществляется методом <a href="#!/manager/get_manager" target="_blank">manager</a>. Добавление нового сотрудника осуществляется методом <a href="#!/manager/post_manager" target="_blank">manager</a> .'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        car_id:
+          type: integer
+          description: 'ID автомобиля'
+        revocable_campaign_id:
+          type: integer
+          description: 'ID отзывной кампании'
+        purchase_type_id:
+          type: integer
+          description: 'ID цеха. Обязательно для заказ наряда. Получение списка осуществляется методом <a href="#!/purchase-type/get_purchase_type" target="_blank">purchase-type</a>'
+        purchaseType:
+          $ref: '#/components/schemas/PurchaseType'
+        purchase_group_id:
+          type: integer
+          description: 'ID тип оплаты.  Обязательно для заказ-наряда. Получение списка осуществляется методом <a href="#!/purchase-group/get_purchase_group" target="_blank">purchase-group</a>'
+        purchaseGroup:
+          $ref: '#/components/schemas/PurchaseGroup'
+        status:
+          type: string
+          description: 'Статус (opened - открыт, closed - закрыт, canceled - отменен, application - предварительная заявка)'
+          enum:
+            - opened
+            - closed
+            - canceled
+            - application
+        verify:
+          type: string
+          description: 'Проверен (draft - черновик, approved - утвержден)'
+          enum:
+            - draft
+            - approved
+        request_reason:
+          type: string
+          description: 'Причина обращения (максимум 4096 символов).  Обязательно для заказ-наряда'
+        recommendations:
+          type: string
+          description: 'Рекомендации.  Обязательно для заказ-наряда'
+        request_id:
+          type: integer
+          description: 'ID лида, по которому был создан заказ-наряд'
+        payer_id:
+          type: integer
+          description: 'ID плательщика. Получение списка осуществляется методом <a href="#!/purchase-payer/get_purchase_payer" target="_blank">purchase_payer</a>'
+        product_type_id:
+          type: integer
+          description: 'ID типа продукта. Получение списка осуществляется методом <a href="#!/purchase-product-type/get_purchase_product_type" target="_blank">purchase_product_type</a>'
+        is_second:
+          type: integer
+          description: 'Повторный ремонт 1 - Да, 0 - Нет'
+        productType:
+          $ref: '#/components/schemas/PurchaseProductType'
+        mileage:
+          type: integer
+          description: 'Текущий пробег автомобиля'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица Получение списка осуществляется методом <a href="#!/client/get_client" target="_blank">client</a>'
+        total_sum_dealer:
+          type: number
+          description: 'Общая сумма ЗН'
+        tags:
+          type: integer
+          description: 'ID Видов ремонта. Получение списка осуществляется методом <a href="#!/purchase-tag/get_purchase_tag" target="_blank">purchase_tag</a>'
+        total:
+          type: number
+          description: 'Итого цена'
+        vehicle:
+          $ref: '#/components/schemas/Car'
+        works:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseWork'
+        spares:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseSpare'
+        worksSummary:
+          type: object
+          description: 'Агрегированные данные по работам (доступно через expand=worksSummary)'
+          properties:
+            total_hours:
+              type: number
+              description: 'Общая сумма нормо-часов по всем активным работам'
+              example: 15.5
+            total_cost:
+              type: number
+              description: 'Общая стоимость всех активных работ'
+              example: 25000.0
+        sparesSummary:
+          type: object
+          description: 'Общая сумма по запчастям (доступно через expand=sparesSummary)'
+          properties:
+            total_sum:
+              type: number
+              description: 'Общая сумма по всем активным запчастям заказ-наряда'
+              example: 15000.0
+        worksheet:
+          $ref: '#/components/schemas/Worksheet'
+        comment:
+          type: string
+          description: Комментарий
+        requestDate:
+          type: string
+          description: 'Дата обращения в формате dd.MM.yyyy'
+        requestComment:
+          type: string
+          description: 'Комментарий по request_id'
+          nullable: true
+          readOnly: true
+    PurchaseGroup:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: integer
+          description: Статус
+      description: 'Модель Тип оплаты'
+    PurchasePayer:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: integer
+          description: 'Статус (0 - активно, 1 - удалено)'
+      description: 'Модель Плательщик'
+    PurchaseProductType:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: integer
+          description: 'Статус (0 - активно, 1 - удалено)'
+      description: 'Модель Тип продукта'
+    PurchaseSpare:
+      required:
+        - code
+        - discount
+        - name
+        - price
+        - purchase_id
+        - quantity
+        - sum
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        purchase_id:
+          type: integer
+          description: 'ID заказ наряда'
+        code:
+          type: string
+          description: 'Код запчасти'
+        group:
+          type: string
+          description: 'Группа запчасти'
+        is_original:
+          type: boolean
+          description: 'Признак оригинальности'
+        detail_group:
+          type: string
+          nullable: true
+          description: 'Группа детализации из справочника'
+        name:
+          type: string
+          description: Название
+        type:
+          type: integer
+          description: 'Тип ремонта'
+        dnp:
+          type: number
+          description: 'Dealer Network Price'
+        rrp:
+          type: number
+          description: МРЦ
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        discount:
+          type: number
+          description: 'Скидка в рублях'
+        sum:
+          type: number
+          description: Сумма
+        status:
+          type: number
+          description: Статус
+        created_at:
+          type: string
+          description: 'Дата и время создания в формате dd.MM.yyyy HH:mm'
+      description: 'Модель Запчасть заказ-наряда'
+    PurchaseTag:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: integer
+          description: Статус
+      description: 'Модель Вид ремонта'
+    PurchaseType:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: integer
+          description: 'Статус (0 - активно, 1 - удалено)'
+      description: 'Модель Цех'
+    PurchaseWork:
+      required:
+        - code
+        - discount
+        - mechanicIds
+        - name
+        - price
+        - purchase_id
+        - quantity
+        - sum
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        purchase_id:
+          type: integer
+          description: 'ID заказ наряда'
+        code:
+          type: string
+          description: 'Код работы'
+        name:
+          type: string
+          description: Название
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        discount:
+          type: number
+          description: 'Скидка в рублях'
+        sum:
+          type: number
+          description: Сумма
+        status:
+          type: number
+          description: Статус
+        mechanicIds:
+          type: array
+          description: 'ID механиков, если используются'
+          items:
+            type: integer
+        created_at:
+          type: string
+          description: 'Дата и время создания в формате dd.MM.yyyy HH:mm'
+      description: 'Модель Работа заказ-наряда'
+    PurchaseWrite:
+      required:
+        - car_id
+        - client_id
+        - code
+        - dateOpen
+        - purchase_group_id
+        - purchase_type_id
+        - recommendations
+        - request_reason
+        - tags
+      type: object
+      description: 'Модель Заказ-наряд'
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера, подставляется автоматически'
+        code:
+          type: string
+          description: 'Код заказ-наряда'
+        dateOpen:
+          type: string
+          description: 'Дата открытия заказ-наряда в формате dd.MM.yyyy'
+        dateClose:
+          type: string
+          description: 'Дата закрытия заказ-наряда в формате dd.MM.yyyy'
+        acceptor_id:
+          type: integer
+          description: 'ID мастера приемщика. Получение списка сотрудников осуществляется методом <a href="#!/manager/get_manager" target="_blank">manager</a>. Добавление нового сотрудника осуществляется методом <a href="#!/manager/post_manager" target="_blank">manager</a> .'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        car_id:
+          type: integer
+          description: 'ID автомобиля'
+        purchase_type_id:
+          type: integer
+          description: 'ID цеха. Получение списка осуществляется методом <a href="#!/purchase-type/get_purchase_type" target="_blank">purchase-type</a>'
+        purchase_group_id:
+          type: integer
+          description: 'ID вида ремонта. Получение списка осуществляется методом <a href="#!/purchase-group/get_purchase_group" target="_blank">purchase-group</a>'
+        status:
+          type: string
+          description: 'Статус (opened - открыт, closed - закрыт, canceled - отменен, application - предварительная заявка)'
+          enum:
+            - opened
+            - closed
+            - canceled
+            - application
+        verify:
+          type: string
+          description: 'Проверен (draft - черновик, approved - утвержден)'
+          enum:
+            - draft
+            - approved
+        request_reason:
+          type: string
+          description: 'Причина обращения (максимум 4096 символов)'
+        mileage:
+          type: integer
+          description: 'Текущий пробег автомобиля'
+        recommendations:
+          type: string
+          description: Рекомендации
+        request_id:
+          type: integer
+          description: 'ID лида, по которому был создан заказ-наряд'
+        contact_person_id:
+          type: integer
+          description: 'ID контактного лица Получение списка осуществляется методом <a href="#!/client/get_client" target="_blank">client</a>'
+        tags:
+          type: array
+          description: 'Список id тегов'
+          items:
+            type: integer
+        total_sum_dealer:
+          type: number
+          description: 'Общая сумма ЗН'
+        worksheet_id:
+          type: number
+          description: 'Id РЛ'
+        comment:
+          type: string
+          description: Комментарий
+        requestDate:
+          type: string
+          description: 'Дата обращения в формате dd.MM.yyyy'

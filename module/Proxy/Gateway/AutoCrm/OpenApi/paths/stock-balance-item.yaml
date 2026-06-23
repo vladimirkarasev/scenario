@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - stock-balance-item'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: stock-balance-item
+    description: 'Управление строками отчетов по складским остаткам'
+paths:
+  /service/stock-balance-item:
+    post:
+      tags:
+        - stock-balance-item
+      summary: 'Добавление новой строки отчета по складским остаткам'
+      description: 'Добавление новой строки отчета по складским остаткам'
+      requestBody:
+        description: 'Объект StockBalanceItem'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockBalanceItem'
+        required: true
+      responses:
+        201:
+          description: 'Новая строка отчета по складским остаткам успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockBalanceItem'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/service/stock-balance-item/{id}':
+    put:
+      tags:
+        - stock-balance-item
+      summary: 'Изменение строки отчета по складским остаткам'
+      description: 'Изменение строки отчета по складским остаткам'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id строки отчета по складским остаткам'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель строки отчета по складским остаткам'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockBalanceItem'
+        required: false
+      responses:
+        200:
+          description: 'Строка отчета по складским остаткам успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockBalanceItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - stock-balance-item
+      summary: 'Удаление строки отчета по складским остаткам по ID'
+      description: 'Удаление строки отчета по складским остаткам по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id строки отчета по складским остаткам'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Строка отчета по складским остаткам по ID удалена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockBalanceItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,40 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Holding:
+      type: object
+      description: 'Модель холдинга'
+      required:
+        - code
+        - name
+      properties:
+        id:
+          type: integer
+          description: 'ID холдинга'
+        external_id:
+          type: integer
+          description: 'Внешний ID холдинга'
+        code:
+          type: string
+          description: 'Код холдинга'
+        name:
+          type: string
+          description: 'Наименование холдинга'
+        status:
+          type: integer
+          description: 'Статус холдинга'
+          enum:
+            - '0 - Активен'
+            - '1 - Удален'
+        creditLimit:
+          type: number
+          description: 'Величина кредитного лимита холдинга по договору'
+        creditLimitAvailable:
+          type: number
+          description: 'Остаток по кредитному лимиту холдинга'
+        creditLimitDebt:
+          type: number
+          description: 'Задолженность по оплате холдинга'
+        notClosedOrdersSum:
+          type: number
+          description: 'Сумма по не закрытым заказам холдинга'

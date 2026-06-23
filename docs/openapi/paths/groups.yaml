@@ -1,0 +1,122 @@
+collection:
+  get:
+    tags: [Группы]
+    summary: Список групп
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: search
+        in: query
+        description: Поиск по названию или slug
+        schema:
+          type: string
+      - name: is_active
+        in: query
+        description: Фильтр по активности
+        schema:
+          type: boolean
+      - $ref: '../components/parameters.yaml#/PerPage'
+    responses:
+      '200':
+        description: Список групп (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/groups.yaml#/UserGroup'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Группы]
+    summary: Создать группу
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/groups.yaml#/UserGroupRequest'
+    responses:
+      '201':
+        description: Группа создана
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/groups.yaml#/UserGroup'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - name: group
+      in: path
+      required: true
+      description: UUID группы
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    tags: [Группы]
+    summary: Получить группу
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Группа
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/groups.yaml#/UserGroup'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Группы]
+    summary: Обновить группу
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/groups.yaml#/UserGroupRequest'
+    responses:
+      '200':
+        description: Обновлённая группа
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/groups.yaml#/UserGroup'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Группы]
+    summary: Удалить группу
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Группа удалена
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

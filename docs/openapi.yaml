@@ -1,0 +1,2951 @@
+openapi: 3.1.0
+
+info:
+  title: Platform API
+  description: API платформы сценариев
+  version: 2.0.0
+
+servers:
+  - url: /api
+    description: Основной сервер
+
+security:
+  - BearerAuth: []
+
+x-tagGroups:
+  - name: Модуль «Сценарии»
+    tags:
+      - Каталог
+      - Сценарии
+      - Версии
+      - Категории сценариев
+      - Запуск
+      - Прогоны
+      - Опросы
+  - name: Модуль «Справочники»
+    tags:
+      - Справочники
+      - Версии справочника
+      - Элементы справочника
+      - Категории справочников
+  - name: Модуль «Действия»
+    tags:
+      - Действия
+      - Учётные данные
+  - name: Модуль «Прокси / Вебхуки»
+    tags:
+      - Вебхуки (admin)
+      - Вебхуки (public)
+  - name: Модуль «Проекты»
+    tags:
+      - Проекты
+  - name: Пользователи и роли
+    tags:
+      - Пользователи
+      - Токены пользователей
+      - Группы
+      - Участники групп
+      - Роли
+  - name: Embed Auth
+    tags:
+      - Регистрация
+      - Авторизация iframe
+
+tags:
+  # Сценарии
+  - name: Каталог
+    description: Сводный каталог категорий и сценариев
+  - name: Сценарии
+    description: CRUD-операции над сценариями
+  - name: Версии
+    description: Управление версиями сценариев
+  - name: Категории сценариев
+    description: CRUD-операции над категориями сценариев
+  - name: Запуск
+    description: Запуск сценария и прохождение шагов
+  - name: Прогоны
+    description: Административный журнал прогонов — просмотр, создание, управление
+  - name: Опросы
+    description: Список прогонов и просмотр состояния прогона
+  # Справочники
+  - name: Справочники
+    description: CRUD-операции над справочниками
+  - name: Версии справочника
+    description: Управление версиями справочника (черновики, публикация)
+  - name: Элементы справочника
+    description: CRUD-операции над элементами опубликованной версии справочника
+  - name: Категории справочников
+    description: CRUD-операции над категориями справочников
+  # Действия
+  - name: Действия
+    description: Управление переиспользуемыми шагами-действиями
+  - name: Учётные данные
+    description: Управление учётными данными (credentials) для действий
+  # Прокси
+  - name: Вебхуки (admin)
+    description: Администрирование вебхук-эндпоинтов, просмотр логов
+  - name: Вебхуки (public)
+    description: Публичный приём вебхуков (без авторизации)
+  # Проекты
+  - name: Проекты
+    description: Управление проектами (тенантами)
+  # Пользователи
+  - name: Пользователи
+    description: CRUD-операции над пользователями системы
+  - name: Токены пользователей
+    description: Управление API-токенами пользователей
+  - name: Группы
+    description: CRUD-операции над группами пользователей
+  - name: Участники групп
+    description: Управление составом групп
+  - name: Роли
+    description: CRUD-операции над ролями доступа (Spatie Permission)
+  # Embed Auth
+  - name: Регистрация
+    description: Регистрация пользователя в проекте и выдача одноразового launch-токена
+  - name: Авторизация iframe
+    description: Обмен launch-токена на access/refresh токены, ротация и выход
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ПУТИ
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # СЦЕНАРИИ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # ── Каталог ────────────────────────────────────────────────────────────────
+  /scenarios/catalog:
+    get:
+      tags: [Каталог]
+      summary: Сводный каталог (категории + сценарии)
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              q:
+                type: string
+                example: оформление
+              parent_id:
+                type: string
+                format: uuid
+                nullable: true
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Список элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CatalogItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ── Сценарии ───────────────────────────────────────────────────────────────
+  /scenarios:
+    get:
+      tags: [Сценарии]
+      summary: Список сценариев
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+              is_active:
+                type: boolean
+              active_only:
+                type: boolean
+                default: true
+              tag:
+                type: string
+              category_id:
+                type: string
+                format: uuid
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список сценариев
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Scenario'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Сценарии]
+      summary: Создать сценарий
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                tag:
+                  type: string
+                is_active:
+                  type: boolean
+                  default: false
+                category_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '201':
+          description: Сценарий создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /scenarios/{scenario}:
+    parameters:
+      - $ref: '#/components/parameters/ScenarioId'
+    get:
+      tags: [Сценарии]
+      summary: Просмотр сценария
+      responses:
+        '200':
+          description: Сценарий
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Сценарии]
+      summary: Обновить сценарий
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                tag:
+                  type: string
+                is_active:
+                  type: boolean
+                category_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Сценарий обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [Сценарии]
+      summary: Удалить сценарий
+      responses:
+        '204':
+          description: Удалено
+
+  /scenarios/{scenario}/copy:
+    post:
+      tags: [Сценарии]
+      summary: Дублировать сценарий
+      parameters:
+        - $ref: '#/components/parameters/ScenarioId'
+      responses:
+        '201':
+          description: Копия сценария создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+
+  # ── Версии ─────────────────────────────────────────────────────────────────
+  /scenarios/{scenario}/versions:
+    parameters:
+      - $ref: '#/components/parameters/ScenarioId'
+    get:
+      tags: [Версии]
+      summary: Список версий сценария
+      responses:
+        '200':
+          description: Список версий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScenarioVersion'
+    post:
+      tags: [Версии]
+      summary: Создать новую версию (черновик)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nodes_json:
+                  type: string
+                edges_json:
+                  type: string
+                schema_json:
+                  type: string
+      responses:
+        '201':
+          description: Версия создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioVersion'
+
+  /scenarios/{scenario}/versions/{version}:
+    parameters:
+      - $ref: '#/components/parameters/ScenarioId'
+      - $ref: '#/components/parameters/VersionId'
+    get:
+      tags: [Версии]
+      summary: Просмотр версии
+      responses:
+        '200':
+          description: Версия сценария
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioVersion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Версии]
+      summary: Обновить версию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nodes_json:
+                  type: string
+                edges_json:
+                  type: string
+                schema_json:
+                  type: string
+      responses:
+        '200':
+          description: Версия обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioVersion'
+    delete:
+      tags: [Версии]
+      summary: Удалить черновик версии
+      responses:
+        '204':
+          description: Удалено
+
+  /scenarios/{scenario}/versions/{version}/activate:
+    post:
+      tags: [Версии]
+      summary: Активировать версию
+      parameters:
+        - $ref: '#/components/parameters/ScenarioId'
+        - $ref: '#/components/parameters/VersionId'
+      responses:
+        '200':
+          description: Версия активирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioVersion'
+
+  /scenarios/{scenario}/versions/{version}/archive:
+    post:
+      tags: [Версии]
+      summary: Архивировать версию
+      parameters:
+        - $ref: '#/components/parameters/ScenarioId'
+        - $ref: '#/components/parameters/VersionId'
+      responses:
+        '200':
+          description: Версия архивирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioVersion'
+
+  # ── Категории сценариев ────────────────────────────────────────────────────
+  /scenarios/categories:
+    get:
+      tags: [Категории сценариев]
+      summary: Список категорий сценариев
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              parent_id:
+                type: string
+                format: uuid
+                nullable: true
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+    post:
+      tags: [Категории сценариев]
+      summary: Создать категорию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Категория создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+  /scenarios/categories/{category}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    get:
+      tags: [Категории сценариев]
+      summary: Просмотр категории
+      responses:
+        '200':
+          description: Категория
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    put:
+      tags: [Категории сценариев]
+      summary: Обновить категорию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: Категория обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    delete:
+      tags: [Категории сценариев]
+      summary: Удалить категорию
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Запуск ─────────────────────────────────────────────────────────────────
+  /scenarios/{scenario}/run:
+    post:
+      tags: [Запуск]
+      summary: Запустить сценарий
+      parameters:
+        - $ref: '#/components/parameters/ScenarioId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                context:
+                  type: object
+                  additionalProperties: true
+                  description: Произвольный начальный контекст (переменные)
+      responses:
+        '200':
+          description: Прогон запущен, возвращается первый шаг
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStep'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /scenario-runs/{run}/step:
+    post:
+      tags: [Запуск]
+      summary: Выполнить шаг прогона
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: object
+                  additionalProperties: true
+                  description: Данные из формы текущего шага
+                transition:
+                  type: string
+                  description: ID целевого узла (для condition-нод)
+      responses:
+        '200':
+          description: Следующий шаг или завершение прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStep'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /scenario-runs/{run}/restart:
+    post:
+      tags: [Запуск]
+      summary: Перезапустить прогон с начала
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Прогон перезапущен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStep'
+
+  /scenario-runs/{run}/state:
+    get:
+      tags: [Запуск]
+      summary: Текущее состояние прогона
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Состояние прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunStep'
+
+  # ── Прогоны (admin) ────────────────────────────────────────────────────────
+  /scenario-runs:
+    get:
+      tags: [Прогоны]
+      summary: Список прогонов (административный)
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              scenario_id:
+                type: string
+                format: uuid
+              status:
+                type: string
+                enum: [pending, running, completed, failed, cancelled]
+              user_id:
+                type: string
+                format: uuid
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список прогонов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ScenarioRun'
+    post:
+      tags: [Прогоны]
+      summary: Создать прогон (административно)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scenario_id]
+              properties:
+                scenario_id:
+                  type: string
+                  format: uuid
+                context:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Прогон создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioRun'
+
+  /scenario-runs/{run}:
+    parameters:
+      - name: run
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Прогоны]
+      summary: Просмотр прогона
+      responses:
+        '200':
+          description: Прогон
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioRun'
+    delete:
+      tags: [Прогоны]
+      summary: Удалить прогон
+      responses:
+        '204':
+          description: Удалено
+
+  /scenario-runs/{run}/cancel:
+    post:
+      tags: [Прогоны]
+      summary: Отменить прогон
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Прогон отменён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioRun'
+
+  /scenario-runs/{run}/steps:
+    get:
+      tags: [Прогоны]
+      summary: Шаги прогона (audit log)
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список шагов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScenarioRunStep'
+
+  # ── Опросы ─────────────────────────────────────────────────────────────────
+  /surveys:
+    get:
+      tags: [Опросы]
+      summary: Список прогонов (опросная точка зрения)
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              scenario_id:
+                type: string
+                format: uuid
+              status:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список прогонов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ScenarioRun'
+
+  /surveys/{run}:
+    get:
+      tags: [Опросы]
+      summary: Состояние прогона (опросная точка зрения)
+      parameters:
+        - name: run
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Прогон
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioRun'
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # СПРАВОЧНИКИ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /directories:
+    get:
+      tags: [Справочники]
+      summary: Список справочников
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+              category_id:
+                type: string
+                format: uuid
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список справочников
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Directory'
+    post:
+      tags: [Справочники]
+      summary: Создать справочник
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryInput'
+      responses:
+        '201':
+          description: Справочник создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directory'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /directories/{directory}:
+    parameters:
+      - $ref: '#/components/parameters/DirectoryId'
+    get:
+      tags: [Справочники]
+      summary: Просмотр справочника
+      responses:
+        '200':
+          description: Справочник
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Справочники]
+      summary: Обновить справочник
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryInput'
+      responses:
+        '200':
+          description: Справочник обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directory'
+    delete:
+      tags: [Справочники]
+      summary: Удалить справочник
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Версии справочника ─────────────────────────────────────────────────────
+  /directories/{directory}/versions:
+    parameters:
+      - $ref: '#/components/parameters/DirectoryId'
+    get:
+      tags: [Версии справочника]
+      summary: Список версий справочника
+      responses:
+        '200':
+          description: Список версий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DirectoryVersion'
+    post:
+      tags: [Версии справочника]
+      summary: Создать новую версию (черновик)
+      responses:
+        '201':
+          description: Версия создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryVersion'
+
+  /directories/{directory}/versions/{version}:
+    parameters:
+      - $ref: '#/components/parameters/DirectoryId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Версии справочника]
+      summary: Просмотр версии
+      responses:
+        '200':
+          description: Версия справочника
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryVersion'
+    delete:
+      tags: [Версии справочника]
+      summary: Удалить черновик
+      responses:
+        '204':
+          description: Удалено
+
+  /directories/{directory}/versions/{version}/publish:
+    post:
+      tags: [Версии справочника]
+      summary: Опубликовать версию
+      parameters:
+        - $ref: '#/components/parameters/DirectoryId'
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Версия опубликована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryVersion'
+
+  /directories/{directory}/versions/{version}/import:
+    post:
+      tags: [Версии справочника]
+      summary: Импорт элементов из CSV/Excel
+      parameters:
+        - $ref: '#/components/parameters/DirectoryId'
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV или Excel-файл
+      responses:
+        '202':
+          description: Импорт запущен асинхронно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  import_id:
+                    type: string
+                    format: uuid
+
+  # ── Элементы справочника ───────────────────────────────────────────────────
+  /directories/{directory}/items:
+    parameters:
+      - $ref: '#/components/parameters/DirectoryId'
+    get:
+      tags: [Элементы справочника]
+      summary: Список элементов опубликованной версии
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+              parent_id:
+                type: string
+                format: uuid
+                nullable: true
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список элементов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DirectoryItem'
+    post:
+      tags: [Элементы справочника]
+      summary: Создать элемент
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryItemInput'
+      responses:
+        '201':
+          description: Элемент создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryItem'
+
+  /directories/{directory}/items/{item}:
+    parameters:
+      - $ref: '#/components/parameters/DirectoryId'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Элементы справочника]
+      summary: Просмотр элемента
+      responses:
+        '200':
+          description: Элемент справочника
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryItem'
+    put:
+      tags: [Элементы справочника]
+      summary: Обновить элемент
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryItemInput'
+      responses:
+        '200':
+          description: Элемент обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectoryItem'
+    delete:
+      tags: [Элементы справочника]
+      summary: Удалить элемент
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Категории справочников ─────────────────────────────────────────────────
+  /directories/categories:
+    get:
+      tags: [Категории справочников]
+      summary: Список категорий справочников
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              parent_id:
+                type: string
+                format: uuid
+                nullable: true
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+    post:
+      tags: [Категории справочников]
+      summary: Создать категорию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '201':
+          description: Категория создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+  /directories/categories/{category}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    get:
+      tags: [Категории справочников]
+      summary: Просмотр категории
+      responses:
+        '200':
+          description: Категория
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    put:
+      tags: [Категории справочников]
+      summary: Обновить категорию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: Категория обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    delete:
+      tags: [Категории справочников]
+      summary: Удалить категорию
+      responses:
+        '204':
+          description: Удалено
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # ДЕЙСТВИЯ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /actions:
+    get:
+      tags: [Действия]
+      summary: Список действий
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+              type:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список действий
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Action'
+    post:
+      tags: [Действия]
+      summary: Создать действие
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionInput'
+      responses:
+        '201':
+          description: Действие создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+
+  /actions/{action}:
+    parameters:
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Действия]
+      summary: Просмотр действия
+      responses:
+        '200':
+          description: Действие
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+    put:
+      tags: [Действия]
+      summary: Обновить действие
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionInput'
+      responses:
+        '200':
+          description: Действие обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Action'
+    delete:
+      tags: [Действия]
+      summary: Удалить действие
+      responses:
+        '204':
+          description: Удалено
+
+  /actions/{action}:
+    post:
+      tags: [Действия]
+      summary: Выполнить действие вручную
+      parameters:
+        - name: action
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Результат выполнения
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ── Учётные данные ─────────────────────────────────────────────────────────
+  /action-credentials:
+    get:
+      tags: [Учётные данные]
+      summary: Список учётных данных
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список учётных данных
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActionCredential'
+    post:
+      tags: [Учётные данные]
+      summary: Создать учётные данные
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCredentialInput'
+      responses:
+        '201':
+          description: Учётные данные созданы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredential'
+
+  /action-credentials/{credential}:
+    parameters:
+      - name: credential
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Учётные данные]
+      summary: Просмотр учётных данных
+      responses:
+        '200':
+          description: Учётные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredential'
+    put:
+      tags: [Учётные данные]
+      summary: Обновить учётные данные
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCredentialInput'
+      responses:
+        '200':
+          description: Учётные данные обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredential'
+    delete:
+      tags: [Учётные данные]
+      summary: Удалить учётные данные
+      responses:
+        '204':
+          description: Удалено
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # ПРОКСИ / ВЕБХУКИ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /proxy/webhooks:
+    get:
+      tags: [Вебхуки (admin)]
+      summary: Список вебхук-эндпоинтов
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+              is_active:
+                type: boolean
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список эндпоинтов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyEndpoint'
+
+  /proxy/webhooks/{webhook}:
+    parameters:
+      - name: webhook
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Вебхуки (admin)]
+      summary: Просмотр эндпоинта
+      responses:
+        '200':
+          description: Эндпоинт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyEndpoint'
+    put:
+      tags: [Вебхуки (admin)]
+      summary: Обновить эндпоинт
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_active:
+                  type: boolean
+                config:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Эндпоинт обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyEndpoint'
+
+  /proxy/webhooks/{webhook}/fields:
+    get:
+      tags: [Вебхуки (admin)]
+      summary: Поля схемы вебхука (авторизованный)
+      parameters:
+        - name: webhook
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список полей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookField'
+
+  /proxy/webhooks/{webhook}/logs:
+    get:
+      tags: [Вебхуки (admin)]
+      summary: Лог входящих запросов
+      parameters:
+        - name: webhook
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Лог запросов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WebhookLog'
+
+  /proxy/webhooks/{webhook}/logs/{log}/retry:
+    post:
+      tags: [Вебхуки (admin)]
+      summary: Повторить обработку запроса
+      parameters:
+        - name: webhook
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: log
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Запрос поставлен в очередь на повтор
+
+  # ── Публичный приём вебхуков ───────────────────────────────────────────────
+  /webhooks/{uuid}:
+    post:
+      tags: [Вебхуки (public)]
+      summary: Принять вебхук (публичный эндпоинт)
+      security: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Вебхук принят
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /webhooks/{uuid}/fields:
+    get:
+      tags: [Вебхуки (public)]
+      summary: Поля схемы вебхука (публичный, только активные)
+      security: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список полей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookField'
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # ПРОЕКТЫ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /projects:
+    get:
+      tags: [Проекты]
+      summary: Список проектов
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список проектов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Project'
+    post:
+      tags: [Проекты]
+      summary: Создать проект
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: Проект создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /projects/{project}:
+    parameters:
+      - name: project
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Проекты]
+      summary: Просмотр проекта
+      responses:
+        '200':
+          description: Проект
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    put:
+      tags: [Проекты]
+      summary: Обновить проект
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '200':
+          description: Проект обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      tags: [Проекты]
+      summary: Удалить проект
+      responses:
+        '204':
+          description: Удалено
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # ПОЛЬЗОВАТЕЛИ И РОЛИ
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /users:
+    get:
+      tags: [Пользователи]
+      summary: Список пользователей
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+                description: Поиск по имени и email
+              group_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+              role_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Пользователи]
+      summary: Создать пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{user}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Пользователи]
+      summary: Просмотр пользователя
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Пользователи]
+      summary: Обновить пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Пользователь обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags: [Пользователи]
+      summary: Удалить пользователя
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Токены пользователей ───────────────────────────────────────────────────
+  /users/{user}/tokens:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Токены пользователей]
+      summary: Список API-токенов пользователя
+      responses:
+        '200':
+          description: Список токенов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserToken'
+    post:
+      tags: [Токены пользователей]
+      summary: Создать API-токен
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Токен создан (plainTextToken возвращается только один раз)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserToken'
+                  - type: object
+                    properties:
+                      plain_text_token:
+                        type: string
+
+  /users/{user}/tokens/{token}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [Токены пользователей]
+      summary: Удалить токен
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Группы ─────────────────────────────────────────────────────────────────
+  /users/groups:
+    get:
+      tags: [Группы]
+      summary: Список групп
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список групп
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Group'
+    post:
+      tags: [Группы]
+      summary: Создать группу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupInput'
+      responses:
+        '201':
+          description: Группа создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+  /users/groups/{group}:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Группы]
+      summary: Просмотр группы
+      responses:
+        '200':
+          description: Группа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    put:
+      tags: [Группы]
+      summary: Обновить группу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupInput'
+      responses:
+        '200':
+          description: Группа обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    delete:
+      tags: [Группы]
+      summary: Удалить группу
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Участники групп ────────────────────────────────────────────────────────
+  /users/groups/{group}/members:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [Участники групп]
+      summary: Список участников группы
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список участников
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+    post:
+      tags: [Участники групп]
+      summary: Добавить участников в группу
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Участники добавлены
+
+  /users/groups/{group}/members/{user}:
+    parameters:
+      - $ref: '#/components/parameters/GroupId'
+      - $ref: '#/components/parameters/UserId'
+    delete:
+      tags: [Участники групп]
+      summary: Удалить участника из группы
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Роли ───────────────────────────────────────────────────────────────────
+  /users/roles:
+    get:
+      tags: [Роли]
+      summary: Список ролей
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              search:
+                type: string
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Список ролей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Role'
+    post:
+      tags: [Роли]
+      summary: Создать роль
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '201':
+          description: Роль создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+
+  /users/roles/{role}:
+    parameters:
+      - $ref: '#/components/parameters/RoleId'
+    get:
+      tags: [Роли]
+      summary: Просмотр роли
+      responses:
+        '200':
+          description: Роль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    put:
+      tags: [Роли]
+      summary: Обновить роль
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Роль обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    delete:
+      tags: [Роли]
+      summary: Удалить роль
+      responses:
+        '204':
+          description: Удалено
+
+  # ── Права доступа (permissions) ─────────────────────────────────────────────
+  /users/permissions:
+    get:
+      tags: [Роли]
+      summary: Список всех прав доступа
+      responses:
+        '200':
+          description: Список прав
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        guard_name:
+                          type: string
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # EMBED AUTH
+  # ══════════════════════════════════════════════════════════════════════════
+
+  /embed/register:
+    post:
+      tags: [Регистрация]
+      summary: Зарегистрировать пользователя и получить launch-токен
+      description: >
+        Регистрирует пользователя (или возвращает существующего по `external_id`)
+        и выдаёт одноразовый `launch_token` для последующего обмена на JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [external_id, project_id]
+              properties:
+                external_id:
+                  type: string
+                  description: Уникальный идентификатор пользователя во внешней системе
+                project_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                meta:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Launch-токен выдан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  launch_token:
+                    type: string
+                    description: Одноразовый токен (TTL 5 минут)
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /embed/auth/token:
+    post:
+      tags: [Авторизация iframe]
+      summary: Обменять launch-токен на access/refresh токены
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [launch_token]
+              properties:
+                launch_token:
+                  type: string
+      responses:
+        '200':
+          description: JWT-токены выданы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /embed/auth/refresh:
+    post:
+      tags: [Авторизация iframe]
+      summary: Обновить access-токен через refresh-токен
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Новая пара токенов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /embed/auth/logout:
+    post:
+      tags: [Авторизация iframe]
+      summary: Выход — инвалидация refresh-токена
+      responses:
+        '204':
+          description: Выполнено
+
+# ─────────────────────────────────────────────────────────────────────────────
+# КОМПОНЕНТЫ
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ── Параметры ─────────────────────────────────────────────────────────────
+  parameters:
+    ScenarioId:
+      name: scenario
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VersionId:
+      name: version
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CategoryId:
+      name: category
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DirectoryId:
+      name: directory
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: user
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    GroupId:
+      name: group
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RoleId:
+      name: role
+      in: path
+      required: true
+      schema:
+        type: integer
+
+    # Устаревшие flat-параметры пагинации (legacy, некоторые эндпоинты)
+    PerPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+
+    # JSON:API-стиль пагинации (предпочтительный)
+    PageNumber:
+      name: page[number]
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    PageSize:
+      name: page[size]
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+  # ── Ответы ────────────────────────────────────────────────────────────────
+  responses:
+    Unauthorized:
+      description: Не авторизован
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthenticated.
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: No query results for model.
+    ValidationError:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+
+  # ── Схемы ─────────────────────────────────────────────────────────────────
+  schemas:
+
+    # Общие
+    JsonApiCollection:
+      type: object
+      properties:
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+            per_page:
+              type: integer
+            current_page:
+              type: integer
+            last_page:
+              type: integer
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+            last:
+              type: string
+            prev:
+              type: [string, 'null']
+            next:
+              type: [string, 'null']
+
+    # ── Сценарии ──────────────────────────────────────────────────────────
+    Scenario:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        tag:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        active_version_id:
+          type: string
+          format: uuid
+          nullable: true
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ScenarioVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, active, archived]
+        nodes_json:
+          type: string
+          description: JSON граф узлов (Vue Flow nodes)
+        edges_json:
+          type: string
+          description: JSON граф рёбер (Vue Flow edges)
+        schema_json:
+          type: string
+          description: JSON схема блоков
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CatalogItem:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [category, scenario]
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        children_count:
+          type: integer
+          description: Только для type=category
+        is_active:
+          type: boolean
+          description: Только для type=scenario
+
+    ScenarioRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        current_node_id:
+          type: string
+          nullable: true
+        context:
+          type: object
+          additionalProperties: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    ScenarioRunStep:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        run_id:
+          type: string
+          format: uuid
+        node_id:
+          type: string
+        node_type:
+          type: string
+        input:
+          type: object
+          additionalProperties: true
+        output:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+
+    RunStep:
+      type: object
+      description: Текущий шаг прогона, возвращаемый player-сервисом
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        node_type:
+          type: string
+          enum: [block, condition, end, scenario_link]
+        node_id:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+          description: Данные узла (заголовок, поля и т.д.)
+
+    # ── Справочники ────────────────────────────────────────────────────────
+    Directory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        published_version_id:
+          type: string
+          format: uuid
+          nullable: true
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DirectoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    DirectoryVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        directory_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [draft, published]
+        items_count:
+          type: integer
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    DirectoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        directory_id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        label:
+          type: string
+        value:
+          type: string
+        extra:
+          type: object
+          additionalProperties: true
+          nullable: true
+        children_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    DirectoryItemInput:
+      type: object
+      required: [label, value]
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        extra:
+          type: object
+          additionalProperties: true
+
+    # ── Действия ──────────────────────────────────────────────────────────
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          description: Тип действия (email, http, crm и т.д.)
+        config:
+          type: object
+          additionalProperties: true
+        credential_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ActionInput:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+        credential_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    ActionCredential:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ActionCredentialInput:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+          description: Конфиденциальные поля (токены, пароли и т.д.) — не возвращаются в GET
+
+    # ── Прокси / Вебхуки ──────────────────────────────────────────────────
+    ProxyEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        handler:
+          type: string
+          description: FQCN handler-класса
+        is_active:
+          type: boolean
+        config:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+
+    WebhookField:
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [string, integer, boolean, list, array]
+        required:
+          type: boolean
+        example:
+          nullable: true
+        filterable:
+          type: boolean
+
+    WebhookLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        endpoint_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [received, processed, failed, retrying]
+        payload:
+          type: object
+          additionalProperties: true
+        error:
+          type: string
+          nullable: true
+        attempts:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Проекты ───────────────────────────────────────────────────────────
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ProjectInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        is_active:
+          type: boolean
+
+    # ── Пользователи ──────────────────────────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        role_ids:
+          type: array
+          items:
+            type: integer
+        group_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UserToken:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        last_used_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Группы ────────────────────────────────────────────────────────────
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        members_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GroupInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    # ── Роли ──────────────────────────────────────────────────────────────
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        guard_name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Имена прав доступа
+        users_count:
+          type: integer
+
+    RoleInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    # ── Категории (общая схема) ────────────────────────────────────────────
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        children_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    # ── Embed Auth ─────────────────────────────────────────────────────────
+    TokenPair:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access-токен (короткоживущий)
+        refresh_token:
+          type: string
+          description: Refresh-токен для ротации
+        expires_in:
+          type: integer
+          description: TTL access-токена в секундах

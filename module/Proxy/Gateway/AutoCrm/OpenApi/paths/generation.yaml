@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - generation'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: generation
+    description: 'Управление поколениями'
+paths:
+  /generation:
+    get:
+      tags:
+        - generation
+      summary: 'Получение списка поколений'
+      description: 'Получение списка поколений'
+      parameters:
+        -
+          name: model_id
+          in: query
+          description: 'ID модели'
+          schema:
+            type: integer
+        -
+          name: year
+          in: query
+          description: 'Год выпуска'
+          schema:
+            type: integer
+        -
+          name: is_recent
+          in: query
+          description: 'признак активности поколения 1 - только поколения которые выпускаются (по умолчанию), 0 - поколения, которые не выпускаются, пустое значение - все поколения'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список поколений'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Generation'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/generation/{id}':
+    get:
+      tags:
+        - generation
+      summary: 'Получение поколения по ID'
+      description: 'Получение поколения по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id поколения'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает поколение по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Generation'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

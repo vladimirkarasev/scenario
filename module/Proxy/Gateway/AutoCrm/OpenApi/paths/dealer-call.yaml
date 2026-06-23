@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-call'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-call
+    description: 'Управление журналом звонков дилеров'
+paths:
+  /dealer-call:
+    get:
+      tags:
+        - dealer-call
+      summary: 'Получение звонков'
+      description: 'Получение звонков'
+      parameters:
+        -
+          name: direction
+          in: query
+          description: Направление
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Внутренний код в системе дилера'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список звонков'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerCall'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer-call
+      summary: 'Добавление нового звонка'
+      description: 'Добавление нового звонка. Для передачи файла отправлять методом POST, тип содержимого multipart/form-data, поле для файла — call. Принимаются файлы .wav, .mp3 до 20мб.'
+      requestBody:
+        description: 'Объект Звонок'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCall'
+        required: true
+      responses:
+        201:
+          description: 'Новый звонок успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCall'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/dealer-call/{id}':
+    get:
+      tags:
+        - dealer-call
+      summary: 'Получение звонка по ID'
+      description: 'Получение звонка по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id звонка'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает звонок по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCall'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer-call
+      summary: 'Изменение звонка'
+      description: 'Изменение звонка. Для передачи файла отправлять методом POST, тип содержимого multipart/form-data, поле для файла — call. Принимаются файлы .wav, .mp3 до 20мб.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id звонка'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель звонка'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCall'
+        required: false
+      responses:
+        200:
+          description: 'Звонок успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCall'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

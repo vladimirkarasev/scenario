@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-api-log'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-api-log
+    description: 'Лог ошибок API'
+paths:
+  /dealer-api-log:
+    get:
+      tags:
+        - dealer-api-log
+      summary: 'Получение списка ошибок API'
+      description: 'Получение списка ошибок API'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: fromAt
+          in: query
+          description: 'Дата с (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+        -
+          name: toAt
+          in: query
+          description: 'Дата по (ДД.ММ.ГГГГ)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список ошибок API'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerApiLog'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

@@ -1,0 +1,119 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - vehicle-mileage-history'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: vehicle-mileage-history
+    description: 'История пробега автомобиля'
+paths:
+  /vehicle-mileage-history:
+    get:
+      tags:
+        - vehicle-mileage-history
+      summary: 'Получение истории пробега автомобиля по VIN'
+      description: 'Получение истории пробега автомобиля по VIN'
+      parameters:
+        -
+          name: vin
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: date
+          in: query
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает историю пробега автомобиля по vin'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleMileageHistory'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - vehicle-mileage-history
+      summary: 'Добавление новой записи пробега автомобиля'
+      description: 'Добавление новой записи пробега автомобиля'
+      requestBody:
+        description: 'Объект VehicleMileageHistory'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleMileageHistory'
+        required: true
+      responses:
+        201:
+          description: 'Новая кампания успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleMileageHistory'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/vehicle-mileage-history/{id}':
+    get:
+      tags:
+        - vehicle-mileage-history
+      summary: 'Получение пробега автомобиля по ID'
+      description: 'Получение пробега автомобиля по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id пробега автомобиля'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает пробега автомобиля по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleMileageHistory'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

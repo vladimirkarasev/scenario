@@ -1,0 +1,190 @@
+collection:
+  get:
+    tags: [Прогоны]
+    summary: Список прогонов
+    security:
+      - BearerAuth: []
+    description: >
+      Возвращает постраничный список прогонов сценариев с информацией об
+      авторах. Поддерживает фильтрацию по `scenario_id`, `status`,
+      `created_by` и текстовый поиск по названию сценария и ID прогона.
+    parameters:
+      - name: scenario_id
+        in: query
+        description: UUID сценария для фильтрации
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        description: Фильтр по статусу прогона
+        schema:
+          $ref: '../components/schemas/runs.yaml#/RunStatus'
+      - name: created_by
+        in: query
+        description: ID пользователя (можно передать массив)
+        schema:
+          oneOf:
+            - type: integer
+            - type: array
+              items:
+                type: integer
+      - name: search
+        in: query
+        description: Текстовый поиск по названию сценария и UUID прогона
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Список прогонов с пагинацией
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/ScenarioRunListResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Прогоны]
+    summary: Создать прогон
+    security:
+      - BearerAuth: []
+    description: >
+      Создаёт новый прогон и автоматически продвигает его до первого
+      интерактивного узла через `ScenarioPlayerService`. Публикует
+      начальный payload в Centrifugo-канал `scenario-run:{id}`.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/StoreScenarioRunRequest'
+    responses:
+      '201':
+        description: Прогон создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+users:
+  get:
+    tags: [Прогоны]
+    summary: Поиск пользователей
+    security:
+      - BearerAuth: []
+    description: >
+      Возвращает до 30 пользователей, совпадающих с поисковым запросом.
+      Используется для фильтра «создатель прогона» в интерфейсе.
+      Если `search` не передан или пустой — возвращает пустой список.
+    parameters:
+      - name: search
+        in: query
+        required: true
+        description: Строка поиска по имени, ФИО, логину или email
+        schema:
+          type: string
+          minLength: 1
+    responses:
+      '200':
+        description: Список пользователей
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [users]
+              properties:
+                users:
+                  type: array
+                  items:
+                    $ref: '../components/schemas/runs.yaml#/ScenarioRunUser'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+item:
+  parameters:
+    - $ref: '../components/parameters.yaml#/RunId'
+
+  get:
+    tags: [Прогоны]
+    summary: Получить прогон
+    security:
+      - BearerAuth: []
+    description: >
+      Возвращает полный payload прогона (текущий узел, рендер, история шагов).
+      Прогон автоматически продвигается до ближайшего интерактивного узла.
+    responses:
+      '200':
+        description: Состояние прогона
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+continue:
+  post:
+    tags: [Прогоны]
+    summary: Продолжить прогон
+    security:
+      - BearerAuth: []
+    description: >
+      Принимает пользовательский ввод и продвигает прогон вперёд.
+      Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.
+    parameters:
+      - $ref: '../components/parameters.yaml#/RunId'
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/ContinueRunRequest'
+    responses:
+      '200':
+        description: Обновлённое состояние прогона
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+jump:
+  post:
+    tags: [Прогоны]
+    summary: Перейти к узлу
+    security:
+      - BearerAuth: []
+    description: >
+      Переводит прогон к конкретному узлу (`node_id`).
+      Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.
+    parameters:
+      - $ref: '../components/parameters.yaml#/RunId'
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/AdminJumpRunRequest'
+    responses:
+      '200':
+        description: Обновлённое состояние прогона
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'

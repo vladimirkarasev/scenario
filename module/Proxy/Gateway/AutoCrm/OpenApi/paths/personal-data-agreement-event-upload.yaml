@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - personal-data-agreement-event-upload'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: personal-data-agreement-event-upload
+    description: 'Подтверждение сканов согласия на обработку ПД'
+paths:
+  '/personal-data-agreement/event-upload/{id}':
+    put:
+      tags:
+        - personal-data-agreement-event-upload
+      summary: 'Получение результата проверки скана согласия на обработку ПД'
+      description: 'Получение результата проверки скана согласия на обработку ПД'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id скана согласия на обработку ПД'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель результата проверки СОПД'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalDataAgreementEventUploadForm'
+        required: false
+      responses:
+        200:
+          description: 'Возвращает результат проверки согласия на обработку ПД'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalDataAgreementEventUploadForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

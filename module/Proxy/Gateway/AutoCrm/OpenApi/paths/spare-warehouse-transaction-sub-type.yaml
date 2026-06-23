@@ -1,0 +1,143 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - spare-warehouse-transaction-sub-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: spare-warehouse-transaction-sub-type
+    description: 'Управление списком подтипов запчастей дилеров'
+paths:
+  /spare-warehouse/transaction-sub-type:
+    get:
+      tags:
+        - spare-warehouse-transaction-sub-type
+      summary: 'Получение списка'
+      description: 'Получение списка'
+      parameters:
+        -
+          name: status
+          in: query
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - spare-warehouse-transaction-sub-type
+      summary: 'Добавление новой записи'
+      description: 'Добавление новой записи'
+      requestBody:
+        description: Объект
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        required: true
+      responses:
+        201:
+          description: 'Новая запись успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/spare-warehouse/transaction-sub-type/{id}':
+    get:
+      tags:
+        - spare-warehouse-transaction-sub-type
+      summary: 'Получение подтипа'
+      description: 'Получение подтипа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id подтипа'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает подтипа'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - spare-warehouse-transaction-sub-type
+      summary: 'Изменение подтипа'
+      description: 'Изменение подтипа'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id движения'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель контрагента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        required: false
+      responses:
+        200:
+          description: 'Подтип успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpareWarehouseTransactionSubType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

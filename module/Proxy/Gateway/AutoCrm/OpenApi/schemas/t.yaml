@@ -1,0 +1,84 @@
+openapi: 3.1.0
+components:
+  schemas:
+    TaskComment:
+      type: object
+      properties:
+        task_id:
+          type: integer
+          description: 'ID экземпляра workflow'
+        content:
+          type: string
+          description: 'Текст сообщения'
+    TestDrive:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id тест-драйва'
+        car_id:
+          type: integer
+          description: 'id тестового автомобиля со склада'
+        plan:
+          type: string
+          description: 'Запланированная дата'
+        event_id:
+          type: integer
+          description: 'id события в РЛ'
+        fact_start:
+          type: string
+          description: 'Фактическая дата начала'
+        fact_end:
+          type: string
+          description: 'Фактическая дата окончания'
+        mileage_before:
+          type: integer
+          description: 'Пробег на начало'
+        mileage_after:
+          type: integer
+          description: 'Пробег по окончании'
+        comment:
+          type: string
+          description: Комментарий
+        created_at:
+          type: string
+          description: 'Дата создания'
+          readOnly: true
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+          readOnly: true
+        event:
+          $ref: '#/components/schemas/Event'
+      description: Тест-драйв
+    Traffic:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'id записи'
+        metric_id:
+          type: integer
+          description: 'id показателя'
+        distributor_id:
+          type: integer
+          description: 'id дистрибьютора'
+        dealer_code:
+          type: string
+          description: 'код дилера'
+        brand_id:
+          type: integer
+          description: 'id бренда'
+        model_alias_id:
+          type: integer
+          description: 'id алиаса модели'
+        model_id:
+          type: integer
+          description: 'id модели'
+        date:
+          type: string
+          description: 'дата (в формате дд.мм.гггг)'
+        count:
+          type: integer
+          description: 'количество (данные счётчика)'
+      description: 'Данные со счётчиков сайтов'

@@ -1,0 +1,2901 @@
+openapi: 3.1.0
+components:
+  schemas:
+    Sale:
+      required:
+        - bank_id
+        - client_id
+        - date
+        - manager_id
+        - source_id
+        - trade_in
+        - type
+        - vehicle_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_id:
+          type: 'integer,'
+          description: 'ID дилера'
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        vehicle:
+          type: object
+          properties:
+            vehicle_vin:
+              type: string
+              description: 'VIN автомобиля'
+            is_trade_in:
+              type: integer
+              description: Б\У
+          description: 'Модель автомобиля'
+        common_client_id:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        client:
+          $ref: '#/components/schemas/ClientResponse'
+          description: 'Модель клиента'
+          client_json:
+            type: string
+            description: 'Модель клиента в формате JSON'
+        date:
+          type: string
+          description: 'дата рапорта'
+        source_id:
+          type: integer
+          description: 'ID источника'
+        manager_id:
+          type: integer
+          description: 'ID менеджера'
+        manager:
+          $ref: '#/components/schemas/Manager'
+          description: 'Модель менеджера'
+        type:
+          type: string
+          description: 'тип оплаты case, bank, leasing'
+        bank_id:
+          type: integer
+          description: 'ID банка / лизинговой компании'
+        leasing_contract_number:
+          type: string
+          description: 'Номер договора лизинга'
+        leasing_contract_date:
+          type: string
+          description: 'Дата договора лизинга'
+        leasing_end_date:
+          type: string
+          description: 'Дата окончания лизинга'
+        leasing_payment_sum:
+          type: string
+          description: 'Лизинговый платеж'
+        leasing_sum:
+          type: string
+          description: 'Сумма лизинга'
+        leasing_expired:
+          type: string
+          description: 'Срок лизинга'
+        is_received:
+          type: boolean
+          description: 'Рапорт выгружен во внешнюю систему'
+        trade_in:
+          type: boolean
+          description: Трейд-ин
+        iov_agreement:
+          type: boolean
+          description: 'Соглашение IOV заключено'
+        iov_agreement_version:
+          type: integer
+          description: 'Версия соглашения IOV (1 - "2021-1", 2 - "2021-2")'
+        iov_agreement_phone:
+          type: string
+          description: 'Телефон соглашения IOV'
+        iov_agreement_client_name:
+          type: string
+          description: 'Имя пользователя IOV'
+        iov_agreement_client_surname:
+          type: string
+          description: 'Фамилия пользователя IOV'
+        iovAgreementVersionName:
+          type: string
+          description: 'Название версии соглашения IOV'
+        iovAgreementLink:
+          type: string
+          description: 'Ссылка на скан соглашения IOV'
+        conditional_sale:
+          type: integer
+          description: 'Признак условной реализации (0 - Нет, 1 - Да)'
+        user_id:
+          type: integer
+          description: 'ID пользователя'
+        created_at:
+          type: string
+          description: 'Дата создания (в формате YYYY-mm-dd H:i:s)'
+        updated_at:
+          type: string
+          description: 'Дата обновления (в формате YYYY-mm-dd H:i:s)'
+      description: 'Модель рапорт'
+    SaleAdditionalService:
+      required:
+        - additional_service_id
+        - vin
+      type: object
+      properties:
+        additional_service_id:
+          type: integer
+          description: 'id услуги'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        start:
+          type: string
+          description: 'Дата окончания услуги (ГГГГ-ММ-ДД)'
+        end:
+          type: string
+          description: 'Дата начала услуги (ГГГГ-ММ-ДД)'
+      description: 'Модель для добавления дополнительной услуги к рапорту'
+    SaleAdditionalServiceDelete:
+      required:
+        - additional_service_id
+        - vin
+      type: object
+      properties:
+        additional_service_id:
+          type: integer
+          description: 'id услуги'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+      description: 'Модель для удаления дополнительной услуги из рапорта'
+    SaleAdditionalServicePrice:
+      type: object
+      properties:
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        serie_id:
+          type: integer
+          description: 'ID серии'
+        modification_id:
+          type: integer
+          description: 'ID модификации'
+        equipment_id:
+          type: integer
+          description: 'ID комплектации'
+        price:
+          type: number
+          format: float
+          description: Стоимость
+        start_date:
+          type: string
+          description: 'Действует с, формат DD.MM.YYYY'
+        end_date:
+          type: string
+          description: 'Действует по, формат DD.MM.YYYY'
+      description: 'Стоимость дополнительной услуги по автомобилю'
+    SaleAdditionalServicePriceGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID группы стоимости'
+        service_id:
+          type: integer
+          description: 'ID услуги'
+        service_name:
+          type: string
+          description: 'Название услуги'
+        status:
+          type: integer
+          description: 'Статус группы (1 - Активный, 2 - Удалено)'
+        prices:
+          type: array
+          description: 'Список стоимостей по автомобилям'
+          items:
+            $ref: '#/components/schemas/SaleAdditionalServicePrice'
+      description: 'Группа стоимостей дополнительной услуги'
+    SaleAdditionalServiceSale:
+      required:
+        - additional_service_id
+        - vin
+      type: object
+      properties:
+        additional_service_id:
+          type: integer
+          description: 'id услуги'
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        start:
+          type: string
+          description: 'Дата окончания услуги (ГГГГ-ММ-ДД)'
+        end:
+          type: string
+          description: 'Дата начала услуги (ГГГГ-ММ-ДД)'
+        sale_at:
+          type: string
+          description: 'Дата начала услуги (ГГГГ-ММ-ДД)'
+      description: 'Модель для добавления дополнительной услуги к рапорту'
+    SalePublic:
+      required:
+        - bank_id
+        - client_id
+        - date
+        - manager_id
+        - source_id
+        - trade_in
+        - type
+        - vehicle_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_id:
+          type: 'integer,'
+          description: 'ID дилера'
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        vehicle:
+          type: object
+          properties:
+            vehicle_vin:
+              type: string
+              description: 'VIN автомобиля'
+            is_trade_in:
+              type: integer
+              description: Б\У
+          description: 'Модель автомобиля'
+        common_client_id:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        client:
+          $ref: '#/components/schemas/ClientResponse'
+          description: 'Модель клиента'
+          client_json:
+            type: string
+            description: 'Модель клиента в формате JSON'
+        date:
+          type: string
+          description: 'дата рапорта'
+        source_id:
+          type: integer
+          description: 'ID источника'
+        manager_id:
+          type: integer
+          description: 'ID менеджера'
+        manager:
+          $ref: '#/components/schemas/Manager'
+          description: 'Модель менеджера'
+        type:
+          type: string
+          description: 'тип оплаты case, bank, leasing'
+        bank_id:
+          type: integer
+          description: 'ID банка / лизинговой компании'
+        leasing_contract_number:
+          type: string
+          description: 'Номер договора лизинга'
+        leasing_contract_date:
+          type: string
+          description: 'Дата договора лизинга'
+        leasing_end_date:
+          type: string
+          description: 'Дата окончания лизинга'
+        leasing_payment_sum:
+          type: string
+          description: 'Лизинговый платеж'
+        leasing_sum:
+          type: string
+          description: 'Сумма лизинга'
+        leasing_expired:
+          type: string
+          description: 'Срок лизинга'
+        is_received:
+          type: boolean
+          description: 'Рапорт выгружен во внешнюю систему'
+        trade_in:
+          type: boolean
+          description: Трейд-ин
+        iov_agreement:
+          type: boolean
+          description: 'Соглашение IOV заключено'
+        iov_agreement_version:
+          type: integer
+          description: 'Версия соглашения IOV (1 - "2021-1", 2 - "2021-2")'
+        iov_agreement_phone:
+          type: string
+          description: 'Телефон соглашения IOV'
+        iov_agreement_client_name:
+          type: string
+          description: 'Имя пользователя IOV'
+        iov_agreement_client_surname:
+          type: string
+          description: 'Фамилия пользователя IOV'
+        iovAgreementVersionName:
+          type: string
+          description: 'Название версии соглашения IOV'
+        iovAgreementLink:
+          type: string
+          description: 'Ссылка на скан соглашения IOV'
+        conditional_sale:
+          type: integer
+          description: 'Признак условной реализации (0 - Нет, 1 - Да)'
+        user_id:
+          type: integer
+          description: 'ID пользователя'
+        created_at:
+          type: string
+          description: 'Дата создания (в формате YYYY-mm-dd H:i:s)'
+        updated_at:
+          type: string
+          description: 'Дата обновления (в формате YYYY-mm-dd H:i:s)'
+      description: 'Модель рапорт'
+      example:
+        id: 1
+        name: Плательщик
+    SaleReportByDayModel:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Дата
+        dealerShowroomCode:
+          type: string
+          description: Код
+        dealerMarketingName:
+          type: string
+          description: Маркет.наименование
+        dealerName:
+          type: string
+          description: Юр.наименование
+        brandName:
+          type: string
+          description: Бренд
+        modelName:
+          type: string
+          description: Модель
+        modelYear:
+          type: integer
+          description: 'Модельный год'
+        primaryCalls:
+          type: integer
+          description: Звонки
+        primaryVisits:
+          type: integer
+          description: Визиты
+        primaryInternet:
+          type: integer
+          description: Интернет
+        primaryColdCalls:
+          type: integer
+          description: 'Хол зв'
+        primaryTrafficTotal:
+          type: integer
+          description: 'Итого трафик'
+        worksheetsWithContacts:
+          type: integer
+          description: 'Вз. конт.(ФПК)'
+        worksheetsWithContactsPercentage:
+          type: number
+          format: float
+          description: 'Вз. конт.(ФПК) % от Итого трафик'
+        visitsCallInternet:
+          type: integer
+          description: 'Итого посещений По звонку, интернету'
+        visitsCallInternetPercentage:
+          type: number
+          format: float
+          description: 'Итого посещений По звонку, интернету % от Итого трафик'
+        visitsTotal:
+          type: integer
+          description: 'Итого посещений'
+        testDrives:
+          type: integer
+          description: Тест-драйвы
+        testDrivesPercentage:
+          type: number
+          format: float
+          description: 'Тест-драйвы % от Итого посещений'
+        contractsTotal:
+          type: integer
+          description: 'Контракты Всего'
+        contracts:
+          type: integer
+          description: 'Контракты Без отказов'
+        contractsPercentage:
+          type: number
+          format: float
+          description: 'Контракты Всего % от Итого посещений'
+        canceledContracts:
+          type: integer
+          description: 'Отказы от контракта'
+        canceledContractsPercentage:
+          type: number
+          format: float
+          description: 'Отказы от контракта % от контрактов'
+        issues:
+          type: integer
+          description: Выдача
+        issuesPercentage:
+          type: number
+          format: float
+          description: 'Выдача % от Итого посещений'
+        reports:
+          type: integer
+          description: Рапорт
+        reportsPercentage:
+          type: number
+          format: float
+          description: 'Рапорт % от Итого посещений'
+      description: 'Отчёт по продажам'
+    SaleType:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи (генерируется автоматически)'
+        status:
+          type: string
+          description: 'Статус ("active", "deleted")'
+        name:
+          type: string
+          description: Наименование
+        description:
+          type: string
+          description: Описание
+        warehouse_code:
+          type: string
+          description: 'Код на складе'
+      description: 'Модель тип продажи'
+    Schedule:
+      required:
+        - date
+        - status
+        - user_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи (генерируется автоматически)'
+        user_id:
+          type: integer
+          description: 'Идентификатор пользователя'
+        date:
+          type: string
+          description: 'Дата в формате YYYY-MM-DD'
+        times:
+          type: array
+          description: 'Временные интервалы'
+          items:
+            type: object
+            properties:
+              time_from:
+                type: string
+                description: 'Начало рабочего дня'
+              time_to:
+                type: string
+                description: 'Конец рабочего дня'
+              status:
+                type: integer
+                description: 'Состояние 1 - Работает, 2 - Не работает'
+      description: 'Модель запись графика работы сотрудника'
+    ScheduleForm:
+      required:
+        - date
+        - user_id
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: 'Идентификатор пользователя'
+        date:
+          type: string
+          description: 'Дата, формат Год-месяц-день'
+        time_from:
+          type: string
+          description: 'Начало рабочего дня'
+        time_to:
+          type: string
+          description: 'Конец рабочего дня'
+        status:
+          type: integer
+          description: 'Состояние 1 - Работает, 2 - Не работает'
+        times:
+          type: array
+          description: 'Временные интервалы'
+          items:
+            type: object
+            properties:
+              time_from:
+                type: string
+                description: 'Начало рабочего дня'
+              time_to:
+                type: string
+                description: 'Конец рабочего дня'
+              status:
+                type: integer
+                description: 'Состояние 1 - Работает, 2 - Не работает'
+      description: 'Модель запись графика работы сотрудника'
+    ScheduleTimeForm:
+      required:
+        - status
+      type: object
+      properties:
+        time_from:
+          type: string
+          description: 'Начало рабочего дня'
+        time_to:
+          type: string
+          description: 'Конец рабочего дня'
+        status:
+          type: integer
+          description: 'Состояние 1 - Работает, 2 - Не работает'
+      description: 'Модель временного интервала графика работы сотрудника'
+    ScheduleWithoutDate:
+      required:
+        - status
+        - user_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи (генерируется автоматически)'
+        user_id:
+          type: integer
+          description: 'Идентификатор пользователя'
+        time_from:
+          type: string
+          description: 'Начало рабочего дня'
+        time_to:
+          type: string
+          description: 'Конец рабочего дня'
+        status:
+          type: integer
+          description: 'Состояние 1 - Работает, 2 - Не работает'
+        times:
+          type: array
+          description: 'Временные интервалы'
+          items:
+            type: object
+            properties:
+              time_from:
+                type: string
+                description: 'Начало рабочего дня'
+              time_to:
+                type: string
+                description: 'Конец рабочего дня'
+              status:
+                type: integer
+                description: 'Состояние 1 - Работает, 2 - Не работает'
+      description: 'Модель запись графика работы сотрудника без даты'
+    Serie:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID серии'
+        name:
+          type: string
+          description: Наименование
+        model_id:
+          type: integer
+          description: 'ID модели'
+        generation_id:
+          type: integer
+          description: 'ID поколения'
+        is_recent:
+          type: integer
+          description: Актуальная
+      description: Серия
+    ServiceNote:
+      type: object
+      properties:
+        maintenance:
+          type: string
+          description: ТО
+        date:
+          type: string
+          description: 'Дата записи'
+        mileage:
+          type: integer
+          description: Пробег
+        purchase_code:
+          type: integer
+          description: 'Код заказ-наряда'
+        dealer_name:
+          type: string
+          description: 'Название дилера'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        number:
+          type: integer
+          description: 'Номер ТО'
+      description: 'Модель сервисной записи'
+    Shipment:
+      type: object
+      description: 'Модель отгрузки'
+      required:
+        - vin
+        - nomenclature_id
+        - consignee_point_id
+        - planed_at
+        - status
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        vin:
+          type: string
+          description: VIN
+        nomenclature_id:
+          type: integer
+          description: 'ID номенклатуры'
+        nomenclature_name:
+          type: string
+          description: 'Наименование номенклатуры'
+        nomenclature_weight:
+          type: string
+          description: 'Вес а/м'
+        consignee_point_id:
+          type: integer
+          description: 'ID грузополучателя'
+        consignee_point_contacts:
+          description: 'Список контактных лиц грузополучателя'
+          $ref: '#/components/schemas/DealerPerson'
+        consignee_point_inn:
+          type: string
+          description: 'ИНН грузополучателя'
+        consignee_point_address_code:
+          type: string
+          description: 'Код адреса доставки'
+        consignee_point_legal_entity:
+          type: string
+          description: 'ЮЛ грузополучателя'
+        consignee_point_kpp:
+          type: string
+          description: 'КПП грузополучателя'
+        warehouse_id:
+          type: integer
+          description: 'ID склада отгрузки'
+        warehouse_address:
+          type: string
+          description: 'Адрес отгрузки'
+        delivery_warehouse_id:
+          type: integer
+          description: 'ID склада доставки'
+        delivery_warehouse_inn:
+          type: integer
+          description: 'ИНН грузоотправителя'
+        delivery_warehouse_legal_entity:
+          type: integer
+          description: 'ЮЛ грузоотправителя'
+        delivery_warehouse_kpp:
+          type: integer
+          description: 'КПП грузоотправителя'
+        loading_address:
+          type: string
+          description: 'Адрес доставки'
+        tariff_service_id:
+          type: integer
+          description: 'ID тарифа'
+        delivery_type:
+          type: integer
+          description: 'Тип отгрузки'
+          enum:
+            - '1 - Дилерская'
+            - '2 - Перемещение'
+            - '3 - Самовывоз'
+        planed_at:
+          type: string
+          description: 'Планируемая дата доставки, в формате dd.MM.yyyy'
+        sent_at:
+          type: string
+          description: 'Планируемая дата доставки, в формате dd.MM.yyyy'
+        invoice_price:
+          type: number
+          description: 'Входная стоимость'
+        invoice_paid_at:
+          type: string
+          description: 'Дата оплаты счёта, в формате dd.MM.yyyy'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Заявлено'
+            - '2 - Принято'
+            - '3 - Отгружено'
+            - '4 - Доставлено'
+            - '5 - Передано в ТК'
+            - '6 - Запланировано'
+            - '7 - Удалена'
+        amount:
+          type: number
+          description: 'Стоимость перевозки'
+        confirmed_at:
+          type: string
+          description: 'Дата подтверждения, в формате dd.MM.yyyy'
+        request_id:
+          type: integer
+          description: 'ID заявки в транспортную компанию'
+        plan_shipped_at:
+          type: string
+          description: 'Плановая дата отгрузки от ТК , в формате dd.MM.yyyy'
+        fact_shipped_at:
+          type: string
+          description: 'Фактическая дата отгрузки, в формате dd.MM.yyyy'
+        warehouse_fact_shipped_at:
+          type: string
+          description: 'Фактическая дата отгрузки от склада, в формате dd.MM.yyyy'
+        plan_shipped_at_by_contract:
+          type: string
+          description: 'Плановая дата отгрузки по договору, в формате dd.MM.yyyy'
+        plan_delivered_at:
+          type: string
+          description: 'Плановая дата доставки, в формате dd.MM.yyyy'
+        plan_delivered_at_by_contract:
+          type: string
+          description: 'Плановая дата доставки по договору, в формате dd.MM.yyyy'
+        fact_delivered_at:
+          type: string
+          description: 'Фактическая дата доставки, в формате dd.MM.yyyy'
+        consignment_number:
+          type: string
+          description: 'Номер ТН'
+        carrier_number:
+          type: string
+          description: 'Номер Автовоза'
+        updated_at:
+          type: string
+          description: 'Изменено, в формате dd.MM.yyyy HH:mm'
+        comment:
+          type: string
+        transit_period_plan:
+          type: integer
+          description: 'Срок транзита план'
+        transit_period_fact:
+          type: integer
+          description: 'Срок транзита факт'
+        final_plan_shipped_at_date:
+          type: string
+          description: 'Плановая дата отгрузки финал, в формате dd.MM.yyyy'
+        final_plan_shipped_at_time:
+          type: string
+          description: 'Плановое время отгрузки финал, в формате HH:mm'
+        delivery_type_id:
+          type: integer
+          description: 'ID вида отгрузки'
+        documents:
+          type: array
+          description: 'список документов'
+          items:
+            $ref: '#/components/schemas/ShipmentExportDocument'
+        createdAt:
+          type: string
+          description: 'Дата/время создания, в формате dd.MM.yyyy HH:mm'
+        warehouse_name:
+          type: string
+          description: 'Склад хранения'
+        request_invoice_id:
+          type: integer
+          description: 'ID счёта'
+    ShipmentExportDocument:
+      type: object
+      description: 'Документ отгрузки'
+      properties:
+        id:
+          type: integer
+          description: 'ID документа'
+        number:
+          type: integer
+          description: 'Номер документа'
+        type:
+          type: integer
+          description: 'Тип документа (1 - Экспедиторская расписка, 2 - Поручение экспедитору, 3 - Поручение экспедитору ТК)'
+          enum:
+            - 1
+            - 2
+            - 3
+    ShipmentForm:
+      type: object
+      required:
+        - vin
+        - delivery_type
+        - consignee_point_id
+        - status
+      properties:
+        vin:
+          type: string
+          description: VIN
+        consignee_point_id:
+          type: integer
+          description: 'ID грузополучателя'
+        warehouse_id:
+          type: integer
+          description: 'ID склада отгрузки'
+        delivery_warehouse_id:
+          type: integer
+          description: 'ID склада доставки'
+        tariff_service_id:
+          type: integer
+          description: 'ID тарифа'
+        delivery_type:
+          type: integer
+          description: 'Тип отгрузки'
+          enum:
+            - '1 - Дилерская'
+            - '2 - Перемещение'
+            - '3 - Самовывоз'
+        planed_at:
+          type: string
+          description: 'Планируемая дата доставки, в формате dd.MM.yyyy'
+        sent_at:
+          type: string
+          description: 'Планируемая дата отправки, в формате dd.MM.yyyy'
+        invoice_price:
+          type: number
+          format: float
+          description: 'Входная стоимость'
+        invoice_paid_at:
+          type: string
+          description: 'Дата оплаты счёта, в формате dd.MM.yyyy'
+        status:
+          type: integer
+          description: 'Статус (1 - Заявлено, 2 - Принято, 3 - Отгружено, 4 - Доставлено, 5 - Передано в ТК, 6 - Запланировано, 7 - Удалена)'
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+        amount:
+          type: number
+          format: float
+          description: 'Стоимость перевозки'
+        request_id:
+          type: integer
+          description: 'ID заявки в транспортную компанию'
+        plan_shipped_at_by_contract:
+          type: string
+          description: 'Плановая дата отгрузки по договору, в формате dd.MM.yyyy'
+        plan_delivered_at_by_contract:
+          type: string
+          description: 'Плановая дата доставки по договору, в формате dd.MM.yyyy'
+        transit_period_plan:
+          type: integer
+          description: 'Срок транзита план'
+        transit_period_fact:
+          type: integer
+          description: 'Срок транзита факт'
+        confirmed_at:
+          type: string
+          description: 'Дата подтверждения, в формате dd.MM.yyyy'
+        plan_shipped_at:
+          type: string
+          description: 'Плановая дата отгрузки, в формате dd.MM.yyyy'
+        fact_shipped_at:
+          type: string
+          description: 'Фактическая дата отгрузки, в формате dd.MM.yyyy'
+        warehouse_fact_shipped_at:
+          type: string
+          description: 'Фактическая дата отгрузки от склада, в формате dd.MM.yyyy'
+        plan_delivered_at:
+          type: string
+          description: 'Плановая дата доставки, в формате dd.MM.yyyy'
+        fact_delivered_at:
+          type: string
+          description: 'Фактическая дата доставки, в формате dd.MM.yyyy'
+        consignment_number:
+          type: string
+          description: 'Номер ТН'
+        carrier_number:
+          type: string
+          description: 'Номер Автовоза'
+        comment:
+          type: string
+          description: Комментарий
+        final_plan_shipped_at_date:
+          type: string
+          description: 'Плановая дата отгрузки финал, в формате dd.MM.yyyy'
+        final_plan_shipped_at_time:
+          type: string
+          description: 'Плановое время отгрузки финал, в формате HH:mm'
+        delivery_type_id:
+          type: integer
+          description: 'ID вида отгрузки'
+        createdAt:
+          type: string
+          description: 'Дата/время создания, в формате dd.MM.yyyy HH:mm'
+    ShippingCompanyRequest:
+      type: object
+      description: 'Модель заявки в транспортную компанию'
+      required:
+        - shipping_company_id
+        - status
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        shipping_company_id:
+          type: integer
+          description: 'ID ТК'
+        delivery_type:
+          type: integer
+          description: 'Тип отгрузки'
+          enum:
+            - '1 - Дилерская'
+            - '2 - Перемещение'
+            - '3 - Самовывоз'
+        status:
+          type: integer
+          description: Статус
+          enum:
+            - '1 - Новая'
+            - '2 - Выполнена'
+        comment:
+          type: string
+          description: Примечание
+        createdAt:
+          type: string
+          description: 'Дата создания, в формате dd.MM.yyyy HH:mm'
+        updated_at:
+          type: string
+          description: 'Дата изменения, в формате dd.MM.yyyy HH:mm'
+        shipments:
+          type: array
+          description: 'список отгрузок'
+          items:
+            $ref: '#/components/schemas/Shipment'
+    ShippingCompanyRequestForm:
+      type: object
+      description: 'Модель создания/обновления заявки в транспортную компанию'
+      required:
+        - shipping_company_id
+        - delivery_type
+        - status
+      properties:
+        shipping_company_id:
+          type: integer
+          description: 'ID транспортной компании'
+        delivery_type:
+          type: integer
+          description: 'Тип отгрузки (1 - Дилерская, 2 - Перемещение, 3 - Самовывоз)'
+          enum:
+            - 1
+            - 2
+            - 3
+        status:
+          type: integer
+          description: 'Статус (1 - Новая, 2 - Выполнена)'
+          enum:
+            - 1
+            - 2
+        comment:
+          type: string
+          description: Примечание
+        createdAt:
+          type: string
+          description: 'Дата/время создания, в формате dd.MM.yyyy HH:mm'
+    SimpleDiscountPrograms:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID категории программ'
+        name:
+          type: string
+          description: Наименование
+        system_code:
+          type: string
+          description: 'Системный код'
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'
+        active:
+          type: boolean
+          description: Активность
+        price_category_id:
+          type: boolean
+          description: 'Категория ДЦ'
+        types:
+          type: array
+          description: 'Схемы покупок (`1` - Наличные `2` - Кредит `3` - Лизинг `4` - Трейдин)'
+        typesOfSales:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleType'
+          readOnly: true
+          description: 'Типы продаж'
+        discount:
+          type: string
+          description: Скидка
+        is_test_drive:
+          type: boolean
+          description: 'Признак тестовых а/м'
+        is_internal:
+          type: boolean
+          description: 'Внутренняя категория'
+        is_marketplace:
+          type: boolean
+          description: 'Категория для маркетплейсов'
+      description: 'Модель Категория мотивационных программ'
+    Skin:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        model_id:
+          type: integer
+          description: 'ID модели'
+        common_skin_id:
+          type: integer
+          description: 'ID общей обивки'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Наименование
+        image_url:
+          type: string
+          description: 'URL изображения'
+        is_deleted:
+          type: integer
+          description: 'Признак удаления'
+      description: Обивка
+    Source:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID источника (генерируется автоматически)'
+        parent_id:
+          type: integer
+          description: 'ID родительского источника'
+        name:
+          type: string
+          description: 'Наименование источника'
+        name_en:
+          type: string
+          description: 'Наименование источника (англ)'
+        user_id:
+          type: integer
+          description: Автор
+        created_at:
+          type: integer
+          description: 'Дата создания (timestamp)'
+        updated_at:
+          type: integer
+          description: 'Дата изменения (timestamp)'
+        status:
+          type: string
+          description: Статус
+        is_in_marketing:
+          type: integer
+          description: 'Использовать в маркетинге'
+        code:
+          type: string
+          description: Код
+        gm_code:
+          type: string
+          description: Код
+        settings:
+          type: integer
+          description: 'Наименование источника (англ)'
+        is_in_call_center:
+          type: integer
+          description: 'Использовать в колл-центре'
+      description: 'Модель Источник'
+    Spare:
+      required:
+        - code
+        - name
+        - price
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        code:
+          type: string
+          description: 'Код запчасти'
+        name:
+          type: string
+          description: 'Наименование запчасти'
+        price:
+          type: number
+          description: Цена
+      description: 'Модель Запчасть'
+    SpareAvailability:
+      type: object
+      properties:
+        id:
+          description: id
+          type: integer
+        name:
+          description: Наименование
+          type: string
+        ext:
+          description: 'Внешний код'
+          type: string
+        color:
+          description: 'цвет (#FFFFFF)'
+          type: string
+        created_at:
+          description: 'Дата создания'
+          type: string
+        updated_at:
+          description: 'Дата изменения'
+          type: string
+      description: 'Наличие ЗЧ'
+    SpareComplaintMedia:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Ид документа'
+        format:
+          type: integer
+          description: 'Тип документа: 1 - Фото, 2 - Видео, 3 - Документ'
+        url:
+          type: string
+          description: 'Ссылка на файл'
+      description: 'Модель загруженного файла'
+    SpareComplaintStatusForm:
+      type: object
+      properties:
+        status_code:
+          type: string
+          description: 'Код статуса (для открытия: new, для закрытия: closed, коды промежуточных статусов запрос у менеджера)'
+      description: 'Модель обновления статуса'
+    SpareGroup:
+      type: object
+      properties:
+        id:
+          description: id
+          type: integer
+        type:
+          description: Тип
+          type: integer
+        alias:
+          description: Алиас
+          type: string
+        name:
+          description: Наименование
+          type: string
+        name_eng:
+          description: 'Наименование (англ.)'
+          type: string
+        user_id:
+          description: 'id пользователя'
+          type: integer
+        created_at:
+          description: 'Дата создания'
+          type: string
+        updated_at:
+          description: 'Дата изменения'
+          type: string
+      description: 'Группа/подгруппа ЗЧ'
+    SpareOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Ид модели'
+        owner_id:
+          type: integer
+          description: 'Ид владельца заказа'
+        dealer_id:
+          type: integer
+          description: 'Ид дилера'
+        status:
+          type: integer
+          description: 'Ид статуса'
+        date:
+          type: integer
+          description: 'Дата заказа'
+        send_at:
+          type: string
+          description: 'Дата размещения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+          example: 1704110400
+        code:
+          type: integer
+          description: 'Код заказа'
+        type_id:
+          type: integer
+          description: 'Тип заказа'
+        created_by:
+          type: integer
+          description: 'Ид кто создал заказ в системе'
+        updated_by:
+          type: integer
+          description: 'Ид кто создал посл. раз обновлял заказ'
+        created_at:
+          type: integer
+          description: 'Дата добавления заказа в систему'
+        updated_at:
+          type: integer
+          description: 'Дата посл. обновления заказа'
+        external_code:
+          type: string
+          description: 'Номер заказа дистрибьютора'
+        comment:
+          type: string
+          description: Комментарий
+        payment_status:
+          type: integer
+          description: 'ID Статуса оплаты (Не оплачен = 1, Оплачен = 2, Частично оплачен = 3)'
+        address_id:
+          type: integer
+          description: 'ИД адреса'
+        client_type:
+          type: integer
+          description: 'Тип клиента (0 - Физ лицо, 1 - Юр лицо)'
+      description: 'Модель заказа'
+    SpareOrderCreateForm:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: 'Ид статуса'
+        type_id:
+          type: integer
+          description: 'Ид типа зч'
+        order_type_id:
+          type: integer
+          description: 'Ид типа заказа'
+        vin:
+          type: string
+          description: 'Vin авто'
+        comment:
+          type: string
+          description: Комментарий
+        external_code:
+          type: string
+          description: 'Номер заказа дистрибьютора'
+        send_at:
+          type: string
+          description: 'Дата размещения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+          example: 1704110400
+        pay_sum:
+          type: number
+          description: 'Сумма оплаты'
+        pay_at:
+          type: string
+          description: 'Дата оплаты в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС'
+          example: 1704110400
+        address_id:
+          type: integer
+          description: 'ИД адреса'
+        client_type:
+          type: integer
+          description: 'Тип клиента (0 - Физ лицо, 1 - Юр лицо)'
+    SpareOrderDiscount:
+      required:
+        - status
+        - code
+        - quantity
+        - discount
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи скидки'
+        status:
+          type: integer
+          description: 'Статус (1 = Активный, 2 = Отключена)'
+        code:
+          type: string
+          description: 'ЗЧ (артикул)'
+        quantity:
+          type: integer
+          description: Количество
+        discount:
+          type: number
+          description: Скидка
+        user_id:
+          type: integer
+          description: 'ID автора'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+      description: 'Модель скидки по ЗЧ в заказах'
+    SpareOrderDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: 'Название документа'
+        order_id:
+          type: string
+          description: 'ИД заказа'
+        upload_id:
+          type: string
+          description: 'ИД загрузки'
+        created_at:
+          type: string
+          description: 'Дата загрузки'
+        updated_at:
+          type: integer
+          description: 'Дата редактирования'
+        created_by:
+          type: string
+          description: 'Автор загрузки'
+        updated_by:
+          type: string
+          description: 'Автор редактирования'
+      description: 'Модель загруженного документа к заказу'
+    SpareOrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Ид модели'
+        spare_id:
+          type: integer
+          description: 'Ид запчасти'
+        order_id:
+          type: integer
+          description: 'Ид заказа'
+        quantity:
+          type: integer
+          description: Кол-во
+        price_send:
+          type: number
+          description: 'Цена линии'
+        discount_sum:
+          type: number
+          description: Сумма
+        created_by:
+          type: integer
+          description: 'Ид кто создал заказ в системе'
+        updated_by:
+          type: integer
+          description: 'Ид кто создал посл. раз обновлял заказ'
+        created_at:
+          type: integer
+          description: 'Дата добавления заказа в систему'
+        updated_at:
+          type: integer
+          description: 'Дата посл. обновления заказа'
+        status:
+          type: integer
+          description: 'Ид кто создал посл. раз обновлял заказ'
+        track_number:
+          type: string
+          description: Трек-номер
+        utd_number:
+          type: string
+          description: 'Номер УПД'
+        utd_date:
+          type: string
+          description: 'Дата УПД в формате ГГГГ-ММ-ДД'
+          example: 1704067200
+        shipment_at:
+          type: string
+          description: 'Дата отгрузки в формате ГГГГ-ММ-ДД'
+          example: 1704067200
+        ext:
+          type: string
+          description: 'Внешний код'
+        warehouse_id:
+          type: interger
+          description: 'ИД склада'
+      description: 'Модель ЗЧ в заказе'
+    SpareOrderItemForm:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: '2 - Нет в наличии, 3 - В обработке, 4 - Отгружено, 5 - Отказано'
+        quantity:
+          type: integer
+          description: 'Кол-во запчастей'
+        quantity_approved:
+          type: integer
+          description: 'Кол-во подтвержденных запчастей'
+        eta:
+          type: string
+          description: 'Дата поступления ЗЧ на ЦС, формат (ГГГГ-ММ-ДД)'
+        delivery_comment:
+          type: string
+          description: 'Информация о сроках поставки'
+        indicative:
+          type: boolean
+          description: 'Ориентировочное значение'
+        price_send:
+          type: number
+          description: 'Цена линии'
+        discount_sum:
+          type: number
+          description: Скидка
+        track_number:
+          type: string
+          description: Трек-номер
+        utd_number:
+          type: string
+          description: 'Номер УПД'
+        utd_date:
+          type: string
+          description: 'Дата УПД в формате ГГГГ-ММ-ДД'
+          example: 1704067200
+        shipment_at:
+          type: string
+          description: 'Дата отгрузки в формате ГГГГ-ММ-ДД'
+          example: 1704067200
+        warehouse_id:
+          type: interger
+          description: 'ИД склада'
+          example: 1
+        discount_pct:
+          type: float
+          description: 'Скидка дилера'
+          example: 1.5
+      description: 'Модель изменения зч в заказе'
+    SpareOrderItemsForm:
+      type: object
+      description: 'Модель изменения зч в заказе'
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              item_id:
+                type: integer
+                description: 'Артикль (указывается только при редактировании)'
+              articleCode:
+                type: string
+                description: 'Артикль (указывается только при добавлении)'
+              eta:
+                type: string
+                description: 'Дата поступления ЗЧ на ЦС, формат (ГГГГ-ММ-ДД)'
+              delivery_comment:
+                type: string
+                description: 'Информация о сроках поставки'
+              quantity:
+                type: integer
+                description: 'Кол-во запчастей'
+              status:
+                type: integer
+                description: 'Статус запчасти'
+              quantity_approved:
+                type: integer
+                description: 'Кол-во подтвержденных запчастей'
+              price_send:
+                type: number
+                description: Цена
+              discount_sum:
+                type: number
+                description: Скидка
+              replace_item_id:
+                type: integer
+                description: 'Ид заменяемой линии'
+              track_number:
+                type: string
+                description: Трек-номер
+              utd_number:
+                type: string
+                description: 'Номер УПД'
+              utd_date:
+                type: string
+                description: 'Дата УПД в формате ГГГГ-ММ-ДД'
+                example: 1704067200
+              shipment_at:
+                type: string
+                description: 'Дата отгрузки в формате ГГГГ-ММ-ДД'
+                example: 1704067200
+              ext:
+                type: string
+                description: 'Внешний код'
+              discount_pct:
+                type: float
+                description: 'Скидка дилера'
+                example: 1.5
+    SpareOrderPercents:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Ид модели'
+        payment_percent:
+          type: number
+          description: 'Процент оплаты заказа'
+        shipment_percent:
+          type: number
+          description: 'Процент отгрузки заказа'
+      description: 'Проценты оплаты и отгрузки заказа'
+    SpareOrderPercentsQuery:
+      type: object
+      properties:
+        payment_percent:
+          type: number
+          description: 'Процент оплаты заказа (не может быть меньше 0)'
+        shipment_percent:
+          type: number
+          description: 'Процент отгрузки заказа (не может быть меньше 0)'
+      description: 'Формат обновления процентов оплаты и отгрузки заказа'
+    SpareReference:
+      required:
+        - code
+        - group_name
+      type: object
+      description: 'Модель Запчасть'
+      properties:
+        id:
+          type: integer
+          description: ID
+        balance:
+          type: integer
+          description: Остаток
+        brand_ids:
+          type: array
+          description: 'id брэндов'
+          items:
+            type: integer
+        manufacturer_ids:
+          type: array
+          description: 'ID производителей ЗЧ'
+          items:
+            type: integer
+        order_types_ids:
+          type: array
+          description: 'id типов заказа (для выгрузки показателя необходимо его передать в expand)'
+          items:
+            type: integer
+        code:
+          type: string
+          description: 'Номер запчасти'
+        code_alias:
+          type: string
+          description: 'Номер запчасти Alias'
+        code_replace:
+          type: string
+          description: 'Заменяющий артикул (если настроена замена 1 к 1)'
+        code_sap:
+          type: string
+          description: 'Номер запчасти SAP'
+        created_at:
+          type: string
+          description: 'Дата создания'
+        dealer_network_price:
+          type: number
+          description: 'DNP руб. (без НДС)'
+        dealer_network_price_with_vat:
+          type: number
+          description: 'DNP руб. (с НДС)'
+        dealer_price:
+          type: number
+          description: 'Дилерская закупочная цена (руб без НДС)'
+        description:
+          type: string
+          description: Описание
+        equipment_ids:
+          type: array
+          description: 'id комплектаций'
+          items:
+            type: integer
+        files:
+          type: array
+          description: Фото
+          items:
+            type: string
+            format: uri
+        generation_ids:
+          type: array
+          description: 'id поколений'
+          items:
+            type: integer
+        group_id:
+          type: integer
+          description: 'Группа детализации'
+        group_name:
+          type: string
+          description: 'Группа детализации'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        height:
+          type: integer
+          description: Высота
+        is_all_models:
+          type: integer
+          description: 'Все модели (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        is_mark:
+          type: integer
+          description: 'Наличие маркировки (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        is_promo:
+          type: integer
+          description: 'Акционная ЗЧ (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        is_wholesale:
+          type: integer
+          description: 'Оптовая позиция (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        is_markdown:
+          type: integer
+          description: 'Уценка (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        is_order_vin_required:
+          type: integer
+          description: 'Обязательный VIN (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        length:
+          type: integer
+          description: Длина
+        liquidity:
+          type: integer
+          description: 'Ликвидность (0 — нет, 1 — да)'
+          enum:
+            - 0
+            - 1
+        loyalty_point:
+          type: integer
+          description: 'Количество баллов по программе лояльности за единицу'
+        mainPhoto:
+          type: string
+          format: uri
+          description: 'Основное фото'
+        max_cnt:
+          type: integer
+          description: 'Макс. кол-во для заказа'
+        model_ids:
+          type: array
+          description: 'id моделей'
+          items:
+            type: integer
+        modification_ids:
+          type: array
+          description: 'id модификаций'
+          items:
+            type: integer
+        name:
+          type: string
+          description: Название
+        name_replace:
+          type: string
+          description: 'Наименование заменяющего запчасти (если настроена замена 1 к 1)'
+        note:
+          type: string
+          description: Примечание
+        price_types:
+          type: object
+          description: 'Типы цен (id — цена)'
+        recomended_retail_price:
+          type: integer
+          description: 'Рекомендованная розничная стоимость'
+        recomended_retail_price_updated_at:
+          type: string
+          description: 'Последнее изменение цены (гггг-мм-дд чч:мм:сс)'
+          example: 949363199
+        replacement_ratio:
+          type: integer
+          description: 'Коэффициент замены'
+        sale_state:
+          type: string
+          description: 'Состояние продажи номенклатуры'
+        retail_price:
+          type: number
+          description: 'Розничная максимальная цена (руб без НДС)'
+        search_code:
+          type: string
+        serie_ids:
+          type: array
+          description: 'id серий'
+          items:
+            type: integer
+        spare_count_in_delivery:
+          type: integer
+          description: 'Количество ЗЧ в поставке'
+        spare_count_in_delivery_ext:
+          type: object
+          description: 'Количество ЗЧ в поставке (оценочное)'
+          nullable: true
+          properties:
+            ext:
+              type: string
+              description: 'Внешний код'
+            name:
+              type: string
+              description: Наименование
+            color:
+              type: string
+              description: 'Цвет в hex формате'
+        spare_delivery_at:
+          type: string
+          description: 'Ожидаемая дата поступления (гггг-мм-дд)'
+          example: 949276800
+        spareReplaces:
+          type: array
+          description: 'Заменяемые запчасти (если настроена замена 1 ко многим)'
+          items:
+            type: string
+        status:
+          type: integer
+          description: 'Статус (1 — активна, 2 — удалена, 3 — архив)'
+          enum:
+            - 1
+            - 2
+            - 3
+        sub_group_id:
+          type: integer
+          description: 'Подгруппа детализации'
+        sub_group_name:
+          type: string
+          description: 'Подгруппа детализации'
+        type_id:
+          type: integer
+          description: 'Тип (1 — Запчасть, 2 — Аксессуар)'
+          enum:
+            - 1
+            - 2
+        unit_package:
+          type: integer
+          description: 'Кратность заказа'
+        updated_at:
+          type: string
+          description: 'Дата Изменения'
+        user_id:
+          type: integer
+          description: Автор
+        volume_coefficient:
+          type: number
+          description: 'Кол-во единиц в объеме'
+        weight:
+          type: integer
+          description: Вес
+        width:
+          type: integer
+          description: Ширина
+        group_ids:
+          type: array
+          description: 'ИД групп (для передачи требуется добавить expand=group_ids)'
+          items:
+            type: integer
+        sub_group_ids:
+          type: array
+          description: 'ИД подгрупп (для передачи требуется добавить expand=sub_group_ids)'
+          items:
+            type: integer
+        spare_availability_ext:
+          type: string
+          description: 'Внешний код наличия зч'
+        spare_availability_id:
+          type: string
+          description: 'ИД код наличия зч'
+        balance_types:
+          type: object
+          description: 'Остатки по типам цен запчастей (ключ - внешний код типа цены ЗЧ, значение - остаток). Доступно только в режиме "Указывать для типа цены ЗЧ" (настройка "Способ передачи остатков" в конфигураторе). Для получения необходимо указать expand=balance_types в запросе.'
+          additionalProperties:
+            type: number
+            format: float
+            description: 'Остаток для типа запчасти'
+        balance_warehouses_only:
+          type: object
+          description: 'Остатки по складам без типов цен ЗЧ (ключ - внешний код склада, значение - остаток). Доступно только в режиме "Указывать для склада" (настройка "Способ передачи остатков на складах дистрибьютора" в конфигураторе). Для получения необходимо указать expand=balance_warehouses_only в запросе.'
+          additionalProperties:
+            type: number
+            format: float
+            description: 'Остаток для склада'
+        balance_warehouses:
+          type: object
+          description: 'Остатки по типам и складам (ключ первого уровня - внешний код типа, ключ второго уровня - внешний код склада, значение - остаток). Доступно только в режиме "Указывать для типа цены ЗЧ/Склада" (настройка "Способ передачи остатков на складах дистрибьютора" в конфигураторе). Для получения необходимо указать expand=balance_warehouses в запросе.'
+          additionalProperties:
+            type: object
+            description: 'Остатки по складам для типа запчасти'
+            additionalProperties:
+              type: number
+              format: float
+              description: 'Остаток для типа и склада'
+    SpareReferenceFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: Название
+        url:
+          type: string
+          description: URL
+        is_error:
+          type: bool
+          description: Ошибка
+        size:
+          type: string
+          description: Размер
+        mimetype:
+          type: string
+          description: MIME-тип
+        filename:
+          type: string
+          description: 'Путь к файлу'
+        result_upload_url:
+          type: string
+          description: 'Полный путь к загруженному файлу'
+      description: 'Файл ЗЧ'
+    SpareReferenceForm:
+      required:
+        - code
+        - group_name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        code:
+          type: string
+          description: 'Номер запчасти'
+        code_alias:
+          type: string
+          description: 'Номер запчасти Alias'
+        name:
+          type: string
+          description: Название
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        group_name:
+          type: string
+          description: 'Группа детализации'
+        sub_group_name:
+          type: string
+          description: 'Подгруппа детализации'
+        group_id:
+          type: string
+          description: 'Группа детализации'
+        group_ids:
+          type: string
+          description: 'Подгруппа детализации'
+        sub_group_id:
+          type: string
+          description: 'Группа детализации'
+        sub_group_ids:
+          type: string
+          description: 'Подгруппа детализации'
+        user_id:
+          type: integer
+          description: Автор
+        code_replace:
+          type: string
+          description: 'Заменяющий артикул (если настроена замена 1 к 1)'
+        filePhotos:
+          type: array
+          description: 'Массив файлов (Элемент массива - содержимое файла в формате Base64)'
+        name_replace:
+          type: string
+          description: 'Наименование заменяющего запчасти (если настроена замена 1 к 1)'
+        spareReplaces:
+          type: array
+          description: 'Заменяемые запчасти (если настроена замена 1 ко многим)'
+        items:
+          type: string
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата Изменения'
+        note:
+          type: string
+          description: Примечание
+        weight:
+          type: integer
+          description: Вес
+        length:
+          type: integer
+          description: Длина
+        width:
+          type: integer
+          description: Ширина
+        height:
+          type: integer
+          description: Высота
+        model_id:
+          type: integer
+          description: 'Модель авто'
+        replacement_ratio:
+          type: integer
+          description: 'Коэффициент замены'
+        sale_state:
+          type: string
+          description: 'Состояние продажи номенклатуры'
+        recomended_retail_price:
+          type: integer
+          description: 'Рекомендованная розничная стоимость'
+        dealer_network_price:
+          type: number
+          description: 'DNP руб. (без НДС)'
+        dealer_network_price_with_vat:
+          type: number
+          description: 'DNP руб. (с НДС)'
+        volume_coefficient:
+          type: number
+          description: 'Кол-во единиц в объеме'
+        loyalty_point:
+          type: integer
+          description: 'Количество баллов по программе лояльности за единицу'
+        unit_package:
+          type: integer
+          description: 'Кратность заказа'
+        prices:
+          type: object
+          properties: {  }
+          description: 'Ключ - тип цены, Значение - Цена'
+        balance_types:
+          type: object
+          description: 'Остатки по типам цен запчастей без привязки к складам. Используется только при режиме "Указывать для типа цены ЗЧ" (SpareBalanceType::TYPE_TYPE). Формат: ключ - внешний код типа запчасти (type_ext), значение - количество остатка. Если передано неверное поле для текущего режима, будет возвращена ошибка валидации (HTTP 400).'
+          additionalProperties:
+            type: number
+            format: float
+            minimum: 0
+            description: 'Остаток для типа запчасти'
+          example:
+            TYPE1: 20
+            TYPE2: 15
+        balance_warehouses_only:
+          type: object
+          description: 'Остатки по складам без разреза типов цен запчастей. Используется только при режиме "Указывать для склада" (SpareBalanceType::TYPE_WAREHOUSE). Формат: ключ - внешний код склада (warehouse_ext), значение - количество остатка. Если передано неверное поле для текущего режима, будет возвращена ошибка валидации (HTTP 400).'
+          additionalProperties:
+            type: number
+            format: float
+            minimum: 0
+            description: 'Остаток для склада'
+          example:
+            WAREHOUSE1: 10
+            WAREHOUSE2: 5
+        balance_warehouses:
+          type: object
+          description: 'Остатки по типам цен запчастей с привязкой к складам. Используется только при режиме "Указывать для типа цены ЗЧ/Склада" (SpareBalanceType::TYPE_TYPE_WAREHOUSE). Формат: ключ первого уровня - внешний код типа запчасти (type_ext), значение - объект с ключами-кодами складов (warehouse_ext) и значениями-количеством остатка. Если передано неверное поле для текущего режима, будет возвращена ошибка валидации (HTTP 400).'
+          additionalProperties:
+            type: object
+            description: 'Остатки по складам для типа запчасти'
+            additionalProperties:
+              type: number
+              format: float
+              minimum: 0
+              description: 'Остаток для типа и склада'
+          example:
+            TYPE1:
+              WAREHOUSE1: 10
+              WAREHOUSE2: 5
+            TYPE2:
+              WAREHOUSE1: 8
+              WAREHOUSE3: 12
+        balance:
+          type: integer
+          description: Остаток
+        status:
+          type: integer
+          description: 'Статус запчасти (1 - активный, 2 - удаленный, 3 - архив)'
+        max_cnt:
+          type: integer
+          description: 'Макс. кол-во для заказа'
+        is_mark:
+          type: boolean
+          description: 'Наличие маркировки'
+        is_promo:
+          type: boolean
+          description: 'Акционная ЗЧ'
+        is_deny_order:
+          type: boolean
+          description: 'Запрет заказа'
+        spare_availability_ext:
+          type: string
+          description: 'Внешний код наличия зч'
+        spare_count_in_delivery_ext:
+          type: integer
+          description: 'Внешний код количества ЗЧ в поставке (оценочное)'
+        is_order_vin_required:
+          type: boolean
+          description: 'Обязательный VIN'
+        order_types_ids:
+          type: array
+          description: 'id типов заказа'
+          items:
+            type: integer
+      description: "Модель Запчасть\nПримечание по полям балансов: - Поля balance_types, balance_warehouses_only и balance_warehouses являются взаимоисключающими в зависимости от настройки \"Способ передачи остатков на складах дистрибьютора\" в системе - При передаче данных через API нужно использовать только одно из полей, соответствующее текущему режиму балансов - Если передано неверное поле для текущего режима, будет возвращена ошибка валидации (HTTP 400)"
+    SpareSale:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        code:
+          type: string
+          description: 'Номер накладной'
+        date:
+          type: string
+          description: 'Дата реализации (формат: ГГГГ-ММ-ДД)'
+        status:
+          type: integer
+          description: 'Статус (1 - Активный, 2 - Удален)'
+        client_id:
+          type: integer
+          description: Клиент
+        dealer_id:
+          type: integer
+          description: Дилер
+        user_id:
+          type: integer
+          description: Пользователь
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата обновления'
+        type:
+          type: integer
+          description: 'Тип (1 - Розница, 2 - Опт)'
+        partner_id:
+          type: integer
+          description: 'Ид контрагента'
+        total_sum:
+          type: number
+          description: 'Итоговая сумма'
+        request_id:
+          type: integer
+          description: 'ID лида'
+      description: Модель
+    SpareSaleForm:
+      required:
+        - client_id
+        - code
+        - date
+        - spares
+        - type
+      type: object
+      properties:
+        client_id:
+          type: integer
+          description: 'Клиент (если указан request_id, то этот параметр не учитывается в передаче)'
+        dealer_id:
+          type: integer
+          description: Дилер
+        code:
+          type: string
+          description: 'Номер накладной'
+        date:
+          type: string
+          description: 'Дата реализации (формат: дд.мм.гггг)'
+        status:
+          type: integer
+          description: 'Статус (1 - Активный, 2 - Удален)'
+        type:
+          type: integer
+          description: 'Тип (1 - Розница, 2 - Опт)'
+        partner_id:
+          type: integer
+          description: 'Ид контрагента'
+        request_id:
+          type: integer
+          description: 'ID лида (если указан, то client_id не учитывается в передаче)'
+        spares:
+          type: array
+          description: ЗЧ
+          items:
+            $ref: '#/components/schemas/SpareSaleSpareForm'
+    SpareSaleSpare:
+      type: object
+      properties:
+        id:
+          type: integer
+        spare_sale_id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        discount:
+          type: number
+        sum:
+          type: number
+        quantity:
+          type: number
+        user_id:
+          type: integer
+        created_at:
+          type: string
+        updated_at:
+          type: string
+    SpareSaleSpareForm:
+      required:
+        - code
+        - name
+        - price
+        - quantity
+        - sum
+      type: object
+      properties:
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        price:
+          type: number
+          description: Цена
+        quantity:
+          type: number
+          description: Кол-во
+        discount:
+          type: number
+          description: Скидка
+        sum:
+          type: number
+          description: Сумма
+    SpareSaleView:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        client_id:
+          type: integer
+          description: Клиент
+        dealer_id:
+          type: integer
+          description: Дилер
+        code:
+          type: integer
+          description: 'Номер накладной'
+        date:
+          type: string
+          description: 'Дата реализации'
+        status:
+          type: integer
+          description: 'Статус (1 - Активный, 2 - Удален)'
+        type:
+          type: integer
+          description: 'Тип (1 - Розница, 2 - Опт)'
+        request_id:
+          type: integer
+          description: 'ID лида'
+        spares:
+          type: array
+          description: Запчасти
+          items:
+            $ref: '#/components/schemas/SpareSaleSpare'
+    SpareWarehousePartner:
+      required:
+        - name
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: number
+          description: 'Статус (1 - Активен, 2 - Удален)'
+          format: int64
+      description: 'Запись о контрагенте'
+    SpareWarehouseSpare:
+      required:
+        - code
+        - cost
+        - cost_nds
+        - count
+        - measure
+        - name
+        - price
+        - price_nds
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID запчасти'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        manufacture:
+          type: string
+          description: Производитель
+        code:
+          type: string
+          description: Артикул
+        name:
+          type: string
+          description: Наименование
+        measure:
+          type: string
+          description: 'Единица измерения'
+        count:
+          type: number
+          description: 'Кол-во на складе'
+        cost:
+          type: number
+          description: 'Себестоимость 1 единицы без НДС'
+        cost_nds:
+          type: number
+          description: 'НДС себестоимости'
+        price:
+          type: number
+          description: 'Цена 1 единицы без НДС'
+        price_nds:
+          type: number
+          description: 'НДС цены'
+        price_list_cost:
+          type: number
+          description: 'Цена по прайс листу, без скидки за шт. (без НДС)'
+        price_list_cost_nds:
+          type: number
+          description: 'Цена по прайс листу, без скидки за шт. (с НДС)'
+        status:
+          type: integer
+          description: 'Статус (1 - Активно, 2 - Удалено)'
+      description: 'Запчасть дилера'
+    SpareWarehouseTransaction:
+      required:
+        - code
+        - cost
+        - cost_nds
+        - count
+        - datetime
+        - price
+        - price_nds
+        - spare_id
+        - type
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        datetime:
+          type: string
+          description: 'дата/время транзакции в формате dd.MM.yyyy HH:mm'
+        code:
+          type: string
+          description: 'Код документа во внешней системе'
+        spare_id:
+          type: integer
+          description: 'ID запчасти'
+        type:
+          type: integer
+          description: 'Тип движения 1 - приход, 2 - расход'
+        count:
+          type: number
+          description: Кол-во
+        cost:
+          type: number
+          description: 'Себестоимость 1 единицы без НДС'
+        cost_nds:
+          type: number
+          description: 'НДС себестоимость 1 единицы'
+        price:
+          type: number
+          description: 'Цена 1 единицы без НДС'
+        price_nds:
+          type: number
+          description: 'НДС цены 1 единицы'
+        status:
+          type: integer
+          description: 'Статус (1 - Активно, 2 - Удалено)'
+        sub_type_id:
+          type: integer
+          description: Подтип
+        partner_id:
+          type: integer
+          description: Контрагент
+        purchase_tag_id:
+          type: integer
+          description: 'Вид ремонта'
+        is_promo:
+          type: integer
+          description: Акция
+      description: 'Запись о движении запчасти дилера'
+    SpareWarehouseTransactionSubType:
+      required:
+        - name
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID записи'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: number
+          description: 'Статус (1 - Активен, 2 - Удален)'
+          format: int64
+      description: 'Запись о подтипе'
+    SpareWarehouseTransfer:
+      required:
+        - spare_warehouse_from_id
+        - spare_warehouse_to_id
+        - count
+        - article
+        - number
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Идентификатор перемещения (генерируется автоматически)'
+        spare_warehouse_from_id:
+          type: integer
+          description: Склад-отправитель
+        spare_warehouse_to_id:
+          type: integer
+          description: Склад-получатель
+        article:
+          type: string
+          description: 'Артикул запасной части'
+        count:
+          type: number
+          description: 'Количество перемещённых запасных частей'
+        comment:
+          type: string
+          description: 'Комментарий к перемещению'
+          maxLength: 300
+        number:
+          type: string
+          description: 'Номер перемещения'
+      description: 'Модель записи перемещения запасных частей'
+      example:
+        id: 1
+        spare_warehouse_from_id: 1
+        spare_warehouse_to_id: 2
+        article: A123B456
+        count: 10
+        comment: 'Перемещение запасных частей для ремонта'
+        number: TRF-2024-001
+    StaffActivity:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 'Код ДЦ'
+        from:
+          type: string
+          description: 'Дата с'
+        to:
+          type: string
+          description: 'Дата по'
+        type:
+          type: array
+          description: 'Признак типа документа (1 - Рабочие листы, 2 - Заказ-наряды)'
+        worksheets:
+          type: array
+          description: 'Рабочие листы'
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 'ФИО сотрудника'
+              positions:
+                type: array
+                description: 'Должности сотрудника'
+                items:
+                  type: string
+              email:
+                type: string
+                description: 'E-mail сотрудника'
+              phone:
+                type: string
+                description: 'Телефон сотрудника'
+              count:
+                type: string
+                description: 'Количество рабочих листов за период'
+        purchases:
+          type: array
+          description: Заказ-наряды
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 'ФИО сотрудника'
+              positions:
+                type: array
+                description: 'Должности сотрудника'
+                items:
+                  type: string
+              email:
+                type: string
+                description: 'E-mail сотрудника'
+              phone:
+                type: string
+                description: 'Телефон сотрудника'
+              count:
+                type: string
+                description: 'Количество заказ-нарядов за период'
+      description: 'Модель данных по активности персонала'
+    Stage:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID этапа (генерируется автоматически)'
+        request_id:
+          type: integer
+          description: 'ID лида'
+        stage_type_id:
+          type: integer
+          description: 'ID типа стадии'
+        lasttime_at:
+          type: string
+          description: 'дата последних изменений'
+        finished_at:
+          type: string
+          description: 'дата завершения'
+        result_id:
+          type: integer
+          description: 'ID результата'
+        is_closed:
+          type: boolean
+          description: закрыто
+        code:
+          type: string
+          description: Код
+        user_id:
+          type: integer
+          description: Пользователь
+        serviceRegisterAt:
+          type: string
+          description: 'Время записи на сервис (формат dd.MM.yyyy HH:mm)'
+        stageType:
+          $ref: '#/components/schemas/StageType'
+        result:
+          $ref: '#/components/schemas/StageResult'
+        comments:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: array
+              description: Комментарии
+              items:
+                type: string
+      description: 'Модель Этап лида'
+    StageForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID этапа (генерируется автоматически)'
+        request_id:
+          type: integer
+          description: 'ID лида'
+        stage_type_id:
+          type: integer
+          description: 'ID типа стадии'
+        lasttime_at:
+          type: string
+          description: 'дата последних изменений'
+        finished_at:
+          type: string
+          description: 'дата завершения'
+        result_id:
+          type: integer
+          description: 'ID результата'
+        is_closed:
+          type: boolean
+          description: закрыто
+        code:
+          type: string
+          description: Код
+        user_id:
+          type: integer
+          description: Пользователь
+        purchase_id:
+          type: integer
+          description: 'ID заказ-наряда'
+        purchase_code:
+          type: string
+          description: 'код заказ-наряда'
+        worksheetId:
+          type: integer
+          description: 'уникальный идентификатор рабочего листа в DNM'
+        stageType:
+          $ref: '#/components/schemas/StageType'
+        result:
+          $ref: '#/components/schemas/StageResult'
+        comments:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: array
+              description: Комментарии
+              items:
+                type: string
+      description: 'Модель Этап лида'
+    StageResult:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID результата'
+        parent_id:
+          type: integer
+          description: 'ID родителя результата'
+        name:
+          type: string
+          description: Название
+        name_en:
+          type: string
+          description: 'Название (англ)'
+        user_id:
+          type: integer
+          description: Автор
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+        for_reject:
+          type: integer
+          description: Отказ
+        for_lead:
+          type: integer
+          description: 'Используется в лидах'
+        code:
+          type: integer
+          description: 'Системный код'
+        for_call_center:
+          type: integer
+          description: 'Используется колл центром'
+        for_transfer:
+          type: integer
+          description: Перенос
+        reject_contract:
+          type: integer
+          description: 'Отказ от контракта'
+        tag_id:
+          type: integer
+          description: Тег
+        for_potential_contact:
+          type: integer
+          description: 'Используется в точках потенциала'
+        is_require_worksheet:
+          type: boolean
+          description: 'Обязательность указания ID рабочего листа'
+        is_require_purchase:
+          type: boolean
+          description: 'Обязательность указания ID рабочего листа'
+      description: 'Модель Результат стадии'
+    StageType:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID типа этапа (генерируется автоматически)'
+        code:
+          type: string
+          description: Название
+        name:
+          type: string
+          description: Название
+        priority:
+          type: integer
+          description: Приоритет
+        status:
+          type: integer
+          description: 'Состояние 0 - Активна, 1000 - удалено'
+        user_id:
+          type: integer
+          description: Пользователь
+        created_at:
+          type: string
+          description: 'Дата создания'
+        updated_at:
+          type: string
+          description: 'Дата изменения'
+        is_comment_required:
+          type: boolean
+          description: 'Требуется комментарий'
+        attachment:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+        results:
+          $ref: '#/components/schemas/StageResult'
+      description: 'Модель Тип этапа'
+    StatisticManager:
+      required:
+        - count
+        - event_type
+        - manager_id
+      type: object
+      properties:
+        manager_id:
+          type: integer
+          description: 'id менеджера'
+        event_type:
+          type: string
+          description: 'код события'
+        count:
+          type: integer
+          description: 'кол-во событий за промежуток времени'
+      description: 'Статистика событий по менеджерам'
+    StatisticModel:
+      required:
+        - count
+        - event_type
+        - model_id
+      type: object
+      properties:
+        model_id:
+          type: integer
+          description: 'id модели'
+        event_type:
+          type: string
+          description: 'код события'
+        count:
+          type: integer
+          description: 'кол-во событий за промежуток времени'
+      description: 'Статистика событий по моделям'
+    StockBalance:
+      required:
+        - date
+        - dealer_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID отчета'
+        dealer_id:
+          type: string
+          description: 'ID дилера'
+        date:
+          type: string
+          description: Период
+        valid:
+          type: boolean
+          description: Статус
+        user_id:
+          type: integer
+          description: 'ID пользователя'
+        created_at:
+          type: string
+          description: 'Дата создания отчета'
+        updated_at:
+          type: string
+          description: 'Дата редактирования отчета'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockBalanceItem'
+      description: 'Модель отчет по складским остаткам'
+    StockBalanceBalance:
+      type: object
+      properties:
+        reserved_method:
+          type: integer
+          nullable: true
+          description: 'Метод расчета резервов (1 - Сумма, 2 - Максимальное)'
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'ID строки отчета, генерируется автоматически'
+              article:
+                type: string
+                description: Артикул
+              inn:
+                type: string
+                maxLength: 20
+                description: 'ИНН поставщика'
+              name:
+                type: string
+                description: 'Наименование запчасти'
+              doc_date:
+                type: string
+                description: 'Дата документа поступления (в формате YYYY-mm-dd)'
+              count:
+                type: integer
+                description: Количество
+              cost:
+                type: number
+                description: 'Себестоимость за шт'
+              reserved:
+                type: number
+                description: 'В резерве'
+              service_type:
+                type: string
+                description: 'Канал реализации'
+              price:
+                type: number
+                description: 'Стоимость реализации за единицу'
+              sold:
+                type: integer
+                description: 'Количество проданных'
+              number:
+                type: string
+                description: 'Номер документа'
+              receipt_doc_number:
+                type: string
+                description: 'Номер документа поступления ЗЧ на склад дилера'
+              channel:
+                type: integer
+                description: 'ID канала реализации'
+    StockBalanceImplementation:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: 'ID строки отчета, генерируется автоматически'
+              pn:
+                type: string
+                description: Артикул
+              cnt:
+                type: integer
+                description: Количество
+              chn:
+                type: integer
+                description: 'Канал реализации: 1 - Cлесарный цех, 2 - Кузовной цех, 3 - Розница, 4 -   Опт, 5 -  Доп'
+              dn:
+                type: string
+                description: 'Номер документа реализации'
+              realization:
+                type: string
+                description: 'Дата документа реализации (в формате YYYY-mm-dd)'
+              prc:
+                type: number
+                description: 'Стоимость конечной реализации за единицу, с НДС'
+    StockBalanceItem:
+      required:
+        - article
+        - doc_date
+        - stock_balance_id
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID строки отчета, генерируется автоматически'
+        stock_balance_id:
+          type: integer
+          description: 'ID отчета по складским остаткам'
+        article:
+          type: string
+          description: 'Артикул запасной части'
+        inn:
+          type: string
+          maxLength: 20
+          description: 'ИНН поставщика'
+        count:
+          type: integer
+          description: Количество
+        cost:
+          type: number
+          description: 'Закупочная стоимость за единицу без НДС'
+        price:
+          type: number
+          description: 'Стоимость конечной реализации за единицу, с НДС'
+        doc_date:
+          type: string
+          description: 'Дата документа реализации (в формате YYYY-mm-dd)'
+        service_type:
+          type: string
+          description: 'Канал реализации'
+        reserved:
+          type: number
+          description: 'В резерве'
+        sold:
+          type: integer
+          description: 'Количество проданных'
+        number:
+          type: string
+          description: 'Номер документа'
+        channel:
+          type: integer
+          description: 'ID канала реализации'
+        type:
+          type: integer
+          description: 'Тип записи (1 - реализация, 2 - остаток)'
+      description: 'Модель строка отчета по складским остаткам'
+    Subscribe:
+      required:
+        - brand_id
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID подписки (генерируется автоматически)'
+        brand_id:
+          type: integer
+          description: 'ID бренда'
+        model_id:
+          type: integer
+          description: 'ID модели'
+        name:
+          type: string
+          description: Название
+      description: 'Модель подписка'
+    SubscribeForm:
+      required:
+        - clientId
+      type: object
+      properties:
+        clientId:
+          type: integer
+          description: 'ID клиента дистрибьютора'
+        subscribes:
+          type: array
+          description: Подписки
+          items:
+            $ref: '#/components/schemas/Subscribe'
+      description: 'Модель подписка'
+    SupportProgram:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'Категория мотивационной программы'
+        name:
+          type: string
+          description: Наименование
+        system_code:
+          type: string
+          description: 'Системный код'
+      description: 'Модель категории мотивационной программы'

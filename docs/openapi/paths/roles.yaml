@@ -1,0 +1,104 @@
+collection:
+  get:
+    tags: [Роли]
+    summary: Список ролей
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../components/parameters.yaml#/PerPage'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: Список ролей (JSON:API коллекция с пагинацией)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/roles.yaml#/RoleResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/Pagination'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Роли]
+    summary: Создать роль
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/roles.yaml#/RoleRequest'
+    responses:
+      '201':
+        description: Роль создана
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/roles.yaml#/RoleResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - name: role
+      in: path
+      required: true
+      description: ID роли
+      schema:
+        type: integer
+
+  patch:
+    tags: [Роли]
+    summary: Обновить роль
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/roles.yaml#/RoleRequest'
+    responses:
+      '200':
+        description: Обновлённая роль
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/roles.yaml#/RoleResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Роли]
+    summary: Удалить роль
+    description: Нельзя удалить роль, если она назначена хотя бы одному пользователю.
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Роль удалена
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        description: Роль назначена пользователям — удаление невозможно
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'

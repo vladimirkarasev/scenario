@@ -1,0 +1,59 @@
+CatalogItem:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      type: string
+      enum: [category, scenario]
+    attributes:
+      type: object
+      properties:
+        name:
+          type: string
+        is_active:
+          type: boolean
+        active_version_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Только для type=scenario
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Только для type=category
+        child_count:
+          type: integer
+          description: Количество вложенных категорий (только для type=category)
+        scenario_count:
+          type: integer
+          description: Количество сценариев в категории (только для type=category)
+        version_count:
+          type: integer
+          description: Количество версий (только для type=scenario)
+    relationships:
+      type: object
+      properties:
+        path:
+          type: object
+          description: Цепочка родительских категорий
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: category
+                  id:
+                    type: string
+                    format: uuid
+                  meta:
+                    type: object
+                    properties:
+                      name:
+                        type: string

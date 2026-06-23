@@ -1,0 +1,134 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - btl'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: btl
+    description: 'Управление BTL мероприятиями'
+paths:
+  /btl:
+    get:
+      tags:
+        - btl
+      summary: 'Получение списка BTL мероприятий'
+      description: 'Получение списка BTL мероприятий с возможностью фильтрации по различным параметрам'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID мероприятия'
+          schema:
+            type: integer
+        -
+          name: brand_id
+          in: query
+          description: 'ID бренда'
+          schema:
+            type: integer
+        -
+          name: model_alias_id
+          in: query
+          description: 'ID алиаса модели'
+          schema:
+            type: integer
+        -
+          name: date_from
+          in: query
+          description: 'Дата начала мероприятия "с" в формате YYYY-MM-DD'
+          schema:
+            type: string
+            format: date
+        -
+          name: date_to
+          in: query
+          description: 'Дата окончания мероприятия "до" в формате YYYY-MM-DD'
+          schema:
+            type: string
+            format: date
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+            default: 1
+        -
+          name: expand
+          in: query
+          description: 'Дополнительные поля для включения в ответ (dealers,requestTypes,brand,schedules,slots,links,model_aliases,settings,description,image,additionalImages)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список BTL мероприятий'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BTL'
+                  _meta:
+                    type: object
+                    properties:
+                      totalCount:
+                        type: integer
+                      pageCount:
+                        type: integer
+                      currentPage:
+                        type: integer
+                      perPage:
+                        type: integer
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Недостаточно прав доступа'
+          content: {  }
+  '/btl/{id}':
+    get:
+      tags:
+        - btl
+      summary: 'Получение BTL мероприятия по ID'
+      description: 'Получение конкретного BTL мероприятия по его идентификатору'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID BTL мероприятия'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Дополнительные поля для включения в ответ (dealers,requestTypes,brand,schedules,slots,links,model_aliases,settings,description,image,additionalImages)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает BTL мероприятие'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BTL'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        403:
+          description: 'Недостаточно прав доступа'
+          content: {  }
+        404:
+          description: 'BTL мероприятие не найдено'
+          content: {  }

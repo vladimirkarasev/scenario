@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - external-event'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: external-event
+    description: 'Внешние события'
+paths:
+  /external-event:
+    get:
+      tags:
+        - external-event
+      summary: 'Получение списка внешних событий'
+      description: 'Получение списка внешних событий'
+      parameters:
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список внешних событий'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

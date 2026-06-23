@@ -1,0 +1,539 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - maintenance-schedule'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: maintenance-schedule
+    description: 'Управление журналом записи на сервис'
+paths:
+  /service/maintenance-schedule:
+    get:
+      tags:
+        - maintenance-schedule
+      description: 'Получение списка записей на сервис из журнала'
+      summary: 'Получение списка записей на сервис из журнала'
+      parameters:
+        -
+          name: station_id
+          in: query
+          description: 'ID поста СТО ДЦ'
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Код журнала'
+          schema:
+            type: string
+        -
+          name: dealer_id
+          in: query
+          description: 'ID дилера'
+          schema:
+            type: integer
+        -
+          in: query
+          name: acceptor_id
+          description: 'ID мастера приемщика на прием авто'
+          schema:
+            type: integer
+        -
+          name: issued_by_id
+          in: query
+          description: 'ID мастера приемщика на выдачу авто'
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: integer
+          enum:
+            - '1 - Активно'
+            - '2 - Отмена'
+            - '3 - Бронь'
+        -
+          name: occupying_type
+          in: query
+          description: 'Тип занятости'
+          schema:
+            type: integer
+          enum:
+            - '1 - Запись'
+            - '2 - Блокировка'
+        -
+          name: car_id
+          in: query
+          description: 'ID автомобиля'
+          schema:
+            type: integer
+        -
+          name: client_id
+          in: query
+          description: 'ID клиента'
+          schema:
+            type: integer
+        -
+          name: from
+          in: query
+          description: 'Дата время с в формате DD.MM.YYYY HH:MM'
+          schema:
+            type: string
+        -
+          name: to
+          in: query
+          description: 'Дата время по в формате DD.MM.YYYY HH:MM'
+          schema:
+            type: string
+        -
+          name: event_type
+          in: query
+          description: 'Тип контакта'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список записей из журнала заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenanceSchedule'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - maintenance-schedule
+      description: 'Добавление новой записи на сервис в журнал'
+      summary: 'Добавление новой записи на сервис в журнал'
+      requestBody:
+        description: 'Объект MaintenanceSchedule'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceScheduleForm'
+        required: true
+      responses:
+        200:
+          description: 'Новая запись на сервис в журнале успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceScheduleForm'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/maintenance-schedule/add-station-schedule/{id}':
+    put:
+      tags:
+        - maintenance-schedule
+      description: 'Добавление записи на пост сервиса из журнала'
+      summary: 'Добавление записи на пост сервиса из журнала'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи на пост сервиса из журнала'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        name: maintenance-station-schedule
+        description: 'модель Запись журнала на пост сервиса'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MaintenanceStationScheduleForm'
+      responses:
+        200:
+          description: 'Запись журнала на сервис успешно добавлена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceScheduleForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /service/maintenance-schedule/get-by-user:
+    get:
+      tags:
+        - maintenance-schedule
+      description: 'Получение списка записей на сервис из журнала по мастеру приемщику'
+      summary: 'Получение списка записей на сервис из журнала по мастеру приемщику'
+      parameters:
+        -
+          name: user_id
+          in: query
+          description: 'ID мастера приемщика на прием или выдачу авто'
+          schema:
+            type: integer
+          required: true
+        -
+          name: from
+          in: query
+          description: 'Дата время с в формате DD.MM.YYYY HH:MM'
+          schema:
+            type: string
+        -
+          name: to
+          in: query
+          description: 'Дата время по в формате DD.MM.YYYY HH:MM'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список записей из журнала заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenanceSchedule'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /service/maintenance-schedule/get-empty-by-dealer:
+    get:
+      tags:
+        - maintenance-schedule
+      description: 'Получение списка свободных записей на сервис из журнала по дилеру'
+      summary: 'Получение списка свободных записей на сервис из журнала по дилеру'
+      parameters:
+        -
+          name: 'dealer_id[]'
+          in: query
+          description: 'ID дилеров'
+          schema:
+            type: array
+            items:
+              type: integer
+        -
+          name: 'dealer_code[]'
+          in: query
+          description: 'Коды дилеров'
+          schema:
+            type: array
+            items:
+              type: string
+        -
+          name: cityId
+          in: query
+          description: 'ID города'
+          schema:
+            type: integer
+        -
+          name: dealerStatus
+          in: query
+          description: 'Статус дилера (Активные - "active", Удаленные - "deleted", Все - "all". По умолчанию активные)'
+          schema:
+            type: string
+        -
+          name: date
+          in: query
+          description: 'Дата в формате DD.MM.YYYY'
+          schema:
+            type: string
+          required: true
+        -
+          name: bySlot
+          in: query
+          description: 'Разбиение интервалы на слоты'
+          schema:
+            type: integer
+          default: 1
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список свободных записей на сервис'
+          content:
+            application/json:
+              schema:
+                type: array
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /service/maintenance-schedule/get-empty-by-station:
+    get:
+      tags:
+        - maintenance-schedule
+      description: 'Получение списка свободных записей на сервис из журнала по СТО'
+      summary: 'Получение списка свободных записей на сервис из журнала по СТО'
+      parameters:
+        -
+          name: station_id
+          in: query
+          description: 'ID СТО'
+          schema:
+            type: integer
+          required: true
+        -
+          name: date
+          in: query
+          description: 'Дата в формате DD.MM.YYYY'
+          schema:
+            type: string
+          required: true
+        -
+          name: bySlot
+          in: query
+          description: 'Разбиение интервалы на слоты'
+          schema:
+            type: integer
+          default: 1
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список свободных записей из журнала заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /service/maintenance-schedule/get-empty-by-user:
+    get:
+      tags:
+        - maintenance-schedule
+      description: 'Получение списка свободных записей на сервис из журнала по мастеру приемщику'
+      summary: 'Получение списка свободных записей на сервис из журнала по мастеру приемщику'
+      parameters:
+        -
+          name: user_id
+          in: query
+          description: 'ID мастера приемщика на прием или выдачу авто'
+          schema:
+            type: integer
+          required: true
+        -
+          name: date
+          in: query
+          description: 'Дата в формате DD.MM.YYYY'
+          schema:
+            type: string
+          required: true
+        -
+          name: bySlot
+          in: query
+          description: 'Разбиение интервалы на слоты'
+          schema:
+            type: integer
+          default: 1
+        -
+          name: page
+          in: query
+          type: integer
+          schema:
+            description: 'Номер страницы'
+      responses:
+        200:
+          description: 'Возвращает список свободных записей из журнала заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/service/maintenance-schedule/station-reschedule/{id}':
+    put:
+      tags:
+        - maintenance-schedule
+      description: 'Отмена всех существующих записей на посты и добавление новой записи на пост'
+      summary: 'Отмена всех существующих записей на посты и добавление новой записи на пост'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи на сервис из журнала'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        name: maintenance-station-schedule
+        description: 'модель Запись журнала на пост сервиса'
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MaintenanceStationScheduleForm'
+      responses:
+        200:
+          description: 'Запись журнала на сервис успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceScheduleForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/maintenance-schedule/update-station-schedule/{id}':
+    put:
+      tags:
+        - maintenance-schedule
+      description: 'Изменение записи на пост сервиса из журнала'
+      summary: 'Изменение записи на пост сервиса из журнала'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи на пост сервиса из журнала'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        name: maintenance-station-schedule
+        description: 'модель Запись журнала на пост сервиса'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceStationScheduleForm'
+      responses:
+        200:
+          description: 'Запись журнала на сервис успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceStationScheduleForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/service/maintenance-schedule/{id}':
+    get:
+      tags:
+        - maintenance-schedule
+      summary: 'Получение записи на сервис из журнала по ID'
+      description: 'Получение записи на сервис из журнала ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id записи'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Получение записи на сервис из журнала по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceSchedule'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - maintenance-schedule
+      description: 'Изменение записи на сервис из журнала'
+      summary: 'Изменение записи на сервис из журнала'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID записи на сервис из журнала'
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: 'модель Запись журнала на сервис'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceScheduleForm'
+        required: false
+      responses:
+        200:
+          description: 'запись на сервис в журнале успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceSchedule'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

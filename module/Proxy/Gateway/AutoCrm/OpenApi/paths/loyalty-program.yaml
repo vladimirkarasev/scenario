@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - loyalty-program'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: loyalty-program
+    description: 'Программы лояльности'
+paths:
+  /loyalty/program:
+    get:
+      tags:
+        - loyalty-program
+      parameters:
+        -
+          name: expand
+          in: query
+          description: 'Параметр, позволяющий получить в ответе связные данные (levels, levels.benefits, levels.conditions)'
+          schema:
+            type: string
+      summary: 'Получить список программ лояльности'
+      description: 'Получить список программ лояльности'
+      responses:
+        200:
+          description: 'Возвращает список участников'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyProgram'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

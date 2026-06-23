@@ -1,0 +1,164 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - channel'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: channel
+    description: 'Управление каналами'
+paths:
+  /lms/channel:
+    get:
+      tags:
+        - channel
+      summary: 'Получение списка каналов'
+      description: 'Получение списка каналов'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список каналов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - channel
+      summary: 'Добавление нового канала'
+      description: 'Добавление нового канала'
+      requestBody:
+        description: 'Объект Channel'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+        required: true
+      responses:
+        201:
+          description: 'Новая кампания успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/lms/channel/{id}':
+    get:
+      tags:
+        - channel
+      summary: 'Получение канала по ID'
+      description: 'Получение канала по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id канала'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает канал по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - channel
+      summary: 'Изменение канала'
+      description: 'Изменение канала'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id канала'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Канал'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+        required: false
+      responses:
+        200:
+          description: 'Канал успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,109 @@
+ScenarioResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      type: string
+      example: scenarios
+    attributes:
+      $ref: '#/ScenarioAttributes'
+    relationships:
+      type: object
+      properties:
+        created_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+        updated_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+
+ScenarioAttributes:
+  type: object
+  properties:
+    name:
+      type: string
+      example: Опрос клиента
+    description:
+      type: string
+      nullable: true
+    is_active:
+      type: boolean
+    alias:
+      type: string
+      nullable: true
+      description: Уникальный псевдоним для запуска сценария по alias
+    tags:
+      type: array
+      items:
+        type: string
+      nullable: true
+      description: Теги категоризации
+    active_version_id:
+      type: string
+      format: uuid
+      nullable: true
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+ScenarioItem:
+  type: object
+  description: Упрощённое представление сценария (возвращается при create/update)
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    is_active:
+      type: boolean
+
+ScenarioRequest:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      example: Опрос клиента
+    description:
+      type: string
+      nullable: true
+    alias:
+      type: string
+      maxLength: 255
+      nullable: true
+      description: Уникальный alias для запуска сценария
+    tags:
+      type: array
+      nullable: true
+      items:
+        type: string
+        maxLength: 255
+      description: Теги категоризации
+    category_ids:
+      type: array
+      nullable: true
+      items:
+        type: string
+        format: uuid
+      description: UUID категорий, к которым относится сценарий
+    active_version_id:
+      type: string
+      format: uuid
+      nullable: true
+      description: UUID активной версии (должна принадлежать этому сценарию)

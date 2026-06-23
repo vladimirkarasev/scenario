@@ -1,0 +1,345 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - purchase'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: purchase
+    description: 'Управление заказ-нарядами'
+paths:
+  /purchase:
+    get:
+      tags:
+        - purchase
+      summary: 'Получение списка заказ нарядов'
+      description: 'Получение списка заказ нарядов'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'Код заказ наряда'
+          schema:
+            type: string
+        -
+          name: vin
+          in: query
+          description: 'VIN номер авто'
+          schema:
+            type: string
+        -
+          name: dealer_status
+          in: query
+          description: 'Статус дилера ("active" - Активные, "deleted" - Удаленные)'
+          schema:
+            type: string
+        -
+          name: 'dealerType[]'
+          in: query
+          description: 'Тип дилера (1 - ОП и СТО, 2 - Только СТО, 3 - Только ОП)'
+          schema:
+            type: integer
+        -
+          name: 'purchase_tag_id[]'
+          in: query
+          description: 'Вид ремонта (См. метод "get purchase-tag")'
+          schema:
+            type: integer
+        -
+          name: 'not_purchase_tag_id[]'
+          in: query
+          description: 'Исключить вид ремонта (opened - Открыт, closed - Закрыт, canceled - Отменен)'
+          schema:
+            type: string
+        -
+          name: 'status[]'
+          in: query
+          description: 'Статус (opened - Открыт, closed - Закрыт, canceled - Отменен)'
+          schema:
+            type: string
+        -
+          name: is_deleted
+          in: query
+          description: 'Удален (0 - Нет, 1 - Да)'
+          schema:
+            type: integer
+        -
+          name: is_second
+          in: query
+          description: 'Повторный заезд (0 - Нет, 1 - Да, 2 - Возможно)'
+          schema:
+            type: integer
+        -
+          name: withRequest
+          in: query
+          description: 'Связан с лидом (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: purchaseSpareExists
+          in: query
+          description: 'Наличие запчастей (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: hasMechanic
+          in: query
+          description: 'Механик назначен (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: date_create_from
+          in: query
+          description: 'Дата создания с (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: date_create_to
+          in: query
+          description: 'Дата создания по (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: updated_at_from
+          in: query
+          description: 'Дата обновления с (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: updated_at_to
+          in: query
+          description: 'Дата обновления по (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: date_open_from
+          in: query
+          description: 'Дата открытия с (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: date_open_to
+          in: query
+          description: 'Дата открытия по (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: date_close_from
+          in: query
+          description: 'Дата закрытия с (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: date_close_to
+          in: query
+          description: 'Дата закрытия по (в формате dd.MM.yyyy)'
+          schema:
+            type: string
+        -
+          name: 'brand_id[]'
+          in: query
+          description: Бренд
+          schema:
+            type: integer
+        -
+          name: vehicle_is_data_valid_by_vin
+          in: query
+          description: 'Данные авто некорректные (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: hasRegNumber
+          in: query
+          description: 'Только ЗН с заполненным гос. номером (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: reg_number
+          in: query
+          description: 'Гос. номер автомобиля (для поиска конкретного авто)'
+          schema:
+            type: string
+        -
+          name: hasClientCheck
+          in: query
+          description: 'Клиент не синхронизирован (1 - Да, 2 - Нет)'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Параметр позволяющий получить в ответе связные данные. Доступные значения: works, spares, worksSummary, sparesSummary. Можно комбинировать через запятую, например: expand=works,spares,sparesSummary'
+          schema:
+            type: string
+        -
+          name: purchase_spare_group
+          in: query
+          description: 'Фильтр по группе детализации ЗЧ (значения из справочника/настроек)'
+          schema:
+            type: string
+        -
+          name: purchase_spare_origin
+          in: query
+          description: 'Фильтр по признаку оригинальности ЗЧ: origin — только оригинальные (есть в справочнике ЗЧ), not-origin — только неоригинальные (нет в справочнике ЗЧ).'
+          schema:
+            type: string
+            enum:
+              - origin
+              - not-origin
+        -
+          name: loyaltyMemberId
+          in: query
+          description: 'ID участника программы лояльности'
+          schema:
+            type: integer
+        -
+          name: srv2_id
+          in: query
+          description: 'ID Регион. менеджера по сервису'
+          schema:
+            type: integer
+        -
+          name: dealer_id
+          in: query
+          description: 'ID Дилера'
+          schema:
+            type: integer
+        -
+          name: sort
+          in: query
+          description: "Параметр по которому идет сортировки, например: \"sort=-date_close\" - сортировка Я-а по дате закрытия, \"sort=date_close\" - сортировка А-я по дате закрытия\n"
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список заказ нарядов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - purchase
+      summary: 'Добавление нового заказ наряда'
+      description: 'Добавление нового заказ наряда'
+      requestBody:
+        description: 'Объект Purchase'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseWrite'
+        required: true
+      responses:
+        201:
+          description: 'Новый заказ-наряд успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/purchase/{id}':
+    get:
+      tags:
+        - purchase
+      summary: 'Получение заказ-наряда по ID'
+      description: 'Получение заказ-наряда по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заказ-наряда'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Параметр позволяющий получить в ответе связные данные. Доступные значения: works, spares, worksSummary, sparesSummary. Можно комбинировать через запятую, например: expand=works,spares,sparesSummary'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает заказ-наряд по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - purchase
+      summary: 'Изменение заказ-наряда'
+      description: 'Изменение заказ-наряда'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id заказ-наряда'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Заказ-наряд'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseWrite'
+        required: false
+      responses:
+        200:
+          description: 'Заказ-наряд успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

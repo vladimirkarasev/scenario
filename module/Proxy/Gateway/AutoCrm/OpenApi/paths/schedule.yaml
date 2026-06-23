@@ -1,0 +1,361 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - schedule'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: schedule
+    description: 'График работы сотрудников'
+paths:
+  /staff/schedule:
+    get:
+      tags:
+        - schedule
+      summary: 'Получение графика работы сотрудников'
+      description: 'Получение графика работы сотрудников'
+      parameters:
+        -
+          name: year
+          in: query
+          schema:
+            type: integer
+        -
+          name: month
+          in: query
+          schema:
+            type: integer
+        -
+          name: dealerId
+          in: query
+          schema:
+            type: string
+        -
+          name: day
+          in: query
+          schema:
+            type: integer
+        -
+          name: userId
+          in: query
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает график работы сотрудников'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - schedule
+      summary: 'Добавление новой записи в график работы'
+      description: 'Добавление новой записи в график работы'
+      requestBody:
+        description: 'Объект Schedule'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleForm'
+        required: true
+      responses:
+        201:
+          description: 'Новая запись успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleForm'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/staff/schedule-time/{id}':
+    put:
+      tags:
+        - schedule
+      summary: 'Изменение временного интервала графика работы'
+      description: 'Изменение временного интервала графика работы'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id временного интервала'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Временной интервал'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleTimeForm'
+        required: false
+      responses:
+        200:
+          description: 'Временной интервал графика работы успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleTimeForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - schedule
+      summary: 'Удаление временного интервала записи графика работы по ID'
+      description: 'Удаление временного интервала записи графика работы по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление по ID'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/staff/schedule-time/{scheduleId}':
+    post:
+      tags:
+        - schedule
+      summary: 'Добавление временного интервала графика работы'
+      description: 'Добавление временного интервала графика работы'
+      parameters:
+        -
+          name: scheduleId
+          in: path
+          description: 'ID графика работы'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Объект Schedule'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleTimeForm'
+        required: true
+      responses:
+        201:
+          description: 'Временной интервал графика работы успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleTimeForm'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /staff/schedule/many:
+    post:
+      tags:
+        - schedule
+      summary: 'Добавление или обновление в график работы массива записей'
+      description: 'Добавление или обновление в график работы массива записей'
+      requestBody:
+        description: 'Объект Schedule'
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ScheduleForm'
+        required: true
+      responses:
+        201:
+          description: 'Новая запись успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleForm'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /staff/schedule/period:
+    post:
+      tags:
+        - schedule
+      summary: 'Добавление или обновление в график работы записей в соответствии с интервалом'
+      description: 'Добавление или обновление в график работы записей в соответствии с интервалом'
+      parameters:
+        -
+          name: date_from
+          in: query
+          schema:
+            type: string
+        -
+          name: date_to
+          in: query
+          schema:
+            type: string
+      requestBody:
+        description: 'Объект Schedule'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleWithoutDate'
+        required: true
+      responses:
+        201:
+          description: 'Новая запись успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/staff/schedule/{id}':
+    put:
+      tags:
+        - schedule
+      summary: 'Изменение записи графика работы'
+      description: 'Изменение записи графика работы'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id записи'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'График работы'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleForm'
+        required: false
+      responses:
+        200:
+          description: 'Запись графика работы успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - schedule
+      summary: 'Удаление записи графика работы по ID'
+      description: 'Удаление записи графика работы по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление по ID'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

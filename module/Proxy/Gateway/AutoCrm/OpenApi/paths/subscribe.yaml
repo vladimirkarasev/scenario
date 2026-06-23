@@ -1,0 +1,164 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - subscribe'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: subscribe
+    description: 'Управление подписками'
+paths:
+  /lms/subscribe:
+    get:
+      tags:
+        - subscribe
+      summary: 'Получение списка подписок'
+      description: 'Получение списка подписок'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: name
+          in: query
+          schema:
+            type: string
+        -
+          name: brand_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: model_id
+          in: query
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список подписок'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscribe'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - subscribe
+      summary: 'Добавление новой подписки'
+      description: 'Добавление новой подписки'
+      requestBody:
+        description: 'Объект Subscribe'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscribe'
+        required: true
+      responses:
+        201:
+          description: 'Подписка успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscribe'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/lms/subscribe/{id}':
+    get:
+      tags:
+        - subscribe
+      summary: 'Получение подписки по ID'
+      description: 'Получение подписки по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id подписки'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает подписку по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscribe'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - subscribe
+      summary: 'Изменение подписки'
+      description: 'Изменение подписки'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id подписки'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель подписка'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscribe'
+        required: false
+      responses:
+        200:
+          description: 'Подписка успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscribe'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

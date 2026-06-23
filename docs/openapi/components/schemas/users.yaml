@@ -1,0 +1,130 @@
+UserResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      description: ID пользователя (целое число в виде строки)
+      example: "42"
+    type:
+      type: string
+      example: users
+    attributes:
+      $ref: '#/UserAttributes'
+    relationships:
+      type: object
+      properties:
+        groups:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: groups
+                  id:
+                    type: string
+                    format: uuid
+                  meta:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      slug:
+                        type: string
+
+UserAttributes:
+  type: object
+  properties:
+    name:
+      type: string
+      example: Иван Иванов
+    fio:
+      type: string
+      nullable: true
+      example: Иванов Иван Иванович
+    email:
+      type: string
+      format: email
+      example: ivan@example.com
+    login:
+      type: string
+      nullable: true
+      example: ivan123
+    external_id:
+      type: string
+      nullable: true
+      example: crm_user_42
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+UserStoreRequest:
+  type: object
+  required: [name, email, password]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      example: Иван Иванов
+    fio:
+      type: string
+      nullable: true
+      maxLength: 255
+      example: Иванов Иван Иванович
+    email:
+      type: string
+      format: email
+      maxLength: 255
+      example: ivan@example.com
+    login:
+      type: string
+      nullable: true
+      maxLength: 255
+      example: ivan123
+    external_id:
+      type: string
+      nullable: true
+      maxLength: 255
+      example: crm_user_42
+    password:
+      type: string
+      minLength: 8
+      example: s3cr3tP@ss
+
+UserUpdateRequest:
+  type: object
+  required: [name, email]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+    fio:
+      type: string
+      nullable: true
+      maxLength: 255
+    email:
+      type: string
+      format: email
+      maxLength: 255
+    login:
+      type: string
+      nullable: true
+      maxLength: 255
+    external_id:
+      type: string
+      nullable: true
+      maxLength: 255
+    password:
+      type: string
+      nullable: true
+      minLength: 8
+      description: Если не передан — пароль не меняется

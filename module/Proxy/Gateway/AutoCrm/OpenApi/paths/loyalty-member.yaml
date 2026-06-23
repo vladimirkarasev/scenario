@@ -1,0 +1,447 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - loyalty-member'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: loyalty-member
+    description: 'Участники программ лояльности'
+paths:
+  /loyalty/member:
+    get:
+      tags:
+        - loyalty-member
+      summary: 'Получить список участников программ лояльности'
+      description: 'Получить список участников программ лояльности'
+      parameters:
+        -
+          name: client_id
+          in: query
+          description: 'id клиента дилера'
+          schema:
+            type: integer
+        -
+          name: phone
+          in: query
+          description: 'телефон клиента дилера'
+          schema:
+            type: string
+        -
+          name: program_id
+          in: query
+          description: 'id программы лояльности'
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую coupons - Купоны участника vehicles - Машины участника privateBenefits — бонусы участника'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список участников'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyMember'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - loyalty-member
+      summary: 'Добавить участника программы лояльности'
+      description: 'Добавить участника программы лояльности'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberCreate'
+        required: true
+      responses:
+        200:
+          description: 'Участник программы лояльности добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberCreate'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /loyalty/member/vehicle:
+    post:
+      tags:
+        - loyalty-member
+      summary: 'Добавить автомобиль участника программы лояльности'
+      description: 'Добавить автомобиль участника программы лояльности'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberVehicleCreate'
+        required: true
+      responses:
+        200:
+          description: 'Участник программы лояльности добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberVehicleCreate'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /loyalty/member/vehicle-verification:
+    get:
+      tags:
+        - loyalty-member
+      summary: 'Получить список заявок на верификацию автомобилей участника программы лояльности'
+      description: 'Получить список заявок на верификацию автомобилей участника программы лояльности'
+      parameters:
+        -
+          name: member_id
+          in: query
+          description: 'ID участника программы лояльности'
+          required: true
+          schema:
+            type: integer
+        -
+          name: result_id
+          in: query
+          description: 'ID результата верификации'
+          schema:
+            type: integer
+        -
+          name: task_stage_slug
+          in: query
+          description: 'Псевдоним этапа задачи'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список заявок на верификацию'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - loyalty-member
+      summary: 'Верифицировать автомобиль участника программы лояльности'
+      description: 'Верифицировать автомобиль участника программы лояльности'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberVehicleVerificationForm'
+        required: true
+      responses:
+        200:
+          description: 'Данные верификации автомобиля участника программы лояльности добавлена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/loyalty/member/vehicle-verification/{id}':
+    get:
+      tags:
+        - loyalty-member
+      summary: 'Получить данные верификации автомобиля участника программы лояльности добавлена по id'
+      description: 'Получить данные верификации автомобиля участника программы лояльности добавлена по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id верификации'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Данные верификации автомобиля участника программы лояльности добавлена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberVehicleVerification'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/loyalty/member/vehicle/{id}':
+    put:
+      tags:
+        - loyalty-member
+      summary: 'Изменить автомобиль участника программы лояльности'
+      description: 'Изменить автомобиль участника программы лояльности'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id автомобиля участника программы лояльности'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberVehicleUpdate'
+        required: true
+      responses:
+        200:
+          description: 'Автомобиль участника программы лояльности изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberVehicleUpdate'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/loyalty/member/{id}':
+    get:
+      tags:
+        - loyalty-member
+      summary: 'Получить данные участника программы лояльности по id'
+      description: 'Получить данные участника программы лояльности по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id участника'
+          required: true
+          schema:
+            type: integer
+        -
+          name: expand
+          in: query
+          description: 'Получение дополнительных полей, можно передать несколько значений через запятую coupons - Купоны участника vehicles - Машины участника privateBenefits — бонусы участника'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает данные участника'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyMember'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - loyalty-member
+      summary: 'Изменить данные участника программы лояльности по id'
+      description: 'Изменить данные участника программы лояльности по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id участника'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberUpdate'
+        required: true
+      responses:
+        200:
+          description: 'Возвращает данные участника'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyMember'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - loyalty-member
+      summary: 'Удаление участника программы лояльности по id'
+      description: 'Удаление участника программы лояльности по id'
+      parameters:
+        -
+          name: id
+          in: path
+          description: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Успешное удаление'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/loyalty/member/{id}/external-event':
+    post:
+      tags:
+        - loyalty-member
+      summary: 'Добавление внешнего события участнику программы лояльности'
+      description: 'Добавление внешнего события участнику программы лояльности'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id участника программы лояльности'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberExternalEvent'
+        required: true
+      responses:
+        200:
+          description: 'Внешнее событие добавлено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberExternalEvent'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/loyalty/member/{id}/private-benefits':
+    post:
+      tags:
+        - loyalty-member
+      summary: 'Изменение преимуществ участника программы лояльности'
+      description: 'Изменение преимуществ участника программы лояльности'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id участника программы лояльности'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyMemberPrivateBenefit'
+        required: true
+      responses:
+        200:
+          description: 'Преимущества изменены'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyMemberPrivateBenefit'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

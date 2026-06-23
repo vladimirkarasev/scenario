@@ -1,0 +1,72 @@
+openapi: 3.1.0
+components:
+  schemas:
+    FactoringStatus:
+      required:
+        - date
+        - factoringStatus
+        - vin
+      type: object
+      properties:
+        vin:
+          type: string
+          description: 'VIN автомобиля'
+        date:
+          type: string
+          description: 'Дата получения статуса в формате ГГГГ-ММ-ДД'
+        factoringStatus:
+          type: integer
+          description: 'Статус факторинга (0 - Новый, 1 - Списан, 2 - Подготовлен для залога, 3 - Отправлен в залог, 4 - В залоге, 5 - Подготовлен для финансирования, 6 - Направлен на финансирование, 7 - Финансирование подтверждено, 8 - Оплачен банком, 9 - Оплачен дилером, 10 - Ожидает предоплаты, 11 - Изменение стоимости автомобиля)'
+      description: 'Статус факторинга'
+    FederalDistrict:
+      required:
+        - id
+        - name
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID (генерируется автоматически)'
+          example: 1
+        name:
+          maxLength: 255
+          type: string
+          description: 'Название страны'
+          example: 'Центральный федеральный округ'
+        english_name:
+          maxLength: 255
+          type: string
+          description: 'Название федерального округа на английском'
+          example: "Central'nyj federal'nyj okrug"
+        short_name:
+          maxLength: 255
+          type: string
+          description: 'Код страны'
+          example: ЦФО
+        okato:
+          maxLength: 255
+          type: string
+          description: 'Код по ОКАТО'
+          example: '30'
+        status:
+          type: integer
+          description: Статус
+          example: 0
+        country_id:
+          type: integer
+          description: 'Идентификатор страны'
+          example: 1
+      description: 'Модель федерального округа'
+    Field:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID атрибута (генерируется автоматически)'
+        name:
+          type: string
+          description: 'Наименование атрибута'
+      description: 'Модель аттрибут клиента'

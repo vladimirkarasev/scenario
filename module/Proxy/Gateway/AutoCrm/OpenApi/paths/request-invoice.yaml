@@ -1,0 +1,183 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - request-invoice'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: request-invoice
+    description: 'Управление запросами счёта Honda-Moto'
+paths:
+  /request-invoice:
+    get:
+      tags:
+        - request-invoice
+      summary: 'Получение списка запросов счёта'
+      description: 'Получение списка запросов счёта'
+      parameters:
+        -
+          name: id
+          in: query
+          schema:
+            type: integer
+        -
+          name: number
+          in: query
+          description: 'Номер счёта в HSA'
+          schema:
+            type: string
+        -
+          name: vin
+          in: query
+          description: 'VIN номер автомобиля со склада'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список счетов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestInvoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  /request-invoice/payment-types:
+    get:
+      tags:
+        - request-invoice
+      summary: 'Типы оплаты запроса счёта'
+      description: 'Типы оплаты запроса счёта'
+      responses:
+        201:
+          description: 'Возвращает список типов оплаты'
+          content:
+            application/json:
+              schema:
+                type: array
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Счёт не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /request-invoice/reject:
+    get:
+      tags:
+        - request-invoice
+      summary: 'Отклонение запроса счёта'
+      description: 'Отклонение запроса счёта'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'id счёта'
+          required: true
+          schema:
+            type: integer
+      responses:
+        201:
+          description: 'Счёт успешно отклонён'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestInvoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Счёт не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/request-invoice/{id}':
+    put:
+      tags:
+        - request-invoice
+      summary: 'Изменение запроса счёта'
+      description: 'Изменение запроса счёта'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id счёта'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель запрос счёта'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestInvoice'
+        required: false
+      responses:
+        201:
+          description: 'Счёт успешно изменён'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestInvoice'
+        400:
+          description: 'Ошибка валидации'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Счёт не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    get:
+      tags:
+        - request-invoice
+      summary: 'Просмотр запроса счёта'
+      description: 'Просмотр запроса счёта'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id счёта'
+          required: true
+          schema:
+            type: integer
+      responses:
+        201:
+          description: 'Счёт успешно изменён'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestInvoice'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Счёт не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

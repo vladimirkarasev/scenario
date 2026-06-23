@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - department'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: department
+    description: 'Список департаментов'
+paths:
+  /department:
+    get:
+      tags:
+        - department
+      summary: 'Получение списка департаментов'
+      description: 'Получение списка департаментов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: ID
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: 'Статус (active, deleted)'
+          schema:
+            type: string
+        -
+          name: is_dealer
+          in: query
+          description: 'Для дилеров (0, 1)'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список департаментов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Department'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

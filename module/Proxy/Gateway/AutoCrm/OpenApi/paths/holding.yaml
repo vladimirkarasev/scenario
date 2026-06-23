@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - holding'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: holding
+    description: 'Управление холдингами'
+paths:
+  /holding:
+    get:
+      tags:
+        - holding
+      summary: 'Получение списка холдингов'
+      description: 'Получение списка холдингов'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'Поиск холдинга по ID'
+          schema:
+            type: integer
+        -
+          name: external_id
+          in: query
+          description: 'Поиск холдинга по внешнему ID'
+          schema:
+            type: integer
+        -
+          name: code
+          in: query
+          description: 'Поиск холдинга по коду'
+          schema:
+            type: string
+        -
+          name: name
+          in: query
+          description: 'Поиск холдинга по наименованию'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список холдингов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Holding'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - holding
+      summary: 'Создание холдинга'
+      description: 'Создание холдинга'
+      requestBody:
+        description: 'Модель холдинга'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Holding'
+        required: false
+      responses:
+        200:
+          description: 'Холдинг успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Holding'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/holding/{id}':
+    get:
+      tags:
+        - holding
+      summary: 'Получение холдинга по ID'
+      description: 'Получение холдинга по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID холдинга'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает холдинг по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Holding'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - holding
+      summary: 'Изменение холдинга'
+      description: 'Изменение холдинга'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID холдинга'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель холдинга'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Holding'
+        required: false
+      responses:
+        200:
+          description: 'Холдинг успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dealer'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

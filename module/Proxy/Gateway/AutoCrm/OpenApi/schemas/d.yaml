@@ -1,0 +1,2249 @@
+openapi: 3.1.0
+components:
+  schemas:
+    DamageReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID отчёта'
+        type_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+          description: "Тип отчёта\n`1` - Приёмка `2` - Отгрузка"
+        code:
+          type: string
+          description: 'Номер ТН/CMR'
+        vin:
+          type: string
+          description: VIN
+        transporter_number:
+          type: string
+          description: 'Номер автовоза'
+        trailer_number:
+          type: string
+          description: 'Номер прицепа'
+        date:
+          type: string
+          description: 'Дата приемки/отгрузки (см. `type_id`)'
+          format: date
+        entityType:
+          type: string
+          description: 'Тип сущности "Дилер/Склад"'
+          enum:
+            - warehouse
+            - dealer
+          readOnly: true
+        entityID:
+          type: integer
+          description: 'ID сущности "Дилер/Склад"'
+          readOnly: true
+        entity:
+          oneOf:
+            -
+              $ref: '#/components/schemas/DamageReportPartnerBase'
+            -
+              $ref: '#/components/schemas/DamageReportDealer'
+          properties: {  }
+          description: 'Сущность "Дилер/Склад"'
+          readOnly: true
+        shippingCompany:
+          $ref: '#/components/schemas/DamageReportPartnerBase'
+          readOnly: true
+        drivers:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDriver'
+        rapport:
+          $ref: '#/components/schemas/DamageReportRapport'
+          readOnly: true
+        damages:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDamage'
+          readOnly: true
+        vehicle:
+          $ref: '#/components/schemas/DamageReportVehicle'
+          readOnly: true
+        upload:
+          $ref: '#/components/schemas/DamageReportUpload'
+          readOnly: true
+      description: 'Модель ОУПТС'
+    DamageReportBrand:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID бренда'
+        name:
+          type: string
+          description: 'Наименование бренда'
+      description: 'Модель бренда'
+    DamageReportDamage:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID повреждения'
+        report_id:
+          $ref: '#/components/schemas/DamageReport/properties/id'
+        element_id:
+          $ref: '#/components/schemas/DamageReportElement/properties/id'
+        damage_type:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory/properties/name'
+          writeOnly: true
+        damage_size:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory/properties/name'
+          writeOnly: true
+        damage_stage_id:
+          $ref: '#/components/schemas/DamageReportStage/properties/id'
+        comment:
+          type: string
+          description: Комментарий
+        uploads:
+          type: array
+          description: Фотографии
+          items:
+            $ref: '#/components/schemas/DamageReportUpload'
+          readOnly: true
+        damageTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory'
+          readOnly: true
+          description: 'Тип повреждений'
+        damageSizes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory'
+          readOnly: true
+          description: 'Размер повреждений'
+        damageStatuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory'
+          readOnly: true
+          description: 'Статус повреждений'
+      description: 'Модель повреждения в отчёте'
+    DamageReportDamageForm:
+      required:
+        - report_id
+        - element_id
+        - 'damage_type[]'
+        - 'damage_size[]'
+        - damage_stage_id
+        - 'damageStatuses[]'
+      properties:
+        report_id:
+          $ref: '#/components/schemas/DamageReport/properties/id'
+        element_id:
+          $ref: '#/components/schemas/DamageReportElement/properties/id'
+        'damage_type[]':
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory/properties/name'
+          description: 'ID из справочника `GET service/damage-report/type`'
+        'damage_size[]':
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory/properties/name'
+          description: 'ID из справочника `GET service/damage-report/size`'
+        damage_stage_id:
+          $ref: '#/components/schemas/DamageReportStage/properties/id'
+        'damageStatuses[]':
+          type: array
+          items:
+            type: integer
+          description: 'ID из справочника `GET service/damage-report/status`'
+        comment:
+          $ref: '#/components/schemas/DamageReportDamage/properties/comment'
+        'files[]':
+          type: array
+          description: 'Фотографии повреждения'
+          items:
+            type: string
+            format: binary
+    DamageReportDealer:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Dealer/properties/id'
+        code:
+          $ref: '#/components/schemas/Dealer/properties/code'
+        name:
+          $ref: '#/components/schemas/Dealer/properties/name'
+        marketing_name:
+          $ref: '#/components/schemas/Dealer/properties/marketing_name'
+    DamageReportDirectory:
+      type: object
+      properties:
+        id:
+          oneOf:
+            -
+              type: string
+            -
+              type: integer
+          description: 'ID элемента справочника'
+        name:
+          type: string
+          description: 'Значение элемента справочника'
+        description:
+          type: string
+          description: 'Описание элемента справочника'
+      description: 'Модель справочника для ОУПТС'
+    DamageReportDriver:
+      required:
+        - first_name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID водителя'
+        first_name:
+          type: string
+          description: 'Имя водителя'
+        middle_name:
+          type: string
+          description: 'Отчество водителя'
+        last_name:
+          type: string
+          description: 'Фамилия водителя'
+        active:
+          type: boolean
+          description: Активность
+      description: 'Модель водителя'
+    DamageReportElement:
+      required:
+        - type
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID элемента ущерба'
+        name:
+          type: string
+          description: 'Наименование элемента ущерба'
+        code:
+          type: string
+          description: 'Код элемента ущерба'
+        type:
+          type: integer
+          enum:
+            - 1
+            - 2
+          description: "Тип элемента ущерба\n`1` - Элемент а/м (дверь, капот, шина) `2` - Сопроводительный товар (аптечка, домкрат)"
+        base_element:
+          type: string
+          description: 'Элемент на схеме'
+      description: 'Модель элемента ущерба'
+    DamageReportForm:
+      required:
+        - date
+      type: object
+      properties:
+        requiredAttribute:
+          type: string
+          description: "Дилер/Склад\n`dealer_id` - Дилер `warehouse_id` - Склад"
+          enum:
+            - dealer_id
+            - warehouse_id
+          default: warehouse_id
+        date:
+          type: string
+          description: 'Дата приемки/отгрузки'
+          format: date
+          pattern: '^\d{2}\.\d{2}\.\d{4}$'
+          default: 01.01.2024
+        drivers:
+          type: array
+          items:
+            required:
+              - type
+              - first_name
+              - id
+            type: object
+            properties:
+              type:
+                type: string
+                description: "Тип водителя\n`new` - Новый `exist` - Существующий"
+                enum:
+                  - new
+                  - exist
+              id:
+                $ref: '#/components/schemas/DamageReportDriver/properties/id'
+              first_name:
+                $ref: '#/components/schemas/DamageReportDriver/properties/first_name'
+              middle_name:
+                $ref: '#/components/schemas/DamageReportDriver/properties/middle_name'
+              last_name:
+                $ref: '#/components/schemas/DamageReportDriver/properties/last_name'
+        report:
+          required:
+            - vin
+            - type_id
+            - transporter_number
+            - shipping_company_id
+            - dealer_id
+            - warehouse_id
+          properties:
+            vin:
+              $ref: '#/components/schemas/DamageReport/properties/vin'
+            type_id:
+              $ref: '#/components/schemas/DamageReport/properties/type_id'
+            code:
+              $ref: '#/components/schemas/DamageReport/properties/code'
+            transporter_number:
+              $ref: '#/components/schemas/DamageReport/properties/transporter_number'
+            trailer_number:
+              $ref: '#/components/schemas/DamageReport/properties/trailer_number'
+            dealer_id:
+              $ref: '#/components/schemas/Dealer/properties/id'
+            warehouse_id:
+              $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
+            shipping_company_id:
+              $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
+    DamageReportPairForm:
+      required:
+        - id
+        - date
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID исходной ОУПТС'
+        date:
+          type: string
+          description: 'Дата приемки/отгрузки'
+          format: date
+          pattern: '^\d{2}\.\d{2}\.\d{4}$'
+          default: 01.01.2024
+        copyDamages:
+          type: boolean
+          description: 'Перенос повреждений'
+          default: true
+        report:
+          properties:
+            shipping_company_id:
+              $ref: '#/components/schemas/DamageReportPartnerBase/properties/id'
+            code:
+              $ref: '#/components/schemas/DamageReport/properties/code'
+            transporter_number:
+              $ref: '#/components/schemas/DamageReport/properties/transporter_number'
+            trailer_number:
+              $ref: '#/components/schemas/DamageReport/properties/trailer_number'
+            drivers:
+              type: array
+              items:
+                $ref: '#/components/schemas/DamageReportDriver'
+    DamageReportPartner:
+      required:
+        - name
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/DamageReportPartnerBase'
+      properties:
+        requisites:
+          type: object
+          description: Реквизиты
+          properties:
+            legal_form:
+              type: string
+              description: 'Форма собственности'
+            legal_form_full:
+              type: string
+              description: 'Форма собственности полностью'
+            legal_entity:
+              type: string
+              description: 'Юридическое лицо'
+            legal_entity_eng:
+              type: string
+              description: 'Юридическое лицо Eng.'
+            inn:
+              type: string
+              description: ИНН
+            kpp:
+              type: string
+              description: КПП
+            ogrn:
+              type: string
+              description: ОГРН
+            okpo:
+              type: string
+              description: ОКПО
+            company_phone:
+              type: string
+              description: Телефон
+            bank_name:
+              type: string
+              description: 'Наименование банка'
+            settlement_account:
+              type: string
+              description: 'Расчётный мчёт'
+            correspondent_account:
+              type: string
+              description: 'Кореспондентский счёт'
+            bik:
+              type: string
+              description: БИК
+          readOnly: true
+        addresses:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID
+              address:
+                type: string
+                description: Адрес
+              code_address:
+                type: string
+                description: 'Код адреса'
+              postal_code:
+                type: string
+                description: Индекс
+              city:
+                type: string
+                description: Город
+              region:
+                type: string
+                description: Регион
+              delivery_time:
+                type: array
+                description: 'Время работы'
+                items:
+                  type: object
+                  properties:
+                    begin:
+                      type: string
+                    end:
+                      type: string
+                    is_day_off:
+                      type: string
+              persons:
+                type: array
+                description: 'Ответственные за прием'
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: ID
+                    first_name:
+                      type: string
+                      description: Имя
+                    last_name:
+                      type: string
+                      description: Фамилия
+                    middle_name:
+                      type: string
+                      description: Отчество
+                    phone:
+                      type: string
+                      description: Телефон
+                    email:
+                      type: string
+                      description: Email
+          readOnly: true
+      description: 'Модель склада дистрибьютора'
+    DamageReportPartnerBase:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID склада дистрибьютора'
+        name:
+          type: string
+          description: 'Наименование склада дистрибьютора'
+        active:
+          type: boolean
+          description: Активность
+        types:
+          type: array
+          items:
+            $ref: '#/components/schemas/DamageReportDirectory'
+          readOnly: true
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          readOnly: true
+      description: 'Модель склада дистрибьютора'
+    DamageReportPartnerForm:
+      allOf:
+        -
+          $ref: '#/components/schemas/DamageReportPartnerBase'
+      properties:
+        typeIDs:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+        userIDs:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+    DamageReportRapport:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID транспортной претензии'
+        client_id:
+          type: integer
+          description: 'ID клиента'
+        car_id:
+          type: integer
+          description: 'ID автомобиля'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        purchase_id:
+          type: integer
+          description: 'ID заказ-наряда'
+      description: 'Модель транспортной претензии'
+    DamageReportStage:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID степени ущерба'
+        name:
+          type: string
+          description: 'Наименование степени ущерба'
+        code:
+          type: string
+          description: 'Код степени ущерба'
+        need_photo:
+          type: boolean
+          description: 'Требуется фото'
+        is_active:
+          type: boolean
+          description: Активность
+      description: 'Модель степени ущерба'
+    DamageReportUpload:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID файла'
+        name:
+          type: string
+          description: 'Наименование файла'
+        url:
+          type: string
+          description: 'Ссылка на файл'
+        mimetype:
+          type: string
+          description: 'MIME-тип файла'
+      description: 'Модель загруженного файла'
+    DamageReportUploadForm:
+      properties:
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        name:
+          type: string
+          description: 'Название файла'
+        url:
+          type: string
+          description: 'Ссылка на файл'
+      description: 'Модель загрузки файла'
+    DamageReportVehicle:
+      type: object
+      properties:
+        vehicle_id:
+          type: integer
+          description: 'ID автомобиля'
+        vehicle_vin:
+          type: string
+          description: 'VIN автомобиля'
+        brand:
+          $ref: '#/components/schemas/DamageReportBrand'
+      description: 'Модель автомобиля на складе'
+    Dealer:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Дилера'
+        code:
+          type: string
+          description: 'Код дилера'
+        dealer_type:
+          type: integer
+          description: "Тип дилера: 1 - Продажи, сервис, запчасти, 2 - Сервис, запчасти, 3 - Продажи, 4 - Запчасти, 5 - Продажи, запчасти, 6 - Независимая сервисная станция, 7 - Параллельный импорт\n"
+        name:
+          type: string
+          description: Наименование
+        english_name:
+          type: string
+          description: 'Наименование (англ.)'
+        marketing_name:
+          type: string
+          description: 'Маркетинговое название'
+        english_marketing_name:
+          type: string
+          description: 'Маркетинговое название (англ.)'
+        address:
+          type: string
+          description: Адрес
+        english_address:
+          type: string
+          description: 'Адрес (англ.)'
+        service_address:
+          type: string
+          description: 'Адрес СТО'
+        english_service_address:
+          type: string
+          description: 'Адрес СТО (англ.)'
+        juridical_region_id:
+          type: integer
+          description: 'id региона'
+        juridical_city_id:
+          type: integer
+          description: 'id города'
+        juridical_zip_code:
+          type: string
+          description: 'Почтовый индекс'
+        juridical_street:
+          type: string
+          description: Улица
+        juridical_house:
+          type: string
+          description: Дом
+        juridical_building:
+          type: string
+          description: Строение
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DealerTag'
+        website:
+          type: string
+          description: 'Веб сайт'
+        email:
+          type: string
+          description: Email
+        phone:
+          type: string
+          description: Телефон
+        replacement_phone:
+          type: string
+          description: 'Подменный номер для сайта'
+        lat:
+          type: number
+          description: Широта
+        lng:
+          type: number
+          description: Долгота
+        service_lat:
+          type: number
+          description: 'Широта (СТО)'
+        service_lng:
+          type: number
+          description: 'Долгота (СТО)'
+        registerDealerAt:
+          type: string
+          description: 'Дата начала работы как дилер в формате dd.MM.yyyy'
+        inactiveSince:
+          type: string
+          description: 'Дата завершения работы как дилер в формате dd.MM.yyyy'
+        serviceDeactivatedAt:
+          type: string
+          description: 'Дата завершения работы как сервис в формате dd.MM.yyyy'
+        country_id:
+          type: integer
+          description: 'ID страны'
+        city_id:
+          type: integer
+          description: 'ID города'
+        region_id:
+          type: integer
+          description: 'ID региона'
+        workTime:
+          type: array
+          description: 'Рабочее время'
+          items:
+            $ref: '#/components/schemas/WorkTime'
+        departmentsWorkTime:
+          type: array
+          description: 'Рабочее время отделов'
+          items:
+            $ref: '#/components/schemas/DepartmentWorkTime'
+        holding_code:
+          type: string
+          description: 'Код дилера в INCADEA'
+        legal_form:
+          type: string
+          description: 'Форма собственности'
+        legal_form_full:
+          type: string
+          description: 'Форма собственности полностью'
+        legal_entity:
+          type: string
+          description: 'Юридическое лицо'
+        legal_entity_eng:
+          type: string
+          description: 'Юридическое лицо Eng'
+        settlement_account:
+          type: string
+          description: 'Расчетный счет'
+        bik:
+          type: string
+          description: БИК
+        correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        bank_name:
+          type: string
+          description: 'Наименование банка'
+        inn:
+          type: string
+          description: ИНН
+        kpp:
+          type: string
+          description: КПП
+        ogrn:
+          type: string
+          description: ОГРН
+        okpo:
+          type: string
+          description: ОКПО
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'
+        minimum_sales_plan:
+          type: number
+          description: 'Минимальный план продаж дилера'
+        estimated_delivery_days:
+          type: integer
+          description: 'Средний срок доставки автомобиля к дилеру в днях'
+        sm_id:
+          type: number
+          description: 'Сотрудник СМ отв. за дилера'
+        contract_type:
+          type: string
+          description: 'Тип соглашения о сотрудничестве'
+        consignmentAllowedDate:
+          type: string
+          description: 'Разрешена консигнация (при вкл. "Условия оплаты")'
+        contractSigningAt:
+          type: string
+          description: 'Дата соглашения'
+        contractFinishAt:
+          type: string
+          description: 'Дата окончания соглашения'
+        land_area:
+          type: number
+          description: 'Общ. площадь земельного участка'
+        building_area:
+          type: number
+          description: 'Общ. площадь здания'
+        authorized_capital:
+          type: number
+          description: 'Уставной капитал, руб.'
+        employees:
+          type: number
+          description: 'Общ. численность ДЦ'
+        registerCompanyAt:
+          type: string
+          description: 'Дата регистрации компании'
+        brand_list:
+          type: string
+          description: 'Другие бренды компании/холдинга'
+        dc_legal_form:
+          type: string
+          description: 'Вид собственности ДЦ'
+        land_legal_form:
+          type: string
+          description: 'Вид собственности земли'
+        landLeaseFinishAt:
+          type: string
+          description: 'Аренда земли до'
+        buildingLeaseFinishAt:
+          type: string
+          description: 'Аренда здания до'
+        dealer_number:
+          type: string
+          description: '№ Дилерского соглашения'
+        founders:
+          type: string
+          description: Учредители
+        type_id:
+          type: number
+          description: 'Вид ДЦ'
+        directorPosition:
+          type: string
+          description: 'Должность руководителя'
+        directorActsOnBasis:
+          type: string
+          description: 'Действует на основании'
+        directorFio:
+          type: string
+          description: 'ФИО руководителя'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        combining_with_brands:
+          type: string
+          description: 'Совмещение с брендами в здании/шоуруме'
+        service_center_phone:
+          type: string
+          description: 'Телефон сервисного центра'
+        status_id:
+          type: number
+          description: 'Статус дилера'
+        general_director:
+          $ref: '#/components/schemas/DealerPerson'
+        dealership_head:
+          $ref: '#/components/schemas/DealerPerson'
+        juridical_address:
+          $ref: '#/components/schemas/DealerAddress'
+        actual_address:
+          $ref: '#/components/schemas/DealerAddress'
+        correspondence_address:
+          $ref: '#/components/schemas/DealerAddress'
+        dealer_address:
+          $ref: '#/components/schemas/DealerAddress'
+        after_sale_service_address:
+          type: array
+          description: 'Адрес послепродажного обслуживания'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        secure_parking_address:
+          type: array
+          description: 'Адрес охраняемой стоянки автомобилей'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        spare_delivery_address:
+          type: array
+          description: 'Адрес доставки запасных частей и аксессуаров'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        territory:
+          type: array
+          description: 'Территория деятельности дилерского центра'
+          items:
+            $ref: '#/components/schemas/DealerTerritory'
+        chief_accountant:
+          $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_acts:
+          type: array
+          description: 'Контактное лицо для отправки Актов сверки взаиморасчетов и балансовых остатков'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_remind_of_payments:
+          type: array
+          description: 'Контактное лицо для отправки напоминаний о сроке оплаты по поставкам автомобилей'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_credit_line_report:
+          type: array
+          description: 'Контактное лицо для отправки Отчета по кредитной линии'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_remind_of_spare_payments:
+          type: array
+          description: 'Контактное лицо для отправки напоминаний о сроке оплаты по поставкам запчастей'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        service_contact_person:
+          type: array
+          description: 'Контактное лицо по сервисным работам (инженер по гарантии)'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_payment_clarification:
+          type: array
+          description: 'Контактное лицо для отправки запросов на уточнение платежа'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        accountant_contact_person:
+          type: array
+          description: 'Контактное лицо по предоставлению бухгалтерской отчетности дилера (для кредитных линий)'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        sm2_id:
+          type: integer
+          description: 'ID регионального менеджера'
+        srv2_id:
+          type: integer
+          description: 'ID регионального менеджера по сервису'
+        bdm2_id:
+          type: integer
+          description: 'ID менеджера по развитию бизнеса'
+        corporate_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по корпоративным продажам'
+        used_car_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по а/м с пробегом'
+        marketing_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по маркетингу'
+        creditLimit:
+          type: number
+          description: 'Величина кредитного лимита по договору'
+        creditLimitAvailable:
+          type: number
+          description: 'Остаток по кредитному лимиту'
+        creditLimitDebt:
+          type: number
+          description: 'Задолженность по оплате'
+        notClosedOrdersSum:
+          type: number
+          description: 'Сумма по не закрытым заказам'
+        creditLimitChk:
+          type: integer
+          description: 'Проверять кредитный лимит'
+          enum:
+            - '0 - Отключена проверка кредитного лимита'
+            - '1 - Проверка кредитного лимита Дилера'
+            - '2 - Проверка кредитного лимита Холдинга'
+        timezone:
+          type: string
+          description: 'Часовой пояс ("Europe/Moscow", например)'
+        generalName:
+          type: string
+          description: 'Общее название'
+        statistic_type:
+          type: string
+          description: 'Получение статистики'
+        startReportingAt:
+          type: string
+          description: 'Дата начала сдачи отчетности в формате dd.MM.yyyy'
+        blockByInfotechDate:
+          type: date
+          description: 'Заблокирован (Infotech)'
+        srvPriceTypeIds:
+          type: array
+          description: 'список id кластеров цен/складов дилера.'
+          items:
+            type: integer
+        factoring_enabled:
+          type: boolean
+          description: 'Дилер работает по факторингу'
+        payment_not_required:
+          type: boolean
+          description: 'Не требует оплаты'
+      description: 'Модель Дилер'
+    DealerAddress:
+      type: object
+      properties:
+        postal_code:
+          type: string
+          description: Индекс
+        country:
+          type: string
+          description: Страна
+        country_eng:
+          type: string
+          description: 'Страна Eng'
+        region:
+          type: string
+          description: Регион
+        region_eng:
+          type: string
+          description: 'Регион Eng'
+        area:
+          type: string
+          description: Район
+        area_eng:
+          type: string
+          description: 'Район Eng'
+        city:
+          type: string
+          description: Город
+        city_eng:
+          type: string
+          description: 'Город Eng'
+        settlement:
+          type: string
+          description: 'Населенный пункт'
+        settlement_eng:
+          type: string
+          description: 'Населенный пункт Eng'
+        street:
+          type: string
+          description: Улица
+        street_eng:
+          type: string
+          description: 'Улица Eng'
+        house:
+          type: string
+          description: Дом/Владение/Здание
+        house_eng:
+          type: string
+          description: 'Дом/Владение/Здание Eng'
+        block:
+          type: string
+          description: Корпус/строение/Литера/Сооружение
+        block_eng:
+          type: string
+          description: 'Корпус/строение/Литера/Сооружение Eng'
+        flat:
+          type: string
+          description: Квартира/Офис/Помещение/Комната
+        flat_eng:
+          type: string
+          description: 'Квартира/Офис/Помещение/Комната Eng'
+        description:
+          type: string
+          description: Примечание
+      description: 'Модель адрес дилера'
+    DealerApiLog:
+      type: object
+      properties:
+        dealer_id:
+          type: integer
+          description: 'Идентификатор дилера'
+        date:
+          type: string
+          description: 'Время возникновения ошибки'
+        remote_addr:
+          type: string
+          description: 'IP клиента'
+        method:
+          type: string
+          description: 'Метод запроса'
+        uri:
+          type: string
+          description: 'Url запроса'
+        context:
+          type: string
+          description: 'Контекст (Рабочий лист, Заказ-наряд, итд)'
+        request:
+          type: string
+          description: 'Тело запроса'
+        response:
+          type: string
+          description: 'Тело ответа'
+        message:
+          type: string
+          description: 'Сообщения об ошибке'
+      description: 'Модель ошибки API'
+      example:
+        id: 1
+        dealer_id: 21
+        date: '2018-09-12T23:31:12.000Z'
+        content: Error
+    DealerBank:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Наименование банка'
+        settlement_account:
+          type: string
+          description: 'Расчетный счет'
+        correspondent_account:
+          type: string
+          description: 'Корреспондентский счет'
+        bic:
+          type: string
+          description: БИК
+      description: 'Модель банковские реквизиты'
+    DealerCall:
+      required:
+        - dateTime
+        - department_id
+        - direction
+        - manager_id
+        - phone
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID звонка, генерируется автоматически'
+        dateTime:
+          type: string
+          description: 'Дата и время звонка в формате dd.MM.yyyy HH:mm:ss'
+        phone:
+          type: string
+          description: 'Номер телефона клиента'
+        direction:
+          type: integer
+          description: 'Направление звонка'
+        status:
+          type: integer
+          description: 'Статус звонка'
+        department_id:
+          type: integer
+          description: 'ID департамента'
+        manager_id:
+          type: integer
+          description: 'ID менеджера'
+        code:
+          type: string
+          description: 'Внутренний код в системе дилера'
+        upload:
+          type: string
+          description: 'Ссылка на запись звонка'
+        length:
+          type: integer
+          description: 'Продолжительность звонка (сек)'
+        customTag:
+          description: 'Тэги дилерских АТС'
+          type: array
+          items:
+            type: string
+      description: 'Модель звонок'
+    DealerCheck:
+      required:
+        - dealer_id
+        - responsible_id
+        - date_start
+        - start_errors
+      type: object
+      description: 'Модель проверки дилера'
+      properties:
+        id:
+          type: integer
+          description: 'ID атрибута (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        responsible_id:
+          type: integer
+          description: 'ID ответственного пользователя'
+        dateStart:
+          type: string
+          description: 'Дата начала проверки (в формате dd.mm.yyyy)'
+        start_errors:
+          type: integer
+          description: 'Количество ошибок на момент начала проверки'
+        dateEnd:
+          type: string
+          description: 'Дата окончания проверки (в формате dd.mm.yyyy)'
+        end_errors:
+          type: integer
+          description: 'Количество ошибок на момент завершения проверки'
+        hd_ticket_id:
+          type: integer
+          description: 'ID тикета'
+        holding_check_id:
+          type: integer
+          description: 'ID проверки холдинга'
+    DealerCheckComment:
+      required:
+        - dealer_check_id
+        - name
+      type: object
+      description: 'Модель комментария проверки дилера'
+      properties:
+        id:
+          type: integer
+          description: 'ID атрибута (генерируется автоматически)'
+        dealer_check_id:
+          type: string
+          description: 'Наименование атрибута'
+        text:
+          type: string
+          description: 'Текст комментария'
+        holding_check_id:
+          type: string
+          description: 'ID проверки холдинга'
+    DealerCheckHoldingSync:
+      required:
+        - dateStart
+        - responsibleEmail
+      type: object
+      description: 'Модель синхронизации проверки'
+      properties:
+        id:
+          type: integer
+          description: 'ID атрибута (генерируется автоматически)'
+        holdingInfotechId:
+          type: integer
+          description: 'ID холдинга'
+        holdingCheckId:
+          type: integer
+          description: 'ID проверки холдинга'
+        responsibleEmail:
+          type: string
+          description: 'Email ответственного пользователя'
+        dateStart:
+          type: string
+          description: 'Дата начала проверки (в формате dd.mm.yyyy)'
+        start_errors:
+          type: integer
+          description: 'Количество ошибок на момент начала проверки'
+        dateEnd:
+          type: string
+          description: 'Дата окончания проверки (в формате dd.mm.yyyy)'
+        end_errors:
+          type: integer
+          description: 'Количество ошибок на момент завершения проверки'
+        hd_ticket_id:
+          type: integer
+          description: 'ID тикета'
+    DealerCheckList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID чек-листа'
+        created_at:
+          type: string
+          description: 'Дата создания'
+          format: 'DD.MM.YYYY HH:MM:SS'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        dealer_code:
+          type: string
+          description: 'Код дилера'
+        status:
+          type: string
+          description: Статус
+        status_name:
+          type: string
+          description: 'Название статуса'
+        total_earned_points:
+          type: number
+          description: 'Набрано баллов'
+        check_list:
+          $ref: '#/components/schemas/DealerCheckList_CheckList'
+        blocks:
+          type: array
+          description: Блоки
+          items:
+            $ref: '#/components/schemas/DealerCheckList_CheckListBlock'
+        action_plan:
+          oneOf:
+            -
+              type: 'null'
+            -
+              $ref: '#/components/schemas/DealerCheckList_ActionPlan'
+        chart:
+          type: string
+          description: 'Отчет Статистика по блокам'
+        comments:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: array
+              description: Комментарии
+              items:
+                $ref: '#/components/schemas/DealerCheckList_Comment'
+      description: 'Чек-лист дилера'
+    DealerCheckListSurvey_Answer:
+      required:
+        - answer
+        - check_list_external_code
+        - dealer_code
+        - question_code
+      type: object
+      properties:
+        dealer_code:
+          type: string
+          description: 'Код шоурума ДЦ'
+        check_list_external_code:
+          type: string
+          description: 'Внешний код чек-листа'
+        question_code:
+          type: string
+          description: 'Код вопроса'
+        answer:
+          type: integer
+          description: 'Ответ (0 - Нет, 1 - Да)'
+        earned_points:
+          type: number
+          description: 'Набрано баллов'
+        comment:
+          type: string
+          description: Комментарий
+      description: Ответ
+    DealerCheckListSurvey_Comment:
+      required:
+        - check_list_external_code
+        - dealer_code
+        - text
+      type: object
+      properties:
+        dealer_code:
+          type: string
+          description: 'Код шоурума ДЦ'
+        check_list_external_code:
+          type: string
+          description: 'Внешний код чек-листа'
+        text:
+          type: string
+          description: Комментарий
+        upload_ids:
+          type: array
+          description: Файлы
+          items:
+            type: integer
+      description: Комментарий
+    DealerCheckListSurvey_CommentFile:
+      required:
+        - file
+      type: object
+      properties:
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+      description: 'Файл комментария'
+    DealerCheckListSurvey_CommentFileUploaded:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID файла'
+        name:
+          type: string
+          description: Название
+        url:
+          type: string
+          description: URL
+        mimetype:
+          type: string
+          description: MIME-тип
+      description: Файл
+    DealerCheckListSurvey_EvidenceFile:
+      required:
+        - check_list_external_code
+        - dealer_code
+        - file
+        - question_code
+        - type
+      type: object
+      properties:
+        dealer_code:
+          type: string
+          description: 'Код шоурума ДЦ'
+        check_list_external_code:
+          type: string
+          description: 'Внешний код чек-листа'
+        question_code:
+          type: string
+          description: 'Код вопроса'
+        type:
+          type: integer
+          description: 'Тип файла (0 - Фотография, 1 - Документ)'
+        file:
+          type: string
+          description: 'Содержимое файла в формате Base64'
+        file_name:
+          type: string
+          description: 'Название файла'
+        description:
+          type: string
+          description: Описание
+      description: 'Файл доказательства'
+    DealerCheckList_ActionPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID плана действий'
+        created_at:
+          type: string
+          description: 'Время создания'
+          format: 'DD.MM.YYYY HH:MM:SS'
+        tasks_stats:
+          oneOf:
+            -
+              type: 'null'
+            -
+              $ref: '#/components/schemas/DealerCheckList_ActionPlanTasksStats'
+      description: 'План действий'
+    DealerCheckList_ActionPlanTasksStats:
+      type: object
+      properties:
+        in_work:
+          type: integer
+          description: 'Количество задач в работе'
+        closed:
+          type: integer
+          description: 'Количество завершенных задач'
+        overdue:
+          type: integer
+          description: 'Количество просроченных задач'
+      description: 'Статистика задач плана действий'
+    DealerCheckList_CheckList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID чек-листа'
+        external_code:
+          type: string
+          description: 'Внешний код'
+        name:
+          type: string
+          description: Название
+        name_en:
+          type: string
+          description: 'Название на английском'
+        min_points:
+          type: number
+          description: 'Минимум баллов'
+        max_points:
+          type: number
+          description: 'Максимум баллов'
+        deadline_at:
+          type: string
+          description: 'Крайний срок заполнения'
+          format: 'DD.MM.YYYY HH:MM:SS'
+        is_dealer_self_survey:
+          type: integer
+          description: 'Доступно для заполнения дилером (0 - Нет, 1 - Да)'
+        categories:
+          type: array
+          description: Категории
+          items:
+            $ref: '#/components/schemas/DealerCheckList_CheckListCategory'
+        department:
+          type: array
+          description: Департамент
+          items:
+            $ref: '#/components/schemas/Department'
+      description: Чек-лист
+    DealerCheckList_CheckListBlock:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID блока'
+        parent_id:
+          type: integer
+          description: 'ID родительского блока'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Название
+        name_en:
+          type: string
+          description: 'Название на английском'
+        is_required_all_positive_answers:
+          type: integer
+          description: 'Для начисления баллов требуются все положительные ответы (0 - Нет, 1 - Да)'
+        earned_points:
+          type: integer
+          description: 'Текущее количество баллов внутри блока'
+        max_available_points:
+          type: integer
+          description: 'Максимальное количество баллов внутри блока'
+        questions:
+          type: array
+          description: Вопросы
+          items:
+            $ref: '#/components/schemas/DealerCheckList_CheckListQuestion'
+      description: 'Блок чек-листа'
+    DealerCheckList_CheckListCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID категории'
+        name:
+          type: string
+          description: Название
+        min_limit_achievement:
+          type: integer
+          description: 'Минимальный лимит для выполнения в процентах'
+      description: 'Категория чек-листа'
+    DealerCheckList_CheckListQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID вопроса'
+        block_id:
+          type: integer
+          description: 'ID блока'
+        category_id:
+          type: integer
+          description: 'ID категории'
+        code:
+          type: string
+          description: Код
+        name:
+          type: string
+          description: Название
+        name_en:
+          type: string
+          description: 'Название на английском'
+        description:
+          type: string
+          description: Описание
+        description_en:
+          type: string
+          description: 'Описание на английском'
+        answer:
+          type: integer
+          description: 'Ответ (0 - Нет, 1 - Да)'
+        points:
+          type: number
+          description: 'Всего баллов'
+        earned_points:
+          type: number
+          description: 'Набрано баллов'
+        in_action_plan:
+          type: integer
+          description: 'В ПД (0 - Нет, 1 - Да)'
+        is_required_comment:
+          type: integer
+          description: 'Требует комментария (0 - Нет, 1 - Да)'
+        is_required_attachment:
+          type: integer
+          description: 'Требует приложения (0 - Нет, 1 - При положительном ответе, 2 - При негативном ответе, 3 - При любом ответе)'
+        is_important:
+          type: integer
+          description: 'Важный (0 - Нет, 1 - Да)'
+        is_only_for_distributor:
+          type: integer
+          description: 'Только для дистрибьютора (0 - Нет, 1 - Да)'
+        is_partial:
+          type: integer
+          description: 'Возможно частичное выполнение (0 - Нет, 1 - Да)'
+        comment:
+          type: string
+          description: Комментарий
+        evidence:
+          type: string
+          description: Доказательства
+        attachments:
+          oneOf:
+            -
+              type: 'null'
+            -
+              type: array
+              description: Файлы
+              items:
+                $ref: '#/components/schemas/CheckListAttachment'
+      description: 'Вопрос чек-листа'
+    DealerCheckList_Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID комментария'
+        text:
+          type: string
+          description: Текст
+        user_id:
+          type: integer
+          description: 'ID пользователя'
+        user_name:
+          type: string
+          description: 'Имя пользователя'
+        created_at:
+          type: string
+          description: 'Время создания'
+          format: 'DD.MM.YYYY HH:MM:SS'
+      description: Комментарий
+    DealerContactPerson:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: Имя
+        middle_name:
+          type: string
+          description: Отчество
+        last_name:
+          type: string
+          description: Фамилия
+        email:
+          type: string
+          description: Email
+        phone:
+          type: string
+          description: Телефон
+        position:
+          type: string
+          description: Должность
+      description: 'Модель контактное лицо дилера'
+    DealerForm:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID Дилера'
+        code:
+          type: string
+          description: 'Код дилера'
+        dealer_type:
+          type: integer
+          description: "Тип дилера: 1 - Продажи, сервис, запчасти, 2 - Сервис, запчасти, 3 - Продажи, 4 - Запчасти, 5 - Продажи, запчасти, 6 - Независимая сервисная станция, 7 - Параллельный импорт\n"
+        name:
+          type: string
+          description: Наименование
+        marketing_name:
+          type: string
+          description: 'Маркетинговое название'
+        address:
+          type: string
+          description: Адрес
+        service_address:
+          type: string
+          description: 'Адрес СТО'
+        juridical_region_id:
+          type: integer
+          description: 'id региона'
+        juridical_city_id:
+          type: integer
+          description: 'id города'
+        juridical_zip_code:
+          type: string
+          description: 'Почтовый индекс'
+        juridical_street:
+          type: string
+          description: Улица
+        juridical_house:
+          type: string
+          description: Дом
+        juridical_building:
+          type: string
+          description: Строение
+        tagsIds:
+          type: array
+          description: 'список id тегов дилера. Текущий состав тегов будет заменён на переданный'
+          items:
+            type: integer
+        website:
+          type: string
+          description: 'Веб сайт'
+        email:
+          type: string
+          description: Email
+        phone:
+          type: string
+          description: Телефон
+        lat:
+          type: number
+          description: Широта
+        lng:
+          type: number
+          description: Долгота
+        service_lat:
+          type: number
+          description: 'Широта (СТО)'
+        service_lng:
+          type: number
+          description: 'Долгота (СТО)'
+        registerDealerAt:
+          type: string
+          description: 'Дата начала работы как дилер в формате dd.MM.yyyy'
+        inactiveSince:
+          type: string
+          description: 'Дата завершения работы как дилер в формате dd.MM.yyyy'
+        serviceDeactivatedAt:
+          type: string
+          description: 'Дата завершения работы как сервис в формате dd.MM.yyyy'
+        country_id:
+          type: integer
+          description: 'ID страны'
+        city_id:
+          type: integer
+          description: 'ID города'
+        external_id:
+          type: string
+          description: 'Внешний ID'
+        region_id:
+          type: integer
+          description: 'ID региона'
+        workTime:
+          type: array
+          description: 'Рабочее время'
+          items:
+            $ref: '#/components/schemas/WorkTime'
+        departmentsWorkTime:
+          type: array
+          description: 'Рабочее время отделов'
+          items:
+            $ref: '#/components/schemas/DepartmentWorkTime'
+        holding_code:
+          type: string
+          description: 'Код дилера в INCADEA'
+        legal_form:
+          type: string
+          description: 'Форма собственности'
+        legal_form_full:
+          type: string
+          description: 'Форма собственности полностью'
+        legal_entity:
+          type: string
+          description: 'Юридическое лицо'
+        legal_entity_eng:
+          type: string
+          description: 'Юридическое лицо Eng'
+        inn:
+          type: string
+          description: ИНН
+        kpp:
+          type: string
+          description: КПП
+        ogrn:
+          type: string
+          description: ОГРН
+        okpo:
+          type: string
+          description: ОКПО
+        distributor_id:
+          type: integer
+          description: 'ID дистрибьютора'
+        minimum_sales_plan:
+          type: number
+          description: 'Минимальный план продаж дилера'
+        estimated_delivery_days:
+          type: integer
+          description: 'Средний срок доставки автомобиля к дилеру в днях'
+        sm_id:
+          type: number
+          description: 'Сотрудник СМ отв. за дилера'
+        contract_type:
+          type: string
+          description: 'Тип соглашения о сотрудничестве'
+        contractSigningAt:
+          type: string
+          description: 'Дата соглашения'
+        contractFinishAt:
+          type: string
+          description: 'Дата окончания соглашения'
+        consignmentAllowedDate:
+          type: string
+          description: 'Разрешена консигнация (при вкл. "Условия оплаты")'
+        land_area:
+          type: number
+          description: 'Общ. площадь земельного участка'
+        building_area:
+          type: number
+          description: 'Общ. площадь здания'
+        authorized_capital:
+          type: number
+          description: 'Уставной капитал, руб.'
+        employees:
+          type: number
+          description: 'Общ. численность ДЦ'
+        registerCompanyAt:
+          type: string
+          description: 'Дата регистрации компании'
+        brand_list:
+          type: string
+          description: 'Другие бренды компании/холдинга'
+        dc_legal_form:
+          type: string
+          description: 'Вид собственности ДЦ'
+        land_legal_form:
+          type: string
+          description: 'Вид собственности земли'
+        landLeaseFinishAt:
+          type: string
+          description: 'Аренда земли до'
+        buildingLeaseFinishAt:
+          type: string
+          description: 'Аренда здания до'
+        dealer_number:
+          type: string
+          description: '№ Дилерского соглашения'
+        founders:
+          type: string
+          description: Учредители
+        type_id:
+          type: number
+          description: 'Вид ДЦ'
+        combining_with_brands:
+          type: string
+          description: 'Совмещение с брендами в здании/шоуруме'
+        service_center_phone:
+          type: string
+          description: 'Телефон сервисного центра'
+        status_id:
+          type: number
+          description: 'Статус дилера'
+        banks:
+          type: array
+          description: 'Банковские реквизиты'
+          items:
+            $ref: '#/components/schemas/DealerBank'
+        general_director:
+          $ref: '#/components/schemas/DealerPerson'
+        dealership_head:
+          $ref: '#/components/schemas/DealerPerson'
+        juridical_address:
+          $ref: '#/components/schemas/DealerAddress'
+        actual_address:
+          $ref: '#/components/schemas/DealerAddress'
+        correspondence_address:
+          $ref: '#/components/schemas/DealerAddress'
+        dealer_address:
+          $ref: '#/components/schemas/DealerAddress'
+        after_sale_service_address:
+          type: array
+          description: 'Адрес послепродажного обслуживания'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        secure_parking_address:
+          type: array
+          description: 'Адрес охраняемой стоянки автомобилей'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        spare_delivery_address:
+          type: array
+          description: 'Адрес доставки запасных частей и аксессуаров'
+          items:
+            $ref: '#/components/schemas/DealerAddress'
+        territory:
+          type: array
+          description: 'Территория деятельности дилерского центра'
+          items:
+            $ref: '#/components/schemas/DealerTerritory'
+        chief_accountant:
+          $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_acts:
+          type: array
+          description: 'Контактное лицо для отправки Актов сверки взаиморасчетов и балансовых остатков'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_remind_of_payments:
+          type: array
+          description: 'Контактное лицо для отправки напоминаний о сроке оплаты по поставкам автомобилей'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_credit_line_report:
+          type: array
+          description: 'Контактное лицо для отправки Отчета по кредитной линии'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_remind_of_spare_payments:
+          type: array
+          description: 'Контактное лицо для отправки напоминаний о сроке оплаты по поставкам запчастей'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        service_contact_person:
+          type: array
+          description: 'Контактное лицо по сервисным работам (инженер по гарантии)'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        contact_person_for_payment_clarification:
+          type: array
+          description: 'Контактное лицо для отправки запросов на уточнение платежа'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        accountant_contact_person:
+          type: array
+          description: 'Контактное лицо по предоставлению бухгалтерской отчетности дилера (для кредитных линий)'
+          items:
+            $ref: '#/components/schemas/DealerContactPerson'
+        sm2_id:
+          type: integer
+          description: 'ID регионального менеджера'
+        srv2_id:
+          type: integer
+          description: 'ID регионального менеджера по сервису'
+        bdm2_id:
+          type: integer
+          description: 'ID менеджера по развитию бизнеса'
+        corporate_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по корпоративным продажам'
+        used_car_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по а/м с пробегом'
+        marketing_manager_id:
+          type: integer
+          description: 'ID регионального менеджера по маркетингу'
+        creditLimit:
+          type: number
+          description: 'Величина кредитного лимита по договору'
+        creditLimitAvailable:
+          type: number
+          description: 'Остаток по кредитному лимиту'
+        creditLimitDebt:
+          type: number
+          description: 'Задолженность по кредитному лимиту'
+        notClosedOrdersSum:
+          type: number
+          description: 'Сумма по не закрытым заказам'
+        is_connected_showcase_used:
+          type: boolean
+          description: 'Подключён к витрине а/м с пробегом'
+        generalName:
+          type: string
+          description: 'Общее название'
+        srvPriceTypeIds:
+          type: array
+          description: 'список id кластеров цен/складов дилера.'
+          items:
+            type: integer
+        factoring_enabled:
+          type: boolean
+          description: 'Дилер работает по факторингу'
+        regionFias:
+          type: string
+          description: 'ФИАС региона'
+        cityFias:
+          type: string
+          description: 'ФИАС города'
+        blockByInfotechDate:
+          type: string
+          description: 'Заблокирован (Infotech)'
+      description: 'Модель Дилер'
+    DealerLogistic:
+      description: 'Модель Логистические данные дилера'
+      properties:
+        id:
+          type: integer
+          description: 'ID логистических данных (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: 'ID дилера'
+        type:
+          type: integer
+          description: 'Тип (1 - а/м, 2 - з/ч)'
+        notify_email:
+          type: string
+          description: 'Email для уведомления дилера об отгрузке'
+        created:
+          type: string
+          description: 'дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'дата изменения в формате dd.MM.yyyy HH:mm:ss'
+        addresses:
+          type: array
+          description: 'список адресов'
+          items:
+            $ref: '#/components/schemas/DealerLogisticAddress'
+    DealerLogisticAddress:
+      properties:
+        id:
+          type: integer
+          description: 'ID логистического адреса (генерируется автоматически)'
+        external_code:
+          type: string
+          description: 'внешний ID логистического адреса'
+        is_additional:
+          type: boolean
+          description: 'Дополнительный адрес доставки'
+        all_days:
+          type: boolean
+          description: 'Все дни'
+        week_days:
+          type: boolean
+          description: 'По будням'
+        persons:
+          type: string
+          description: 'Ответственные за прием'
+        created:
+          type: string
+          description: 'дата создания в формате dd.MM.yyyy HH:mm:ss'
+        updated:
+          type: string
+          description: 'дата изменения в формате dd.MM.yyyy HH:mm:ss'
+        contract_guid:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: 'GUID договора с контрагентом'
+        address:
+          description: адрес
+          $ref: '#/components/schemas/DealerAddress'
+    DealerLogisticAddressForm:
+      type: object
+      properties:
+        type_address:
+          description: "Тип адреса: `1` - Доставка `2` - Хранение\n"
+          required: true
+          type: integer
+          enum:
+            - 1
+            - 2
+        external_code:
+          description: 'Внешний ID адреса доставки'
+          type: string
+        is_additional:
+          type: boolean
+          description: 'Дополнительный адрес доставки'
+        all_days:
+          type: boolean
+          description: 'Все дни'
+        week_days:
+          type: boolean
+          description: 'По будням'
+        contract_guid:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: 'GUID договора с контрагентом (значение поля code из таблицы dsf_dealer_contract)'
+          example: CONTRACT-2024-001
+        address:
+          description: Адрес
+          $ref: '#/components/schemas/DealerAddress'
+      description: 'Модель Логистический адрес дилера'
+    DealerLogisticForm:
+      type: object
+      properties:
+        dealer_id:
+          type: integer
+          description: 'ID Дилера'
+        type:
+          type: integer
+          description: "Тип: 1 - а/м, 2 - з/ч\n"
+        notify_email:
+          type: string
+          description: 'Email для уведомления дилера об отгрузке'
+        logistic_addresses:
+          type: array
+          description: 'Логистические адреса'
+          items:
+            $ref: '#/components/schemas/DealerLogisticAddressForm'
+      description: 'Модель Логистические данные дилера'
+    DealerPerson:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: Имя
+        first_name_eng:
+          type: string
+          description: 'Имя Eng'
+        middle_name:
+          type: string
+          description: Отчество
+        middle_name_eng:
+          type: string
+          description: 'Отчество Eng'
+        last_name:
+          type: string
+          description: Фамилия
+        last_name_eng:
+          type: string
+          description: 'Фамилия Eng'
+        email:
+          type: string
+          description: Email
+        phone:
+          type: string
+          description: Телефон
+        position:
+          type: string
+          description: Должность
+        position_eng:
+          type: string
+          description: 'Должность Eng'
+        foundation:
+          type: string
+          description: 'Основание деятельности'
+        foundation_eng:
+          type: string
+          description: 'Основание деятельности Eng'
+        gender:
+          type: string
+          description: 'Пол (0 - Мужской, 1 - Женский)'
+      description: 'Модель руководитель дилерской организации'
+    DealerStatus:
+      description: 'Статус дилера'
+      properties:
+        id:
+          type: integer
+          description: 'ID статуса'
+        name:
+          type: string
+          description: Наименование
+        code:
+          type: string
+          description: 'Системный код'
+        status:
+          type: integer
+          description: 'Статус (`1` - активен, `0` - не активен)'
+        user_id:
+          type: integer
+          description: Изменил
+        created_at:
+          type: string
+          description: 'Дата создания (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+        updated_at:
+          type: string
+          description: 'Дата изменения (ГГГГ-ММ-ДД ЧЧ:ММ:СС)'
+    DealerTag:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID тега'
+        parent_id:
+          type: integer
+          description: 'ID родительского тега'
+        name:
+          type: string
+          description: 'Наименование тега'
+      description: 'Тег дилера'
+    DealerTerritory:
+      type: object
+      properties:
+        country:
+          type: string
+          description: Страна
+        country_eng:
+          type: string
+          description: 'Страна Eng'
+        region:
+          type: string
+          description: Регион
+        region_eng:
+          type: string
+          description: 'Регион Eng'
+        area:
+          type: string
+          description: Район
+        area_eng:
+          type: string
+          description: 'Район Eng'
+        city:
+          type: string
+          description: Город
+        city_eng:
+          type: string
+          description: 'Город Eng'
+      description: 'Модель территория деятельности дилерского центра'
+    DeliveryType:
+      type: object
+      description: 'Модель Вид отгрузки'
+      required:
+        - name
+        - type
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        name:
+          type: string
+          description: Наименование
+        type:
+          type: integer
+          description: 'Тип отгрузки'
+          enum:
+            - '1 - Дилерские'
+            - '2 - Перемещения'
+            - '3 - Самовывоз'
+        createdAt:
+          type: string
+          description: 'Дата/время создания, в формате dd.MM.yyyy HH:mm'
+    Department:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID департамента'
+        name:
+          type: string
+          description: Наименование
+        status:
+          type: string
+          description: Статус
+      description: Департамент
+    DepartmentWorkTime:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код (генерируется автоматически)'
+        dealer_id:
+          type: integer
+          description: Наименование
+        department_id:
+          type: integer
+          description: Наименование
+        work_time:
+          type: array
+          description: 'Рабочее время'
+          items:
+            $ref: '#/components/schemas/WorkTime'
+      description: 'Модель время работы отдела'
+    DistributionChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Ид модели'
+        name:
+          type: integer
+          description: Наименование
+        name_en:
+          type: integer
+          description: 'Наименование (EN)'
+    Distributor:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'ID дистрибьютора'
+        name:
+          type: string
+          description: 'Наименование дистрибьютора'
+        brands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Brand'
+          readOnly: true
+      description: 'Модель дистрибьютора'
+    DocumentTemplate:
+      type: object
+      description: 'Шаблон документа'
+      properties:
+        id:
+          type: string
+          description: Идентификатор
+        name:
+          type: string
+          description: Название
+        type:
+          type: string
+          description: Тип
+        typeName:
+          type: string
+          description: 'Текстовое представление типа шаблона'
+        active:
+          type: boolean
+          description: Активность
+        url:
+          type: string
+          description: 'Пусть к файлу'
+        brand_id:
+          type: string
+          description: 'Идентификатор бренда'
+    DocumentType:
+      required:
+        - entity_type
+        - id
+        - name
+        - status
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+        name:
+          type: string
+          description: Название
+        entity_type:
+          type: integer
+          description: 'Тип сущности (1 - Карточка дилера, 2 - Лид, 3 - Гарантийный случай)'
+        status:
+          type: string
+          description: 'Статус (active - Активный, deleted - Удаленный)'
+      description: 'Тип документа'

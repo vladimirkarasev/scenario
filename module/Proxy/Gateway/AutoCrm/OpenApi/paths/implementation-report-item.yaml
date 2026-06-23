@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - implementation-report-item'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: implementation-report-item
+    description: 'Управление строками отчетов по реализации'
+paths:
+  /infiniti/implementation-report-item:
+    post:
+      tags:
+        - implementation-report-item
+      summary: 'Добавление новой строки отчета по реализации'
+      description: 'Добавление новой строки отчета по реализации'
+      requestBody:
+        description: 'Объект ImplementationReportItem'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImplementationReportItem'
+        required: true
+      responses:
+        201:
+          description: 'Новая строка отчета по реализации успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationReportItem'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/infiniti/implementation-report-item/{id}':
+    put:
+      tags:
+        - implementation-report-item
+      summary: 'Изменение строки отчета по реализации'
+      description: 'Изменение строки отчета по реализации'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id строки отчета по реализации'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель строки отчета по реализации'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImplementationReportItem'
+        required: false
+      responses:
+        200:
+          description: 'Строка отчета по реализации успешно изменена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationReportItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    delete:
+      tags:
+        - implementation-report-item
+      summary: 'Удаление строки отчета по реализации по ID'
+      description: 'Удаление строки отчета по реализации по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id строки отчета по реализации'
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: 'Строка отчета по реализации по ID удалена'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationReportItem'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

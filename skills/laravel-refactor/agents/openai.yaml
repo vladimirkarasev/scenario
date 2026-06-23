@@ -1,0 +1,4 @@
+interface:
+  display_name: "Laravel Refactor"
+  short_description: "Refactor Laravel 13 code into services/actions"
+  default_prompt: "Refactor this Laravel code so controllers stay thin and business logic lives in services or actions."

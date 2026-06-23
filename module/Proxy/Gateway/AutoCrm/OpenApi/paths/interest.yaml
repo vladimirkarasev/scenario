@@ -1,0 +1,229 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - interest'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: interest
+    description: 'Управление Обращениями'
+paths:
+  /lms/interest:
+    get:
+      tags:
+        - interest
+      summary: 'Получение списка обращений'
+      description: 'Получение списка обращений'
+      parameters:
+        -
+          name: id
+          in: query
+          description: ID
+          schema:
+            type: integer
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: integer
+        -
+          name: request_type_id
+          in: query
+          description: 'Цель обращения'
+          schema:
+            type: integer
+        -
+          name: dateFrom
+          in: query
+          description: 'Дата создания обращения ПОСЛЕ в формате dd.mm.yyyy'
+          schema:
+            type: string
+        -
+          name: excludeTag
+          in: query
+          description: 'Не содержит ID тега'
+          schema:
+            type: integer
+        -
+          name: dateTo
+          in: query
+          description: 'Дата создания обращения ДО в формате dd.mm.yyyy'
+          schema:
+            type: string
+        -
+          name: job
+          in: query
+          description: 'JOB номер'
+          schema:
+            type: string
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+        -
+          name: ip_address
+          in: query
+          description: 'IP пользователя'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Возвращает список обращений'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Interest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - interest
+      summary: 'Добавление нового обращения'
+      description: 'Добавление нового обращения'
+      requestBody:
+        description: 'Объект Interest'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterestForm'
+        required: true
+      responses:
+        201:
+          description: 'Новое обращение успешно создано'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interest'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/lms/interest-status/{id}':
+    post:
+      tags:
+        - interest
+      summary: 'Изменение внешнего статуса обращения'
+      description: 'Добавление внешнего статуса обращения'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id обращения'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель статус обращения'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestStatus'
+        required: false
+      responses:
+        200:
+          description: 'Статус успешно добавлен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestStatus'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/lms/interest/{id}':
+    get:
+      tags:
+        - interest
+      summary: 'Получение обращения по ID'
+      description: 'Получение обращения по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id обращения'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает обращение по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - interest
+      summary: 'Изменение обращения'
+      description: 'Изменение обращения'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id обращения'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Обращение'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterestForm'
+        required: false
+      responses:
+        200:
+          description: 'Обращение успешно изменено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Interest'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

@@ -1,0 +1,106 @@
+collection:
+  get:
+    tags: [Категории]
+    summary: Список категорий
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Список категорий (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/categories.yaml#/CategoryResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Категории]
+    summary: Создать категорию
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/categories.yaml#/CategoryRequest'
+    responses:
+      '201':
+        description: Категория создана
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/categories.yaml#/CategoryResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - $ref: '../components/parameters.yaml#/CategoryId'
+
+  get:
+    tags: [Категории]
+    summary: Получить категорию
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Категория
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/categories.yaml#/CategoryResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Категории]
+    summary: Обновить категорию
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/categories.yaml#/CategoryRequest'
+    responses:
+      '200':
+        description: Обновлённая категория
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/categories.yaml#/CategoryResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Категории]
+    summary: Удалить категорию
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Категория удалена
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'

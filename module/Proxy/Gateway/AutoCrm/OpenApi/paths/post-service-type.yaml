@@ -1,0 +1,78 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - post-service-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: post-service-type
+    description: 'Получение списка типов постов'
+paths:
+  /service/post-service-type:
+    get:
+      tags:
+        - post-service-type
+      description: 'Получение списка типов постов'
+      summary: 'Получение списка типов постов'
+      parameters:
+        -
+          name: name
+          in: query
+          description: Наименование
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          description: Статус
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Список типов постов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostServiceType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+  '/service/post-service-type/{id}':
+    get:
+      tags:
+        - post-service-type
+      description: 'Получение типа поста по ID'
+      summary: 'Получение типа поста по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'ID типа поста'
+          schema:
+            type: integer
+          required: true
+      responses:
+        200:
+          description: 'Возвращает типа поста по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostServiceType'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

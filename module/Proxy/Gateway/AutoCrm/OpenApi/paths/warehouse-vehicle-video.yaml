@@ -1,0 +1,74 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - warehouse-vehicle-video'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: warehouse-vehicle-video
+    description: 'Управление видео автомобилей'
+paths:
+  /warehouse/vehicle-video/create:
+    post:
+      tags:
+        - warehouse-vehicle-video
+      summary: 'Добавить видео'
+      description: 'Добавить видео'
+      parameters:
+        -
+          name: vin
+          in: query
+          description: 'VIN автомобиля'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleVideoUploadForm'
+        required: true
+      responses:
+        200:
+          description: 'Видео добавлено'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleVideoForm'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content: {  }
+  /warehouse/vehicle-video/delete:
+    delete:
+      tags:
+        - warehouse-vehicle-video
+      summary: 'Удалить видео по его ID'
+      description: 'Удалить видео по его ID'
+      parameters:
+        -
+          name: id
+          in: query
+          description: 'ID видео'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Видео удалено'
+          content: {  }
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content: {  }

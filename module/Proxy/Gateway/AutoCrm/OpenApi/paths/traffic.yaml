@@ -1,0 +1,56 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - traffic'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: traffic
+    description: 'Получение данных со счётчиков сайтов'
+paths:
+  /traffic:
+    get:
+      tags:
+        - traffic
+      summary: 'Получение данных со счётчиков сайтов'
+      description: 'Получение данных со счётчиков сайтов'
+      parameters:
+        -
+          name: date
+          in: query
+          description: 'Дата (в формате дд.мм.гггг)'
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Данные со счётчиков сайтов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Traffic'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'

@@ -1,0 +1,308 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - dealer-check'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: dealer-check
+    description: 'Проверка дилера'
+paths:
+  /dealer-check:
+    get:
+      tags:
+        - dealer-check
+      summary: 'Получение списка проверок дилера'
+      description: 'Получение списка проверок дилера'
+      parameters:
+        -
+          name: dealer_id
+          in: query
+          description: 'id дилера'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список проверок дилера'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerCheck'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer-check
+      summary: 'Добавление проверки дилера'
+      description: 'Добавление проверки дилера'
+      requestBody:
+        description: 'Объект «Проверка дилера»'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheck'
+        required: true
+      responses:
+        201:
+          description: 'Новая проверка дилера успешно создана'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheck'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  /dealer-check-comment:
+    get:
+      tags:
+        - dealer-check
+      summary: 'Получение списка комментариев проверки дилера'
+      description: 'Получение списка комментариев проверки дилера'
+      parameters:
+        -
+          name: dealer_check_id
+          in: query
+          description: 'id проверки дилера'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список комментариев проверки дилера'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DealerCheckComment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - dealer-check
+      summary: 'Добавление нового комментария проверки дилера'
+      description: 'Добавление нового комментария проверки дилера'
+      requestBody:
+        description: 'Модель «Комментарий проверки дилера»'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckComment'
+        required: true
+      responses:
+        201:
+          description: 'Новый комментарий проверки дилера успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckComment'
+        400:
+          description: 'Некорректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/dealer-check-comment/{id}':
+    get:
+      tags:
+        - dealer-check
+      summary: 'Получение комментария проверки дилера по ID'
+      description: 'Получение комментария проверки дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id комментария проверки дилера'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает комментарий проверки дилера по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckComment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer-check
+      summary: 'Изменение комментария проверки дилера'
+      description: 'Изменение комментария проверки дилера'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id комментария проверки дилера'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'Модель «Комментарий проверки дилера»'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckComment'
+        required: false
+      responses:
+        200:
+          description: 'Комментарий проверки дилера успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckComment'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  /dealer-check/holding-sync:
+    put:
+      tags:
+        - dealer-check
+      summary: 'Синхоронизация проверки холдинга с проверками дилера'
+      description: 'Синхоронизация проверки холдинга с проверками дилера'
+      parameters:
+        -
+          name: holdingInfotechId
+          in: query
+          description: 'id Холдинг Infotech'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель проверки дилера'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheckHoldingSync'
+        required: false
+      responses:
+        200:
+          description: 'проверка дилера с внесёнными изменениями'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheckHoldingSync'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+  '/dealer-check/{id}':
+    get:
+      tags:
+        - dealer-check
+      summary: 'Получение проверки дилера по ID'
+      description: 'Получение проверки дилера по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id проверки дилера'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает проверку дилера по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheck'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - dealer-check
+      summary: 'Изменение проверки дилера'
+      description: 'Изменение проверки дилера'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id проверки дилера'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель проверки дилера'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DealerCheck'
+        required: false
+      responses:
+        200:
+          description: 'проверка дилера с внесёнными изменениями'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealerCheck'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

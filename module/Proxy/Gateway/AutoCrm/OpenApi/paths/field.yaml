@@ -1,0 +1,137 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - field'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: field
+    description: 'Управление атрибутами клиента'
+paths:
+  /field:
+    get:
+      tags:
+        - field
+      summary: 'Получение списка атрибутов клиентов'
+      description: 'Получение списка атрибутов клиентов'
+      responses:
+        200:
+          description: 'Возвращает список атрибутов клиентов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Field'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+    post:
+      tags:
+        - field
+      summary: 'Добавление нового атрибута клиента'
+      description: 'Добавление нового атрибута клиента'
+      requestBody:
+        description: 'Объект Атрибут клиента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Field'
+        required: true
+      responses:
+        201:
+          description: 'Новый атрибут клиента успешно создан'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Field'
+        400:
+          description: 'Не корректный запрос'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        422:
+          description: 'Ошибка в параметрах запроса'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Error'
+  '/field/{id}':
+    get:
+      tags:
+        - field
+      summary: 'Получение атрибута клиента по ID'
+      description: 'Получение атрибута клиента по ID'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id атрибута клиента'
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает атрибут клиента по ID'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Field'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'
+    put:
+      tags:
+        - field
+      summary: 'Изменение атрибута клиента'
+      description: 'Изменение атрибута клиента'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'id атрибута клиента'
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 'модель Атрибут клиента'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Field'
+        required: false
+      responses:
+        200:
+          description: 'Атрибут клиента успешно изменен'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Field'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }
+        404:
+          description: 'Объект не найден'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exception'

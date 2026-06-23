@@ -1,0 +1,117 @@
+VersionResource:
+  type: object
+  required: [id, type, attributes]
+  properties:
+    id:
+      type: string
+      format: uuid
+    type:
+      type: string
+      example: scenario_versions
+    attributes:
+      $ref: '#/VersionAttributes'
+    relationships:
+      type: object
+      properties:
+        created_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+        updated_by:
+          type: object
+          nullable: true
+          properties:
+            data:
+              $ref: './common.yaml#/Actor'
+
+VersionAttributes:
+  type: object
+  properties:
+    scenario_id:
+      type: string
+      format: uuid
+    name:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/VersionStatus'
+    schema_json:
+      type: object
+      description: Граф сценария (узлы и рёбра)
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    updated_at:
+      type: string
+      format: date-time
+      nullable: true
+
+VersionItem:
+  type: object
+  description: Представление версии (возвращается при create/update)
+  properties:
+    id:
+      type: string
+      format: uuid
+    scenario_id:
+      type: string
+      format: uuid
+    name:
+      type: string
+      nullable: true
+    status:
+      $ref: '#/VersionStatus'
+
+VersionRequest:
+  type: object
+  required: [schema_json]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+      nullable: true
+      example: v1.0
+    status:
+      $ref: '#/VersionStatus'
+    schema_json:
+      type: object
+      description: >
+        Граф сценария. Содержит массивы `nodes` и `edges` в формате
+        Vue Flow / React Flow.
+      example:
+        nodes:
+          - id: node_start
+            type: start
+            data: {}
+        edges: []
+
+VersionStatus:
+  type: string
+  enum: [draft, active, archived]
+  description: >
+    - `draft` — черновик, не виден пользователям
+    - `active` — активная версия
+    - `archived` — архивная версия
+
+VersionRevision:
+  type: object
+  description: Снимок версии сценария (создаётся при каждом сохранении графа)
+  properties:
+    id:
+      type: string
+      format: uuid
+    scenario_version_id:
+      type: string
+      format: uuid
+    schema_json:
+      type: object
+      description: Граф сценария на момент создания ревизии
+    created_at:
+      type: string
+      format: date-time
+      nullable: true
+    created_by:
+      $ref: './common.yaml#/Actor'

@@ -1,0 +1,35 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - event-type'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: event-type
+    description: 'Управление типами событий'
+paths:
+  /event-type:
+    get:
+      tags:
+        - event-type
+      summary: 'Получение списка типов событий'
+      description: 'Получение списка типов событий'
+      responses:
+        200:
+          description: 'Возвращает список типов событий'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

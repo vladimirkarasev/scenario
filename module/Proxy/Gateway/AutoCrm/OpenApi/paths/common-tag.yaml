@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - common-tag'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: common-tag
+    description: 'Управление тегами'
+paths:
+  /common-tag:
+    get:
+      tags:
+        - common-tag
+      summary: 'Получение списка тегов'
+      description: 'Получение списка тегов'
+      parameters:
+        -
+          name: name
+          in: query
+          description: 'Наименование тега'
+          schema:
+            type: string
+        -
+          name: type
+          in: query
+          description: 'Тип тега'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список тегов'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommonTag'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

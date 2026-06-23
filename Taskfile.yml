@@ -1,0 +1,85 @@
+version: "3"
+
+vars:
+  COMPOSE: docker compose
+  APP_SERVICE: laravel
+
+tasks:
+  default:
+    cmds:
+      - task: up
+
+  up:
+    desc: Start application containers
+    cmds:
+      - "{{.COMPOSE}} up -d"
+
+  up:dev:
+    desc: Start application containers with dev profile and Traefik
+    cmds:
+      - "{{.COMPOSE}} --profile dev up -d"
+
+  down:
+    desc: Stop and remove application containers
+    cmds:
+      - "{{.COMPOSE}} down"
+
+  down:dev:
+    desc: Stop and remove application containers including dev profile services
+    cmds:
+      - "{{.COMPOSE}} --profile dev down"
+
+  build:
+    desc: Build application images
+    cmds:
+      - "{{.COMPOSE}} build"
+
+  restart:
+    desc: Restart application containers
+    cmds:
+      - "{{.COMPOSE}} restart"
+
+  shell:
+    desc: Open shell in Laravel container
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} bash"
+
+  rr:
+    desc: Show RoadRunner process status
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} supervisorctl status roadrunner"
+
+  queue:
+    desc: Show Laravel queue worker status
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} supervisorctl status laravel-queue"
+
+  composer:
+    desc: Run Composer inside Laravel container
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} composer {{.CLI_ARGS}}"
+
+  artisan:
+    desc: Run Artisan inside Laravel container
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan {{.CLI_ARGS}}"
+
+  npm:dev:
+    desc: Run Vite dev server in the Node compose service
+    cmds:
+      - "{{.COMPOSE}} --profile tools run --rm --service-ports node sh -lc 'npm run dev -- --host 0.0.0.0'"
+
+  logs:
+    desc: Tail service logs
+    cmds:
+      - "{{.COMPOSE}} logs -f {{default .APP_SERVICE .CLI_ARGS}}"
+
+  pint:
+    desc: Run Laravel Pint code style fixer
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/pint {{.CLI_ARGS}}"
+
+  test:
+    desc: Run PHPUnit test suite
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan test {{.CLI_ARGS}}"

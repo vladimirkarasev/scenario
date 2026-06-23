@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${ENABLE_QUEUE_WORKER:-1}" != "1" ]]; then
+  echo "queue worker disabled"
+  exec sleep infinity
+fi
+
+if [[ ! -f /var/www/html/artisan ]]; then
+  echo "artisan not found; queue worker is waiting for Laravel app files"
+  exec sleep infinity
+fi
+
+QUEUE_NAMES="${QUEUE_NAMES:-imports,default}"
+
+exec php artisan queue:work --queue="${QUEUE_NAMES}" --verbose --tries=3 --timeout=90

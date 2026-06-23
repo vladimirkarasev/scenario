@@ -1,0 +1,54 @@
+openapi: 3.1.0
+info:
+  title: 'Dealer Network Management - position'
+  version: '1.0'
+servers:
+  -
+    url: /api
+security:
+  -
+    basicAuth: {  }
+  -
+    bearerAuth: {  }
+tags:
+  -
+    name: position
+    description: 'Управление должностями'
+paths:
+  /position:
+    get:
+      tags:
+        - position
+      summary: 'Получение списка должностей'
+      description: 'Получение списка должностей'
+      parameters:
+        -
+          name: code
+          in: query
+          description: 'системный код MANAGER - менеджер, ACCEPTOR - мастер приемщик,  ROP - Руководитель отдела продаж, MECHANIC - Механик, CS - Клиентская служба, MARKETING - Маркетинг'
+          schema:
+            type: string
+        -
+          name: is_dealer
+          in: query
+          description: 'флаг is_dealer: 1 = только дилерские, 0 = только не дилерские, 2 = любые. Опущен, пустое или не предусмотренное значение = только дилерские'
+          schema:
+            type: integer
+        -
+          name: page
+          in: query
+          description: 'Номер страницы'
+          schema:
+            type: integer
+      responses:
+        200:
+          description: 'Возвращает список должностей'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+        401:
+          description: 'Необходима авторизация'
+          content: {  }

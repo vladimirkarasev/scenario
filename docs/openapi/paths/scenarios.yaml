@@ -1,0 +1,169 @@
+collection:
+  get:
+    tags: [Сценарии]
+    summary: Список сценариев
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: filter
+        in: query
+        style: deepObject
+        explode: true
+        description: >
+          Фильтры JSON:API (`filter[search]`, `filter[is_active]`,
+          `filter[active_only]`, `filter[tags][]`, `filter[category_id]`)
+        schema:
+          type: object
+          properties:
+            search:
+              type: string
+              description: Поиск по названию, описанию, alias и тегам (регистронезависимо)
+              example: оформление
+            is_active:
+              type: boolean
+              description: Фильтр по признаку активности сценария
+              example: true
+            active_only:
+              type: boolean
+              description: Показывать только сценарии с активной версией (по умолчанию `true`)
+              default: true
+            tags:
+              type: array
+              items:
+                type: string
+              description: Фильтр по тегам (любое совпадение)
+              example: [onboarding, hr]
+            category_id:
+              type: string
+              format: uuid
+              description: UUID категории для фильтрации
+              example: 018e1b2c-3d4f-7e8a-9b0c-1d2e3f4a5b6c
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: Список сценариев (JSON:API коллекция)
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/scenarios.yaml#/ScenarioResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+
+  post:
+    tags: [Сценарии]
+    summary: Создать сценарий
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/scenarios.yaml#/ScenarioRequest'
+    responses:
+      '201':
+        description: Сценарий создан
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  $ref: '../components/schemas/scenarios.yaml#/ScenarioItem'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+item:
+  parameters:
+    - $ref: '../components/parameters.yaml#/ScenarioId'
+
+  get:
+    tags: [Сценарии]
+    summary: Получить сценарий
+    security:
+      - BearerAuth: []
+    responses:
+      '200':
+        description: Сценарий
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/scenarios.yaml#/ScenarioResource'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  patch:
+    tags: [Сценарии]
+    summary: Обновить сценарий
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/scenarios.yaml#/ScenarioRequest'
+    responses:
+      '200':
+        description: Обновлённый сценарий
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  $ref: '../components/schemas/scenarios.yaml#/ScenarioItem'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+  delete:
+    tags: [Сценарии]
+    summary: Удалить сценарий
+    security:
+      - BearerAuth: []
+    responses:
+      '204':
+        description: Сценарий удалён
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+duplicate:
+  post:
+    tags: [Сценарии]
+    summary: Дублировать сценарий
+    security:
+      - BearerAuth: []
+    parameters:
+      - $ref: '../components/parameters.yaml#/ScenarioId'
+    responses:
+      '201':
+        description: Копия сценария создана
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  $ref: '../components/schemas/scenarios.yaml#/ScenarioItem'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
