@@ -30,7 +30,7 @@ final class CategoryRepository implements CategoryRepositoryContract
     }
 
     /**
-     * @param  class-string  $modelClass
+     * @param  class-string              $modelClass
      * @return Collection<int, Category>
      */
     public function forModel(string $modelClass, ?string $projectId = null): Collection
@@ -49,7 +49,7 @@ final class CategoryRepository implements CategoryRepositoryContract
                             }
                         }
                     );
-                }
+                },
             ])
             ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($modelClass, $projectId): void {
                 $q->from('model_has_categories')
@@ -68,7 +68,7 @@ final class CategoryRepository implements CategoryRepositoryContract
      * $parentId = null → root categories (parent_id IS NULL).
      * $parentId = uuid → direct children of that parent.
      *
-     * @param  class-string  $modelClass
+     * @param  class-string              $modelClass
      * @return Collection<int, Category>
      */
     public function forModelByParent(string $modelClass, ?string $parentId, ?string $projectId = null): Collection
@@ -86,7 +86,7 @@ final class CategoryRepository implements CategoryRepositoryContract
                             }
                         }
                     );
-                }
+                },
             ])
             ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($modelClass, $projectId): void {
                 $q->from('model_has_categories')
@@ -96,8 +96,8 @@ final class CategoryRepository implements CategoryRepositoryContract
                     $q->where('model_has_categories.project_id', $projectId);
                 }
             })
-            ->when($parentId === null, static fn($q) => $q->whereNull('parent_id'))
-            ->when($parentId !== null, static fn($q) => $q->where('parent_id', $parentId))
+            ->when($parentId === null, static fn ($q) => $q->whereNull('parent_id'))
+            ->when($parentId !== null, static fn ($q) => $q->where('parent_id', $parentId))
             ->orderBy('name')
             ->get();
     }
@@ -134,7 +134,7 @@ final class CategoryRepository implements CategoryRepositoryContract
         return Category::query()
             ->where('parent_id', $parentId)
             ->pluck('id')
-            ->map(static fn(mixed $id): string => is_string($id) ? $id : '')
+            ->map(static fn (mixed $id): string => is_string($id) ? $id : '')
             ->values()
             ->all();
     }

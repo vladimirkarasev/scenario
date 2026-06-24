@@ -274,11 +274,11 @@ class AutoCrmGateway extends BaseApiGateway
     private function items(ApiGatewayResponse $response): array
     {
         $body = is_array($response->body) ? $response->body : [];
-        $arrays = array_filter($body, 'is_array');
+        $arrays = array_filter($body, is_array(...));
 
         return array_values(
             array_map(
-                static fn(array $item): AutoCrmData => AutoCrmData::fromArray($item),
+                AutoCrmData::fromArray(...),
                 $arrays,
             )
         );

@@ -12,11 +12,11 @@ use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryVersionRepository;
 
-final class DirectoryVersionService
+final readonly class DirectoryVersionService
 {
     public function __construct(
-        private readonly DirectoryVersionRepository $versions,
-        private readonly Container $container,
+        private DirectoryVersionRepository $versions,
+        private Container $container,
     ) {
     }
 

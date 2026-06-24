@@ -51,6 +51,7 @@ final class UserUpdateRequest extends FormRequest
         ];
     }
 
+    #[\Override]
     protected function prepareForValidation(): void
     {
         $this->merge([

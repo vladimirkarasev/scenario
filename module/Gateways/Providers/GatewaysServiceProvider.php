@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 
 final class GatewaysServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         //

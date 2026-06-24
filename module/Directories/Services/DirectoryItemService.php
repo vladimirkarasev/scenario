@@ -19,20 +19,20 @@ use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryItemRepository;
 use Module\Directories\Repositories\DirectoryRepository;
 
-final class DirectoryItemService
+final readonly class DirectoryItemService
 {
     /** Sentinel id of the synthetic "Other" item (never persisted; negative to avoid colliding with real ids). */
-    public const OTHER_ITEM_ID = -1;
+    public const int OTHER_ITEM_ID = -1;
 
     /** Default external_key used for the "Other" option when the version does not configure its own. */
-    public const OTHER_EXTERNAL_KEY = '__other__';
+    public const string OTHER_EXTERNAL_KEY = '__other__';
 
-    private const DEFAULT_OTHER_LABEL = 'Другой';
+    private const string DEFAULT_OTHER_LABEL = 'Другой';
 
     public function __construct(
-        private readonly DirectoryItemRepository $items,
-        private readonly DirectoryRepository $directories,
-        private readonly Container $container,
+        private DirectoryItemRepository $items,
+        private DirectoryRepository $directories,
+        private Container $container,
     ) {
     }
 
@@ -88,15 +88,13 @@ final class DirectoryItemService
         $searchableKeys = $this->searchableKeys($fields);
 
         $item = $directory->getConnection()->transaction(
-            function () use ($version, $values, $data, $searchableKeys): DirectoryItem {
-                return $this->items->create([
-                    'directory_version_id' => $version->id,
-                    'parent_id' => $data->parentId,
-                    'external_key' => $data->matchBy !== null ? ($values[$data->matchBy] ?? null) : null,
-                    'search_text' => $this->buildSearchText($values, $searchableKeys),
-                    'data_json' => $values,
-                ]);
-            },
+            fn(): DirectoryItem => $this->items->create([
+                'directory_version_id' => $version->id,
+                'parent_id' => $data->parentId,
+                'external_key' => $data->matchBy !== null ? ($values[$data->matchBy] ?? null) : null,
+                'search_text' => $this->buildSearchText($values, $searchableKeys),
+                'data_json' => $values,
+            ]),
         );
 
         DirectoryCache::forgetDirectory($directory->id);

@@ -9,15 +9,15 @@ use Module\Proxy\Gateway\Base\Methods\AbstractApiMethod;
 final readonly class CreateLeadMethod extends AbstractApiMethod
 {
     /**
-     * @param  array<string, mixed>  $lead
-     * @param  array<string, mixed>  $query
+     * @param array<string, mixed> $lead
+     * @param array<string, mixed> $query
      */
     public function __construct(
         private array $lead,
         private array $query = [],
-    ) {
-    }
+    ) {}
 
+    #[\Override]
     public function key(): string
     {
         return 'autocrm.leads.create';
@@ -34,6 +34,7 @@ final readonly class CreateLeadMethod extends AbstractApiMethod
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function query(): array
     {
         return $this->query;

@@ -8,6 +8,7 @@ use Module\Proxy\Gateway\AutoCrm\Methods\AutoCrmListPageMethod;
 
 final readonly class GetExecutorCategoryListPageMethod extends AutoCrmListPageMethod
 {
+    #[\Override]
     public function key(): string
     {
         return 'autocrm.executor-category.list.page';

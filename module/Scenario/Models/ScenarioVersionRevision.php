@@ -42,6 +42,7 @@ final class ScenarioVersionRevision extends Model
         return $this->belongsTo(ScenarioVersion::class, 'scenario_version_id');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

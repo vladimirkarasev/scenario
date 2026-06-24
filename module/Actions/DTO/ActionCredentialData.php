@@ -10,8 +10,8 @@ use Module\Actions\Models\ActionCredential;
 final readonly class ActionCredentialData
 {
     /**
-     * @param  array<string, mixed>|null  $config
-     * @param  array<string, mixed>  $secrets
+     * @param array<string, mixed>|null $config
+     * @param array<string, mixed>      $secrets
      */
     public function __construct(
         public string $name,
@@ -19,8 +19,7 @@ final readonly class ActionCredentialData
         public ?array $config,
         public array $secrets,
         public bool $canManageActions,
-    ) {
-    }
+    ) {}
 
     public static function fromRequest(Request $request, ?ActionCredential $credential = null): self
     {
@@ -36,14 +35,14 @@ final readonly class ActionCredentialData
     /** @return array<string, mixed>|null */
     private static function stringKeyedArray(mixed $value): ?array
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return null;
         }
 
         $result = [];
 
         foreach ($value as $key => $item) {
-            $result[(string)$key] = $item;
+            $result[(string) $key] = $item;
         }
 
         return $result;

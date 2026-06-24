@@ -49,7 +49,7 @@ const filtered = computed<Action[]>(() => {
   if (!q) return items.value
   return items.value.filter(a =>
       a.name.toLowerCase().includes(q)
-      || a.key.toLowerCase().includes(q)
+      || a.slug.toLowerCase().includes(q)
       || a.code.toLowerCase().includes(q),
   )
 })
@@ -108,7 +108,7 @@ function select(action: Action): void {
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-[13px] text-slate-800 leading-snug">{{ action.name }}</span>
-                <span class="font-mono text-[11px] text-slate-400 leading-snug">{{ action.code || action.key }}</span>
+                <span class="font-mono text-[11px] text-slate-400 leading-snug">{{ action.code || action.slug }}</span>
               </div>
               <p v-if="action.description" class="mt-0.5 truncate text-[12px] text-slate-500 leading-snug">
                 {{ action.description }}

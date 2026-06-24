@@ -8,19 +8,25 @@ use Illuminate\Http\Request;
 
 final readonly class ActionIndexData
 {
+    /** @param  list<string>  $categoryIds */
     public function __construct(
         public ?string $search,
         public ?string $type,
         public ?bool $isActive,
+        public array $categoryIds,
         public int $perPage,
-    ) {
-    }
+    ) {}
 
     public static function fromRequest(Request $request): self
     {
         $filter = $request->array('filter');
         $pageSize = $request->input('page.size', 20);
-        $perPage = is_scalar($pageSize) ? (int)$pageSize : 20;
+        $perPage = is_scalar($pageSize) ? (int) $pageSize : 20;
+
+        $rawCategories = $filter['category_ids'] ?? [];
+        $categoryIds = is_array($rawCategories)
+            ? array_values(array_filter($rawCategories, is_string(...)))
+            : [];
 
         return new self(
             search: isset($filter['search']) && is_string($filter['search']) && $filter['search'] !== ''
@@ -32,6 +38,7 @@ final readonly class ActionIndexData
             isActive: isset($filter['is_active']) && $filter['is_active'] !== ''
                 ? filter_var($filter['is_active'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
                 : null,
+            categoryIds: $categoryIds,
             perPage: max(1, min(100, $perPage)),
         );
     }

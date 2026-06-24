@@ -8,19 +8,18 @@ use Module\Actions\DTO\ActionCredentialData;
 use Module\Actions\Models\ActionCredential;
 use Module\Actions\Repositories\ActionCredentialRepository;
 
-final class ActionCredentialService
+final readonly class ActionCredentialService
 {
     public function __construct(
-        private readonly ActionCredentialRepository $credentials,
-    ) {
-    }
+        private ActionCredentialRepository $credentials,
+    ) {}
 
     /** @return array<int, array<string, mixed>> */
     public function items(): array
     {
         return $this->credentials
             ->orderedByName()
-            ->map(fn(ActionCredential $credential): array => $this->payload($credential))
+            ->map(fn (ActionCredential $credential): array => $this->payload($credential))
             ->values()
             ->all();
     }
@@ -48,7 +47,7 @@ final class ActionCredentialService
         $mergedSecrets = [
             ...$credential->encrypted_secrets,
             ...collect($data->secrets)
-                ->filter(static fn(mixed $value): bool => $value !== null && $value !== '')
+                ->filter(static fn (mixed $value): bool => $value !== null && $value !== '')
                 ->all(),
         ];
 

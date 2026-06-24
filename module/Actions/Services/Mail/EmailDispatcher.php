@@ -20,8 +20,7 @@ final readonly class EmailDispatcher
         private EmailAccountResolver $resolver,
         private EmailSenderFactory $factory,
         private Dispatcher $events,
-    ) {
-    }
+    ) {}
 
     public function send(EmailMessage $message): EmailSendResult
     {

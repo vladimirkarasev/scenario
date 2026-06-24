@@ -13,15 +13,14 @@ use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
 use Module\Proxy\DTO\ProxyResponse;
 use Module\Proxy\Services\ProxyReceiverService;
 
-final class ProxyRequestActionHandler implements ActionHandlerInterface
+final readonly class ProxyRequestActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-        private readonly ProxyReceiverService $proxyReceiver,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+        private ProxyReceiverService $proxyReceiver,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -33,7 +32,7 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
         $endpointUuid = $config['endpoint_uuid'] ?? null;
 
-        if (!is_string($endpointUuid) || $endpointUuid === '') {
+        if (! is_string($endpointUuid) || $endpointUuid === '') {
             return ActionResult::failed('Proxy action requires `endpoint_uuid` in config.');
         }
 
@@ -46,8 +45,8 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
     }
 
     /**
-     * @param  array<string, mixed>  $config
-     * @param  array<string, mixed>  $input
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $input
      */
     private function requestFromConfig(string $endpointUuid, array $config, array $input): Request
     {
@@ -94,7 +93,7 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
     }
 
     /**
-     * @param  array<mixed, mixed>  $headers
+     * @param  array<mixed, mixed>   $headers
      * @return array<string, string>
      */
     private function serverHeaders(array $headers): array
@@ -102,12 +101,12 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
         $server = [];
 
         foreach ($headers as $name => $value) {
-            if (!is_scalar($value)) {
+            if (! is_scalar($value)) {
                 continue;
             }
 
-            $key = 'HTTP_'.strtoupper(str_replace('-', '_', (string)$name));
-            $server[$key] = (string)$value;
+            $key = 'HTTP_'.strtoupper(str_replace('-', '_', (string) $name));
+            $server[$key] = (string) $value;
         }
 
         return $server;
@@ -122,7 +121,7 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string)$key] = $value;
+            $result[(string) $key] = $value;
         }
 
         return $result;
@@ -130,6 +129,6 @@ final class ProxyRequestActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string)$value : $default;
+        return is_scalar($value) ? (string) $value : $default;
     }
 }

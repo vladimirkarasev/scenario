@@ -20,7 +20,7 @@ final class ActionRunServiceTest extends TestCase
     {
         $action = Action::query()->create([
             'name' => 'Failing action',
-            'key' => 'failing-action',
+            'slug' => 'failing-action',
             'type' => 'template_file',
             'is_active' => true,
         ]);

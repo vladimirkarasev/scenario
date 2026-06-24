@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
-use Module\Scenario\Services\Nodes\NodeContextKeys;
-
 /**
  * Служебные ключи уровня плеера в context прогона (не относятся к отдельным нодам).
  * Ключи нод см. в {@see NodeContextKeys}.
@@ -13,8 +11,8 @@ use Module\Scenario\Services\Nodes\NodeContextKeys;
 final class RunContextKeys
 {
     /** context[PLAYER] = ['total_steps' => int, 'visited' => array<string,int>] — guard прогресса. */
-    public const PLAYER = '_player';
+    public const string PLAYER = '_player';
 
     /** context[VARIABLE_MAP] = карта плоских переменных опроса (varName => мета). */
-    public const VARIABLE_MAP = '_variable_map';
+    public const string VARIABLE_MAP = '_variable_map';
 }

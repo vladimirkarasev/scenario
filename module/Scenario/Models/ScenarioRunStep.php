@@ -40,6 +40,7 @@ final class ScenarioRunStep extends Model
         return $this->belongsTo(ScenarioRun::class, 'run_id');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

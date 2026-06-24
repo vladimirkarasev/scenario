@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Users\Http;
 
+use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ final class UsersControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     // -------------------------------------------------------------------------

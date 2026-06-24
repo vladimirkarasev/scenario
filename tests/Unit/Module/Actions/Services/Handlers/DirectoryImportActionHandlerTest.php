@@ -29,7 +29,7 @@ final class DirectoryImportActionHandlerTest extends TestCase
         ]);
 
         $action = new Action([
-            'key' => 'import-leads',
+            'slug' => 'import-leads',
             'config' => [
                 'directory_id' => $directory->id,
                 'source_type' => 'file',

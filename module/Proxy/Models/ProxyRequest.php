@@ -13,18 +13,18 @@ use Module\Proxy\Enums\ProxyRequestStatus;
 use Module\Proxy\QueryBuilders\ProxyRequestBuilder;
 
 /**
- * @property string $id
- * @property string $proxy_endpoint_id
- * @property string $request_id
- * @property ProxyRequestStatus $status
- * @property bool $is_mocked
+ * @property string                    $id
+ * @property string                    $proxy_endpoint_id
+ * @property string                    $request_id
+ * @property ProxyRequestStatus        $status
+ * @property bool                      $is_mocked
  * @property array<string, mixed>|null $request
  * @property array<string, mixed>|null $normalized_data
  * @property array<string, mixed>|null $message_box
  * @property array<string, mixed>|null $response
- * @property Carbon|null $received_at
- * @property Carbon|null $processed_at
- * @property ProxyEndpoint|null $endpoint
+ * @property Carbon|null               $received_at
+ * @property Carbon|null               $processed_at
+ * @property ProxyEndpoint|null        $endpoint
  *
  * @method static ProxyRequestBuilder query()
  */
@@ -54,11 +54,13 @@ final class ProxyRequest extends Model
     }
 
     /** @param  Builder  $query */
+    #[\Override]
     public function newEloquentBuilder($query): ProxyRequestBuilder
     {
         return new ProxyRequestBuilder($query);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

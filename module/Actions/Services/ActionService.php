@@ -10,20 +10,21 @@ use Module\Actions\DTO\ActionIndexData;
 use Module\Actions\Models\Action;
 use Module\Actions\Models\ActionRun;
 use Module\Actions\Repositories\ActionRepository;
+use Module\Projects\CurrentProject;
 
-final class ActionService
+final readonly class ActionService
 {
     public function __construct(
-        private readonly ActionRepository $actions,
-    ) {
-    }
+        private ActionRepository $actions,
+        private CurrentProject $currentProject,
+    ) {}
 
     /** @return array<int, array<string, mixed>> */
     public function items(): array
     {
         return $this->actions
             ->orderedWithRecentRuns()
-            ->map(fn(Action $action): array => $this->payload($action))
+            ->map(fn (Action $action): array => $this->payload($action))
             ->values()
             ->all();
     }
@@ -44,6 +45,7 @@ final class ActionService
         $this->ensureManageAccess($data->canManageActions);
 
         $action = $this->actions->create($data->toAttributes());
+        $action->categories()->sync($this->categoryPivot($data->categoryIds));
 
         return $this->actions->loadRecentRuns($action);
     }
@@ -53,6 +55,7 @@ final class ActionService
         $this->ensureManageAccess($data->canManageActions);
 
         $action = $this->actions->update($action, $data->toAttributes());
+        $action->categories()->sync($this->categoryPivot($data->categoryIds));
 
         return $this->actions->loadRecentRuns($action);
     }
@@ -70,7 +73,7 @@ final class ActionService
         return [
             'id' => $action->id,
             'name' => $action->name,
-            'key' => $action->key,
+            'slug' => $action->slug,
             'code' => $action->code,
             'description' => $action->description,
             'type' => $action->type,
@@ -81,7 +84,7 @@ final class ActionService
             'input_fields' => $action->input_fields ?? [],
             'credential_id' => $action->config['credential_id'] ?? null,
             'runs' => $action->relationLoaded('runs')
-                ? $action->runs->map(fn(ActionRun $run): array => $this->runPayload($run))->values()->all()
+                ? $action->runs->map(fn (ActionRun $run): array => $this->runPayload($run))->values()->all()
                 : [],
             'created_at' => $action->created_at?->toIso8601String(),
             'updated_at' => $action->updated_at?->toIso8601String(),
@@ -103,6 +106,22 @@ final class ActionService
             'duration_ms' => $run->duration_ms,
             'created_at' => $run->created_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * @param  list<string>                                  $categoryIds
+     * @return array<string, array{project_id: string|null}>
+     */
+    private function categoryPivot(array $categoryIds): array
+    {
+        $projectId = $this->currentProject->id();
+
+        $pivot = [];
+        foreach ($categoryIds as $id) {
+            $pivot[$id] = ['project_id' => $projectId];
+        }
+
+        return $pivot;
     }
 
     private function ensureManageAccess(bool $canManageActions): void

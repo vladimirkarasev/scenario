@@ -34,6 +34,7 @@ final class Project extends Model
         'shared_secret',
     ];
 
+    #[\Override]
     protected function casts(): array
     {
         return [

@@ -7,9 +7,7 @@ namespace Module\Proxy\Gateway\AutoCrm\DTO;
 final readonly class InterestForm
 {
     /** @param  array<string, mixed>  $data */
-    public function __construct(private array $data)
-    {
-    }
+    public function __construct(private array $data) {}
 
     /** @param  array<string, mixed>  $data */
     public static function fromArray(array $data): self
@@ -30,7 +28,7 @@ final readonly class InterestForm
             'first_name' => $firstName,
             'last_name' => $lastName,
             'phone' => $phone,
-        ], static fn(mixed $value): bool => $value !== null));
+        ], static fn (mixed $value): bool => $value !== null));
     }
 
     /** @return array<string, mixed> */

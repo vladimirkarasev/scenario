@@ -10,14 +10,13 @@ use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
 
-final class CustomActionHandler implements ActionHandlerInterface
+final readonly class CustomActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult

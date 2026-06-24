@@ -9,19 +9,18 @@ use Module\Actions\Models\Action;
 use Module\Actions\Models\ActionRun;
 use Module\Actions\Repositories\ActionRunRepository;
 
-final class ActionRunService
+final readonly class ActionRunService
 {
     public function __construct(
-        private readonly ActionRunRepository $runs,
-    ) {
-    }
+        private ActionRunRepository $runs,
+    ) {}
 
     /** @return array<int, array<string, mixed>> */
     public function items(ActionRunIndexData $filters): array
     {
         return $this->runs
             ->latestWithAction($filters)
-            ->map(fn(ActionRun $run): array => $this->payload($run))
+            ->map(fn (ActionRun $run): array => $this->payload($run))
             ->values()
             ->all();
     }
@@ -35,7 +34,7 @@ final class ActionRunService
             'id' => $run->id,
             'action_id' => $run->action_id,
             'action_name' => $action?->name,
-            'action_key' => $action?->key,
+            'action_key' => $action?->slug,
             'status' => $run->status,
             'input' => $run->input,
             'output' => $run->output,

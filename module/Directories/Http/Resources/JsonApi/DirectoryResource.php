@@ -29,6 +29,7 @@ final class DirectoryResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return array_diff_key($this->resource, ['id' => null]);

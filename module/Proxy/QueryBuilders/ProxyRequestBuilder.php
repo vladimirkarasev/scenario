@@ -40,7 +40,7 @@ final class ProxyRequestBuilder extends Builder
 
         return $this->where(static function (Builder $q) use ($like): void {
             $q->whereRaw('LOWER(request_id) like ?', [$like])
-                ->orWhereHas('endpoint', static fn(Builder $e) => $e->whereRaw('LOWER(name) like ?', [$like]));
+                ->orWhereHas('endpoint', static fn (Builder $e) => $e->whereRaw('LOWER(name) like ?', [$like]));
         });
     }
 }

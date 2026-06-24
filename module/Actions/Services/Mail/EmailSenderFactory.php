@@ -15,11 +15,9 @@ use Module\Actions\Models\EmailAccount;
  */
 final readonly class EmailSenderFactory
 {
-    private const RUNTIME_MAILER = 'email_account_runtime';
+    private const string RUNTIME_MAILER = 'email_account_runtime';
 
-    public function __construct(private Repository $config)
-    {
-    }
+    public function __construct(private Repository $config) {}
 
     public function forAccount(?EmailAccount $account): EmailSenderInterface
     {
@@ -73,6 +71,6 @@ final readonly class EmailSenderFactory
     {
         $value = $settings[$key] ?? null;
 
-        return is_numeric($value) ? (int)$value : $default;
+        return is_numeric($value) ? (int) $value : $default;
     }
 }

@@ -6,6 +6,4 @@ namespace Module\Actions\Exceptions;
 
 use RuntimeException;
 
-final class ActionExecutionException extends RuntimeException
-{
-}
+final class ActionExecutionException extends RuntimeException {}

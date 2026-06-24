@@ -7,7 +7,7 @@ collection:
     parameters:
       - name: filter[search]
         in: query
-        description: Поиск по name/key
+        description: Поиск по name/slug
         schema:
           type: string
       - name: filter[type]

@@ -13,8 +13,7 @@ final class ActionTypeController extends Controller
 {
     public function __construct(
         private readonly ActionRegistry $registry,
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {

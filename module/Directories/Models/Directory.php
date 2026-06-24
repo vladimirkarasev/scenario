@@ -101,6 +101,7 @@ final class Directory extends Model
         return $this->hasOne(DirectoryImportSchedule::class);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

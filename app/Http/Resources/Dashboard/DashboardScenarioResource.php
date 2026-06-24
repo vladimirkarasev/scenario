@@ -14,6 +14,7 @@ use Module\Scenario\Models\Scenario;
 final class DashboardScenarioResource extends JsonResource
 {
     /** @return array<string, mixed> */
+    #[\Override]
     public function toArray(Request $request): array
     {
         return [

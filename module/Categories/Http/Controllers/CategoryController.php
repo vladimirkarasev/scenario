@@ -21,8 +21,7 @@ abstract class CategoryController extends Controller
     public function __construct(
         protected readonly CategoryService $categories,
         protected readonly CurrentProject $currentProject,
-    ) {
-    }
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {

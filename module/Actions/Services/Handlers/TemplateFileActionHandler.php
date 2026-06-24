@@ -12,14 +12,13 @@ use Module\Actions\DTO\ActionResult;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 
-final class TemplateFileActionHandler implements ActionHandlerInterface
+final readonly class TemplateFileActionHandler implements ActionHandlerInterface
 {
-    private const FORMATS = ['xml', 'txt', 'html'];
+    private const array FORMATS = ['xml', 'txt', 'html'];
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -31,13 +30,13 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
         $format = strtolower($this->stringValue($config['format'] ?? null, 'txt'));
 
-        if (!in_array($format, self::FORMATS, true)) {
+        if (! in_array($format, self::FORMATS, true)) {
             return ActionResult::failed('Template action format must be one of: xml, txt, html.');
         }
 
         $template = $config['template'] ?? null;
 
-        if (!is_string($template) || $template === '') {
+        if (! is_string($template) || $template === '') {
             return ActionResult::failed('Template action requires `template` in config.');
         }
 
@@ -45,7 +44,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
             $this->dataResolver->resolve($template, $this->dataResolver->contextForAction($action, $input))
         );
         $fileName = $this->fileName($action, $config, $format);
-        $path = sprintf('actions/%s/%s', Str::slug($action->key), $fileName);
+        $path = sprintf('actions/%s/%s', Str::slug($action->slug), $fileName);
 
         Storage::disk('local')->put($path, $content);
 
@@ -92,7 +91,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
             return $this->ensureExtension($configured, $format);
         }
 
-        return sprintf('%s-%s.%s', Str::slug($action->key), now()->format('Ymd-His'), $format);
+        return sprintf('%s-%s.%s', Str::slug($action->slug), now()->format('Ymd-His'), $format);
     }
 
     private function ensureExtension(string $fileName, string $format): string
@@ -118,7 +117,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
         }
 
         if (is_scalar($content) || $content === null) {
-            return (string)$content;
+            return (string) $content;
         }
 
         return json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '';
@@ -126,7 +125,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string)$value : $default;
+        return is_scalar($value) ? (string) $value : $default;
     }
 
     /**
@@ -138,7 +137,7 @@ final class TemplateFileActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string)$key] = $value;
+            $result[(string) $key] = $value;
         }
 
         return $result;

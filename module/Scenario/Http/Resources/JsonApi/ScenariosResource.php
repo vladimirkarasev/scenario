@@ -23,6 +23,7 @@ final class ScenariosResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
@@ -59,6 +60,7 @@ final class ScenariosResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toRelationships(Request $request): array
     {
         return [
@@ -66,8 +68,9 @@ final class ScenariosResource extends JsonApiResource
         ];
     }
 
+    #[\Override]
     protected static function newCollection($resource): ScenariosResourceCollection
     {
-        return new ScenariosResourceCollection($resource, static::class);
+        return new ScenariosResourceCollection($resource, self::class);
     }
 }

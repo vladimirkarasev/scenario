@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Scenario\Http;
 
+use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +27,7 @@ final class ScenarioRunControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->instance(Centrifugo::class, $this->createMock(Centrifugo::class));
     }
 

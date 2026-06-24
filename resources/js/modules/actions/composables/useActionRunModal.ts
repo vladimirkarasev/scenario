@@ -25,7 +25,7 @@ export function useActionRunModal(onRun: () => void) {
 
     async function run(): Promise<void> {
         if (!action.value) return
-        const code = action.value.code || action.value.key
+        const code = action.value.code || action.value.slug
         const actionId = action.value.id
         try {
             await submit(async (data) => {

@@ -71,6 +71,7 @@ final class DirectoryVersion extends Model
         return $this->belongsTo(DirectoryImport::class, 'source_import_id');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

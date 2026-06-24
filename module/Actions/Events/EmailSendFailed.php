@@ -13,8 +13,7 @@ final readonly class EmailSendFailed
         public string $subject,
         public string $transport,
         public string $error,
-    ) {
-    }
+    ) {}
 
     /** @return array<string, mixed> */
     public function logContext(): array

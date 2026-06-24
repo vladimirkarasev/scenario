@@ -27,7 +27,7 @@ export function useActionList() {
         if (!q) return actions.value
         return actions.value.filter(a =>
             a.name.toLowerCase().includes(q)
-            || a.key.toLowerCase().includes(q)
+            || a.slug.toLowerCase().includes(q)
             || (a.description ?? '').toLowerCase().includes(q),
         )
     })
@@ -42,12 +42,14 @@ export function useActionList() {
         if (currentPage.value > n) currentPage.value = n
     })
 
-    async function load(): Promise<void> {
+    async function load(categoryIds: string[] = []): Promise<void> {
         loading.value = true
         error.value = ''
         try {
+            const qs = new URLSearchParams({'page[size]': '100'})
+            for (const id of categoryIds) qs.append('filter[category_ids][]', id)
             const [actionsRes, typesRes] = await Promise.all([
-                actionRepository.list(new URLSearchParams({'page[size]': '100'})),
+                actionRepository.list(qs),
                 actionTypeRepository.list(),
             ])
             actions.value = actionsRes

@@ -14,6 +14,7 @@ final class ProxyFieldBoolean extends ProxyField
     }
 
     /** @param  bool  $value */
+    #[\Override]
     public function default(mixed $value): static
     {
         return parent::default($value);

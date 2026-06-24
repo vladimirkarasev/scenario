@@ -12,9 +12,7 @@ use Module\Proxy\Services\HandlerResolver;
 
 final class ProxyFieldsController extends Controller
 {
-    public function __construct(private readonly HandlerResolver $handlers)
-    {
-    }
+    public function __construct(private readonly HandlerResolver $handlers) {}
 
     public function __invoke(string $uuid): JsonResponse
     {

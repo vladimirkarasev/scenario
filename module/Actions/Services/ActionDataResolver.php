@@ -7,33 +7,32 @@ namespace Module\Actions\Services;
 use App\Services\Expression\ExpressionService;
 use Module\Actions\Models\Action;
 
-final class ActionDataResolver
+final readonly class ActionDataResolver
 {
     public function __construct(
-        private readonly ExpressionService $expressionService,
-    ) {
-    }
+        private ExpressionService $expressionService,
+    ) {}
 
     /**
      * Контекст для рендера шаблонов action: глобальный context + поля собственного scope
      * (input[action.code]) поднятые в корень. Так шаблоны видят `{{ client_uuid }}` (своё input-поле)
      * и `{{ other_action.result }}` (output другого action) одновременно.
      *
-     * @param  array<string, mixed>  $context
+     * @param  array<string, mixed> $context
      * @return array<string, mixed>
      */
     public function contextForAction(Action $action, array $context): array
     {
         $own = $context[$action->code] ?? null;
 
-        if (!is_array($own)) {
+        if (! is_array($own)) {
             return $context;
         }
 
         $result = $context;
 
         foreach ($own as $key => $value) {
-            $result[(string)$key] = $value;
+            $result[(string) $key] = $value;
         }
 
         return $result;
@@ -42,7 +41,7 @@ final class ActionDataResolver
     /**
      * Зарезолвить action.config с учётом scoped input этого action.
      *
-     * @param  array<string, mixed>  $context
+     * @param  array<string, mixed> $context
      * @return array<string, mixed>
      */
     public function resolveActionConfig(Action $action, array $context): array
@@ -59,22 +58,22 @@ final class ActionDataResolver
     }
 
     /**
-     * @param  array<string, mixed>  $value
-     * @param  array<string, mixed>  $input
+     * @param  array<string, mixed> $value
+     * @param  array<string, mixed> $input
      * @return array<string, mixed>
      */
     public function resolveArray(array $value, array $input = []): array
     {
         $resolved = $this->expressionService->render($value, $input, emptyExpressionValueAsBlank: true);
 
-        if (!is_array($resolved)) {
+        if (! is_array($resolved)) {
             return [];
         }
 
         $result = [];
 
         foreach ($resolved as $key => $item) {
-            $result[(string)$key] = $item;
+            $result[(string) $key] = $item;
         }
 
         return $result;

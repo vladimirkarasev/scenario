@@ -11,7 +11,7 @@ final class BlockNodeValidator
 {
     use NodeHelpers;
 
-    private const MESSAGES = [
+    private const array MESSAGES = [
         'required' => 'Поле обязательно для заполнения.',
         'accepted' => 'Поле обязательно для заполнения.',
         'email' => 'Введите корректный email адрес.',

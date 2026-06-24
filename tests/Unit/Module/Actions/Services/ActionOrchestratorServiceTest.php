@@ -16,11 +16,15 @@ final class ActionOrchestratorServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const TEMPLATE_ID = '00000000-0000-0000-0000-000000000010';
-    private const EMAIL_ID = '00000000-0000-0000-0000-000000000011';
-    private const SCENARIO_ID = '00000000-0000-0000-0000-000000000007';
-    private const LOG_ID = '00000000-0000-0000-0000-000000000020';
-    private const ALERT_ID = '00000000-0000-0000-0000-000000000030';
+    private const string TEMPLATE_ID = '00000000-0000-0000-0000-000000000010';
+
+    private const string EMAIL_ID = '00000000-0000-0000-0000-000000000011';
+
+    private const string SCENARIO_ID = '00000000-0000-0000-0000-000000000007';
+
+    private const string LOG_ID = '00000000-0000-0000-0000-000000000020';
+
+    private const string ALERT_ID = '00000000-0000-0000-0000-000000000030';
 
     public function test_sequential_dispatches_single_chain_step_with_full_pipeline(): void
     {

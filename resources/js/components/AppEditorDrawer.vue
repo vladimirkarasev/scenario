@@ -31,7 +31,9 @@ const props = withDefaults(defineProps<{
   showFooter: true,
   dismissible: true,
   modal: true,
-  lockOutside: false,
+  // По умолчанию drawer НЕ закрывается по клику/взаимодействию вне него
+  // (иначе выделение текста с отпусканием на overlay воспринимается как закрытие).
+  lockOutside: true,
 })
 
 const emit = defineEmits<{
@@ -61,11 +63,13 @@ function onSave(): void {
 
 <template>
   <Drawer :open="open" :direction="direction" :dismissible="dismissible" :modal="modal"
+          handle-only
           @update:open="emit('update:open', $event)">
     <DrawerContent
         :class="cn('flex flex-col p-0', widthClass)"
         @pointer-down-outside="lockOutside ? $event.preventDefault() : undefined"
         @focus-outside="lockOutside ? $event.preventDefault() : undefined"
+        @interact-outside="lockOutside ? $event.preventDefault() : undefined"
     >
       <DrawerTitle class="sr-only">{{ title }}</DrawerTitle>
       <DrawerDescription class="sr-only">{{ description ?? title }}</DrawerDescription>

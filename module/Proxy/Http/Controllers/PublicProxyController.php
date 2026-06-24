@@ -11,9 +11,7 @@ use Module\Proxy\Services\ProxyReceiverService;
 
 final class PublicProxyController extends Controller
 {
-    public function __construct(private readonly ProxyReceiverService $receiver)
-    {
-    }
+    public function __construct(private readonly ProxyReceiverService $receiver) {}
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {

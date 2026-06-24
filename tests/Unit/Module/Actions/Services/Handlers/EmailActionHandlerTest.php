@@ -83,7 +83,7 @@ final class EmailActionHandlerTest extends TestCase
 
         $this->assertSame(ActionRunStatus::Failed, $result->status);
         $this->assertSame('proxy', $result->output['transport']);
-        $this->assertStringContainsString('не реализован', (string)$result->error);
+        $this->assertStringContainsString('не реализован', (string) $result->error);
     }
 
     /** @param  array<string, mixed>  $config */
@@ -91,7 +91,7 @@ final class EmailActionHandlerTest extends TestCase
     {
         return Action::query()->create([
             'name' => 'Email',
-            'key' => 'email-'.uniqid(),
+            'slug' => 'email-'.uniqid(),
             'code' => 'send_email',
             'type' => 'email',
             'is_active' => true,

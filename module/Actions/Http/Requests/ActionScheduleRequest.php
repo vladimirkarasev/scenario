@@ -30,14 +30,15 @@ final class ActionScheduleRequest extends FormRequest
 
     private function cronRule(): ValidationRule
     {
-        return new class implements ValidationRule {
+        return new class implements ValidationRule
+        {
             public function validate(string $attribute, mixed $value, \Closure $fail): void
             {
                 if ($value === null || $value === '') {
                     return;
                 }
 
-                if (!is_string($value) || !ActionScheduleService::isValidCron($value)) {
+                if (! is_string($value) || ! ActionScheduleService::isValidCron($value)) {
                     $fail('Поле :attribute должно быть валидным cron-выражением.');
                 }
             }

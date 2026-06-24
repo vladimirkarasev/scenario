@@ -38,6 +38,7 @@ final class ProjectRequest extends FormRequest
         ];
     }
 
+    #[\Override]
     public function attributes(): array
     {
         return [
@@ -46,6 +47,7 @@ final class ProjectRequest extends FormRequest
         ];
     }
 
+    #[\Override]
     public function messages(): array
     {
         return [

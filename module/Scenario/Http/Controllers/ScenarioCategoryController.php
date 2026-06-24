@@ -19,6 +19,7 @@ final class ScenarioCategoryController extends CategoryController
         return Scenario::class;
     }
 
+    #[\Override]
     public function index(): AnonymousResourceCollection
     {
         $request = request();
@@ -39,6 +40,7 @@ final class ScenarioCategoryController extends CategoryController
         );
     }
 
+    #[\Override]
     public function store(CategoryRequest $request): CategoryResource
     {
         $category = $this->categories->create(CategoryData::fromRequest($request));

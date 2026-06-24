@@ -110,6 +110,42 @@ final class BlockNodeHandlerTest extends TestCase
         $this->assertTrue($field['props']['required']);
     }
 
+    public function test_render_includes_suggest_field(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'suggest',
+                        'name' => 'place',
+                        'label' => 'Город',
+                        'required' => true,
+                        'proxyUuid' => 'uuid-123',
+                        'labelField' => 'address',
+                        'placeholder' => 'Введите город',
+                        'multiple' => true,
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertSame('suggest', $field['type']);
+        $this->assertSame('place', $field['props']['name']);
+        $this->assertSame('Город', $field['props']['label']);
+        $this->assertTrue($field['props']['required']);
+        $this->assertSame('uuid-123', $field['props']['proxyUuid']);
+        $this->assertSame('address', $field['props']['labelField']);
+        $this->assertSame('Введите город', $field['props']['placeholder']);
+        $this->assertTrue($field['props']['multiple']);
+    }
+
     public function test_render_includes_select_field_with_options(): void
     {
         $node = [

@@ -20,13 +20,13 @@ final class ActionNodeHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const ACTION_A = '00000000-0000-0000-0000-0000000000a1';
+    private const string ACTION_A = '00000000-0000-0000-0000-0000000000a1';
 
-    private const ACTION_B = '00000000-0000-0000-0000-0000000000a2';
+    private const string ACTION_B = '00000000-0000-0000-0000-0000000000a2';
 
-    private const ACTION_BEFORE = '00000000-0000-0000-0000-0000000000b1';
+    private const string ACTION_BEFORE = '00000000-0000-0000-0000-0000000000b1';
 
-    private const ACTION_ERROR = '00000000-0000-0000-0000-0000000000e1';
+    private const string ACTION_ERROR = '00000000-0000-0000-0000-0000000000e1';
 
     private ActionNodeHandler $handler;
 
@@ -67,7 +67,7 @@ final class ActionNodeHandlerTest extends TestCase
             Action::query()->create([
                 'id' => $id,
                 'name' => 'Action '.$id,
-                'key' => 'k_'.substr($id, -4),
+                'slug' => 'k_'.substr($id, -4),
                 'code' => 'c_'.substr($id, -4),
                 'type' => 'template_file',
                 'is_active' => true,
@@ -113,7 +113,7 @@ final class ActionNodeHandlerTest extends TestCase
             $actionId = $reflection->getProperty('actionId')->getValue($job);
             $context = $reflection->getProperty('context')->getValue($job);
 
-            if ($actionId !== self::ACTION_A || !is_array($context)) {
+            if ($actionId !== self::ACTION_A || ! is_array($context)) {
                 return false;
             }
 
@@ -121,7 +121,7 @@ final class ActionNodeHandlerTest extends TestCase
 
             return is_array($tpl)
                 && ($tpl['to'] ?? null) === 'a@example.com'
-                && ($context['scenario_run_id'] ?? null) === (string)$this->run->id;
+                && ($context['scenario_run_id'] ?? null) === (string) $this->run->id;
         });
     }
 

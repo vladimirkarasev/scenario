@@ -7,15 +7,14 @@ namespace Module\Proxy\DTO;
 final readonly class ProxyResponse
 {
     /**
-     * @param  array<string, mixed>  $body
-     * @param  array<string, mixed>  $headers
+     * @param array<string, mixed> $body
+     * @param array<string, mixed> $headers
      */
     public function __construct(
         public int $statusCode,
         public array $body = [],
         public array $headers = [],
-    ) {
-    }
+    ) {}
 
     /** @param  array<string, mixed>  $body */
     public static function accepted(array $body = []): self

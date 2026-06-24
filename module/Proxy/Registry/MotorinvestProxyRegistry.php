@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Registry\Motorinvest;
+namespace Module\Proxy\Registry;
 
 use Generator;
 use Module\Proxy\DTO\ProxyEndpointDefinition;

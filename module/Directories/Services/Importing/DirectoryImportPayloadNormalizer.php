@@ -40,17 +40,15 @@ final class DirectoryImportPayloadNormalizer
     public function normalizeFields(array $fields): array
     {
         return collect($fields)
-            ->map(static function (array $field): array {
-                return [
-                    'key' => is_string($field['key'] ?? null) ? $field['key'] : '',
-                    'name' => is_string($field['name'] ?? null) ? $field['name'] : '',
-                    'type' => is_string($field['type'] ?? null) ? $field['type'] : 'string',
-                    'nullable' => (bool)($field['nullable'] ?? true),
-                    'default' => $field['default'] ?? null,
-                    'sort_order' => is_int($field['sort_order'] ?? null) ? $field['sort_order'] : 0,
-                    'rules' => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
-                ];
-            })
+            ->map(static fn(array $field): array => [
+                'key' => is_string($field['key'] ?? null) ? $field['key'] : '',
+                'name' => is_string($field['name'] ?? null) ? $field['name'] : '',
+                'type' => is_string($field['type'] ?? null) ? $field['type'] : 'string',
+                'nullable' => (bool)($field['nullable'] ?? true),
+                'default' => $field['default'] ?? null,
+                'sort_order' => is_int($field['sort_order'] ?? null) ? $field['sort_order'] : 0,
+                'rules' => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
+            ])
             ->sortBy('sort_order')
             ->values()
             ->all();

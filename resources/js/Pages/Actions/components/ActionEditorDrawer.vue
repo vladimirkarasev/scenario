@@ -19,12 +19,13 @@ import TabsList from '@/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/components/ui/tabs/TabsTrigger.vue'
 import {ArrowDown, ArrowUp, Check, Pencil, Plus, Trash2, Zap} from 'lucide-vue-next'
 import {ref} from 'vue'
-import type {useActionList} from '@/modules/actions/composables/useActionList'
+import ActionSectionTreeSelect from './ActionSectionTreeSelect.vue'
 import type {useActionModal} from '@/modules/actions/composables/useActionModal'
+import type {ActionTypeMeta} from '@/modules/actions/types/action'
 
 const props = defineProps<{
   modal: ReturnType<typeof useActionModal>
-  list: ReturnType<typeof useActionList>
+  actionTypes: ActionTypeMeta[]
 }>()
 
 const inputFieldPlaceholderHint = '{{ key }}'
@@ -50,11 +51,11 @@ function insertInputVar(key: string): void {
   <AppEditorDrawer
       :open="modal.show.value"
       :title="modal.editingId.value ? 'Редактировать action' : 'Новый action'"
-      :subtitle="modal.editingId.value ? (modal.form.code || modal.form.key) : 'Создание нового действия'"
+      :subtitle="modal.editingId.value ? (modal.form.code || modal.form.slug) : 'Создание нового действия'"
       width-class="!w-[760px] !max-w-[95vw]"
       icon-bg-class="bg-blue-100"
       :saving="modal.saving.value"
-      :can-save="Boolean(modal.form.name.trim() && modal.form.key.trim())"
+      :can-save="Boolean(modal.form.name.trim() && modal.form.slug.trim())"
       @update:open="(v: boolean) => !v && modal.close()"
       @cancel="modal.close"
       @save="modal.save"
@@ -83,10 +84,11 @@ function insertInputVar(key: string): void {
       <TabsContent value="general" class="flex flex-1 overflow-hidden">
         <FormBody>
           <FormRow>
-            <FormInput v-model="modal.form.name" label="Название" placeholder="Отправка email клиенту" required
-                       :error="modal.errors.name"/>
-            <FormInput v-model="modal.form.key" label="Key" placeholder="send-email-to-client" required
-                       hint="Внутренний идентификатор (URL-friendly)." :error="modal.errors.key"/>
+            <FormInput :model-value="modal.form.name" label="Название" placeholder="Отправка email клиенту" required
+                       :error="modal.errors.name" @update:model-value="modal.onNameInput"/>
+            <FormInput :model-value="modal.form.slug" label="Slug" placeholder="send-email-to-client" required
+                       hint="Внутренний идентификатор (URL-friendly)." :error="modal.errors.slug"
+                       @update:model-value="modal.onSlugInput"/>
           </FormRow>
           <FormSelect
               v-model="modal.form.type"
@@ -95,13 +97,20 @@ function insertInputVar(key: string): void {
               :error="modal.errors.type"
               @update:model-value="modal.onTypeChange"
           >
-            <option v-for="meta in list.actionTypes.value" :key="meta.value" :value="meta.value">{{
+            <option v-for="meta in actionTypes" :key="meta.value" :value="meta.value">{{
                 meta.label
               }}
             </option>
           </FormSelect>
           <FormTextarea v-model="modal.form.description" label="Описание" placeholder="Краткое описание для коллег"
                         :rows="3" :error="modal.errors.description"/>
+
+          <FormField label="Разделы">
+            <ActionSectionTreeSelect
+                v-model="modal.form.category_ids"
+                :open="modal.show.value"
+            />
+          </FormField>
           <FormToggle
               v-model="modal.form.is_active"
               label="Активно"

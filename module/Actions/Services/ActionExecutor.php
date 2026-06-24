@@ -8,18 +8,17 @@ use Module\Actions\DTO\ActionResult;
 use Module\Actions\Models\Action;
 use Throwable;
 
-final class ActionExecutor
+final readonly class ActionExecutor
 {
     public function __construct(
-        private readonly ActionRegistry $actionRegistry,
-        private readonly ActionLogger $actionLogger,
-    ) {
-    }
+        private ActionRegistry $actionRegistry,
+        private ActionLogger $actionLogger,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function execute(Action $action, array $input = [], int $attemptsCount = 1): ActionResult
     {
-        if (!$action->is_active) {
+        if (! $action->is_active) {
             return ActionResult::skipped('Action is disabled.');
         }
 

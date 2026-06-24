@@ -9,6 +9,14 @@ export const webhookRepository = {
         return raw.items
     },
 
+    async listByType(type: string): Promise<WebhookEndpoint[]> {
+        const qs = new URLSearchParams({'filter[type]': type})
+        const raw = await getJson(`/api/proxy/endpoints?${qs}`, 'Не удалось загрузить эндпоинты.') as {
+            items: WebhookEndpoint[]
+        }
+        return raw.items
+    },
+
     async search(query: string): Promise<WebhookEndpoint[]> {
         const qs = new URLSearchParams({'filter[search]': query})
         const raw = await getJson(`/api/proxy/endpoints?${qs}`, 'Не удалось загрузить эндпоинты.') as {

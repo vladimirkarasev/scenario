@@ -23,7 +23,7 @@ final class ScenarioRunResultActionHandlerTest extends TestCase
             app(ScenarioPlayerService::class),
         );
 
-        $result = $handler->handle(new Action(['key' => 'scenario_data', 'config' => []]), []);
+        $result = $handler->handle(new Action(['slug' => 'scenario_data', 'config' => []]), []);
 
         $this->assertSame(ActionRunStatus::Failed, $result->status);
         $this->assertStringContainsString('scenario_uuid', $result->error ?? '');
@@ -37,7 +37,7 @@ final class ScenarioRunResultActionHandlerTest extends TestCase
         );
 
         $action = new Action([
-            'key' => 'scenario_data',
+            'slug' => 'scenario_data',
             'config' => ['scenario_uuid' => '00000000-0000-0000-0000-000000000000'],
         ]);
 
@@ -54,7 +54,7 @@ final class ScenarioRunResultActionHandlerTest extends TestCase
             app(ScenarioPlayerService::class),
         );
 
-        $action = new Action(['key' => 'scenario_data', 'code' => 'scenario_data', 'config' => []]);
+        $action = new Action(['slug' => 'scenario_data', 'code' => 'scenario_data', 'config' => []]);
 
         $result = $handler->handle($action, [
             'scenario_data' => ['scenario_uuid' => '00000000-0000-0000-0000-000000000000'],

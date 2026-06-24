@@ -21,12 +21,11 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
         private ScenarioGraphResolver $graphResolver,
         private VariableResolver $variableResolver,
         private BlockNodeValidator $validator,
-    ) {
-    }
+    ) {}
 
     public function isInteractive(array $node): bool
     {
-        return !$this->boolField($this->nodeData($node), 'skipInSurvey');
+        return ! $this->boolField($this->nodeData($node), 'skipInSurvey');
     }
 
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
@@ -88,14 +87,14 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
      * должны подставляться на фронте из локального источника данных (item.data справочника),
      * — иначе Symfony EL заменит ссылки на отсутствующие переменные на `[]`.
      *
-     * @param  array<array-key, mixed>  $blocks
-     * @param  array<string, mixed>  $context
+     * @param array<array-key, mixed> $blocks
+     * @param array<string, mixed>    $context
      */
     private function resolveBlocksKeepingRawTemplates(array $blocks, array $context): mixed
     {
         $rawLabelTemplates = [];
         foreach ($blocks as $i => $block) {
-            if (!is_array($block)) {
+            if (! is_array($block)) {
                 continue;
             }
             $props = is_array($block['props'] ?? null) ? $block['props'] : [];
@@ -106,12 +105,12 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
 
         $resolved = $this->variableResolver->resolve($blocks, $context);
 
-        if (!is_array($resolved)) {
+        if (! is_array($resolved)) {
             return $resolved;
         }
 
         foreach ($rawLabelTemplates as $i => $template) {
-            if (!isset($resolved[$i]) || !is_array($resolved[$i])) {
+            if (! isset($resolved[$i]) || ! is_array($resolved[$i])) {
                 continue;
             }
             $props = is_array($resolved[$i]['props'] ?? null) ? $resolved[$i]['props'] : [];
@@ -123,8 +122,8 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
-     * @param  array<string, mixed>  $blockContext  Ранее введённые значения юзером для этого блока
+     * @param  array<array-key, mixed> $field
+     * @param  array<string, mixed>    $blockContext Ранее введённые значения юзером для этого блока
      * @return array<string, mixed>
      */
     private function renderField(array $field, int $index, array $blockContext = []): array
@@ -149,7 +148,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
 
         $blockType = match ($type) {
             'textarea', 'number', 'select', 'date', 'datetime', 'hidden', 'email', 'phone',
-            'checkbox', 'directory_list', 'directory_tree', 'directory_table' => $type,
+            'checkbox', 'directory_list', 'directory_tree', 'directory_table', 'suggest' => $type,
             default => 'input',
         };
 
@@ -158,6 +157,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             'directory_list' => $this->directoryProps($field, $name),
             'directory_tree' => $this->directoryTreeProps($field, $name),
             'directory_table' => $this->directoryTableProps($field, $name),
+            'suggest' => $this->suggestProps($field, $name),
             'textarea' => $this->textareaProps($field, $name, $defaultValue),
             'number' => $this->numberProps($field, $name, $hasDefault, $defaultValue),
             'select' => $this->selectProps($field, $name, $hasDefault, $defaultValue),
@@ -176,7 +176,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     /**
      * Числовое значение поля (int|float) или null, если не задано (для min/max/step).
      *
-     * @param  array<array-key, mixed>  $field
+     * @param array<array-key, mixed> $field
      */
     private function numericField(array $field, string $key): int|float|null
     {
@@ -192,7 +192,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     /**
      * Опции select-поля (отфильтрованные массивы).
      *
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed>       $field
      * @return list<array<array-key, mixed>>
      */
     private function fieldOptions(array $field): array
@@ -203,7 +203,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function textProps(array $field, string $name, bool $hasDefault, mixed $defaultValue): array
@@ -216,7 +216,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function textareaProps(array $field, string $name, mixed $defaultValue): array
@@ -231,7 +231,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function numberProps(array $field, string $name, bool $hasDefault, mixed $defaultValue): array
@@ -248,7 +248,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function selectProps(array $field, string $name, bool $hasDefault, mixed $defaultValue): array
@@ -264,7 +264,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function dateProps(array $field, string $name, bool $hasDefault, mixed $defaultValue): array
@@ -277,14 +277,14 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function checkboxProps(array $field, string $name, bool $hasUserValue, mixed $userValue): array
     {
         return [
             ...$this->baseProps($field, $name),
-            'defaultValue' => $hasUserValue ? (bool)$userValue : $this->boolField($field, 'checked'),
+            'defaultValue' => $hasUserValue ? (bool) $userValue : $this->boolField($field, 'checked'),
         ];
     }
 
@@ -295,7 +295,24 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * Props поля «Подсказки»: автокомплит-источник — прикреплённый proxy (type=suggest).
+     *
+     * @param  array<array-key, mixed> $field
+     * @return array<string, mixed>
+     */
+    private function suggestProps(array $field, string $name): array
+    {
+        return [
+            ...$this->baseProps($field, $name),
+            'proxyUuid' => $this->strField($field, 'proxyUuid'),
+            'labelField' => $this->strField($field, 'labelField'),
+            'placeholder' => $this->strField($field, 'placeholder'),
+            'multiple' => $this->boolField($field, 'multiple'),
+        ];
+    }
+
+    /**
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function directoryProps(array $field, string $name): array
@@ -310,7 +327,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function directoryTreeProps(array $field, string $name): array
@@ -322,7 +339,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
     private function directoryTableProps(array $field, string $name): array
@@ -338,7 +355,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     /**
      * Базовые props, общие для большинства полей: имя, подпись, обязательность.
      *
-     * @param  array<array-key, mixed>  $field
+     * @param  array<array-key, mixed>                            $field
      * @return array{name: string, label: string, required: bool}
      */
     private function baseProps(array $field, string $name): array

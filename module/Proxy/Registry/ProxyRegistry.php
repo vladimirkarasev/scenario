@@ -6,8 +6,6 @@ namespace Module\Proxy\Registry;
 
 use Generator;
 use Module\Proxy\DTO\ProxyEndpointDefinition;
-use Module\Proxy\Registry\Motorinvest\MotorinvestProxyRegistry;
-use Module\Proxy\Registry\Test\TestProxyRegistry;
 
 final class ProxyRegistry
 {
@@ -20,5 +18,6 @@ final class ProxyRegistry
     {
         yield from MotorinvestProxyRegistry::all();
         yield from TestProxyRegistry::all();
+        yield from SuggestProxyRegistry::all();
     }
 }

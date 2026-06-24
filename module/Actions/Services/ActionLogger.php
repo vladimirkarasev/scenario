@@ -34,7 +34,7 @@ final class ActionLogger
             'output' => $result->output,
             'error' => $result->error,
             'finished_at' => $finishedAt,
-            'duration_ms' => (int)round(max(0, $startedAt->diffInMilliseconds($finishedAt))),
+            'duration_ms' => (int) round(max(0, $startedAt->diffInMilliseconds($finishedAt))),
         ])->save();
 
         return $run;

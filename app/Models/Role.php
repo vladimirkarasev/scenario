@@ -19,6 +19,7 @@ final class Role extends SpatieRole
     protected $fillable = ['name', 'guard_name', 'title', 'description', 'is_system'];
 
     /** @return MorphToMany<User, $this> */
+    #[\Override]
     public function users(): MorphToMany
     {
         $table = $this->permissionConfig('table_names.model_has_roles', 'model_has_roles');

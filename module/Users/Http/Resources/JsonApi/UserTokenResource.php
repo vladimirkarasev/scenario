@@ -14,6 +14,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 final class UserTokenResource extends JsonResource
 {
     /** @return array<string, mixed> */
+    #[\Override]
     public function toArray(Request $request): array
     {
         return [

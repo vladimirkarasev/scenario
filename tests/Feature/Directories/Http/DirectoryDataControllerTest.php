@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Directories\Http;
 
+use Spatie\Permission\PermissionRegistrar;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ final class DirectoryDataControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     // -------------------------------------------------------------------------

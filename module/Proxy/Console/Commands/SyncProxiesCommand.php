@@ -24,10 +24,11 @@ final class SyncProxiesCommand extends Command
                 ->where('code', $definition->code)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 ProxyEndpoint::query()->create([
                     'uuid' => $definition->uuid,
                     'code' => $definition->code,
+                    'type' => $definition->type,
                     'name' => $definition->name,
                     'description' => $definition->description,
                     'handler_class' => $definition->handlerClass,
@@ -41,6 +42,7 @@ final class SyncProxiesCommand extends Command
                 ProxyEndpoint::query()
                     ->where('code', $definition->code)
                     ->update([
+                        'type' => $definition->type,
                         'name' => $definition->name,
                         'description' => $definition->description,
                         'handler_class' => $definition->handlerClass,

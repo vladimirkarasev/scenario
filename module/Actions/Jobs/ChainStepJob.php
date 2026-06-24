@@ -30,12 +30,12 @@ final class ChainStepJob implements ShouldQueue
     public int $tries;
 
     /**
-     * @param  array<int, string>  $remainingActionIds
-     * @param  array<int, string>  $failedActionIds
-     * @param  array<string, mixed>  $context
-     * @param  array<int, int>  $backoff
-     * @param  array<string, string>  $codeMap  actionId => code override (если нет — используется $action->code)
-     * @param  array<string, string>  $scopeMap  code => scope результата ('' = глобальный scope; нет ключа = под code)
+     * @param array<int, string>    $remainingActionIds
+     * @param array<int, string>    $failedActionIds
+     * @param array<string, mixed>  $context
+     * @param array<int, int>       $backoff
+     * @param array<string, string> $codeMap            actionId => code override (если нет — используется $action->code)
+     * @param array<string, string> $scopeMap           code => scope результата ('' = глобальный scope; нет ключа = под code)
      */
     public function __construct(
         private readonly string $actionId,
@@ -171,9 +171,9 @@ final class ChainStepJob implements ShouldQueue
         }
 
         $failedContext = $this->context + [
-                'failed_action_id' => $this->actionId,
-                'failed_error' => $exception->getMessage(),
-            ];
+            'failed_action_id' => $this->actionId,
+            'failed_error' => $exception->getMessage(),
+        ];
 
         [$firstFailed, $remainingFailed] = $this->shift($this->failedActionIds);
 
@@ -192,13 +192,13 @@ final class ChainStepJob implements ShouldQueue
     }
 
     /**
-     * @param  array<int, string>  $ids
+     * @param  array<int, string>                      $ids
      * @return array{0: string, 1: array<int, string>}
      */
     private function shift(array $ids): array
     {
         $values = array_values($ids);
-        $head = (string)array_shift($values);
+        $head = (string) array_shift($values);
 
         return [$head, $values];
     }

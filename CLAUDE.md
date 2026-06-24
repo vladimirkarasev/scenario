@@ -18,8 +18,9 @@ php artisan test --filter=ClassName
 ./vendor/bin/phpstan analyse --memory-limit=512M --error-format=table
 ./vendor/bin/phpstan analyse module/Scenario --memory-limit=512M
 
-# Code style
-./vendor/bin/pint
+# Refactoring (Rector — заменил Pint)
+./vendor/bin/rector process            # применить
+./vendor/bin/rector process --dry-run  # предпросмотр
 
 # Frontend
 npm run dev             # Vite dev server

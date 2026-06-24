@@ -9,7 +9,7 @@ use Module\Proxy\DTO\ProxyField;
 final class ValidationRulesBuilder
 {
     /**
-     * @param  iterable<ProxyField>  $fields
+     * @param  iterable<ProxyField> $fields
      * @return array<string, mixed>
      */
     public function build(iterable $fields): array
@@ -19,11 +19,11 @@ final class ValidationRulesBuilder
         foreach ($fields as $field) {
             $fieldRules = $field->validationRules();
 
-            if ($field->isRequired() && !$this->containsPresenceRule($fieldRules)) {
+            if ($field->isRequired() && ! $this->containsPresenceRule($fieldRules)) {
                 array_unshift($fieldRules, 'required');
             }
 
-            if ($field->isNullable() && !in_array('nullable', $fieldRules, true)) {
+            if ($field->isNullable() && ! in_array('nullable', $fieldRules, true)) {
                 array_unshift($fieldRules, 'nullable');
             }
 

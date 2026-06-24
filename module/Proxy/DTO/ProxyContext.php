@@ -12,15 +12,15 @@ use Module\Proxy\Models\ProxyRequest;
 final readonly class ProxyContext
 {
     /**
-     * @param  array<string, mixed>  $rawRequest
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $query
-     * @param  array<string, mixed>  $headers
-     * @param  array<string, mixed>  $system
-     * @param  array<string, mixed>  $data
-     * @param  array<string, mixed>  $config
-     * @param  array<string, mixed>  $meta
-     * @param  array<string, UploadedFile|array<UploadedFile>>  $files
+     * @param array<string, mixed>                            $rawRequest
+     * @param array<string, mixed>                            $payload
+     * @param array<string, mixed>                            $query
+     * @param array<string, mixed>                            $headers
+     * @param array<string, mixed>                            $system
+     * @param array<string, mixed>                            $data
+     * @param array<string, mixed>                            $config
+     * @param array<string, mixed>                            $meta
+     * @param array<string, UploadedFile|array<UploadedFile>> $files
      */
     public function __construct(
         private string $requestId,
@@ -36,8 +36,7 @@ final readonly class ProxyContext
         private array $meta,
         public ?ProxyResponse $response = null,
         private array $files = [],
-    ) {
-    }
+    ) {}
 
     public function requestId(): string
     {

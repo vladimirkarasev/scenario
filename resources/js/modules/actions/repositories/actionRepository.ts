@@ -77,7 +77,7 @@ export function normalizeAction(item: JsonApiItem): Action {
     return {
         id: String(item.id),
         name: stringValue(a.name),
-        key: stringValue(a.key),
+        slug: stringValue(a.slug),
         code: stringValue(a.code),
         description: nullableString(a.description),
         type: (stringValue(a.type) || 'template_file') as ActionType,
@@ -86,6 +86,7 @@ export function normalizeAction(item: JsonApiItem): Action {
         schema: objectValue(a.schema),
         ui_schema: objectValue(a.ui_schema),
         input_fields: normalizeInputFields(a.input_fields),
+        category_ids: Array.isArray(a.category_ids) ? a.category_ids.map(String) : [],
         schedule: normalizeSchedule(scheduleRaw),
         created_at: nullableString(a.created_at),
         updated_at: nullableString(a.updated_at),
@@ -99,6 +100,14 @@ export const actionRepository = {
             'Не удалось загрузить actions.',
         )
         return (payload.data ?? []).map(normalizeAction)
+    },
+
+    async find(id: string): Promise<Action> {
+        const payload = await getJson<{ data: JsonApiItem }>(
+            `/api/actions/${id}`,
+            'Не удалось загрузить action.',
+        )
+        return normalizeAction(payload.data)
     },
 
     async create(body: ActionPayload): Promise<Action> {

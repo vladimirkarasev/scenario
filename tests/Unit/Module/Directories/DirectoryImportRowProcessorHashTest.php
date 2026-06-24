@@ -34,9 +34,7 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
 
         $ref = new \ReflectionClass($this->processor);
         $this->computeRowHash = $ref->getMethod('computeRowHash');
-        $this->computeRowHash->setAccessible(true);
         $this->resolveExternalKey = $ref->getMethod('resolveExternalKey');
-        $this->resolveExternalKey->setAccessible(true);
     }
 
     /**

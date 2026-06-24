@@ -9,18 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property string $action_id
- * @property string $status
+ * @property int                       $id
+ * @property string                    $action_id
+ * @property string                    $status
  * @property array<string, mixed>|null $input
  * @property array<string, mixed>|null $output
- * @property string|null $error
- * @property int $attempts_count
- * @property Carbon|null $started_at
- * @property Carbon|null $finished_at
- * @property int|null $duration_ms
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property string|null               $error
+ * @property int                       $attempts_count
+ * @property Carbon|null               $started_at
+ * @property Carbon|null               $finished_at
+ * @property int|null                  $duration_ms
+ * @property Carbon|null               $created_at
+ * @property Carbon|null               $updated_at
  */
 final class ActionRun extends Model
 {
@@ -43,6 +43,7 @@ final class ActionRun extends Model
     }
 
     /** @return array<string, string> */
+    #[\Override]
     protected function casts(): array
     {
         return [

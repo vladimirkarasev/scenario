@@ -12,19 +12,18 @@ use Module\Proxy\Proxies\Base\AutoCrm\DealersProxyHandler as BaseDealersProxyHan
 
 final class DealersProxyHandler extends BaseDealersProxyHandler
 {
-    public function __construct(private readonly MotorinvestAutoCrmGateway $autoCrm)
-    {
-    }
+    public function __construct(private readonly MotorinvestAutoCrmGateway $autoCrm) {}
 
     /**
      * @throws \Throwable
      */
+    #[\Override]
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         $dealers = $this->autoCrm->dealers();
         $cityNames = $this->cityNames($dealers);
 
-        $items = array_map(static fn(AutoCrmData $dealer): array => [
+        $items = array_map(static fn (AutoCrmData $dealer): array => [
             'id' => $dealer->id(),
             'code' => $dealer->get('code'),
             'name' => $dealer->get('name'),
@@ -48,8 +47,9 @@ final class DealersProxyHandler extends BaseDealersProxyHandler
     }
 
     /**
-     * @param  AutoCrmData[]  $dealers
+     * @param  AutoCrmData[]      $dealers
      * @return array<int, string>
+     *
      * @throws \Throwable
      */
     private function cityNames(array $dealers): array
@@ -74,7 +74,7 @@ final class DealersProxyHandler extends BaseDealersProxyHandler
             $id = $city->id();
             if ($id !== null && in_array($id, $cityIds, strict: false)) {
                 $name = $city->get('name');
-                $result[intval($id)] = is_scalar($name) ? (string)$name : '';
+                $result[intval($id)] = is_scalar($name) ? (string) $name : '';
             }
         }
 

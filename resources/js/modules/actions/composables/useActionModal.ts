@@ -11,6 +11,7 @@ import type {
 import {useFormToast} from '@/composables/useFormToast'
 import {useZodForm} from '@/composables/useZodForm'
 import {actionSchema} from '@/modules/actions/schemas/actionSchema'
+import {toSlug} from '@/lib/slug'
 
 function defaultByType(type: string): unknown {
     if (type === 'boolean') return false
@@ -31,6 +32,8 @@ export function useActionModal(
 ) {
     const show = ref(false)
     const editingId = ref<string | null>(null)
+    // Пока slug не правили вручную, при создании он автоматически слугифицируется из названия.
+    const slugEdited = ref(false)
 
     const formToast = useFormToast({
         created: 'Action создан',
@@ -40,11 +43,12 @@ export function useActionModal(
 
     const {formData: form, errors, formError, submitting, submit, reset} =
         useZodForm(actionSchema, {
-            name: '', key: '', code: '', description: '',
+            name: '', slug: '', code: '', description: '',
             type: 'template_file' as ActionType,
             is_active: true,
             config: {} as Record<string, unknown>,
             input_fields: [] as ActionInputField[],
+            category_ids: [] as string[],
         })
 
     function fieldsFor(type: ActionType): ActionConfigField[] {
@@ -55,29 +59,46 @@ export function useActionModal(
         return actionTypes().find(m => m.value === type)?.default_code ?? ''
     }
 
-    function openCreate(): void {
+    // Название меняет slug только при создании и пока slug не редактировали вручную.
+    function onNameInput(value: string): void {
+        form.name = value
+        if (editingId.value === null && !slugEdited.value) {
+            form.slug = toSlug(value)
+        }
+    }
+
+    function onSlugInput(value: string): void {
+        form.slug = value
+        slugEdited.value = true
+    }
+
+    function openCreate(presetCategoryId: string | null = null): void {
         editingId.value = null
+        slugEdited.value = false
         const initialType: ActionType = actionTypes()[0]?.value ?? 'template_file'
         reset({
-            name: '', key: '', code: defaultCodeFor(initialType),
+            name: '', slug: '', code: defaultCodeFor(initialType),
             description: '', type: initialType, is_active: true,
             config: buildConfig(fieldsFor(initialType)),
             input_fields: [],
+            category_ids: presetCategoryId ? [presetCategoryId] : [],
         })
         show.value = true
     }
 
     function openEdit(action: Action): void {
         editingId.value = action.id
+        slugEdited.value = true
         reset({
             name: action.name,
-            key: action.key,
+            slug: action.slug,
             code: action.code,
             description: action.description ?? '',
             type: action.type,
             is_active: action.is_active,
             config: {...buildConfig(fieldsFor(action.type)), ...(action.config ?? {})},
             input_fields: action.input_fields.map(f => ({...f})),
+            category_ids: [...(action.category_ids ?? [])],
         })
         show.value = true
     }
@@ -174,7 +195,7 @@ export function useActionModal(
             await submit(async (data) => {
                 const payload = {
                     name: data.name,
-                    key: data.key,
+                    slug: data.slug,
                     code: data.code,
                     description: data.description || null,
                     type: data.type as ActionType,
@@ -185,6 +206,7 @@ export function useActionModal(
                     input_fields: data.input_fields
                         .filter(f => f.key)
                         .map(f => ({...f, default: f.default ?? null})) as ActionInputField[],
+                    category_ids: data.category_ids,
                 }
                 const result = id
                     ? await actionRepository.update(id, payload)
@@ -202,7 +224,7 @@ export function useActionModal(
         try {
             const result = await actionRepository.update(action.id, {
                 name: next.name,
-                key: next.key,
+                slug: next.slug,
                 code: next.code,
                 description: next.description,
                 type: next.type,
@@ -211,6 +233,7 @@ export function useActionModal(
                 schema: next.schema ?? {},
                 ui_schema: next.ui_schema ?? {},
                 input_fields: next.input_fields,
+                category_ids: next.category_ids,
             })
             formToast.saved(true)
             return result
@@ -236,7 +259,7 @@ export function useActionModal(
 
     return {
         show, saving: submitting, error: formError, errors, editingId, form,
-        openCreate, openEdit, onTypeChange, close, save,
+        openCreate, openEdit, onTypeChange, onNameInput, onSlugInput, close, save,
         toggleActive, remove,
         fieldsFor,
         removeInputField, moveInputField,

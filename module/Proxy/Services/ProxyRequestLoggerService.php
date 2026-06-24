@@ -13,10 +13,10 @@ use Module\Proxy\Models\ProxyRequest;
 final class ProxyRequestLoggerService
 {
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $query
-     * @param  array<string, mixed>  $headers
-     * @param  array<string, mixed>  $normalizedData
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $query
+     * @param array<string, mixed> $headers
+     * @param array<string, mixed> $normalizedData
      */
     public function createFromHttp(
         Request $request,
@@ -85,7 +85,7 @@ final class ProxyRequestLoggerService
     }
 
     /**
-     * @param  array<string, mixed>  $headers
+     * @param  array<string, mixed> $headers
      * @return array<string, mixed>
      */
     public function maskHeaders(array $headers): array
@@ -93,12 +93,12 @@ final class ProxyRequestLoggerService
         $masked = [];
         $sensitive = config('proxy.masked_headers', []);
         $sensitive = is_array($sensitive) ? array_map(
-            static fn(mixed $v): string => strtolower(is_scalar($v) ? (string)$v : ''),
+            static fn (mixed $v): string => strtolower(is_scalar($v) ? (string) $v : ''),
             $sensitive
         ) : [];
 
         foreach ($headers as $key => $value) {
-            $normalizedKey = strtolower((string)$key);
+            $normalizedKey = strtolower((string) $key);
             $masked[$normalizedKey] = in_array($normalizedKey, $sensitive, true) ? '[masked]' : $value;
         }
 

@@ -14,14 +14,13 @@ use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-final class ExcelReportActionHandler implements ActionHandlerInterface
+final readonly class ExcelReportActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -53,7 +52,7 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
         }
 
         $fileName = $this->fileName($action, $config);
-        $path = sprintf('actions/%s/%s', Str::slug($action->key), $fileName);
+        $path = sprintf('actions/%s/%s', Str::slug($action->slug), $fileName);
         $absolutePath = Storage::disk('local')->path($path);
 
         Storage::disk('local')->makeDirectory(dirname($path));
@@ -76,14 +75,14 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
      */
     private function columns(mixed $columns): array
     {
-        if (!is_array($columns)) {
+        if (! is_array($columns)) {
             return [];
         }
 
         $result = [];
 
         foreach ($columns as $column) {
-            if (!is_array($column)) {
+            if (! is_array($column)) {
                 continue;
             }
 
@@ -103,14 +102,14 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
      */
     private function rows(mixed $rows): array
     {
-        if (!is_array($rows)) {
+        if (! is_array($rows)) {
             return [];
         }
 
         $result = [];
 
         foreach ($rows as $row) {
-            if (!is_array($row)) {
+            if (! is_array($row)) {
                 continue;
             }
 
@@ -129,7 +128,7 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string)$key] = $value;
+            $result[(string) $key] = $value;
         }
 
         return $result;
@@ -137,7 +136,7 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string)$value : $default;
+        return is_scalar($value) ? (string) $value : $default;
     }
 
     /** @param  array<string, mixed>  $config */
@@ -146,7 +145,7 @@ final class ExcelReportActionHandler implements ActionHandlerInterface
         $configured = $config['file_name'] ?? null;
         $fileName = is_string($configured) && $configured !== ''
             ? $configured
-            : sprintf('%s-%s.xlsx', Str::slug($action->key), now()->format('Ymd-His'));
+            : sprintf('%s-%s.xlsx', Str::slug($action->slug), now()->format('Ymd-His'));
 
         return Str::endsWith(strtolower($fileName), '.xlsx') ? $fileName : "{$fileName}.xlsx";
     }

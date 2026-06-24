@@ -26,7 +26,7 @@ final class EmailDispatcherTest extends TestCase
         $result = app(EmailDispatcher::class)->send($this->message(from: null));
 
         $this->assertTrue($result->sent);
-        Event::assertDispatched(EmailSent::class, fn(EmailSent $e) => $e->to === ['client@example.com']);
+        Event::assertDispatched(EmailSent::class, fn (EmailSent $e) => $e->to === ['client@example.com']);
         Event::assertNotDispatched(EmailSendFailed::class);
     }
 
@@ -43,7 +43,7 @@ final class EmailDispatcherTest extends TestCase
         $result = app(EmailDispatcher::class)->send($this->message(from: 'sender@acme.io'));
 
         $this->assertFalse($result->sent);
-        Event::assertDispatched(EmailSendFailed::class, fn(EmailSendFailed $e) => $e->transport === 'proxy');
+        Event::assertDispatched(EmailSendFailed::class, fn (EmailSendFailed $e) => $e->transport === 'proxy');
         Event::assertNotDispatched(EmailSent::class);
     }
 

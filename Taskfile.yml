@@ -80,10 +80,10 @@ tasks:
     cmds:
       - "{{.COMPOSE}} logs -f {{default .APP_SERVICE .CLI_ARGS}}"
 
-  pint:
-    desc: Run Laravel Pint code style fixer
+  rector:
+    desc: Run Rector (refactoring). Use "-- --dry-run" to preview.
     cmds:
-      - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/pint {{.CLI_ARGS}}"
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/rector process {{.CLI_ARGS}}"
 
   test:
     desc: Run PHPUnit test suite

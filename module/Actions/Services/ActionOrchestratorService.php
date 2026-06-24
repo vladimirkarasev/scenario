@@ -16,8 +16,7 @@ final readonly class ActionOrchestratorService
 {
     public function __construct(
         private Container $container,
-    ) {
-    }
+    ) {}
 
     /** @return array<string, mixed> */
     public function runFromData(RunActionsData $data): array
@@ -77,7 +76,7 @@ final readonly class ActionOrchestratorService
             foreach ($fields as $field) {
                 $key = $field['key'] ?? null;
 
-                if (!is_string($key) || $key === '' || !($field['required'] ?? false)) {
+                if (! is_string($key) || $key === '' || ! ($field['required'] ?? false)) {
                     continue;
                 }
 
@@ -170,8 +169,8 @@ final readonly class ActionOrchestratorService
 
         $action = Action::query()->findOrFail($primaryId);
 
-        $cron = is_string($config['cron'] ?? null) ? (string)$config['cron'] : null;
-        $timezone = is_string($config['timezone'] ?? null) ? (string)$config['timezone'] : null;
+        $cron = is_string($config['cron'] ?? null) ? (string) $config['cron'] : null;
+        $timezone = is_string($config['timezone'] ?? null) ? (string) $config['timezone'] : null;
 
         $schedule = $this->scheduleService()->upsert(
             action: $action,
@@ -197,8 +196,8 @@ final readonly class ActionOrchestratorService
     }
 
     /**
-     * @param  array<int, string>  $actionIds
-     * @param  array<string, mixed>  $input
+     * @param  array<int, string>           $actionIds
+     * @param  array<string, mixed>         $input
      * @return array<int, ExecuteActionJob>
      */
     private function jobsForIds(array $actionIds, array $input): array
@@ -213,19 +212,19 @@ final readonly class ActionOrchestratorService
     }
 
     /**
-     * @param  array<int, string>  $ids
+     * @param  array<int, string>                      $ids
      * @return array{0: string, 1: array<int, string>}
      */
     private function shift(array $ids): array
     {
         $values = array_values($ids);
-        $head = (string)array_shift($values);
+        $head = (string) array_shift($values);
 
         return [$head, $values];
     }
 
     private function stringOrNull(mixed $value): ?string
     {
-        return is_scalar($value) && (string)$value !== '' ? (string)$value : null;
+        return is_scalar($value) && (string) $value !== '' ? (string) $value : null;
     }
 }

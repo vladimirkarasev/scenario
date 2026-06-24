@@ -12,6 +12,7 @@ use Module\Actions\Listeners\LogEmailActivity;
 
 final class ActionsServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         //

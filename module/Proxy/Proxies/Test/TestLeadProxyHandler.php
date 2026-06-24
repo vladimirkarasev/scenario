@@ -57,6 +57,7 @@ final class TestLeadProxyHandler extends ProxyHandler
             ->default('test');
     }
 
+    #[\Override]
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         $firstName = is_string($proxyContext->data('first_name')) ? $proxyContext->data('first_name') : '';

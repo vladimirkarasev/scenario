@@ -16,6 +16,7 @@ final class ProxyFieldList extends ProxyField
     }
 
     /** @param  string  $value */
+    #[\Override]
     public function default(mixed $value): static
     {
         return parent::default($value);
@@ -30,6 +31,7 @@ final class ProxyFieldList extends ProxyField
     }
 
     /** @return array<int, string> */
+    #[\Override]
     public function validationRules(): array
     {
         $rules = parent::validationRules();

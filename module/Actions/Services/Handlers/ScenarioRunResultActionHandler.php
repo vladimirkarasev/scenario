@@ -17,8 +17,7 @@ final readonly class ScenarioRunResultActionHandler implements ActionHandlerInte
     public function __construct(
         private ActionDataResolver $dataResolver,
         private ScenarioPlayerService $player,
-    ) {
-    }
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -59,7 +58,7 @@ final readonly class ScenarioRunResultActionHandler implements ActionHandlerInte
     /**
      * Возвращает первое значение, похожее на UUID, иначе ''.
      *
-     * @param  array<int, mixed>  $candidates
+     * @param array<int, mixed> $candidates
      */
     private function firstUuid(array $candidates): string
     {
@@ -85,6 +84,6 @@ final readonly class ScenarioRunResultActionHandler implements ActionHandlerInte
             return trim($value);
         }
 
-        return is_scalar($value) ? (string)$value : '';
+        return is_scalar($value) ? (string) $value : '';
     }
 }

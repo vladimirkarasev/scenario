@@ -13,6 +13,7 @@ final readonly class GetModelMethod extends AutoCrmShowMethod
         parent::__construct($id);
     }
 
+    #[\Override]
     public function key(): string
     {
         return 'autocrm.model.get';
@@ -24,10 +25,11 @@ final readonly class GetModelMethod extends AutoCrmShowMethod
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function query(): array
     {
         return array_filter([
             'expand' => $this->expand,
-        ], static fn(mixed $value): bool => $value !== null);
+        ], static fn (mixed $value): bool => $value !== null);
     }
 }

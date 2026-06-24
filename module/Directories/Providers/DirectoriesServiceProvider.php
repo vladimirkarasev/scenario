@@ -20,6 +20,7 @@ use Module\Directories\Listeners\PublishDirectoryImportStatusUpdate;
 
 final class DirectoriesServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         //

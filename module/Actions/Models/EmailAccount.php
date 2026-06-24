@@ -12,13 +12,13 @@ use Module\Projects\Models\Project;
 /**
  * Конфиг отправки email для проекта. Резолвится по from_address (адрес "От").
  *
- * @property string $id
- * @property string|null $project_id
- * @property string $from_address
- * @property string|null $from_name
- * @property string $driver
+ * @property string                    $id
+ * @property string|null               $project_id
+ * @property string                    $from_address
+ * @property string|null               $from_name
+ * @property string                    $driver
  * @property array<string, mixed>|null $settings
- * @property bool $is_active
+ * @property bool                      $is_active
  */
 final class EmailAccount extends Model
 {
@@ -39,6 +39,7 @@ final class EmailAccount extends Model
         return $this->belongsTo(Project::class);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

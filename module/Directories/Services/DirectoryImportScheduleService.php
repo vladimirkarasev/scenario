@@ -15,11 +15,11 @@ use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImportSchedule;
 use Module\Directories\Repositories\DirectoryImportScheduleRepository;
 
-final class DirectoryImportScheduleService
+final readonly class DirectoryImportScheduleService
 {
     public function __construct(
-        private readonly ImportService $importService,
-        private readonly DirectoryImportScheduleRepository $schedules,
+        private ImportService $importService,
+        private DirectoryImportScheduleRepository $schedules,
     ) {
     }
 

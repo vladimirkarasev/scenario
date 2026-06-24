@@ -17,7 +17,7 @@ final class ActionScheduleResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 
     public function toType(Request $request): string
@@ -26,6 +26,7 @@ final class ActionScheduleResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [

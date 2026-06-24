@@ -15,6 +15,7 @@ export type BlockFieldType =
     | 'action_list'
     | 'directory_list'
     | 'directory_table'
+    | 'suggest'
 
 export type ValidationRuleType = 'minLength' | 'maxLength' | 'pattern' | 'min' | 'max'
 
@@ -199,6 +200,16 @@ export interface DirectoryTableBlockField extends BaseBlockField {
     defaultSearch: string
 }
 
+export interface SuggestBlockField extends BaseBlockField {
+    type: 'suggest'
+    // UUID прикреплённого proxy-эндпоинта (type=suggest), который отдаёт варианты.
+    proxyUuid: string
+    // Ключ объекта-варианта, показываемый чипом/в списке. Пусто = первый ключ объекта.
+    labelField: string
+    placeholder: string
+    multiple: boolean
+}
+
 export type BlockField =
     | InputBlockField
     | EmailBlockField
@@ -216,6 +227,7 @@ export type BlockField =
     | ActionListBlockField
     | DirectoryListBlockField
     | DirectoryTableBlockField
+    | SuggestBlockField
 
 function uid(prefix: string): string {
     return `${prefix}_${Math.random().toString(36).slice(2, 10)}`
@@ -416,6 +428,18 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             multiple: false,
             defaultSearch: '',
             varName: labelToVarName('Справочник')
+        },
+        suggest: {
+            id,
+            type: 'suggest',
+            name: `suggest_${n}`,
+            label: 'Подсказки',
+            required: false,
+            proxyUuid: '',
+            labelField: '',
+            placeholder: '',
+            multiple: false,
+            varName: labelToVarName('Подсказки')
         },
     }
 
@@ -634,6 +658,15 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
                 defaultSearch: String(f.defaultSearch ?? f.default_search ?? '')
             } as DirectoryTableBlockField
         }
+
+        case 'suggest':
+            return {
+                ...nb,
+                proxyUuid: String(f.proxyUuid ?? f.proxy_uuid ?? ''),
+                labelField: String(f.labelField ?? f.label_field ?? ''),
+                placeholder: String(f.placeholder ?? (base as SuggestBlockField).placeholder),
+                multiple: Boolean(f.multiple ?? false),
+            } as SuggestBlockField
 
         default:
             return nb as BlockField

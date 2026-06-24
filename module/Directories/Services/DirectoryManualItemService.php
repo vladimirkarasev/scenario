@@ -16,11 +16,11 @@ use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryItemRepository;
 use Module\Directories\Repositories\DirectoryRepository;
 
-final class DirectoryManualItemService
+final readonly class DirectoryManualItemService
 {
     public function __construct(
-        private readonly DirectoryItemRepository $items,
-        private readonly DirectoryRepository $directories,
+        private DirectoryItemRepository $items,
+        private DirectoryRepository $directories,
     ) {
     }
 
@@ -45,15 +45,13 @@ final class DirectoryManualItemService
         $externalKey = $data->externalKey ?? ($matchBy !== null ? ($values[$matchBy] ?? null) : null);
 
         $item = $directory->getConnection()->transaction(
-            function () use ($version, $values, $data, $externalKey, $searchableKeys): DirectoryItem {
-                return $this->items->create([
-                    'directory_version_id' => $version->id,
-                    'parent_id' => $data->parentId,
-                    'external_key' => $externalKey,
-                    'search_text' => $this->buildSearchText($values, $searchableKeys),
-                    'data_json' => $values,
-                ]);
-            }
+            fn(): DirectoryItem => $this->items->create([
+                'directory_version_id' => $version->id,
+                'parent_id' => $data->parentId,
+                'external_key' => $externalKey,
+                'search_text' => $this->buildSearchText($values, $searchableKeys),
+                'data_json' => $values,
+            ])
         );
 
         DirectoryCache::forgetDirectory($directory->id);

@@ -13,8 +13,7 @@ final readonly class ActionResult
         public ActionRunStatus $status,
         public ?array $output = null,
         public ?string $error = null,
-    ) {
-    }
+    ) {}
 
     /** @param  array<string, mixed>|null  $output */
     public static function success(?array $output = null): self

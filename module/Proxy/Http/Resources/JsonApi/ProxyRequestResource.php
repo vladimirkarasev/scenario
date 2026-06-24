@@ -17,7 +17,7 @@ final class ProxyRequestResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 
     public function toType(Request $request): string
@@ -26,6 +26,7 @@ final class ProxyRequestResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         $req = $this->request ?? [];
@@ -44,24 +45,24 @@ final class ProxyRequestResource extends JsonApiResource
             'created_at' => $this->created_at?->toIso8601String(),
         ];
 
-        if (!$request->routeIs('api.proxy.requests.show')) {
+        if (! $request->routeIs('api.proxy.requests.show')) {
             return $attributes;
         }
 
         return $attributes + [
-                'method' => $req['method'] ?? null,
-                'path' => $req['path'] ?? null,
-                'user_agent' => $req['user_agent'] ?? null,
-                'received_at' => $this->received_at?->toIso8601String(),
-                'processed_at' => $this->processed_at?->toIso8601String(),
-                'payload' => $req['payload'] ?? null,
-                'query_params' => $req['query'] ?? null,
-                'headers_masked' => $req['headers'] ?? null,
-                'normalized_data' => $this->normalized_data,
-                'message_box' => $this->message_box,
-                'response_code' => $resp['status_code'] ?? null,
-                'response_headers' => $resp['headers'] ?? null,
-                'response_body' => $resp['body'] ?? null,
-            ];
+            'method' => $req['method'] ?? null,
+            'path' => $req['path'] ?? null,
+            'user_agent' => $req['user_agent'] ?? null,
+            'received_at' => $this->received_at?->toIso8601String(),
+            'processed_at' => $this->processed_at?->toIso8601String(),
+            'payload' => $req['payload'] ?? null,
+            'query_params' => $req['query'] ?? null,
+            'headers_masked' => $req['headers'] ?? null,
+            'normalized_data' => $this->normalized_data,
+            'message_box' => $this->message_box,
+            'response_code' => $resp['status_code'] ?? null,
+            'response_headers' => $resp['headers'] ?? null,
+            'response_body' => $resp['body'] ?? null,
+        ];
     }
 }

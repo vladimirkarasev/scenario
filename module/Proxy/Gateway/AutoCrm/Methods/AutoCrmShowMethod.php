@@ -8,9 +8,7 @@ use Module\Proxy\Gateway\Base\Methods\AbstractApiMethod;
 
 abstract readonly class AutoCrmShowMethod extends AbstractApiMethod
 {
-    public function __construct(protected int $id)
-    {
-    }
+    public function __construct(protected int $id) {}
 
     final public function method(): string
     {

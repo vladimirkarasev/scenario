@@ -85,11 +85,13 @@ final class UserGroup extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    #[\Override]
     public function newEloquentBuilder($query): UserGroupBuilder
     {
         return new UserGroupBuilder($query);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

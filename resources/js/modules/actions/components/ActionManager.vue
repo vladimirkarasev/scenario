@@ -96,7 +96,7 @@ function statusVariant(status) {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Key</TableHead>
+                  <TableHead>Slug</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Runs</TableHead>
                   <TableHead v-if="editable" class="w-[190px] text-right">Actions</TableHead>
@@ -111,7 +111,7 @@ function statusVariant(status) {
                   <TableCell>
                     <Badge variant="secondary">{{ item.type }}</Badge>
                   </TableCell>
-                  <TableCell class="font-mono text-xs">{{ item.key }}</TableCell>
+                  <TableCell class="font-mono text-xs">{{ item.slug }}</TableCell>
                   <TableCell>
                     <Badge :variant="item.is_active ? 'default' : 'outline'">
                       {{ item.is_active ? 'Active' : 'Disabled' }}
@@ -249,8 +249,8 @@ function statusVariant(status) {
           <Input id="action-name" v-model="actionForm.name" placeholder="CRM lead webhook"/>
         </div>
         <div class="space-y-2">
-          <Label for="action-key">Key</Label>
-          <Input id="action-key" v-model="actionForm.key" placeholder="crm_lead_webhook"/>
+          <Label for="action-slug">Slug</Label>
+          <Input id="action-slug" v-model="actionForm.slug" placeholder="crm_lead_webhook"/>
         </div>
         <div class="space-y-2">
           <Label for="action-type">Type</Label>

@@ -19,7 +19,7 @@ use Module\Scenario\Models\Scenario;
 final readonly class CategoryGroupsCascadeService
 {
     /**
-     * @param  list<string>  $groupIds
+     * @param list<string> $groupIds
      */
     public function applyToDescendants(Category $root, array $groupIds): void
     {
@@ -30,7 +30,7 @@ final readonly class CategoryGroupsCascadeService
                 Category::query()
                     ->whereIn('id', $descendantIds)
                     ->get()
-                    ->each(static fn(Category $c): array => $c->groups()->sync($groupIds));
+                    ->each(static fn (Category $c): array => $c->groups()->sync($groupIds));
             }
 
             $scenarioCategoryIds = array_values(array_unique([$root->id, ...$descendantIds]));
@@ -40,8 +40,8 @@ final readonly class CategoryGroupsCascadeService
                 ->where('model_type', Scenario::class)
                 ->whereIn('category_id', $scenarioCategoryIds)
                 ->pluck('model_id')
-                ->map(static fn(mixed $v): string => is_string($v) ? $v : '')
-                ->filter(static fn(string $v): bool => $v !== '')
+                ->map(static fn (mixed $v): string => is_string($v) ? $v : '')
+                ->filter(static fn (string $v): bool => $v !== '')
                 ->unique()
                 ->values()
                 ->all();
@@ -50,7 +50,7 @@ final readonly class CategoryGroupsCascadeService
                 Scenario::query()
                     ->whereIn('id', $scenarioIds)
                     ->get()
-                    ->each(static fn(Scenario $s): array => $s->groups()->sync($groupIds));
+                    ->each(static fn (Scenario $s): array => $s->groups()->sync($groupIds));
             }
         });
     }
@@ -70,8 +70,8 @@ final readonly class CategoryGroupsCascadeService
             $children = Category::query()
                 ->whereIn('parent_id', $queue)
                 ->pluck('id')
-                ->map(static fn(mixed $v): string => is_string($v) ? $v : '')
-                ->filter(static fn(string $v): bool => $v !== '')
+                ->map(static fn (mixed $v): string => is_string($v) ? $v : '')
+                ->filter(static fn (string $v): bool => $v !== '')
                 ->values()
                 ->all();
 
@@ -80,7 +80,7 @@ final readonly class CategoryGroupsCascadeService
             }
 
             foreach ($children as $id) {
-                if (!in_array($id, $collected, true)) {
+                if (! in_array($id, $collected, true)) {
                     $collected[] = $id;
                 }
             }

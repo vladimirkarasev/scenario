@@ -111,7 +111,7 @@ final class ScenarioRunController extends Controller
 
         if (!empty($filter['created_by'])) {
             $raw = $filter['created_by'];
-            $ids = array_filter(is_array($raw) ? $raw : [$raw], 'is_numeric');
+            $ids = array_filter(is_array($raw) ? $raw : [$raw], is_numeric(...));
             if ($ids !== []) {
                 $query->whereIn('created_by', $ids);
             }
@@ -141,7 +141,7 @@ final class ScenarioRunController extends Controller
         $filter = is_array($request->input('filter')) ? $request->array('filter') : [];
         $search = is_string($filter['search'] ?? null) ? trim($filter['search']) : '';
         $rawIds = $filter['ids'] ?? null;
-        $ids = is_array($rawIds) ? array_filter($rawIds, 'is_numeric') : [];
+        $ids = is_array($rawIds) ? array_filter($rawIds, is_numeric(...)) : [];
 
         $query = User::query()->orderBy('name')->limit(30);
 

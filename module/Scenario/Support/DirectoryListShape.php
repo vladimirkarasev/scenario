@@ -34,7 +34,7 @@ final readonly class DirectoryListShape
      * Default external_key of the synthetic "Другой" option (mirrors
      * Module\Directories\Services\DirectoryItemService::OTHER_EXTERNAL_KEY).
      */
-    public const OTHER_EXTERNAL_KEY = '__other__';
+    public const string OTHER_EXTERNAL_KEY = '__other__';
 
     /**
      * @phpstan-assert-if-true DirectoryListArray $value

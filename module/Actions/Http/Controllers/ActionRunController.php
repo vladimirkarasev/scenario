@@ -15,8 +15,7 @@ final class ActionRunController extends Controller
 {
     public function __construct(
         private readonly ActionRunService $actionRunService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {

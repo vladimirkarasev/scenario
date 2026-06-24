@@ -877,12 +877,15 @@ function applyJsonEdit(parsed) {
       />
     </div>
 
-    <Drawer v-model:open="drawerOpen" direction="right">
+    <Drawer v-model:open="drawerOpen" direction="right" handle-only>
       <DrawerContent
           class="h-full"
           :class="selectedNode?.type === 'condition' || selectedNode?.type === 'end'
                     ? '!w-[45vw] !max-w-[45vw]'
                     : 'sm:max-w-md'"
+          @pointer-down-outside="$event.preventDefault()"
+          @focus-outside="$event.preventDefault()"
+          @interact-outside="$event.preventDefault()"
       >
         <template v-if="selectedNode?.type === 'condition'">
           <DrawerTitle class="sr-only">Inspector: Condition</DrawerTitle>

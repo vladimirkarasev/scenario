@@ -74,6 +74,7 @@ final class ScenarioVersion extends Model
             ->orderByDesc('created_at');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -82,6 +83,7 @@ final class ScenarioVersion extends Model
         ];
     }
 
+    #[\Override]
     protected static function booted(): void
     {
         self::creating(static function (ScenarioVersion $version): void {

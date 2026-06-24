@@ -9,15 +9,15 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Module\Proxy\DTO\ProxyField;
+use Module\Proxy\Enums\ProxyEndpointType;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Services\HandlerResolver;
 
 final class ProxyEndpointController extends Controller
 {
-    public function __construct(private readonly HandlerResolver $handlers)
-    {
-    }
+    public function __construct(private readonly HandlerResolver $handlers) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -26,7 +26,15 @@ final class ProxyEndpointController extends Controller
             ? trim($filter['search'])
             : null;
 
+        $type = isset($filter['type']) && is_string($filter['type']) && trim($filter['type']) !== ''
+            ? trim($filter['type'])
+            : null;
+
         $query = ProxyEndpoint::query()->latest();
+
+        if ($type !== null) {
+            $query->where('type', $type);
+        }
 
         // При поиске (например, выпадающий фильтр с большим числом эндпоинтов)
         // ищем по name/code и ограничиваем выдачу. Без поиска — полный список.
@@ -40,7 +48,7 @@ final class ProxyEndpointController extends Controller
 
         return new JsonResponse([
             'items' => $query->get()
-                ->map(fn(ProxyEndpoint $endpoint) => $this->payload($endpoint))
+                ->map(fn (ProxyEndpoint $endpoint) => $this->payload($endpoint))
                 ->all(),
         ]);
     }
@@ -51,7 +59,7 @@ final class ProxyEndpointController extends Controller
 
         $endpoint = ProxyEndpoint::query()->create([
             ...$data,
-            'uuid' => (string)Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'created_by' => $request->user()?->id,
         ]);
 
@@ -99,6 +107,7 @@ final class ProxyEndpointController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255'],
+            'type' => ['sometimes', Rule::enum(ProxyEndpointType::class)],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
             'is_mocked' => ['sometimes', 'boolean'],
@@ -121,6 +130,7 @@ final class ProxyEndpointController extends Controller
             'uuid' => $endpoint->uuid,
             'name' => $endpoint->name,
             'code' => $endpoint->code,
+            'type' => $endpoint->type->value,
             'description' => $endpoint->description,
             'is_active' => $endpoint->is_active,
             'is_mocked' => $endpoint->is_mocked,

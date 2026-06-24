@@ -10,14 +10,13 @@ use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
 
-final class XmlActionHandler implements ActionHandlerInterface
+final readonly class XmlActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -27,7 +26,7 @@ final class XmlActionHandler implements ActionHandlerInterface
             $this->dataResolver->contextForAction($action, $input)
         );
         $config = is_array($config) ? $config : [];
-        $rootName = is_string($config['root'] ?? null) ? (string)$config['root'] : 'document';
+        $rootName = is_string($config['root'] ?? null) ? (string) $config['root'] : 'document';
         $payload = $config['body'] ?? $input;
 
         $xml = new \SimpleXMLElement(sprintf('<?xml version="1.0" encoding="UTF-8"?><%s/>', $rootName));
@@ -52,7 +51,7 @@ final class XmlActionHandler implements ActionHandlerInterface
                 continue;
             }
 
-            $element->addChild($nodeName, htmlspecialchars(is_scalar($value) || $value === null ? (string)$value : ''));
+            $element->addChild($nodeName, htmlspecialchars(is_scalar($value) || $value === null ? (string) $value : ''));
         }
     }
 }

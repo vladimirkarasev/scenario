@@ -35,14 +35,13 @@ final readonly class ProxyReceiverService
         private ProxyRequestLoggerService $requestLogger,
         private ProxyExecutor $executor,
         private LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     public function receiveHttp(Request $request, string $uuid): ProxyResponse
     {
         $endpoint = ProxyEndpoint::query()->where('uuid', $uuid)->firstOrFail();
 
-        if (!$endpoint->is_active) {
+        if (! $endpoint->is_active) {
             throw new ProxyEndpointInactiveException;
         }
 
@@ -98,8 +97,8 @@ final readonly class ProxyReceiverService
     }
 
     /**
-     * @param  array<int, ProxyField>  $fields
-     * @param  array<string, mixed>  $normalizedData
+     * @param array<int, ProxyField> $fields
+     * @param array<string, mixed>   $normalizedData
      */
     private function process(
         ContextualLogger $log,
@@ -151,7 +150,7 @@ final readonly class ProxyReceiverService
     }
 
     /**
-     * @param  iterable<mixed>  $fields
+     * @param  iterable<mixed>        $fields
      * @return array<int, ProxyField>
      */
     private function fields(iterable $fields): array
@@ -159,7 +158,7 @@ final readonly class ProxyReceiverService
         $items = [];
 
         foreach ($fields as $field) {
-            if (!$field instanceof ProxyField) {
+            if (! $field instanceof ProxyField) {
                 continue;
             }
 
@@ -174,7 +173,7 @@ final readonly class ProxyReceiverService
     {
         if (strtoupper($endpoint->method ?? 'POST') === 'GET') {
             $filter = $request->query('filter');
-            if (!is_array($filter)) {
+            if (! is_array($filter)) {
                 return [];
             }
 
@@ -198,14 +197,14 @@ final readonly class ProxyReceiverService
     {
         $result = [];
         foreach ($array as $k => $v) {
-            $result[(string)$k] = $v;
+            $result[(string) $k] = $v;
         }
 
         return $result;
     }
 
     /**
-     * @param  array<string, array<string|null>>  $headers
+     * @param  array<string, array<string|null>> $headers
      * @return array<string, mixed>
      */
     private function normalizeHeaders(array $headers): array
@@ -213,7 +212,7 @@ final readonly class ProxyReceiverService
         $normalized = [];
 
         foreach ($headers as $key => $values) {
-            $normalized[strtolower((string)$key)] = count($values) === 1 ? $values[0] : $values;
+            $normalized[strtolower((string) $key)] = count($values) === 1 ? $values[0] : $values;
         }
 
         return $normalized;
@@ -239,7 +238,7 @@ final readonly class ProxyReceiverService
     }
 
     /**
-     * @param  array<string, UploadedFile|array<UploadedFile>>  $files
+     * @param  array<string, UploadedFile|array<UploadedFile>> $files
      * @return array<string, mixed>
      */
     private function fileSummary(array $files): array
@@ -254,7 +253,7 @@ final readonly class ProxyReceiverService
                     'mime' => $file->getClientMimeType(),
                 ];
             } elseif (is_array($file)) {
-                $summary[$field] = array_map(fn(UploadedFile $f) => [
+                $summary[$field] = array_map(fn (UploadedFile $f) => [
                     'name' => $f->getClientOriginalName(),
                     'size' => $f->getSize() ?: 0,
                     'mime' => $f->getClientMimeType(),
@@ -279,6 +278,6 @@ final readonly class ProxyReceiverService
 
     private function newRequestId(): string
     {
-        return (string)Str::uuid();
+        return (string) Str::uuid();
     }
 }

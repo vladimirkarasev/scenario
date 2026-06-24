@@ -20,7 +20,7 @@ final class CategoryResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 
     public function toType(Request $request): string
@@ -29,12 +29,14 @@ final class CategoryResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
             'parent_id' => $this->parent_id,
             'name' => $this->name,
             'is_active' => $this->is_active,
+            'is_system' => $this->is_system,
             'group_ids' => $this->relationLoaded('groups')
                 ? $this->groups->pluck('id')->values()->all()
                 : [],
@@ -46,6 +48,7 @@ final class CategoryResource extends JsonApiResource
     /**
      * @return array<string, mixed>
      */
+    #[\Override]
     protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
     {
         /** @var array<string, mixed> $base */

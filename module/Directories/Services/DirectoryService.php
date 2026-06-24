@@ -16,27 +16,25 @@ use Module\Directories\Repositories\DirectoryRepository;
 use Module\Projects\Models\Project;
 use Module\Projects\Repositories\ProjectRepository;
 
-final class DirectoryService
+final readonly class DirectoryService
 {
     public function __construct(
-        private readonly DirectoryImportScheduleService $scheduleService,
-        private readonly DirectoryVersionService $versionService,
-        private readonly DirectoryRepository $directories,
-        private readonly DirectoryItemRepository $items,
-        private readonly ProjectRepository $projects,
+        private DirectoryImportScheduleService $scheduleService,
+        private DirectoryVersionService $versionService,
+        private DirectoryRepository $directories,
+        private DirectoryItemRepository $items,
+        private ProjectRepository $projects,
     ) {
     }
 
     /** @return array<int, array<string, mixed>> */
     public function items(Project $project): array
     {
-        return DirectoryCache::rememberList($project->id, function () use ($project): array {
-            return $this->directories
-                ->listForProject($project)
-                ->map(fn(Directory $directory): array => $this->listPayload($directory))
-                ->values()
-                ->all();
-        });
+        return DirectoryCache::rememberList($project->id, fn(): array => $this->directories
+            ->listForProject($project)
+            ->map(fn(Directory $directory): array => $this->listPayload($directory))
+            ->values()
+            ->all());
     }
 
     /**
@@ -53,7 +51,7 @@ final class DirectoryService
         $paginator = $this->directories->paginateForProject($project, $page, $perPage, $categoryIds, $uncategorized);
 
         return [
-            'items' => array_map(fn(Directory $d): array => $this->listPayload($d), $paginator->items()),
+            'items' => array_map($this->listPayload(...), $paginator->items()),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

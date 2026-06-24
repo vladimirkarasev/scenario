@@ -10,6 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 final class DashboardCatalogItemResource extends JsonResource
 {
     /** @return array<string, mixed> */
+    #[\Override]
     public function toArray(Request $request): array
     {
         $data = is_array($this->resource) ? $this->resource : [];

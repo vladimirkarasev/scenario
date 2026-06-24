@@ -30,9 +30,16 @@ export interface DateShiftItem {
     name: string
 }
 
-export interface SystemVariable {
+export interface SystemVariableField {
+    suffix: string;
+    label: string;
+    description: string
+}
+
+export interface SystemVariableGroup {
     name: string;
-    label: string
+    label: string;
+    fields: SystemVariableField[]
 }
 
 export const DIRECTORY_FIELD_TYPES = new Set(['directory_list', 'directory_table'])
@@ -83,16 +90,35 @@ export const DATETIME_SHIFTS: DateShiftItem[] = [
     ...DATE_SHIFTS,
 ]
 
-export const SYSTEM_VARIABLES: SystemVariable[] = [
-    {name: 'run_id', label: 'UUID опроса'},
-    {name: 'run_number_formatted', label: 'Номер опроса (с нулями)'},
-    {name: 'run_number', label: 'Номер опроса'},
-    {name: 'run_created_at', label: 'Дата создания опроса'},
-    {name: 'run_completed_at', label: 'Дата окончания опроса'},
-    {name: 'operator_login', label: 'Логин оператора'},
-    {name: 'operator_name', label: 'Имя оператора'},
-    {name: 'operator_fio', label: 'ФИО оператора'},
-    {name: 'project_name', label: 'Проект'},
+export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
+    {
+        name: 'run',
+        label: 'Опрос',
+        fields: [
+            {suffix: 'id', label: 'UUID опроса', description: 'Уникальный идентификатор прогона'},
+            {suffix: 'number', label: 'Номер опроса', description: 'Порядковый номер'},
+            {suffix: 'number_formatted', label: 'Номер опроса (с нулями)', description: 'Номер с ведущими нулями'},
+            {suffix: 'created_at', label: 'Дата создания опроса', description: 'Когда опрос был начат'},
+            {suffix: 'completed_at', label: 'Дата окончания опроса', description: 'Когда опрос был завершён'},
+        ],
+    },
+    {
+        name: 'operator',
+        label: 'Оператор',
+        fields: [
+            {suffix: 'login', label: 'Логин оператора', description: 'Логин учётной записи'},
+            {suffix: 'name', label: 'Имя оператора', description: 'Отображаемое имя'},
+            {suffix: 'fio', label: 'ФИО оператора', description: 'Полное имя'},
+        ],
+    },
+    {
+        name: 'project',
+        label: 'Проект',
+        fields: [
+            {suffix: 'name', label: 'Название проекта', description: 'Имя проекта оператора'},
+            {suffix: 'id', label: 'ID проекта', description: 'Идентификатор проекта'},
+        ],
+    },
 ]
 
 export function extractVarName(varRef: string): string {
@@ -116,8 +142,12 @@ export function implodeRef(v: VarLike): string {
     return `{{ implode(", ", ${extractVarName(v.varRef)}) }}`
 }
 
-export function systemVarRef(v: SystemVariable): string {
-    return `{{ ${v.name} }}`
+export function systemGroupRef(group: SystemVariableGroup): string {
+    return `{{ ${group.name} }}`
+}
+
+export function systemFieldRef(group: SystemVariableGroup, field: SystemVariableField): string {
+    return `{{ ${group.name}.${field.suffix} }}`
 }
 
 export function isDirectoryVar(v: VarLike): boolean {

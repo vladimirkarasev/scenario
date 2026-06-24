@@ -134,7 +134,7 @@ function defaultNodeData(type: string): ScenarioBlockData {
             fields: [],
             targetScenarioId: null,
             targetVersionId: null,
-            description: '<h3>Опрос завершен</h3> <p>Опрос успешно пройден #{{ run_number_formatted }} от {{ run_completed_at }}</p>',
+            description: '<h3>Опрос завершен</h3> <p>Опрос успешно пройден #{{ run.number_formatted }} от {{ run.completed_at }}</p>',
             conditionBranches: []
         },
         scenario_link: {

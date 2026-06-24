@@ -11,6 +11,7 @@ use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         //
@@ -20,8 +21,6 @@ final class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        Gate::before(static function (User $user): ?bool {
-            return $user->hasRole('administrator') ? true : null;
-        });
+        Gate::before(static fn(User $user): ?bool => $user->hasRole('administrator') ? true : null);
     }
 }

@@ -17,7 +17,7 @@ Content-Type: application/json
 
 {
   "name": "Send to CRM",
-  "key": "send_to_crm",
+  "slug": "send_to_crm",
   "description": "Sends lead data to external CRM via HTTP",
   "type": "http_request",
   "is_active": true,
@@ -34,7 +34,7 @@ Content-Type: application/json
 
 {
   "name": "Notify CRM async",
-  "key": "notify_crm_async",
+  "slug": "notify_crm_async",
   "type": "http_request",
   "is_active": true,
   "config": {
@@ -58,7 +58,7 @@ Content-Type: application/json
 
 {
   "name": "Lead pipeline chain",
-  "key": "lead_pipeline_chain",
+  "slug": "lead_pipeline_chain",
   "type": "custom",
   "is_active": true,
   "config": {
@@ -76,7 +76,7 @@ Content-Type: application/json
 
 {
   "name": "Parallel notifications",
-  "key": "parallel_notifications",
+  "slug": "parallel_notifications",
   "type": "custom",
   "is_active": true,
   "config": {

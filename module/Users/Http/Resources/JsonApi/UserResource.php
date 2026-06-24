@@ -29,6 +29,7 @@ final class UserResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
@@ -43,6 +44,7 @@ final class UserResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
     {
         $result = [];

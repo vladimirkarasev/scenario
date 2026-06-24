@@ -14,6 +14,7 @@ import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextR
 import SurveyDirectoryListField from '@/modules/scenario/components/player/SurveyDirectoryListField.vue'
 import SurveyDirectoryTableField from '@/modules/scenario/components/player/SurveyDirectoryTableField.vue'
 import SurveySelectField from '@/modules/scenario/components/player/SurveySelectField.vue'
+import SurveySuggestField from '@/modules/scenario/components/player/SurveySuggestField.vue'
 import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
 import {ChevronDown} from 'lucide-vue-next'
 
@@ -279,6 +280,23 @@ watch(
         :disabled="disabled"
         :error="hasError"
         :context="context"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'suggest'" class="grid gap-1.5">
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <SurveySuggestField
+        :model-value="(formData[fieldName] as Record<string, unknown> | Record<string, unknown>[] | null) ?? (Boolean(resolvedProps.multiple) ? [] : null)"
+        :proxy-uuid="String(resolvedProps.proxyUuid ?? '')"
+        :label-field="String(resolvedProps.labelField ?? '')"
+        :placeholder="String(resolvedProps.placeholder ?? '')"
+        :multiple="Boolean(resolvedProps.multiple)"
+        :disabled="disabled"
+        :error="hasError"
         @update:model-value="formData[fieldName] = $event"
     />
     <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>

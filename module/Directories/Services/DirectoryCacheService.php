@@ -15,7 +15,7 @@ use Module\Directories\Models\DirectoryVersion;
 
 final class DirectoryCacheService
 {
-    private const TTL_SECONDS = 3600;
+    private const int TTL_SECONDS = 3600;
 
     /**
      * @param  array<string, mixed>  $query

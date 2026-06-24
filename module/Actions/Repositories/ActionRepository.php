@@ -18,21 +18,31 @@ final class ActionRepository
     {
         return Action::query()
             ->with([
+                'categories',
                 'schedule',
-                'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
+                'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
             ])
             ->when($filters->search !== null, static function (Builder $query) use ($filters): void {
                 $query->where(static function (Builder $query) use ($filters): void {
                     $query
                         ->where('name', 'like', "%{$filters->search}%")
-                        ->orWhere('key', 'like', "%{$filters->search}%");
+                        ->orWhere('slug', 'like', "%{$filters->search}%");
                 });
             })
-            ->when($filters->type !== null, static fn(Builder $query): Builder => $query->where('type', $filters->type))
+            ->when($filters->type !== null, static fn (Builder $query): Builder => $query->where('type', $filters->type))
             ->when(
                 $filters->isActive !== null,
-                static fn(Builder $query): Builder => $query->where('is_active', $filters->isActive)
+                static fn (Builder $query): Builder => $query->where('is_active', $filters->isActive)
             )
+            ->when($filters->categoryIds !== [], static function (Builder $query) use ($filters): void {
+                $query->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($filters): void {
+                    $sub->selectRaw('1')
+                        ->from('model_has_categories')
+                        ->whereColumn('model_has_categories.model_id', 'actions.id')
+                        ->whereIn('model_has_categories.category_id', $filters->categoryIds)
+                        ->where('model_has_categories.model_type', Action::class);
+                });
+            })
             ->orderBy('name')
             ->paginate($filters->perPage, ['*'], 'page[number]');
     }
@@ -43,7 +53,7 @@ final class ActionRepository
         return Action::query()
             ->with([
                 'schedule',
-                'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
+                'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
             ])
             ->orderBy('name')
             ->get();
@@ -72,8 +82,9 @@ final class ActionRepository
     public function loadRecentRuns(Action $action): Action
     {
         return $action->load([
+            'categories',
             'schedule',
-            'runs' => static fn(Relation $query): Relation => $query->latest()->limit(10),
+            'runs' => static fn (Relation $query): Relation => $query->latest()->limit(10),
         ]);
     }
 }

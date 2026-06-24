@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Registry\Test;
+namespace Module\Proxy\Registry;
 
 use Generator;
 use Module\Proxy\DTO\ProxyEndpointDefinition;
+use Module\Proxy\Enums\ProxyEndpointType;
 use Module\Proxy\Proxies\Test\TestEchoProxyHandler;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Module\Proxy\Proxies\Test\TestSuggestProxyHandler;
 
 final class TestProxyRegistry
 {
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /** @return Generator<int, ProxyEndpointDefinition, mixed, void> */
     public static function all(): Generator
@@ -34,6 +34,16 @@ final class TestProxyRegistry
             description: 'Тестовый прокси — принимает заявку и возвращает фейковый ответ CRM',
             handlerClass: TestLeadProxyHandler::class,
             method: 'POST',
+        );
+
+        yield new ProxyEndpointDefinition(
+            uuid: 'ffffffff-0000-0000-0000-000000000003',
+            code: 'test_suggest',
+            name: 'Test Suggest',
+            description: 'Тестовый suggest-прокси — отдаёт список городов по запросу',
+            handlerClass: TestSuggestProxyHandler::class,
+            method: 'POST',
+            type: ProxyEndpointType::Suggest,
         );
     }
 }

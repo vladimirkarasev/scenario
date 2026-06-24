@@ -17,12 +17,13 @@ use Module\Groups\Models\UserGroup;
 use Module\Scenario\Models\Scenario;
 
 /**
- * @property string $id
+ * @property string      $id
  * @property string|null $parent_id
- * @property string $name
- * @property bool $is_active
- * @property int|null $created_by
- * @property int|null $updated_by
+ * @property string      $name
+ * @property bool        $is_active
+ * @property bool        $is_system
+ * @property int|null    $created_by
+ * @property int|null    $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int|null $scenarios_count
@@ -47,6 +48,7 @@ final class Category extends Model
         'parent_id',
         'name',
         'is_active',
+        'is_system',
         'created_by',
         'updated_by',
     ];
@@ -102,15 +104,18 @@ final class Category extends Model
     }
 
     /** @return CategoryBuilder<static> */
+    #[\Override]
     public function newEloquentBuilder($query): CategoryBuilder
     {
         return new CategoryBuilder($query);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_system' => 'boolean',
         ];
     }
 }

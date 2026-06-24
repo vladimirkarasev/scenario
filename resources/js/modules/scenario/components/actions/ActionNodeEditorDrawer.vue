@@ -304,7 +304,7 @@ function onItemActionChange(item: ActionItem, action: Action): void {
   item.action_id = action.id
   // action_code — реальный code экшена (для оркестрации/input/стадий). code пользователь
   // задаёт сам как scope результата (пусто = глобальный scope, результаты могут перетираться).
-  item.action_code = action.code || action.key
+  item.action_code = action.code || action.slug
   item.name = action.name
   item.input = buildInputDefaults(action.input_fields)
 }

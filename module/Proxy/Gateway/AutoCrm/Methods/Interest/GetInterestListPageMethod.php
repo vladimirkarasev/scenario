@@ -8,6 +8,7 @@ use Module\Proxy\Gateway\AutoCrm\Methods\AutoCrmListPageMethod;
 
 final readonly class GetInterestListPageMethod extends AutoCrmListPageMethod
 {
+    #[\Override]
     public function key(): string
     {
         return 'autocrm.interest.list.page';

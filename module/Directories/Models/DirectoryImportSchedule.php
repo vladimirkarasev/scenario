@@ -39,6 +39,7 @@ final class DirectoryImportSchedule extends Model
         return $this->belongsTo(Directory::class);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

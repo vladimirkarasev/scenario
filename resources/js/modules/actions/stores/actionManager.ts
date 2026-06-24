@@ -5,7 +5,7 @@ import {destroyJson, getJson, sendJson} from '@/lib/http'
 interface Action {
     id: number
     name: string
-    key: string
+    slug: string
     description?: string | null
     type: string
     is_active: boolean
@@ -54,7 +54,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
 
     const actionForm = reactive({
         name: '',
-        key: '',
+        slug: '',
         description: '',
         type: 'http_request',
         is_active: true,
@@ -100,7 +100,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
 
     function resetActionForm(): void {
         actionForm.name = ''
-        actionForm.key = ''
+        actionForm.slug = ''
         actionForm.description = ''
         actionForm.type = 'http_request'
         actionForm.is_active = true
@@ -127,7 +127,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
     function openEditAction(item: Action): void {
         editingActionId.value = item.id
         actionForm.name = item.name
-        actionForm.key = item.key
+        actionForm.slug = item.slug
         actionForm.description = item.description ?? ''
         actionForm.type = item.type
         actionForm.is_active = Boolean(item.is_active)
@@ -158,7 +158,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
         executingActionId.value = item.id
         executionForm.inputText = JSON.stringify({
             user: {id: 42, email: 'user@example.com'},
-            action_key: item.key,
+            action_key: item.slug,
         }, null, 2)
         error.value = ''
         executeDialogOpen.value = true
@@ -183,7 +183,7 @@ export const useActionManagerStore = defineStore('actionManager', () => {
                     method: editingActionId.value ? 'PUT' : 'POST',
                     body: {
                         name: actionForm.name,
-                        key: actionForm.key,
+                        slug: actionForm.slug,
                         description: actionForm.description || null,
                         type: actionForm.type,
                         is_active: actionForm.is_active,

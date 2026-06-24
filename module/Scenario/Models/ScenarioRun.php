@@ -102,6 +102,7 @@ final class ScenarioRun extends Model
         return str_pad((string)$this->number, $width, '0', STR_PAD_LEFT);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -111,6 +112,7 @@ final class ScenarioRun extends Model
         ];
     }
 
+    #[\Override]
     protected static function booted(): void
     {
         self::creating(static function (ScenarioRun $run): void {

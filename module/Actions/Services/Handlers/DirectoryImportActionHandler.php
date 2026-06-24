@@ -19,16 +19,15 @@ use Module\Directories\Services\ImportService;
 use Module\Proxy\Models\ProxyEndpoint;
 use Throwable;
 
-final class DirectoryImportActionHandler implements ActionHandlerInterface
+final readonly class DirectoryImportActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
 
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-        private readonly ImportService $importService,
-        private readonly DictionaryApiSyncService $apiSync,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+        private ImportService $importService,
+        private DictionaryApiSyncService $apiSync,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -95,15 +94,15 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
     {
         $directoryId = $config['directory_id'] ?? null;
 
-        if (!is_scalar($directoryId) || (string)$directoryId === '') {
+        if (! is_scalar($directoryId) || (string) $directoryId === '') {
             throw new \InvalidArgumentException('Directory import action requires `directory_id` in config.');
         }
 
-        return Directory::query()->findOrFail((string)$directoryId);
+        return Directory::query()->findOrFail((string) $directoryId);
     }
 
     /**
-     * @param  array<string, mixed>  $config
+     * @param  array<string, mixed> $config
      * @return array<string, mixed>
      */
     private function remoteConfig(array $config, DirectoryImportSourceType $sourceType): array
@@ -123,8 +122,8 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
     }
 
     /**
-     * @param  array<string, mixed>  $config
-     * @param  array<string, mixed>  $remote
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $remote
      */
     private function proxyEndpointId(array $config, array $remote): ?int
     {
@@ -143,7 +142,7 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
 
         $value = ProxyEndpoint::query()->where('uuid', $uuid)->value('id');
 
-        return is_int($value) ? $value : (is_numeric($value) ? (int)$value : null);
+        return is_int($value) ? $value : (is_numeric($value) ? (int) $value : null);
     }
 
     /**
@@ -151,7 +150,7 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
      */
     private function stringMap(mixed $value): array
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return [];
         }
 
@@ -159,7 +158,7 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
 
         foreach ($value as $key => $item) {
             if (is_scalar($item)) {
-                $result[(string)$key] = (string)$item;
+                $result[(string) $key] = (string) $item;
             }
         }
 
@@ -171,7 +170,7 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
      */
     private function fields(mixed $value): array
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return [];
         }
 
@@ -195,7 +194,7 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($items as $key => $value) {
-            $result[(string)$key] = $value;
+            $result[(string) $key] = $value;
         }
 
         return $result;
@@ -203,22 +202,22 @@ final class DirectoryImportActionHandler implements ActionHandlerInterface
 
     private function stringValue(mixed $value, string $default): string
     {
-        return is_scalar($value) ? (string)$value : $default;
+        return is_scalar($value) ? (string) $value : $default;
     }
 
     private function nullableString(mixed $value): ?string
     {
-        return is_scalar($value) && (string)$value !== '' ? (string)$value : null;
+        return is_scalar($value) && (string) $value !== '' ? (string) $value : null;
     }
 
     private function nullableInt(mixed $value): ?int
     {
-        return is_scalar($value) && is_numeric($value) ? (int)$value : null;
+        return is_scalar($value) && is_numeric($value) ? (int) $value : null;
     }
 
     private function intValue(mixed $value, int $default): int
     {
-        return is_scalar($value) && is_numeric($value) ? (int)$value : $default;
+        return is_scalar($value) && is_numeric($value) ? (int) $value : $default;
     }
 
     private function boolValue(mixed $value): bool

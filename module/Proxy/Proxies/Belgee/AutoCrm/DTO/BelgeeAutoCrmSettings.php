@@ -9,21 +9,19 @@ use Module\Proxy\DTO\ProxyContext;
 final readonly class BelgeeAutoCrmSettings
 {
     /** @param  array<string, mixed>  $values */
-    public function __construct(private array $values)
-    {
-    }
+    public function __construct(private array $values) {}
 
     public static function fromProxyContext(ProxyContext $proxyContext): self
     {
         $settings = $proxyContext->config('belgee.autocrm');
 
-        if (!is_array($settings)) {
+        if (! is_array($settings)) {
             $settings = $proxyContext->config('autocrm');
         }
 
         $values = [];
         foreach (is_array($settings) ? $settings : [] as $key => $value) {
-            $values[(string)$key] = $value;
+            $values[(string) $key] = $value;
         }
 
         return new self($values);
@@ -43,7 +41,7 @@ final readonly class BelgeeAutoCrmSettings
         }
 
         if (is_string($value) && $value !== '') {
-            return ctype_digit($value) ? (int)$value : $value;
+            return ctype_digit($value) ? (int) $value : $value;
         }
 
         return null;

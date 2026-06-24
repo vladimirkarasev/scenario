@@ -10,13 +10,12 @@ final readonly class CategoryActionData
 {
     public function __construct(
         public bool $canManageCatalog,
-    ) {
-    }
+    ) {}
 
     public static function fromRequest(Request $request, ?bool $canManageCatalog = null): self
     {
         return new self(
-            canManageCatalog: $canManageCatalog ?? (bool)$request->user()?->can('category_create'),
+            canManageCatalog: $canManageCatalog ?? (bool) $request->user()?->can('category_create'),
         );
     }
 }

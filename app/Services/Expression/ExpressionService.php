@@ -180,7 +180,7 @@ final readonly class ExpressionService
     private function normalizeContext(array $context, string $expression): array
     {
         $context = array_map(
-            fn(mixed $value): mixed => $this->normalizeValue($value),
+            $this->normalizeValue(...),
             $context,
         );
 
@@ -199,7 +199,7 @@ final readonly class ExpressionService
 
         if (array_is_list($value)) {
             return array_map(
-                fn(mixed $item): mixed => $this->normalizeValue($item),
+                $this->normalizeValue(...),
                 $value,
             );
         }

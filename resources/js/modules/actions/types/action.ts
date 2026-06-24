@@ -1,5 +1,16 @@
 export type ActionType = string
 
+export interface ActionCategory {
+    id: string
+    parent_id: string | null
+    name: string
+    is_active: boolean
+    is_system: boolean
+    children_count: number
+    created_at?: string | null
+    updated_at?: string | null
+}
+
 export interface ActionConfigField {
     key: string
     label: string
@@ -90,7 +101,7 @@ export interface ActionRun {
 export interface Action {
     id: string
     name: string
-    key: string
+    slug: string
     code: string
     description: string | null
     type: ActionType
@@ -99,6 +110,7 @@ export interface Action {
     schema: Record<string, unknown> | null
     ui_schema: Record<string, unknown> | null
     input_fields: ActionInputField[]
+    category_ids: string[]
     schedule: ActionSchedule | null
     created_at: string | null
     updated_at: string | null
@@ -106,7 +118,7 @@ export interface Action {
 
 export interface ActionPayload {
     name: string
-    key: string
+    slug: string
     code: string
     description: string | null
     type: ActionType
@@ -115,6 +127,7 @@ export interface ActionPayload {
     schema?: Record<string, unknown>
     ui_schema?: Record<string, unknown>
     input_fields: ActionInputField[]
+    category_ids: string[]
 }
 
 export interface SchedulePayload {

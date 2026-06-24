@@ -17,8 +17,7 @@ final class ModelProxyHandler extends AutoCrmProxyHandler
     public function __construct(
         private readonly BelgeeAutoCrmGateway $autoCrm,
         private readonly BelgeeAutoCrmInterestBuilder $interestBuilder,
-    ) {
-    }
+    ) {}
 
     public function fields(): iterable
     {
@@ -36,6 +35,7 @@ final class ModelProxyHandler extends AutoCrmProxyHandler
             ->rules(['nullable', 'string', 'max:255']);
     }
 
+    #[\Override]
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         $interest = $this->autoCrm->createInterest(

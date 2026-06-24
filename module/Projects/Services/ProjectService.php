@@ -9,10 +9,10 @@ use Module\Projects\DTO\ProjectData;
 use Module\Projects\Models\Project;
 use Module\Projects\Repositories\ProjectRepository;
 
-final class ProjectService
+final readonly class ProjectService
 {
     public function __construct(
-        private readonly ProjectRepository $projects,
+        private ProjectRepository $projects,
     ) {
     }
 

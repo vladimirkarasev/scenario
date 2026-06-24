@@ -10,6 +10,7 @@ use Illuminate\Http\Resources\JsonApi\AnonymousResourceCollection;
 final class ScenariosResourceCollection extends AnonymousResourceCollection
 {
     /** @return array<string, mixed> */
+    #[\Override]
     public function with($request): array
     {
         /** @var array<string, mixed> $base */
@@ -71,7 +72,7 @@ final class ScenariosResourceCollection extends AnonymousResourceCollection
             return $base;
         }
 
-        $existingIds = array_column(array_filter($rawIncluded, 'is_array'), 'id');
+        $existingIds = array_column(array_filter($rawIncluded, is_array(...)), 'id');
         $ancestorItems = [];
 
         foreach ($ancestors as $id => $cat) {

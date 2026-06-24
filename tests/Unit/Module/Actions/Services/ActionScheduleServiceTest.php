@@ -22,7 +22,7 @@ final class ActionScheduleServiceTest extends TestCase
 
         $action = Action::query()->create([
             'name' => 'Scheduled action',
-            'key' => 'scheduled-action',
+            'slug' => 'scheduled-action',
             'code' => 'scheduled_action',
             'type' => 'email',
             'is_active' => true,
@@ -53,7 +53,7 @@ final class ActionScheduleServiceTest extends TestCase
     {
         $action = Action::query()->create([
             'name' => 'Disabled schedule action',
-            'key' => 'disabled-schedule-action',
+            'slug' => 'disabled-schedule-action',
             'code' => 'disabled_schedule_action',
             'type' => 'email',
             'is_active' => true,

@@ -13,11 +13,11 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Services\ProxyContextFactory;
 use Module\Proxy\Services\ProxyExecutor;
 
-final class ProxyDirectoryImportSource implements DirectoryImportSource
+final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
 {
     public function __construct(
-        private readonly ProxyExecutor $proxyExecutor,
-        private readonly ProxyContextFactory $contextFactory,
+        private ProxyExecutor $proxyExecutor,
+        private ProxyContextFactory $contextFactory,
     ) {
     }
 

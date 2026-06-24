@@ -50,6 +50,9 @@ import DirectoryListFieldSettings, {
 import DirectoryTableFieldSettings, {
   fieldMeta as directoryTableMeta
 } from '@/modules/scenario/components/block-editor/field-settings/DirectoryTableFieldSettings.vue'
+import SuggestFieldSettings, {
+  fieldMeta as suggestMeta
+} from '@/modules/scenario/components/block-editor/field-settings/SuggestFieldSettings.vue'
 import {useScenarioBlockEditorStore} from '@/modules/scenario/stores/scenarioBlockEditor'
 import {storeToRefs} from 'pinia'
 import {fieldsToVariableEntries} from '@/modules/scenario/lib/scenario-variables'
@@ -92,6 +95,7 @@ const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   },
   {title: 'Контент', items: [richTextMeta] as FieldPaletteItem[]},
   {title: 'Удалённые справочники', items: [directoryListMeta, directoryTableMeta] as FieldPaletteItem[]},
+  {title: 'Подсказки', items: [suggestMeta] as FieldPaletteItem[]},
 ]
 
 const fieldSettingsComponents: Record<string, Component> = {
@@ -106,6 +110,7 @@ const fieldSettingsComponents: Record<string, Component> = {
   datetime: markRaw(DatetimeFieldSettings),
   directory_list: markRaw(DirectoryListFieldSettings),
   directory_table: markRaw(DirectoryTableFieldSettings),
+  suggest: markRaw(SuggestFieldSettings),
 }
 
 const fieldTypeMap: Partial<Record<BlockFieldType, { type: BlockFieldType; label: string; icon: Component }>> = {}

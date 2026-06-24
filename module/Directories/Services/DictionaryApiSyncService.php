@@ -21,14 +21,14 @@ use Module\Directories\Repositories\DirectoryVersionRepository;
 use Module\Proxy\Models\ProxyEndpoint;
 use Throwable;
 
-final class DictionaryApiSyncService
+final readonly class DictionaryApiSyncService
 {
     public function __construct(
-        private readonly Dispatcher $dispatcher,
-        private readonly DirectoryImportRepository $imports,
-        private readonly DirectoryVersionRepository $versions,
-        private readonly ImportService $importService,
-        private readonly DirectoryVersionService $versionService,
+        private Dispatcher $dispatcher,
+        private DirectoryImportRepository $imports,
+        private DirectoryVersionRepository $versions,
+        private ImportService $importService,
+        private DirectoryVersionService $versionService,
     ) {
     }
 

@@ -44,6 +44,7 @@ final class DirectoryItem extends Model
         return $this->hasMany(DirectoryItem::class, 'parent_id');
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

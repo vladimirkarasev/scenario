@@ -22,13 +22,12 @@ final readonly class ProxyExecutor
         private HandlerResolver $handlerResolver,
         private MockResponseResolver $mockResolver,
         private ProxyRequestLoggerService $requestLogger,
-    ) {
-    }
+    ) {}
 
     /**
      * Выполнить вызов прокси. Возвращает результат с флагом был ли использован mock.
      *
-     * @param  array<string, mixed>  $normalizedData  Используется для match-логики мока.
+     * @param array<string, mixed> $normalizedData Используется для match-логики мока.
      */
     public function execute(
         ProxyEndpoint $endpoint,
@@ -52,8 +51,8 @@ final readonly class ProxyExecutor
      * там, где нет реального HTTP-запроса (фоновая синхронизация справочника,
      * запросы из других модулей).
      *
-     * @param  array<string, mixed>  $normalizedData
-     * @param  array<string, mixed>  $meta  Произвольная мета для лога (caller и т.п.)
+     * @param array<string, mixed> $normalizedData
+     * @param array<string, mixed> $meta           Произвольная мета для лога (caller и т.п.)
      *
      * @throws Throwable
      */
@@ -80,8 +79,8 @@ final readonly class ProxyExecutor
     }
 
     /**
-     * @param  array<string, mixed>  $normalizedData
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $normalizedData
+     * @param array<string, mixed> $meta
      */
     private function createInternalRequest(
         ProxyEndpoint $endpoint,

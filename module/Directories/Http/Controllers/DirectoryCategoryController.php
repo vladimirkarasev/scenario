@@ -18,6 +18,7 @@ use Module\Directories\Models\Directory;
 
 final class DirectoryCategoryController extends CategoryController
 {
+    #[\Override]
     public function index(): AnonymousResourceCollection
     {
         $request = request();
@@ -38,6 +39,7 @@ final class DirectoryCategoryController extends CategoryController
         );
     }
 
+    #[\Override]
     public function store(CategoryRequest $request): CategoryResource
     {
         $category = $this->categories->create(CategoryData::fromRequest($request, canManageCatalog: true));
@@ -54,6 +56,7 @@ final class DirectoryCategoryController extends CategoryController
         return new CategoryResource($category);
     }
 
+    #[\Override]
     public function update(CategoryRequest $request, Category $category): CategoryResource
     {
         return new CategoryResource(
@@ -61,6 +64,7 @@ final class DirectoryCategoryController extends CategoryController
         );
     }
 
+    #[\Override]
     public function destroy(Request $request, Category $category): JsonResponse
     {
         $this->categories->delete(CategoryActionData::fromRequest($request, canManageCatalog: true), $category);

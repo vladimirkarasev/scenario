@@ -12,13 +12,12 @@ use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Mail\EmailDispatcher;
 
-final class EmailActionHandler implements ActionHandlerInterface
+final readonly class EmailActionHandler implements ActionHandlerInterface
 {
     public function __construct(
-        private readonly ActionDataResolver $dataResolver,
-        private readonly EmailDispatcher $dispatcher,
-    ) {
-    }
+        private ActionDataResolver $dataResolver,
+        private EmailDispatcher $dispatcher,
+    ) {}
 
     /** @param  array<string, mixed>  $input */
     public function handle(Action $action, array $input = []): ActionResult
@@ -61,7 +60,7 @@ final class EmailActionHandler implements ActionHandlerInterface
             'subject' => $subject,
         ];
 
-        if (!$result->sent) {
+        if (! $result->sent) {
             return ActionResult::failed($result->error ?? 'Email send failed.', $payload);
         }
 
@@ -124,7 +123,7 @@ final class EmailActionHandler implements ActionHandlerInterface
     }
 
     /**
-     * @param  iterable<int|string, mixed>  $values
+     * @param  iterable<int|string, mixed> $values
      * @return list<string>
      */
     private function filterEmails(iterable $values): array
@@ -132,7 +131,7 @@ final class EmailActionHandler implements ActionHandlerInterface
         $result = [];
 
         foreach ($values as $item) {
-            if (!is_string($item)) {
+            if (! is_string($item)) {
                 continue;
             }
 
@@ -152,6 +151,6 @@ final class EmailActionHandler implements ActionHandlerInterface
             return $value;
         }
 
-        return is_scalar($value) ? (string)$value : '';
+        return is_scalar($value) ? (string) $value : '';
     }
 }

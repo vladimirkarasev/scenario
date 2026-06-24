@@ -12,8 +12,8 @@ export const actionInputFieldSchema = z.object({
 
 export const actionSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
-    key: z.string()
-        .min(1, 'Key обязателен')
+    slug: z.string()
+        .min(1, 'Slug обязателен')
         .regex(/^[a-z][a-z0-9_-]*$/, 'Только латиница, цифры, _, -'),
     code: z.string(),
     description: z.string(),
@@ -21,6 +21,7 @@ export const actionSchema = z.object({
     is_active: z.boolean(),
     config: z.record(z.unknown()),
     input_fields: z.array(actionInputFieldSchema),
+    category_ids: z.array(z.string()),
 })
 
 export type ActionFormValues = z.infer<typeof actionSchema>

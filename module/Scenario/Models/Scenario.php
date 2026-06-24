@@ -126,11 +126,13 @@ final class Scenario extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    #[\Override]
     public function newEloquentBuilder($query): ScenarioBuilder
     {
         return new ScenarioBuilder($query);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

@@ -16,9 +16,7 @@ use Module\Actions\Models\EmailAccount;
  */
 final readonly class ProxyEmailSender implements EmailSenderInterface
 {
-    public function __construct(private EmailAccount $account)
-    {
-    }
+    public function __construct(private EmailAccount $account) {}
 
     public function driver(): EmailDriver
     {

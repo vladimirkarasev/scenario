@@ -23,6 +23,7 @@ final class TestEchoProxyHandler extends ProxyHandler
             ]);
     }
 
+    #[\Override]
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         $items = $proxyContext->data('items');

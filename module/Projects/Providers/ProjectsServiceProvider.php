@@ -13,6 +13,7 @@ use Module\Projects\Repositories\ProjectRepository;
 
 final class ProjectsServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         $this->app->scoped(CurrentProject::class, function (): CurrentProject {

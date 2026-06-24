@@ -12,9 +12,7 @@ use Module\Proxy\Services\ProxyRequestLoggerService;
 
 final readonly class LogProxyRequestStatus
 {
-    public function __construct(private ProxyRequestLoggerService $logger)
-    {
-    }
+    public function __construct(private ProxyRequestLoggerService $logger) {}
 
     public function handleAccepted(ProxyRequestAccepted $event): void
     {

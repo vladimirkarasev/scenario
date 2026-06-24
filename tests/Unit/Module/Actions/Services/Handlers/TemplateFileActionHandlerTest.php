@@ -18,7 +18,7 @@ final class TemplateFileActionHandlerTest extends TestCase
         Storage::fake('local');
 
         $action = new Action([
-            'key' => 'lead-template',
+            'slug' => 'lead-template',
             'config' => [
                 'format' => 'xml',
                 'file_name' => 'lead',

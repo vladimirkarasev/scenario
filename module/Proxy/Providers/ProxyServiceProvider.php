@@ -7,6 +7,7 @@ namespace Module\Proxy\Providers;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -25,9 +26,10 @@ use Module\Proxy\Listeners\PersistProxyContext;
 
 final class ProxyServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
-        $this->app->singleton(ClientInterface::class, fn(): ClientInterface => new Client);
+        $this->app->singleton(ClientInterface::class, fn (): ClientInterface => new Client);
         $this->app->singleton(MockApiTransport::class);
         $this->commands([SyncProxiesCommand::class]);
     }
@@ -56,15 +58,15 @@ final class ProxyServiceProvider extends ServiceProvider
 
     private function registerExceptionHandlers(): void
     {
-        /** @var \Illuminate\Foundation\Exceptions\Handler $handler */
+        /** @var Handler $handler */
         $handler = $this->app->make(ExceptionHandler::class);
 
-        $handler->renderable(fn(ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
+        $handler->renderable(fn (ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
         $handler->renderable(
-            fn(ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405)
+            fn (ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405)
         );
         $handler->renderable(
-            fn(ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413)
+            fn (ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413)
         );
     }
 }

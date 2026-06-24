@@ -18,7 +18,7 @@ final class ActionResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 
     public function toType(Request $request): string
@@ -27,11 +27,12 @@ final class ActionResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
             'name' => $this->name,
-            'key' => $this->key,
+            'slug' => $this->slug,
             'code' => $this->code,
             'description' => $this->description,
             'type' => $this->type,
@@ -40,21 +41,27 @@ final class ActionResource extends JsonApiResource
             'schema' => $this->schema,
             'ui_schema' => $this->ui_schema,
             'input_fields' => $this->input_fields ?? [],
+            'category_ids' => $this->whenLoaded(
+                'categories',
+                fn (): array => $this->categories->pluck('id')->all(),
+                [],
+            ),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toRelationships(Request $request): array
     {
         return [
-            'runs' => fn() => [
+            'runs' => fn () => [
                 'data' => $this->relationLoaded('runs')
                     ? $this->runs()
                     : [],
             ],
-            'schedule' => fn() => [
+            'schedule' => fn () => [
                 'data' => $this->relationLoaded('schedule') && $this->schedule instanceof ActionSchedule
                     ? $this->schedule()
                     : null,

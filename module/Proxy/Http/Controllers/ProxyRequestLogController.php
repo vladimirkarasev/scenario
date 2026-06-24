@@ -16,8 +16,7 @@ final class ProxyRequestLogController extends Controller
 {
     public function __construct(
         private readonly ProxyRequestQueryService $service,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {

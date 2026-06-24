@@ -14,21 +14,22 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 
 /**
- * @property string $id
- * @property string $name
- * @property string $key
- * @property string $code
- * @property string|null $description
- * @property string $type
- * @property bool $is_active
- * @property array<string, mixed>|null $config
- * @property array<string, mixed>|null $schema
- * @property array<string, mixed>|null $ui_schema
+ * @property string                                $id
+ * @property string                                $name
+ * @property string                                $slug
+ * @property string                                $code
+ * @property string|null                           $description
+ * @property string                                $type
+ * @property bool                                  $is_active
+ * @property array<string, mixed>|null             $config
+ * @property array<string, mixed>|null             $schema
+ * @property array<string, mixed>|null             $ui_schema
  * @property array<int, array<string, mixed>>|null $input_fields
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property Carbon|null                           $created_at
+ * @property Carbon|null                           $updated_at
  * @property-read Collection<int, ActionRun> $runs
  * @property-read ActionSchedule|null $schedule
+ * @property-read Collection<int, Category> $categories
  */
 final class Action extends Model
 {
@@ -36,7 +37,7 @@ final class Action extends Model
 
     protected $fillable = [
         'name',
-        'key',
+        'slug',
         'code',
         'description',
         'type',
@@ -63,10 +64,12 @@ final class Action extends Model
     public function categories(): MorphToMany
     {
         return $this->morphToMany(Category::class, 'model', 'model_has_categories', 'model_id', 'category_id')
+            ->withPivot('project_id')
             ->withTimestamps();
     }
 
     /** @return array<string, string> */
+    #[\Override]
     protected function casts(): array
     {
         return [

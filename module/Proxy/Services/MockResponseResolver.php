@@ -15,7 +15,7 @@ final readonly class MockResponseResolver
      * Берёт первый вариант, чьи поля `match` совпадают со значениями normalized data.
      * Если ни один не подошёл — берёт первый вариант без `match` (default).
      *
-     * @param  array<string, mixed>  $normalizedData
+     * @param array<string, mixed> $normalizedData
      */
     public function resolve(ProxyEndpoint $endpoint, array $normalizedData): ?ProxyResponse
     {
@@ -49,8 +49,8 @@ final readonly class MockResponseResolver
     }
 
     /**
-     * @param  array<string, mixed>  $match
-     * @param  array<string, mixed>  $data
+     * @param array<string, mixed> $match
+     * @param array<string, mixed> $data
      */
     private function matches(array $match, array $data): bool
     {
@@ -69,7 +69,7 @@ final readonly class MockResponseResolver
     private function build(array $variant): ProxyResponse
     {
         $statusRaw = $variant['status'] ?? 200;
-        $status = is_numeric($statusRaw) ? (int)$statusRaw : 200;
+        $status = is_numeric($statusRaw) ? (int) $statusRaw : 200;
 
         $body = $this->stringKeyed($variant['body'] ?? null);
         $headers = $this->stringKeyed($variant['headers'] ?? null);
@@ -81,13 +81,13 @@ final readonly class MockResponseResolver
     /** @return array<string, mixed> */
     private function stringKeyed(mixed $value): array
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return [];
         }
 
         $result = [];
         foreach ($value as $key => $item) {
-            $result[(string)$key] = $item;
+            $result[(string) $key] = $item;
         }
 
         return $result;

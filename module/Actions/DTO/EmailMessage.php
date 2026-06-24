@@ -9,9 +9,9 @@ use Symfony\Component\Mime\Address;
 final readonly class EmailMessage
 {
     /**
-     * @param  list<string>  $to
-     * @param  list<string>  $cc
-     * @param  list<string>  $bcc
+     * @param list<string> $to
+     * @param list<string> $cc
+     * @param list<string> $bcc
      */
     public function __construct(
         public ?string $from,
@@ -22,8 +22,7 @@ final readonly class EmailMessage
         public string $subject,
         public string $bodyHtml,
         public string $bodyText,
-    ) {
-    }
+    ) {}
 
     public function fromAddress(): ?Address
     {

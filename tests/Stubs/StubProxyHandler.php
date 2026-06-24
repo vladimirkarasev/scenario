@@ -20,6 +20,7 @@ final class StubProxyHandler extends ProxyHandler
         return [];
     }
 
+    #[\Override]
     public function handle(ProxyContext $context): ProxyResponse
     {
         return ProxyResponse::ok($this->responseBody);

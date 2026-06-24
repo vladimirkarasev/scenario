@@ -30,7 +30,7 @@ final class MockApiTransport implements ApiTransport
     {
         $key = $this->responseKey($config->name, $method->key());
 
-        if (!array_key_exists($key, $this->responses)) {
+        if (! array_key_exists($key, $this->responses)) {
             throw new ApiGatewayException("Mock response is not registered for [{$key}].");
         }
 

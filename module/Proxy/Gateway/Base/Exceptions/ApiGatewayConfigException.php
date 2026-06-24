@@ -6,6 +6,4 @@ namespace Module\Proxy\Gateway\Base\Exceptions;
 
 use InvalidArgumentException;
 
-final class ApiGatewayConfigException extends InvalidArgumentException
-{
-}
+final class ApiGatewayConfigException extends InvalidArgumentException {}

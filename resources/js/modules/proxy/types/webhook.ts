@@ -13,6 +13,7 @@ export interface WebhookEndpoint {
     uuid: string
     name: string
     code: string
+    type: string
     description: string | null
     is_active: boolean
     is_mocked: boolean

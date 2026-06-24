@@ -16,9 +16,7 @@ use Throwable;
  */
 final readonly class SmtpEmailSender implements EmailSenderInterface
 {
-    public function __construct(private ?string $mailerName = null)
-    {
-    }
+    public function __construct(private ?string $mailerName = null) {}
 
     public function driver(): EmailDriver
     {

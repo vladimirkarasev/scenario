@@ -29,6 +29,7 @@ final class CatalogResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
@@ -43,6 +44,7 @@ final class CatalogResource extends JsonApiResource
     }
 
     /** @return array<string, array<string, list<array<string, mixed>>>> */
+    #[\Override]
     public function toRelationships(Request $request): array
     {
         return [
@@ -62,6 +64,7 @@ final class CatalogResource extends JsonApiResource
     }
 
     /** @return array<string, array<string, list<array<string, mixed>>>> */
+    #[\Override]
     protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
     {
         return $this->toRelationships($request);

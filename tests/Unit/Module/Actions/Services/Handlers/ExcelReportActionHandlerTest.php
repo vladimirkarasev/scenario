@@ -18,7 +18,7 @@ final class ExcelReportActionHandlerTest extends TestCase
         Storage::fake('local');
 
         $action = new Action([
-            'key' => 'lead-report',
+            'slug' => 'lead-report',
             'config' => [
                 'file_name' => 'leads',
                 'sheet_name' => 'Leads',

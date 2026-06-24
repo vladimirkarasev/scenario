@@ -13,13 +13,14 @@ use Module\Categories\Repositories\CategoryRepositoryContract;
 
 final class CategoriesServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         // Разделы читаются часто и почти не меняются — отдаём кеширующий декоратор
         // поверх конкретного репозитория (явная сборка, чтобы не было цикла резолвинга).
         $this->app->bind(
             CategoryRepositoryContract::class,
-            static fn(Application $app): CachedCategoryRepository => new CachedCategoryRepository(
+            static fn (Application $app): CachedCategoryRepository => new CachedCategoryRepository(
                 $app->make(CategoryRepository::class),
                 $app->make(CacheRepository::class),
             )

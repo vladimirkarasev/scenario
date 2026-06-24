@@ -27,6 +27,7 @@ final class DirectoryItemResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         $attributes = array_diff_key($this->resource, ['id' => null]);
@@ -37,7 +38,7 @@ final class DirectoryItemResource extends JsonApiResource
         }
 
         $allowedKeys = explode(',', $rawFields)
-                |> (fn($x) => array_map('trim', $x))
+                |> (fn($x) => array_map(trim(...), $x))
                 |> (fn($x) => array_filter($x, static fn(string $k): bool => $k !== ''))
                 |> array_flip(...);
 

@@ -12,6 +12,5 @@ final readonly class ProxyRequestAccepted
     public function __construct(
         public ProxyRequest $proxyRequest,
         public ProxyContext $context,
-    ) {
-    }
+    ) {}
 }

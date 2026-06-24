@@ -27,6 +27,7 @@ final class UserGroupResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toAttributes(Request $request): array
     {
         return [
@@ -42,6 +43,7 @@ final class UserGroupResource extends JsonApiResource
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function toRelationships(Request $request): array
     {
         return [

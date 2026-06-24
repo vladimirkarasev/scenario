@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 
 final class DirectoryCache
 {
-    private const TTL_LIST = 300;
+    private const int TTL_LIST = 300;
 
-    private const TTL_DETAIL = 600;
+    private const int TTL_DETAIL = 600;
 
     /**
      * @template T

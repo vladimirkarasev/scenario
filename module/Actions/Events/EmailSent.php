@@ -13,8 +13,7 @@ final readonly class EmailSent
         public string $subject,
         public string $transport,
         public ?string $messageId,
-    ) {
-    }
+    ) {}
 
     /** @return array<string, mixed> */
     public function logContext(): array

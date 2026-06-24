@@ -6,20 +6,22 @@ namespace Module\Proxy\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Module\Proxy\Enums\ProxyEndpointType;
 
 /**
- * @property int $id
- * @property string $uuid
- * @property string $name
- * @property string $code
- * @property string|null $description
- * @property bool $is_active
- * @property bool $is_mocked
- * @property string $handler_class
- * @property string|null $method
- * @property array<string, mixed>|null $config
+ * @property int                                   $id
+ * @property string                                $uuid
+ * @property string                                $name
+ * @property string                                $code
+ * @property ProxyEndpointType                     $type
+ * @property string|null                           $description
+ * @property bool                                  $is_active
+ * @property bool                                  $is_mocked
+ * @property string                                $handler_class
+ * @property string|null                           $method
+ * @property array<string, mixed>|null             $config
  * @property array<int, array<string, mixed>>|null $mock_responses
- * @property int|null $created_by
+ * @property int|null                              $created_by
  */
 final class ProxyEndpoint extends Model
 {
@@ -29,6 +31,7 @@ final class ProxyEndpoint extends Model
         'uuid',
         'name',
         'code',
+        'type',
         'description',
         'is_active',
         'is_mocked',
@@ -45,9 +48,11 @@ final class ProxyEndpoint extends Model
         return $this->hasMany(ProxyRequest::class);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [
+            'type' => ProxyEndpointType::class,
             'is_active' => 'boolean',
             'is_mocked' => 'boolean',
             'config' => 'array',

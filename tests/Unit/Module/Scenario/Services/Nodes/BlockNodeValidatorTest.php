@@ -136,7 +136,7 @@ final class BlockNodeValidatorTest extends TestCase
         );
 
         $this->assertArrayHasKey('email', $e->errors());
-        $this->assertStringContainsString('email', mb_strtolower($e->errors()['email'][0]));
+        $this->assertStringContainsString('email', mb_strtolower((string) $e->errors()['email'][0]));
     }
 
     public function test_email_field_passes_when_nullable_and_absent(): void

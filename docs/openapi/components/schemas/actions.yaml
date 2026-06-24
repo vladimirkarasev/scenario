@@ -34,7 +34,7 @@ ActionAttributes:
     name:
       type: string
       example: Создать XML заявки
-    key:
+    slug:
       type: string
       example: create-lead-xml
     description:
@@ -77,13 +77,13 @@ ActionType:
 
 ActionRequest:
   type: object
-  required: [ name, key, type, is_active ]
+  required: [ name, slug, type, is_active ]
   properties:
     name:
       type: string
       maxLength: 255
       example: Создать отчёт по заявкам
-    key:
+    slug:
       type: string
       maxLength: 255
       example: leads-report

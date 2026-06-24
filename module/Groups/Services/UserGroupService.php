@@ -13,11 +13,11 @@ use Module\Groups\Models\UserGroup;
 use Module\Groups\Repositories\UserGroupRepository;
 use Module\Projects\CurrentProject;
 
-final class UserGroupService
+final readonly class UserGroupService
 {
     public function __construct(
-        private readonly UserGroupRepository $groups,
-        private readonly CurrentProject $currentProject,
+        private UserGroupRepository $groups,
+        private CurrentProject $currentProject,
     ) {
     }
 

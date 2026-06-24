@@ -7,13 +7,12 @@ namespace Module\Proxy\Gateway\AutoCrm\DTO;
 final readonly class AutoCrmListQuery
 {
     /**
-     * @param  array<string, mixed>  $filters
+     * @param array<string, mixed> $filters
      */
     public function __construct(
         public array $filters = [],
         public int $firstPage = 1,
-    ) {
-    }
+    ) {}
 
     /** @param  array<string, mixed>  $filters */
     public static function make(array $filters = [], int $firstPage = 1): self
@@ -27,6 +26,6 @@ final readonly class AutoCrmListQuery
         return array_filter([
             ...$this->filters,
             'page' => $page,
-        ], static fn(mixed $value): bool => $value !== null && $value !== []);
+        ], static fn (mixed $value): bool => $value !== null && $value !== []);
     }
 }

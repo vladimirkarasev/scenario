@@ -15,8 +15,7 @@ final readonly class CategoryService
     public function __construct(
         private CategoryRepositoryContract $categories,
         private CategoryGroupsCascadeService $cascade,
-    ) {
-    }
+    ) {}
 
     /** @return Collection<int, Category> */
     public function all(): Collection
@@ -25,7 +24,7 @@ final readonly class CategoryService
     }
 
     /**
-     * @param  class-string  $modelClass
+     * @param  class-string              $modelClass
      * @return Collection<int, Category>
      */
     public function forModel(string $modelClass, ?string $projectId = null): Collection
@@ -34,7 +33,7 @@ final readonly class CategoryService
     }
 
     /**
-     * @param  class-string  $modelClass
+     * @param  class-string              $modelClass
      * @return Collection<int, Category>
      */
     public function forModelByParent(string $modelClass, ?string $parentId, ?string $projectId = null): Collection

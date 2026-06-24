@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Module\Actions\Http\Controllers\ActionCategoryController;
 use Module\Actions\Http\Controllers\ActionController;
+use Module\Actions\Http\Controllers\ActionFeedController;
 use Module\Actions\Http\Controllers\ActionCredentialController;
 use Module\Actions\Http\Controllers\ActionListController;
 use Module\Actions\Http\Controllers\ActionRunController;
@@ -20,7 +22,16 @@ Route::prefix('api/actions')
         Route::get('/types', [ActionTypeController::class, 'index'])->name('types');
         Route::post('/run', ActionsRunController::class)->name('run');
         Route::get('/', ActionListController::class)->name('index');
+        Route::get('/feed', ActionFeedController::class)->name('feed');
         Route::post('/', [ActionController::class, 'store'])->name('store');
+
+        // Разделы (категории) экшенов — ДО /{action}, иначе "categories" поймается как {action}.
+        Route::get('/categories', [ActionCategoryController::class, 'index'])->name('categories.index');
+        Route::post('/categories', [ActionCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{category}', [ActionCategoryController::class, 'show'])->name('categories.show');
+        Route::put('/categories/{category}', [ActionCategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/categories/{category}', [ActionCategoryController::class, 'destroy'])->name('categories.destroy');
+
         Route::get('/{action}', [ActionController::class, 'show'])->name('show');
         Route::put('/{action}', [ActionController::class, 'update'])->name('update');
         Route::delete('/{action}', [ActionController::class, 'destroy'])->name('destroy');

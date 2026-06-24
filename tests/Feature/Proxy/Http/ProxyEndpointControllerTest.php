@@ -74,6 +74,23 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertUnauthorized();
     }
 
+    /**
+     * filter[type]=suggest возвращает только эндпоинты типа suggest.
+     */
+    public function test_index_filters_by_type(): void
+    {
+        $this->makeEndpoint();                       // type=webhook (дефолт)
+        $suggest = $this->makeEndpoint(type: 'suggest');
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/proxy/endpoints?filter[type]=suggest')
+            ->assertOk()
+            ->assertJsonCount(1, 'items');
+
+        $this->assertSame($suggest->id, $response->json('items.0.id'));
+        $this->assertSame('suggest', $response->json('items.0.type'));
+    }
+
     // -------------------------------------------------------------------------
     // POST /api/proxy/endpoints
     // -------------------------------------------------------------------------
@@ -112,7 +129,7 @@ final class ProxyEndpointControllerTest extends TestCase
 
         $uuid = $response->json('item.uuid');
         $this->assertNotNull($uuid);
-        $this->assertTrue((bool)preg_match('/^[0-9a-f-]{36}$/', $uuid), 'uuid должен быть в формате UUID v4');
+        $this->assertTrue((bool) preg_match('/^[0-9a-f-]{36}$/', $uuid), 'uuid должен быть в формате UUID v4');
     }
 
     /**
@@ -309,12 +326,13 @@ final class ProxyEndpointControllerTest extends TestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function makeEndpoint(bool $isActive = true): ProxyEndpoint
+    private function makeEndpoint(bool $isActive = true, string $type = 'webhook'): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
             'uuid' => Str::uuid()->toString(),
             'name' => 'Endpoint '.Str::random(4),
             'code' => 'code-'.Str::random(6),
+            'type' => $type,
             'is_active' => $isActive,
             'handler_class' => TestLeadProxyHandler::class,
         ]);

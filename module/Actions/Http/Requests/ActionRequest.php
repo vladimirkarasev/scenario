@@ -24,7 +24,7 @@ final class ActionRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'key' => ['required', 'string', 'max:255', Rule::unique('actions', 'key')->ignore($ignoreId)],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('actions', 'slug')->ignore($ignoreId)],
             'code' => [
                 'required',
                 'string',
@@ -44,6 +44,8 @@ final class ActionRequest extends FormRequest
             'input_fields.*.type' => ['required', Rule::in(['string', 'number', 'boolean', 'uuid', 'email'])],
             'input_fields.*.required' => ['nullable', 'boolean'],
             'input_fields.*.default' => ['nullable'],
+            'category_ids' => ['nullable', 'array'],
+            'category_ids.*' => ['required', 'uuid', 'exists:categories,id'],
         ];
     }
 }

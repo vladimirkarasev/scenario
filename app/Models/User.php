@@ -65,6 +65,7 @@ final class User extends Authenticatable
         return new NewAccessToken($token, $plainTextToken);
     }
 
+    #[\Override]
     public function newEloquentBuilder($query): UserBuilder
     {
         return new UserBuilder($query);
@@ -83,6 +84,7 @@ final class User extends Authenticatable
         return $this->belongsTo(Project::class);
     }
 
+    #[\Override]
     protected function casts(): array
     {
         return [

@@ -16,19 +16,17 @@ use Module\Proxy\Gateway\Base\Exceptions\ApiGatewayException;
 
 final readonly class GuzzleApiTransport implements ApiTransport
 {
-    public function __construct(private ClientInterface $client)
-    {
-    }
+    public function __construct(private ClientInterface $client) {}
 
     public function send(ApiGatewayConfig $config, ApiMethod $method): ApiGatewayResponse
     {
         try {
             $response = $this->client->request($method->method(), $method->uri(), $this->options($config, $method));
         } catch (GuzzleException $exception) {
-            throw new ApiGatewayException($exception->getMessage(), (int)$exception->getCode(), $exception);
+            throw new ApiGatewayException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
 
-        $contents = (string)$response->getBody();
+        $contents = (string) $response->getBody();
 
         return new ApiGatewayResponse(
             statusCode: $response->getStatusCode(),
@@ -65,7 +63,7 @@ final readonly class GuzzleApiTransport implements ApiTransport
 
         $merged = [];
         foreach (array_replace_recursive($options, $method->options()) as $k => $v) {
-            $merged[(string)$k] = $v;
+            $merged[(string) $k] = $v;
         }
 
         return $merged;
@@ -82,8 +80,8 @@ final readonly class GuzzleApiTransport implements ApiTransport
         $password = $config->auth['password'] ?? '';
 
         return [
-            is_scalar($username) ? (string)$username : '',
-            is_scalar($password) ? (string)$password : '',
+            is_scalar($username) ? (string) $username : '',
+            is_scalar($password) ? (string) $password : '',
         ];
     }
 
@@ -91,22 +89,22 @@ final readonly class GuzzleApiTransport implements ApiTransport
     private function authHeaders(ApiGatewayConfig $config): array
     {
         $rawType = $config->auth['type'] ?? 'none';
-        $type = is_scalar($rawType) ? (string)$rawType : 'none';
+        $type = is_scalar($rawType) ? (string) $rawType : 'none';
 
         if ($type === 'bearer' && filled($config->auth['token'] ?? null)) {
             $token = $config->auth['token'];
 
-            return ['Authorization' => 'Bearer '.(is_scalar($token) ? (string)$token : '')];
+            return ['Authorization' => 'Bearer '.(is_scalar($token) ? (string) $token : '')];
         }
 
         if ($type === 'headers') {
             $headers = Arr::get($config->auth, 'headers', []);
-            if (!is_array($headers)) {
+            if (! is_array($headers)) {
                 return [];
             }
             $result = [];
             foreach ($headers as $k => $v) {
-                $result[(string)$k] = $v;
+                $result[(string) $k] = $v;
             }
 
             return $result;
@@ -129,7 +127,7 @@ final readonly class GuzzleApiTransport implements ApiTransport
     }
 
     /**
-     * @param  array<int|string, array<string|null>>  $headers
+     * @param  array<int|string, array<string|null>> $headers
      * @return array<string, mixed>
      */
     private function normalizeHeaders(array $headers): array
@@ -137,7 +135,7 @@ final readonly class GuzzleApiTransport implements ApiTransport
         $normalized = [];
 
         foreach ($headers as $key => $values) {
-            $normalized[(string)$key] = count($values) === 1 ? $values[0] : $values;
+            $normalized[(string) $key] = count($values) === 1 ? $values[0] : $values;
         }
 
         return $normalized;

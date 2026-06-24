@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Module\Actions\Services;
 
+use App\Models\Category;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Module\Actions\Enums\ActionType;
 use Module\Actions\Models\Action;
 use Module\Actions\Models\ActionSchedule;
+use Module\Categories\Repositories\CategoryRepositoryContract;
 use Module\Directories\Enums\DirectoryImportSourceType;
 use Module\Directories\Models\Directory;
 
@@ -15,13 +19,18 @@ use Module\Directories\Models\Directory;
  * под каждый справочник заводится служебный Action (тип «Импорт справочника»,
  * proxy-источник) и его ActionSchedule с cron. Запуском занимается уже готовая
  * команда actions:run-scheduled → ActionScheduleService::runDue.
+ *
+ * Все служебные sync-экшены складываются в системный раздел «Синхронизация справочников»
+ * ({@see self::SYNC_SECTION_NAME}, is_system) — пользователь не может его удалить.
  */
-final class DirectorySyncScheduleService
+final readonly class DirectorySyncScheduleService
 {
+    private const string SYNC_SECTION_NAME = 'Синхронизация справочников';
+
     public function __construct(
-        private readonly ActionScheduleService $schedules,
-    ) {
-    }
+        private ActionScheduleService $schedules,
+        private CategoryRepositoryContract $categories,
+    ) {}
 
     public function findSchedule(Directory $directory): ?ActionSchedule
     {
@@ -36,7 +45,7 @@ final class DirectorySyncScheduleService
             ['code' => $code],
             [
                 'name' => 'Синхронизация справочника: '.$directory->name,
-                'key' => $code,
+                'slug' => $code,
                 'type' => ActionType::DirectoryImport->value,
                 'is_active' => true,
                 'config' => [
@@ -45,6 +54,8 @@ final class DirectorySyncScheduleService
                 ],
             ],
         );
+
+        $this->attachToSyncSection($action, $directory->project_id);
 
         $schedule = $this->schedules->upsert(
             action: $action,
@@ -93,6 +104,61 @@ final class DirectorySyncScheduleService
 
     private function code(Directory $directory): string
     {
-        return 'directory_sync_'.$directory->id;
+        // Код экшена обязан матчить регулярку ActionRequest `^[a-z][a-z0-9_]*$`,
+        // поэтому дефисы UUID заменяем на подчёркивания (иначе редактирование падает 422).
+        return 'directory_sync_'.str_replace('-', '_', $directory->id);
+    }
+
+    /** Привязать служебный sync-экшен к системному разделу «Синхронизация справочников». */
+    private function attachToSyncSection(Action $action, ?string $projectId): void
+    {
+        $category = $this->resolveSyncCategory($projectId);
+
+        $action->categories()->syncWithoutDetaching([
+            $category->id => ['project_id' => $projectId],
+        ]);
+    }
+
+    /**
+     * Найти или создать системный раздел «Синхронизация справочников» для (Action, проект).
+     * Создаётся через CachedCategoryRepository (сбрасывает кэш разделов).
+     */
+    private function resolveSyncCategory(?string $projectId): Category
+    {
+        $existing = Category::query()
+            ->where('is_system', true)
+            ->where('name', self::SYNC_SECTION_NAME)
+            ->whereExists(function (QueryBuilder $q) use ($projectId): void {
+                $q->from('model_has_categories')
+                    ->whereColumn('model_has_categories.category_id', 'categories.id')
+                    ->where('model_has_categories.model_type', Action::class);
+
+                $projectId === null
+                    ? $q->whereNull('model_has_categories.project_id')
+                    : $q->where('model_has_categories.project_id', $projectId);
+            })
+            ->first();
+
+        if ($existing instanceof Category) {
+            return $existing;
+        }
+
+        $category = $this->categories->create([
+            'name' => self::SYNC_SECTION_NAME,
+            'parent_id' => null,
+            'is_active' => true,
+            'is_system' => true,
+        ], null);
+
+        DB::table('model_has_categories')->insertOrIgnore([
+            'category_id' => $category->id,
+            'model_id' => $category->id,
+            'model_type' => Action::class,
+            'project_id' => $projectId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $category;
     }
 }

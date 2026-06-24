@@ -17,14 +17,14 @@ final class ProxyContextFactory
      * The handler receives query params via $context->query() and is expected
      * to fetch data from a remote source and return it in ProxyResponse::ok($body).
      *
-     * @param  array<string, mixed>  $query  Proxy field names: filter, sort, direction, page, per_page
+     * @param array<string, mixed> $query Proxy field names: filter, sort, direction, page, per_page
      */
     public function forQuery(ProxyEndpoint $endpoint, array $query = []): ProxyContext
     {
-        $requestId = (string)Str::uuid();
+        $requestId = (string) Str::uuid();
         $proxyRequest = new ProxyRequest;
         $proxyRequest->request_id = $requestId;
-        $proxyRequest->proxy_endpoint_id = (string)$endpoint->id;
+        $proxyRequest->proxy_endpoint_id = (string) $endpoint->id;
 
         return new ProxyContext(
             requestId: $requestId,
@@ -42,12 +42,12 @@ final class ProxyContextFactory
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $query
-     * @param  array<string, mixed>  $headers
-     * @param  array<string, mixed>  $normalizedData
-     * @param  array<string, mixed>  $system
-     * @param  array<string, mixed>  $meta
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $query
+     * @param array<string, mixed> $headers
+     * @param array<string, mixed> $normalizedData
+     * @param array<string, mixed> $system
+     * @param array<string, mixed> $meta
      */
     public function fromHttp(
         Request $request,

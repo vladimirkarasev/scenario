@@ -11,9 +11,9 @@ final readonly class GetJsonMethod extends AbstractApiMethod
         private string $uri,
         private array $query = [],
         private string $key = '',
-    ) {
-    }
+    ) {}
 
+    #[\Override]
     public function key(): string
     {
         return $this->key !== '' ? $this->key : parent::key().':'.$this->uri;
@@ -30,6 +30,7 @@ final readonly class GetJsonMethod extends AbstractApiMethod
     }
 
     /** @return array<string, mixed> */
+    #[\Override]
     public function query(): array
     {
         return $this->query;

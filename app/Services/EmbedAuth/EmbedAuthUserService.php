@@ -13,10 +13,10 @@ use Illuminate\Support\Str;
 use Module\Groups\Services\UserGroupService;
 use Module\Projects\Models\Project;
 
-final class EmbedAuthUserService
+final readonly class EmbedAuthUserService
 {
     public function __construct(
-        private readonly UserGroupService $groupService,
+        private UserGroupService $groupService,
     ) {
     }
 

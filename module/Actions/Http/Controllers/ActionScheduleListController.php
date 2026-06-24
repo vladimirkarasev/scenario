@@ -17,7 +17,7 @@ final class ActionScheduleListController extends Controller
             ->orderByDesc('enabled')
             ->orderBy('next_run_at')
             ->get()
-            ->map(static fn(ActionSchedule $schedule): array => [
+            ->map(static fn (ActionSchedule $schedule): array => [
                 'id' => $schedule->id,
                 'enabled' => $schedule->enabled,
                 'cron' => $schedule->cron,
