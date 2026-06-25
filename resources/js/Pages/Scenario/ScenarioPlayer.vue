@@ -25,7 +25,14 @@ function partyName(party?: ScenarioRunParty | null): string | null {
 }
 
 const operatorName = computed(() => partyName(run.value?.operator))
-const clientName = computed(() => partyName(run.value?.client))
+
+// Клиент опционален: ФИО и/или телефон (передаются при создании опроса).
+const clientLabel = computed(() => {
+  const client = run.value?.client
+  if (!client) return null
+  const parts = [client.fio, client.phone].filter((v): v is string => Boolean(v))
+  return parts.length ? parts.join(' · ') : null
+})
 
 const createdAt = computed(() => {
   if (!run.value?.created_at) return null
@@ -81,9 +88,9 @@ async function copyUuid() {
               <span class="text-slate-400">Оператор:</span>
               <span class="ml-1 font-medium text-slate-700">{{ operatorName }}</span>
             </div>
-            <div v-if="clientName" class="whitespace-nowrap">
+            <div v-if="clientLabel" class="whitespace-nowrap">
               <span class="text-slate-400">Клиент:</span>
-              <span class="ml-1 font-medium text-slate-700">{{ clientName }}</span>
+              <span class="ml-1 font-medium text-slate-700">{{ clientLabel }}</span>
             </div>
             <div v-if="createdAt" class="whitespace-nowrap">
               <span class="text-slate-400">Создан:</span>

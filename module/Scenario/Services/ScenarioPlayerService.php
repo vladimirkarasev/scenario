@@ -592,6 +592,29 @@ final readonly class ScenarioPlayerService
     }
 
     /**
+     * Данные клиента из context.user (передаются опционально при создании опроса):
+     * ФИО и телефон. null — если клиент не передан.
+     *
+     * @return array{fio: string|null, phone: string|null}|null
+     */
+    private function clientPayload(ScenarioRun $run): ?array
+    {
+        $context = is_array($run->context) ? $run->context : [];
+        $user = is_array($context['user'] ?? null) ? $context['user'] : [];
+
+        $fio = is_string($user['fio'] ?? null) && $user['fio'] !== ''
+            ? $user['fio']
+            : (is_string($user['name'] ?? null) && $user['name'] !== '' ? $user['name'] : null);
+        $phone = is_string($user['phone'] ?? null) && $user['phone'] !== '' ? $user['phone'] : null;
+
+        if ($fio === null && $phone === null) {
+            return null;
+        }
+
+        return ['fio' => $fio, 'phone' => $phone];
+    }
+
+    /**
      * Версия по id с подгруженной последней ревизией (с кэшем в пределах запроса).
      * Нужна для рендера шагов связных сценариев: шаги одного прогона относятся к
      * разным версиям, и каждый рендерится против своей.

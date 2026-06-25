@@ -82,9 +82,7 @@ export interface ScenarioRunPayload {
     scenario_name?: string | null
     scenario_version_id: string
     scenario_version_name?: string | null
-    // Имя сценария, чья версия исполняется сейчас (для связных — целевого).
     current_scenario_name?: string | null
-    // Корневой сценарий/версия прогона — стартовая точка таймлайна (разделители).
     root_scenario_version_id?: string | null
     root_scenario_name?: string | null
     root_scenario_version_name?: string | null
@@ -97,7 +95,7 @@ export interface ScenarioRunPayload {
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
     steps: ScenarioRunStep[]
     operator?: ScenarioRunParty | null
-    client?: ScenarioRunParty | null
+    client?: ScenarioRunClient | null
 }
 
 export interface ScenarioRunParty {
@@ -105,6 +103,11 @@ export interface ScenarioRunParty {
     name?: string | null
     fio?: string | null
     login?: string | null
+}
+
+export interface ScenarioRunClient {
+    fio?: string | null
+    phone?: string | null
 }
 
 export interface ScenarioTimelineEntry {
