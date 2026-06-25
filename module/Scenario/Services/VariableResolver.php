@@ -24,10 +24,14 @@ final readonly class VariableResolver
         return $this->expressionService->evaluate($expression, $this->prepareContext($context));
     }
 
-    /** @param  array<string, mixed>  $context */
+    /**
+     * Рендерит шаблон опроса.
+     *
+     * @param  array<string, mixed>  $context
+     */
     public function resolve(mixed $value, array $context = []): mixed
     {
-        return $this->expressionService->render($value, $this->prepareContext($context));
+        return $this->expressionService->render($value, $this->prepareContext($context), true);
     }
 
     /**

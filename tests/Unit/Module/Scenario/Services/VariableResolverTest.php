@@ -24,12 +24,11 @@ final class VariableResolverTest extends TestCase
         $this->assertSame(10, $result);
     }
 
-    public function test_resolve_renders_missing_variable_as_empty_object(): void
+    public function test_resolve_renders_missing_variable_as_empty_string(): void
     {
         $result = $this->resolver->resolve('{{ missing_var }}', []);
 
-        // Missing variables become an empty expression value, which JSON-serializes to [].
-        $this->assertSame('[]', $result);
+        $this->assertSame('', $result);
     }
 
     public function test_resolve_renders_template_in_string(): void
