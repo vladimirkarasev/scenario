@@ -124,6 +124,7 @@ final class ScenarioVersionRepository
         return ScenarioVersion::query()
             ->where('scenario_id', $scenarioId)
             ->where('status', 'active')
+            ->latest('created_at')
             ->first()
             ?? ScenarioVersion::query()
                 ->where('scenario_id', $scenarioId)

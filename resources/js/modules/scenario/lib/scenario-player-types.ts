@@ -63,6 +63,10 @@ export interface ScenarioRunStep {
     id: number
     node_id: string
     node_type: ScenarioNodeType
+    // Версия/сценарий, к которым относится шаг (связные сценарии: шаги из разных версий).
+    scenario_version_id?: string | null
+    scenario_name?: string | null
+    scenario_version_name?: string | null
     input: Record<string, unknown> | null
     output: Record<string, unknown> | null
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
@@ -78,6 +82,12 @@ export interface ScenarioRunPayload {
     scenario_name?: string | null
     scenario_version_id: string
     scenario_version_name?: string | null
+    // Имя сценария, чья версия исполняется сейчас (для связных — целевого).
+    current_scenario_name?: string | null
+    // Корневой сценарий/версия прогона — стартовая точка таймлайна (разделители).
+    root_scenario_version_id?: string | null
+    root_scenario_name?: string | null
+    root_scenario_version_name?: string | null
     scenario_version_created_at?: string | null
     created_at?: string | null
     current_node_id: string | null
@@ -86,6 +96,15 @@ export interface ScenarioRunPayload {
     current_node: ScenarioNode | null
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
     steps: ScenarioRunStep[]
+    operator?: ScenarioRunParty | null
+    client?: ScenarioRunParty | null
+}
+
+export interface ScenarioRunParty {
+    id: number
+    name?: string | null
+    fio?: string | null
+    login?: string | null
 }
 
 export interface ScenarioTimelineEntry {
@@ -95,7 +114,24 @@ export interface ScenarioTimelineEntry {
     status: 'past' | 'current'
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
     context: Record<string, unknown>
+    // Сценарий/версия шага — для разделителей границ связанных сценариев.
+    scenario_version_id?: string | null
+    scenario_name?: string | null
+    scenario_version_name?: string | null
 }
+
+// Разделитель «Начало/Конец сценария» в таймлайне для границ scenario_link.
+export interface ScenarioTimelineDivider {
+    type: 'divider'
+    key: string
+    kind: 'start' | 'end'
+    scenarioName: string
+    versionName: string
+}
+
+export type ScenarioTimelineRow =
+    | { type: 'entry'; entry: ScenarioTimelineEntry }
+    | ScenarioTimelineDivider
 
 // ── WebSocket-сообщения канала scenario-run:{id} ────────────────────────────────
 // Все сообщения дискриминируются по `type` (расширяемо: позже добавятся file_* и др.).

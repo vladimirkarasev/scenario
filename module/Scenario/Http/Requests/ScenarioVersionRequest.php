@@ -23,8 +23,9 @@ final class ScenarioVersionRequest extends FormRequest
         $versionId = is_object($version) && isset($version->id) ? (string)$version->id : null;
 
         return [
+            // Имя опционально: если не передано — репозиторий генерирует «vN».
             'name' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 Rule::unique('scenario_versions', 'name')

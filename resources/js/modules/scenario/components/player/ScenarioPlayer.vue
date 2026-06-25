@@ -16,7 +16,7 @@ import type {
   ScenarioRenderedEnd,
   ScenarioRunPayload,
 } from '@/modules/scenario/lib/scenario-player-types'
-import {AlertCircle, CheckCircle2, XCircle} from 'lucide-vue-next'
+import {AlertCircle, CheckCircle2, CornerDownRight, CornerUpLeft, XCircle} from 'lucide-vue-next'
 
 const props = defineProps<{
   scenarioId?: string | null
@@ -35,7 +35,7 @@ const {
   run,
   rendered,
   context,
-  pastTimeline,
+  pastTimelineRows,
   currentTimeline,
   completed,
   failed,
@@ -98,6 +98,16 @@ function asAction(value: unknown): ScenarioRenderedAction {
   return value as ScenarioRenderedAction
 }
 
+// Цель перехода (jump) для записи таймлайна — node_id следующей записи-шага
+// (через разделители), иначе текущий активный узел.
+function nextTargetNodeId(index: number): string | null {
+  for (let i = index + 1; i < pastTimelineRows.value.length; i++) {
+    const row = pastTimelineRows.value[i]
+    if (row.type === 'entry') return row.entry.node_id
+  }
+  return currentTimeline.value?.node_id ?? null
+}
+
 const endBlocks = computed(() =>
     ((asEnd(rendered.value)?.blocks ?? []) as SurveyBlock[]).filter(Boolean),
 )
@@ -122,16 +132,39 @@ const activeDraftKey = computed(() => {
       </div>
     </div>
 
-    <!-- Past timeline -->
+    <!-- Past timeline (с разделителями границ связанных сценариев) -->
     <div class="flex flex-col gap-2">
-      <ScenarioTimelineEntry
-          v-for="(entry, index) in pastTimeline"
-          :key="entry.key"
-          :entry="entry"
-          :loading="loading"
-          :selected-target-node-id="pastTimeline[index + 1]?.node_id ?? currentTimeline?.node_id ?? null"
-          @jump="jumpTo"
-      />
+      <template v-for="(row, index) in pastTimelineRows" :key="row.type === 'divider' ? row.key : row.entry.key">
+        <!-- Разделитель: Начало / Конец связанного сценария -->
+        <div
+            v-if="row.type === 'divider'"
+            class="flex items-center gap-2 py-0.5 text-[11px] font-medium"
+            :class="row.kind === 'start' ? 'text-emerald-600' : 'text-slate-400'"
+        >
+          <div class="h-px flex-1 rounded-full" :class="row.kind === 'start' ? 'bg-emerald-200/70' : 'bg-slate-200'"/>
+          <span
+              class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ring-1"
+              :class="row.kind === 'start'
+                ? 'bg-emerald-50 ring-emerald-100'
+                : 'bg-slate-50 ring-slate-200'"
+          >
+            <component :is="row.kind === 'start' ? CornerDownRight : CornerUpLeft" class="size-3 shrink-0"/>
+            <span class="opacity-80">{{ row.kind === 'start' ? 'Начало сценария' : 'Конец сценария' }}</span>
+            <span class="font-semibold">{{ row.scenarioName }}</span>
+            <span v-if="row.versionName" class="opacity-60">: {{ row.versionName }}</span>
+          </span>
+          <div class="h-px flex-1 rounded-full" :class="row.kind === 'start' ? 'bg-emerald-200/70' : 'bg-slate-200'"/>
+        </div>
+
+        <!-- Обычная запись таймлайна -->
+        <ScenarioTimelineEntry
+            v-else
+            :entry="row.entry"
+            :loading="loading"
+            :selected-target-node-id="nextTargetNodeId(index)"
+            @jump="jumpTo"
+        />
+      </template>
     </div>
 
     <!-- Completed -->

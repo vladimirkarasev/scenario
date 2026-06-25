@@ -55,10 +55,9 @@ import SuggestFieldSettings, {
 } from '@/modules/scenario/components/block-editor/field-settings/SuggestFieldSettings.vue'
 import {useScenarioBlockEditorStore} from '@/modules/scenario/stores/scenarioBlockEditor'
 import {storeToRefs} from 'pinia'
-import {fieldsToVariableEntries} from '@/modules/scenario/lib/scenario-variables'
+import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
 import type {BlockField, BlockFieldType} from '@/modules/scenario/lib/scenario-block-fields'
 import type {ScenarioBlock} from '@/modules/scenario/lib/scenario-flow-document'
-import type {VariableEntry} from '@/modules/scenario/types/scenario-variable-entry'
 import type {Component} from 'vue'
 
 interface FieldPaletteItem {
@@ -147,24 +146,15 @@ const USER_VARIABLES = [
   {id: 'user.auth_date', name: 'user.auth_date', label: 'Дата авторизации'},
 ]
 
-// Переменные других блоков — пересчитываются только при сохранении
-const otherBlocksVariables = computed<VariableEntry[]>(() =>
-    versionDocument.value.blocks
-        .filter((b) => b.type === 'block' && b.id !== props.blockId)
-        .flatMap((b) => fieldsToVariableEntries(b.data.fields ?? [], b.id, b.data.title || b.id, false)),
+// Единый источник переменных (как в редакторе графа): блоки графа + связанные
+// сценарии. Редактируемый блок подменяем на «живой» draft, чтобы переменные
+// текущего блока обновлялись на лету.
+const {variables: allVariables, blocks: variableListBlocks} = useScenarioVariables(
+    () => versionDocument.value.blocks.map(
+        (b) => (b.id === props.blockId && blockDraft.value ? blockDraft.value : b),
+    ),
+    () => props.blockId,
 )
-
-// Переменные текущего блока — из живого draft
-const currentBlockVariables = computed<VariableEntry[]>(() => {
-  const draft = blockDraft.value
-  if (!draft) return []
-  return fieldsToVariableEntries(draft.data.fields ?? [], draft.id, draft.data.title || draft.id, true)
-})
-
-const allVariables = computed<VariableEntry[]>(() => [
-  ...otherBlocksVariables.value,
-  ...currentBlockVariables.value,
-])
 
 // ── Copy var ──────────────────────────────────────────────────────────────────
 
@@ -424,7 +414,7 @@ function cancelChanges() {
             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Переменные</div>
             <ScenarioVariableList
                 :variables="allVariables"
-                :blocks="versionDocument.blocks"
+                :blocks="variableListBlocks"
                 :user-variables="USER_VARIABLES"
                 :current-block-id="blockId"
                 hover-class="hover:bg-slate-50"
@@ -560,7 +550,7 @@ function cancelChanges() {
       :is-var-name-unique="isVarNameUnique"
       :is-copied="copiedFieldVarId === settingsField?.id"
       :all-variables="allVariables"
-      :blocks="versionDocument.blocks"
+      :blocks="variableListBlocks"
       :current-block-id="blockId"
       :user-variables="USER_VARIABLES"
       :block-title="blockDraft?.data.title || ''"

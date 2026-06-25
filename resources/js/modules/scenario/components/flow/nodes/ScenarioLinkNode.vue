@@ -34,7 +34,7 @@ const hasTarget = computed(() => Boolean(props.data?.targetScenarioId))
             {{ data.targetScenarioName || 'Сценарий' }}
           </div>
           <div class="text-[11px] font-medium leading-4 text-emerald-50">
-            ({{ data.targetVersionName || 'версия не выбрана' }})
+            ({{ data.targetVersionName || 'последняя активная версия' }})
           </div>
         </template>
         <div v-else class="text-[12px] italic text-emerald-50/80">

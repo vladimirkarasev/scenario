@@ -12,7 +12,7 @@ import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {Head, Link, router} from '@inertiajs/vue3'
 import {usePlayScenario} from '@/modules/scenario/composables/usePlayScenario'
-import {ArrowLeft, Copy, Loader2, Play, Save} from 'lucide-vue-next'
+import {AlertTriangle, ArrowLeft, Copy, Loader2, Play, Save} from 'lucide-vue-next'
 import {computed, onMounted, reactive, ref} from 'vue'
 import {toast} from 'vue-sonner'
 import {useZodForm} from '@/composables/useZodForm'
@@ -90,6 +90,18 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+// ── Graph validation ─────────────────────────────────────────────────────────
+// Предупреждаем, если у стартового блока нет исходящих рёбер: после «Начало»
+// сценарию некуда переходить, и прогон сразу завершится.
+const startBlockMissing = computed(
+    () => !versionDocument.value.blocks.some((b) => b.type === 'start'),
+)
+const startHasNoOutgoingEdge = computed(() => {
+  const start = versionDocument.value.blocks.find((b) => b.type === 'start')
+  if (!start) return false
+  return !versionDocument.value.connections.some((c) => c.source.blockId === start.id)
 })
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -236,6 +248,16 @@ async function duplicate() {
           class="shrink-0 rounded-none border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive"
       >
         {{ saveError }}
+      </div>
+
+      <!-- Graph warning: старт без исходящих рёбер -->
+      <div
+          v-if="startBlockMissing || startHasNoOutgoingEdge"
+          class="flex shrink-0 items-center gap-2 rounded-none border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-800"
+      >
+        <AlertTriangle class="size-4 shrink-0"/>
+        <span v-if="startBlockMissing">В графе нет стартового блока «Начало» — сценарий не сможет запуститься.</span>
+        <span v-else>Стартовый блок «Начало» не соединён: у графа нет рёбер от старта, поэтому прогон завершится сразу после запуска.</span>
       </div>
 
       <!-- ── Tab bar ──────────────────────────────────────────────── -->

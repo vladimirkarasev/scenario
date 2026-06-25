@@ -15,4 +15,13 @@ final class RunContextKeys
 
     /** context[VARIABLE_MAP] = карта плоских переменных опроса (varName => мета). */
     public const string VARIABLE_MAP = '_variable_map';
+
+    /**
+     * context[CALL_STACK] = стек кадров возврата для связных сценариев.
+     * Каждый кадр: ['version_id' => string, 'revision_id' => ?string, 'return_node_id' => ?string].
+     * При входе в связный сценарий (scenario_link) кадр родителя кладётся в стек;
+     * по достижении «Конца» связного сценария кадр снимается и прогон возвращается
+     * в родителя на return_node_id. Прогон ведёт себя как один сквозной сценарий.
+     */
+    public const string CALL_STACK = '_call_stack';
 }

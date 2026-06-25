@@ -12,6 +12,9 @@ use Module\Scenario\Enums\ScenarioNodeType;
 /**
  * @property int $id
  * @property int $run_id
+ * @property string|null $scenario_version_id
+ * @property string|null $scenario_version_revision_id
+ * @property array<int, array<string, mixed>>|null $call_stack
  * @property string $node_id
  * @property ScenarioNodeType $node_type
  * @property array<string, mixed>|null $input
@@ -26,6 +29,9 @@ final class ScenarioRunStep extends Model
 {
     protected $fillable = [
         'run_id',
+        'scenario_version_id',
+        'scenario_version_revision_id',
+        'call_stack',
         'node_id',
         'node_type',
         'input',
@@ -46,6 +52,7 @@ final class ScenarioRunStep extends Model
         return [
             'input' => 'array',
             'output' => 'array',
+            'call_stack' => 'array',
             'node_type' => ScenarioNodeType::class,
             'entered_at' => 'datetime',
             'exited_at' => 'datetime',

@@ -196,18 +196,34 @@ final readonly class ScenarioPlayerService
     public function jumpRun(ScenarioRun $run, ScenarioRunJumpData $data): ScenarioRun
     {
         $run = $this->hydrateRun($run);
-        $node = $this->graphResolver->findNode($this->runVersion($run), $data->nodeId);
 
-        $targetStep = $this->steps->latestForNode($run, $this->nodeId($node));
+        // Шаг-цель ищем ДО разрешения узла: его снапшот хранит версию/ревизию/стек,
+        // нужные чтобы узел связного сценария находился в правильной версии.
+        $targetStep = $this->steps->latestForNode($run, $data->nodeId);
+        $context = $run->context ?? [];
 
         if ($targetStep !== null) {
+            // Восстанавливаем состояние исполнения на момент шага (связные сценарии).
+            if (is_string($targetStep->scenario_version_id)) {
+                $run->forceFill([
+                    'scenario_version_id' => $targetStep->scenario_version_id,
+                    'scenario_version_revision_id' => $targetStep->scenario_version_revision_id,
+                ])->save();
+                $run = $this->hydrateRun($run);
+                $context = $run->context ?? [];
+                $context[RunContextKeys::CALL_STACK] = is_array($targetStep->call_stack)
+                    ? $targetStep->call_stack
+                    : [];
+            }
+
             $this->steps->trimAfter($run, (int) $targetStep->id);
             $this->steps->update($targetStep, ['input' => null, 'output' => null, 'exited_at' => null]);
         } else {
             $this->stepManager->closeOpen($run, [], []);
         }
 
-        $context = $run->context ?? [];
+        $node = $this->graphResolver->findNode($this->runVersion($run), $data->nodeId);
+
         $context[RunContextKeys::PLAYER] = ['total_steps' => 0, 'visited' => []];
 
         unset($context[NodeContextKeys::ACTION_RUNS], $context[NodeContextKeys::ACTION_STAGES]);
@@ -262,6 +278,20 @@ final readonly class ScenarioPlayerService
             );
         }
 
+        /** @var array<string, ScenarioVersion> $versionCache */
+        $versionCache = [];
+
+        // Корневой (верхнеуровневый) сценарий прогона — для разделителей таймлайна,
+        // когда прогон сразу уходит в связный сценарий. Дно стека вызовов = корень.
+        $callStack = is_array($run->context[RunContextKeys::CALL_STACK] ?? null)
+            ? $run->context[RunContextKeys::CALL_STACK]
+            : [];
+        $rootFrame = $callStack[0] ?? null;
+        $rootVersionId = is_array($rootFrame) && is_string($rootFrame['version_id'] ?? null)
+            ? $rootFrame['version_id']
+            : $run->scenario_version_id;
+        $rootVersion = $this->resolveVersionById($rootVersionId, $version, $versionCache);
+
         return [
             'run' => [
                 'id' => $run->id,
@@ -272,30 +302,51 @@ final readonly class ScenarioPlayerService
                 'scenario_version_id' => $run->scenario_version_id,
                 'scenario_version_revision_id' => $run->scenario_version_revision_id,
                 'scenario_version_name' => $run->version?->name,
+                // Имя сценария, чья версия исполняется сейчас (для связных — целевого).
+                'current_scenario_name' => $version->scenario?->name,
+                // Корневой сценарий/версия — стартовая точка таймлайна (для разделителей).
+                'root_scenario_version_id' => $rootVersionId,
+                'root_scenario_name' => $rootVersion->scenario?->name,
+                'root_scenario_version_name' => $rootVersion->name,
                 'scenario_version_created_at' => $run->version?->created_at?->toIso8601String(),
                 'created_at' => $run->created_at?->toIso8601String(),
                 'current_node_id' => $run->current_node_id,
                 'status' => $run->status->value,
+                // Шапка плеера: оператор (кто ведёт опрос).
+                'operator' => $run->operator ? [
+                    'id' => $run->operator->id,
+                    'name' => $run->operator->name ?? $run->operator->login,
+                    'fio' => $run->operator->fio,
+                    'login' => $run->operator->login,
+                ] : null,
+                // Клиент — опциональные данные, переданные при создании опроса
+                // (context.user): ФИО и телефон. Может отсутствовать.
+                'client' => $this->clientPayload($run),
                 'context' => $run->context ?? [],
                 'current_node' => $currentNode,
                 'rendered' => $rendered,
-                'steps' => $run->steps->map(function (ScenarioRunStep $step) use ($version, $renderContext): array {
+                'steps' => $run->steps->map(function (ScenarioRunStep $step) use ($version, $renderContext, &$versionCache): array {
                     $stepRendered = null;
+                    // Шаг рендерится против своей версии (связные сценарии: шаги из разных версий).
+                    $stepVersion = $this->resolveVersionById($step->scenario_version_id, $version, $versionCache);
                     try {
-                        $node = $this->graphResolver->findNode($version, $step->node_id);
+                        $node = $this->graphResolver->findNode($stepVersion, $step->node_id);
                         $stepRendered = $this->nodeHandlers->for($this->nodeType($node))->render(
-                            $version,
+                            $stepVersion,
                             $node,
                             $renderContext,
                         );
                     } catch (\Throwable) {
-                        // Node may not exist in current version
+                        // Node may not exist in resolved version
                     }
 
                     return [
                         'id' => $step->id,
                         'node_id' => $step->node_id,
                         'node_type' => $step->node_type->value,
+                        'scenario_version_id' => $step->scenario_version_id,
+                        'scenario_name' => $stepVersion->scenario?->name,
+                        'scenario_version_name' => $stepVersion->name,
                         'input' => $step->input,
                         'output' => $step->output,
                         'rendered' => $stepRendered,
@@ -319,12 +370,26 @@ final readonly class ScenarioPlayerService
                 break;
             }
 
+            // Связный сценарий: «Конец» внутри подпрограммы возвращает прогон
+            // в родителя по стеку вызовов вместо завершения всего опроса.
+            if ($this->nodeType($node) === ScenarioNodeType::End->value) {
+                $frame = $this->peekCallFrame($run);
+
+                if ($frame !== null && is_string($frame['return_node_id'] ?? null)) {
+                    $run = $this->returnToParent($run, $frame);
+                    $version = $this->runVersion($run);
+
+                    continue;
+                }
+
+                $this->stepManager->ensureOpen($run, $node);
+                $this->completeRun($run, $this->nodeId($node), ['completed' => true]);
+
+                break;
+            }
+
             if ($handler->isInteractive($node)) {
                 $this->stepManager->ensureOpen($run, $node);
-
-                if ($this->nodeType($node) === ScenarioNodeType::End->value) {
-                    $this->completeRun($run, $this->nodeId($node), ['completed' => true]);
-                }
 
                 break;
             }
@@ -363,6 +428,14 @@ final readonly class ScenarioPlayerService
         $this->stepManager->closeOpen($run, $input, ['next_node_id' => $nextNodeId]);
 
         if ($nextNodeId === null) {
+            // Тупиковая ветка внутри связного сценария — возвращаемся в родителя,
+            // иначе завершаем весь опрос.
+            $frame = $this->peekCallFrame($run);
+
+            if ($frame !== null && is_string($frame['return_node_id'] ?? null)) {
+                return $this->progress($this->returnToParent($run, $frame));
+            }
+
             return $this->completeRun($run, $this->nodeId($node));
         }
 
@@ -439,6 +512,54 @@ final readonly class ScenarioPlayerService
         $run->forceFill(['current_node_id' => $nodeId])->save();
     }
 
+    /**
+     * Верхний кадр стека вызовов связных сценариев без снятия со стека.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function peekCallFrame(ScenarioRun $run): ?array
+    {
+        $context = is_array($run->context) ? $run->context : [];
+        $stack = is_array($context[RunContextKeys::CALL_STACK] ?? null)
+            ? $context[RunContextKeys::CALL_STACK]
+            : [];
+        $frame = end($stack);
+
+        if (! is_array($frame)) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $frame */
+        return $frame;
+    }
+
+    /**
+     * Снять кадр со стека вызовов, восстановить версию родителя и перейти на узел
+     * возврата. Прогон остаётся активным — прогресс продолжится в родителе.
+     *
+     * @param  array<string, mixed>  $frame
+     */
+    private function returnToParent(ScenarioRun $run, array $frame): ScenarioRun
+    {
+        $context = is_array($run->context) ? $run->context : [];
+        $stack = is_array($context[RunContextKeys::CALL_STACK] ?? null)
+            ? $context[RunContextKeys::CALL_STACK]
+            : [];
+        array_pop($stack);
+        $context[RunContextKeys::CALL_STACK] = $stack;
+
+        $returnNodeId = $frame['return_node_id'];
+
+        $run->forceFill([
+            'scenario_version_id' => $frame['version_id'] ?? null,
+            'scenario_version_revision_id' => $frame['revision_id'] ?? null,
+            'current_node_id' => is_string($returnNodeId) ? $returnNodeId : null,
+            'context' => $context,
+        ])->save();
+
+        return $this->hydrateRun($run);
+    }
+
     /** @param  array<string, mixed>  $output */
     private function completeRun(ScenarioRun $run, string $nodeId, array $output = []): ScenarioRun
     {
@@ -468,6 +589,32 @@ final readonly class ScenarioPlayerService
     private function runVersion(ScenarioRun $run): ScenarioVersion
     {
         return $run->version ?? throw new \RuntimeException('Run version is not loaded.');
+    }
+
+    /**
+     * Версия по id с подгруженной последней ревизией (с кэшем в пределах запроса).
+     * Нужна для рендера шагов связных сценариев: шаги одного прогона относятся к
+     * разным версиям, и каждый рендерится против своей.
+     *
+     * @param  array<string, ScenarioVersion>  $cache
+     */
+    private function resolveVersionById(?string $versionId, ScenarioVersion $fallback, array &$cache): ScenarioVersion
+    {
+        if ($versionId === null || $versionId === $fallback->id) {
+            return $fallback;
+        }
+
+        if (array_key_exists($versionId, $cache)) {
+            return $cache[$versionId];
+        }
+
+        $version = ScenarioVersion::query()->find($versionId);
+
+        if ($version !== null) {
+            $version->setRelation('latestRevision', $this->revisions->getLastRevision($version));
+        }
+
+        return $cache[$versionId] = $version ?? $fallback;
     }
 
     /** @param  array<string, mixed>  $node */

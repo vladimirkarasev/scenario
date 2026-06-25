@@ -86,7 +86,7 @@ final readonly class ScenarioGraphResolver
                 'nodes.*.id' => ['required', 'string'],
                 'nodes.*.type' => ['required', 'string'],
                 'nodes.*.data' => ['nullable', 'array'],
-                'edges' => ['required', 'array'],
+                'edges' => ['present', 'array'],
                 'edges.*.id' => ['required', 'string'],
                 'edges.*.source' => ['required', 'string'],
                 'edges.*.target' => ['required', 'string'],

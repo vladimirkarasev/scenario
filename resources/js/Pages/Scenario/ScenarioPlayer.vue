@@ -3,6 +3,9 @@ import AppShell from '@/layouts/AppShell.vue'
 import ScenarioPlayer from '@/modules/scenario/components/player/ScenarioPlayer.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {Head} from '@inertiajs/vue3'
+import {computed, ref} from 'vue'
+import {Check, Copy} from 'lucide-vue-next'
+import type {ScenarioRunPayload, ScenarioRunParty} from '@/modules/scenario/lib/scenario-player-types'
 
 defineProps<{
   scenarioId?: string | null
@@ -11,6 +14,36 @@ defineProps<{
 }>()
 
 const {navigationItems} = useDashboardNavigation()
+
+const run = ref<ScenarioRunPayload | null>(null)
+
+const scenarioName = computed(() => run.value?.scenario_name || run.value?.current_scenario_name || 'Сценарий')
+
+function partyName(party?: ScenarioRunParty | null): string | null {
+  if (!party) return null
+  return party.fio || party.name || party.login || `#${party.id}`
+}
+
+const operatorName = computed(() => partyName(run.value?.operator))
+const clientName = computed(() => partyName(run.value?.client))
+
+const createdAt = computed(() => {
+  if (!run.value?.created_at) return null
+  return new Date(run.value.created_at).toLocaleString('ru-RU', {
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+})
+
+const copied = ref(false)
+
+async function copyUuid() {
+  if (!run.value?.id) return
+  await navigator.clipboard.writeText(run.value.id)
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 1500)
+}
 </script>
 
 <template>
@@ -22,11 +55,50 @@ const {navigationItems} = useDashboardNavigation()
       :navigation-items="navigationItems"
   >
     <div class="survey-content h-full overflow-auto bg-[#F7F8FA]">
+      <!-- Закреплённая шапка прогона -->
+      <div
+          v-if="run"
+          class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70"
+      >
+        <div class="mx-auto flex max-w-2xl items-start justify-between gap-4 px-4 py-2.5">
+          <div class="min-w-0">
+            <div class="truncate text-[14px] font-semibold tracking-[-0.01em] text-slate-900">
+              {{ scenarioName }}
+            </div>
+            <button
+                type="button"
+                class="mt-0.5 inline-flex items-center gap-1 font-mono text-[10.5px] text-slate-400 transition hover:text-slate-600"
+                :title="copied ? 'Скопировано' : 'Скопировать UUID'"
+                @click="copyUuid"
+            >
+              {{ run.id }}
+              <component :is="copied ? Check : Copy" class="size-3" :class="copied ? 'text-emerald-500' : ''"/>
+            </button>
+          </div>
+
+          <div class="flex shrink-0 flex-wrap items-center justify-end gap-x-4 gap-y-0.5 text-[11px] leading-5">
+            <div v-if="operatorName" class="whitespace-nowrap">
+              <span class="text-slate-400">Оператор:</span>
+              <span class="ml-1 font-medium text-slate-700">{{ operatorName }}</span>
+            </div>
+            <div v-if="clientName" class="whitespace-nowrap">
+              <span class="text-slate-400">Клиент:</span>
+              <span class="ml-1 font-medium text-slate-700">{{ clientName }}</span>
+            </div>
+            <div v-if="createdAt" class="whitespace-nowrap">
+              <span class="text-slate-400">Создан:</span>
+              <span class="ml-1 font-medium text-slate-700">{{ createdAt }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="mx-auto w-full max-w-2xl px-4 py-8 md:py-12">
         <ScenarioPlayer
             :run-id="runId ?? null"
             :scenario-id="scenarioId ?? null"
             :scenario-version-id="scenarioVersionId ?? null"
+            @update:run="run = $event"
         />
       </div>
     </div>

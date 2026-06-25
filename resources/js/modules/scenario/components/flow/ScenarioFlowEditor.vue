@@ -39,7 +39,7 @@ import {
   toVueFlowState,
 } from '@/modules/scenario/lib/scenario-flow-document'
 import {saveScenarioVersionDraft} from '@/modules/scenario/lib/scenario-version-draft'
-import {fieldsToVariableEntries} from '@/modules/scenario/lib/scenario-variables'
+import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
 import {USER_VARIABLES} from '@/modules/scenario/lib/scenario-flow-constants'
 import {X} from 'lucide-vue-next'
 
@@ -121,18 +121,9 @@ const conditionPreviewOptions = computed(() => {
       }))
 })
 
-// Полный список переменных (VariableEntry[]) для единого ScenarioVariableList
-// в инспекторах action / condition / end.
-const variableEntries = computed(() =>
-    nodes.value
-        .filter((node) => node.type === 'block')
-        .flatMap((block) => fieldsToVariableEntries(
-            block.data?.fields ?? [],
-            block.id,
-            block.data?.title || block.id,
-            false,
-        )),
-)
+// Полный список переменных для единого ScenarioVariableList (инспекторы action /
+// condition / end): блоки текущего графа + переменные связанных сценариев.
+const {variables: variableEntries, blocks: variableListBlocks} = useScenarioVariables(() => nodes.value)
 const currentFlowDocument = () => fromVueFlowState({
   nodes: nodes.value,
   edges: edges.value,
@@ -914,7 +905,7 @@ function applyJsonEdit(parsed) {
               :draft="inspectorDraft"
               :editable="editable"
               :variables="variableEntries"
-              :blocks="nodes"
+              :blocks="variableListBlocks"
               @sync="syncSelectedNode"
           />
 
@@ -924,7 +915,7 @@ function applyJsonEdit(parsed) {
               :draft="inspectorDraft"
               :editable="editable"
               :variables="variableEntries"
-              :blocks="nodes"
+              :blocks="variableListBlocks"
               @sync="syncSelectedNode"
           />
 
@@ -1001,7 +992,7 @@ function applyJsonEdit(parsed) {
         :node-data="selectedNode.data"
         :editable="editable"
         :variables="variableEntries"
-        :blocks="nodes"
+        :blocks="variableListBlocks"
         :user-variables="USER_VARIABLES"
         @update="onActionNodeUpdate"
     />

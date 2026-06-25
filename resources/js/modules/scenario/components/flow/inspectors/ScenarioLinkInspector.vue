@@ -19,6 +19,10 @@ const props = defineProps({
 
 const emit = defineEmits(['sync'])
 
+// Пустая версия = динамический указатель: при переходе берётся та версия, что
+// сейчас active. Поставил версию active → на неё автоматически переходят.
+const DYNAMIC_VERSION_LABEL = 'последняя активная версия'
+
 const pickerOpen = ref(false)
 const versions = ref([])
 const versionsLoading = ref(false)
@@ -42,6 +46,16 @@ async function loadVersionsFor(scenarioId) {
   }
 }
 
+function onVersionChange() {
+  if (props.draft.targetVersionId == null) {
+    props.draft.targetVersionName = DYNAMIC_VERSION_LABEL
+  } else {
+    const v = versions.value.find((x) => x.id === props.draft.targetVersionId)
+    props.draft.targetVersionName = v ? (v.name || null) : null
+  }
+  emit('sync')
+}
+
 watch(
     () => props.draft.targetScenarioId,
     (id) => {
@@ -54,8 +68,9 @@ watch(
 function onScenarioPicked(scenario) {
   props.draft.targetScenarioId = scenario.id
   props.draft.targetScenarioName = scenario.name
+  // По умолчанию — динамический указатель на последнюю активную версию.
   props.draft.targetVersionId = null
-  props.draft.targetVersionName = null
+  props.draft.targetVersionName = DYNAMIC_VERSION_LABEL
   void loadVersionsFor(scenario.id)
   emit('sync')
 }
@@ -117,19 +132,16 @@ const linkedName = computed(() => props.draft.targetScenarioName || 'Сцена�
           v-model="draft.targetVersionId"
           class="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
           :disabled="!editable || versionsLoading"
-          @change="(() => {
-                    const v = versions.find((x) => x.id === draft.targetVersionId)
-                    draft.targetVersionName = v ? (v.name || null) : null
-                    emit('sync')
-                })()"
+          @change="onVersionChange"
       >
-        <option :value="null" disabled>
-          {{ versionsLoading ? 'Загрузка…' : 'Выберите версию' }}
-        </option>
+        <option :value="null">Последняя активная версия</option>
         <option v-for="v in versions" :key="v.id" :value="v.id">
           {{ v.name || v.id.slice(0, 8) }}{{ v.status === 'active' ? ' · активная' : '' }}
         </option>
       </select>
+      <p class="text-[11px] text-slate-400">
+        «Последняя активная версия» — переход всегда идёт на версию со статусом «активная».
+      </p>
       <p v-if="!versionsLoading && !versions.length" class="text-[11px] text-amber-600">
         У сценария нет версий.
       </p>

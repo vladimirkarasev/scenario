@@ -6,6 +6,7 @@ import type {
     ScenarioRunPayload,
     ScenarioRunStep,
     ScenarioTimelineEntry,
+    ScenarioTimelineRow,
 } from '@/modules/scenario/lib/scenario-player-types'
 import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
 import {subscribeTo, unsubscribeFrom} from '@/composables/useCentrifugo'
@@ -40,6 +41,68 @@ export function useScenarioPlayer() {
     const pastTimeline = computed(() => timeline.value.filter((entry) => entry.status === 'past'))
     const currentTimeline = computed(() => timeline.value.find((entry) => entry.status === 'current') ?? null)
 
+    // Таймлайн с разделителями границ связанных сценариев (scenario_link).
+    // Стек версий: при входе в связный сценарий — «Начало», при возврате — «Конец».
+    const pastTimelineRows = computed<ScenarioTimelineRow[]>(() => {
+        const rows: ScenarioTimelineRow[] = []
+        const stack: { versionId: string; name: string; version: string }[] = []
+        let seq = 0
+
+        // Засеваем корневым сценарием прогона, иначе первый видимый шаг (например,
+        // сразу в связном сценарии) ошибочно считается корнем — и не будет «Начало».
+        const rootVersionId = run.value?.root_scenario_version_id
+        if (rootVersionId) {
+            stack.push({
+                versionId: rootVersionId,
+                name: run.value?.root_scenario_name ?? 'Сценарий',
+                version: run.value?.root_scenario_version_name ?? '',
+            })
+        }
+
+        for (const entry of timeline.value) {
+            const versionId = entry.scenario_version_id ?? ''
+            const name = entry.scenario_name ?? 'Сценарий'
+            const version = entry.scenario_version_name ?? ''
+
+            if (versionId) {
+                const top = stack[stack.length - 1]
+                if (!top) {
+                    // Корневой сценарий — без разделителя.
+                    stack.push({versionId, name, version})
+                } else if (top.versionId !== versionId) {
+                    const idx = stack.findIndex((f) => f.versionId === versionId)
+                    if (idx >= 0) {
+                        // Возврат в родителя — закрываем более глубокие уровни.
+                        while (stack.length - 1 > idx) {
+                            const frame = stack.pop()!
+                            rows.push({type: 'divider', key: `dv-end-${seq++}`, kind: 'end', scenarioName: frame.name, versionName: frame.version})
+                        }
+                    } else {
+                        // Вход в связный сценарий.
+                        stack.push({versionId, name, version})
+                        rows.push({type: 'divider', key: `dv-start-${seq++}`, kind: 'start', scenarioName: name, versionName: version})
+                    }
+                }
+            }
+
+            // Текущий узел рендерится отдельно (активный блок) — в ленту не кладём,
+            // но его разделитель «Начало» уже выведен выше.
+            if (entry.status === 'past') {
+                rows.push({type: 'entry', entry})
+            }
+        }
+
+        // Прогон завершился внутри связанных сценариев — закрываем оставшиеся уровни.
+        if ((completed.value || failed.value) && stack.length > 1) {
+            for (let i = stack.length - 1; i >= 1; i--) {
+                const frame = stack[i]
+                rows.push({type: 'divider', key: `dv-end-tail-${i}`, kind: 'end', scenarioName: frame.name, versionName: frame.version})
+            }
+        }
+
+        return rows
+    })
+
     let isJumping = false
 
     function cloneValue<T>(value: T): T {
@@ -57,6 +120,9 @@ export function useScenarioPlayer() {
             node_type: String(nextRun.current_node.type),
             rendered: cloneValue(nextRun.rendered),
             context: cloneValue(nextRun.context ?? {}),
+            scenario_version_id: nextRun.scenario_version_id ?? null,
+            scenario_name: nextRun.current_scenario_name ?? null,
+            scenario_version_name: nextRun.scenario_version_name ?? null,
         }
 
         // Серверный payload содержит свежий rendered для каждого пройденного шага
@@ -121,6 +187,9 @@ export function useScenarioPlayer() {
                 status: 'past' as const,
                 rendered: cloneValue(step.rendered!),
                 context: cloneValue(nextRun.context ?? {}),
+                scenario_version_id: step.scenario_version_id ?? null,
+                scenario_name: step.scenario_name ?? null,
+                scenario_version_name: step.scenario_version_name ?? null,
             }))
 
         if (entries.length) {
@@ -303,6 +372,7 @@ export function useScenarioPlayer() {
         steps,
         timeline,
         pastTimeline,
+        pastTimelineRows,
         currentTimeline,
         completed,
         failed,
