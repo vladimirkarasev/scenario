@@ -12,7 +12,9 @@ use Module\Scenario\Repositories\ScenarioRunStepRepository;
 use Module\Scenario\Services\Nodes\NodeAdvanceResult;
 use Module\Scenario\Services\Nodes\NodeHandlerInterface;
 use Module\Scenario\Services\Nodes\NodeHelpers;
+use Module\Scenario\Services\RunContextKeys;
 use Module\Scenario\Services\ScenarioGraphResolver;
+use Module\Scenario\Services\ScenarioVariableMapBuilder;
 use RuntimeException;
 
 final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
@@ -22,6 +24,7 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private ScenarioRunStepRepository $steps,
+        private ScenarioVariableMapBuilder $variableMapBuilder,
     ) {
     }
 
@@ -71,11 +74,21 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             ],
         ]);
 
+        $context = is_array($run->context) ? $run->context : [];
+        $targetVariableMap = $this->variableMapBuilder->build($targetRevision?->schema_json ?? []);
+        $currentVariableMap = is_array($context[RunContextKeys::VARIABLE_MAP] ?? null)
+            ? $context[RunContextKeys::VARIABLE_MAP]
+            : [];
+
         $run->forceFill([
             'scenario_id' => $targetVersion->scenario_id,
             'scenario_version_id' => $targetVersion->id,
             'scenario_version_revision_id' => $targetRevision?->id,
             'current_node_id' => $startNodeId,
+            'context' => [
+                ...$context,
+                RunContextKeys::VARIABLE_MAP => [...$currentVariableMap, ...$targetVariableMap],
+            ],
         ])->save();
 
         return NodeAdvanceResult::mutated();

@@ -198,4 +198,82 @@ final class ConditionEvaluatorTest extends TestCase
 
         $this->assertSame('node_five', $result);
     }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('numericComparisonCases')]
+    public function test_numeric_comparison_operators(
+        string $operator,
+        int|float|string $actual,
+        int|float|string $expected,
+        bool $matches,
+    ): void {
+        $result = $this->evaluator->resolveTarget([
+            'expression' => 'actual',
+            'rules' => [
+                ['operator' => $operator, 'value' => $expected, 'targetNodeId' => 'matched'],
+            ],
+            'fallbackTargetNodeId' => 'fallback',
+        ], ['actual' => $actual]);
+
+        $this->assertSame($matches ? 'matched' : 'fallback', $result);
+    }
+
+    public static function numericComparisonCases(): iterable
+    {
+        yield 'greater than' => ['greater_than', 11, 10, true];
+        yield 'greater than false' => ['greater_than', 10, 10, false];
+        yield 'greater alias' => ['gt', '10.5', 10, true];
+        yield 'greater or equal' => ['greater_or_equal', 10, '10', true];
+        yield 'greater or equal alias' => ['gte', 9, 10, false];
+        yield 'less than' => ['less_than', -1, 0, true];
+        yield 'less alias' => ['lt', 2, 1, false];
+        yield 'less or equal' => ['less_or_equal', 10, 10, true];
+        yield 'less or equal alias' => ['lte', 11, 10, false];
+        yield 'non numeric actual' => ['greater_than', 'ten', 1, false];
+        yield 'non numeric expected' => ['less_than', 1, 'ten', false];
+    }
+
+    public function test_condition_accepts_variables_in_math_expression(): void
+    {
+        $result = $this->evaluator->resolveTarget([
+            'expression' => '(price * quantity) - discount',
+            'rules' => [
+                ['operator' => 'greater_or_equal', 'value' => 100, 'targetNodeId' => 'large_order'],
+            ],
+            'fallbackTargetNodeId' => 'small_order',
+        ], ['price' => 30, 'quantity' => 4, 'discount' => 15]);
+
+        $this->assertSame('large_order', $result);
+    }
+
+    public function test_condition_accepts_boolean_expression(): void
+    {
+        $result = $this->evaluator->resolveTarget([
+            'expression' => 'age >= 18 and score >= 70',
+            'rules' => [
+                ['operator' => 'equals', 'value' => true, 'targetNodeId' => 'accepted'],
+            ],
+            'fallbackTargetNodeId' => 'rejected',
+        ], ['age' => 20, 'score' => 75]);
+
+        $this->assertSame('accepted', $result);
+    }
+
+    public function test_condition_uses_flat_variables_from_block_context(): void
+    {
+        $result = $this->evaluator->resolveTarget([
+            'expression' => 'age + bonus',
+            'rules' => [
+                ['operator' => 'greater_than', 'value' => 20, 'targetNodeId' => 'matched'],
+            ],
+            'fallbackTargetNodeId' => 'fallback',
+        ], [
+            '_variable_map' => [
+                'age' => ['_field_type' => 'number', '_block_id' => 'profile', '_field_name' => 'age'],
+                'bonus' => ['_field_type' => 'number', '_block_id' => 'profile', '_field_name' => 'bonus'],
+            ],
+            'profile' => ['age' => 18, 'bonus' => 5],
+        ]);
+
+        $this->assertSame('matched', $result);
+    }
 }

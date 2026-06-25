@@ -223,6 +223,10 @@ final readonly class ExpressionService
     {
         $labels = [];
         foreach ($value as $item) {
+            if ($item instanceof ExpressionValue) {
+                $item = $item->jsonSerialize();
+            }
+
             if ($this->matchesDirectoryListShape($item)) {
                 $labels[] = $item['label'];
 

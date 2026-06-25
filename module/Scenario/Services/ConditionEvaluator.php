@@ -53,10 +53,24 @@ final readonly class ConditionEvaluator
             'empty' => blank($actual),
             'equals' => $this->toStr($actual) === $this->toStr($expected),
             'not_equals' => $this->toStr($actual) !== $this->toStr($expected),
+            'greater_than', 'gt' => $this->compareNumbers($actual, $expected, static fn(float $a, float $b): bool => $a > $b),
+            'greater_or_equal', 'gte' => $this->compareNumbers($actual, $expected, static fn(float $a, float $b): bool => $a >= $b),
+            'less_than', 'lt' => $this->compareNumbers($actual, $expected, static fn(float $a, float $b): bool => $a < $b),
+            'less_or_equal', 'lte' => $this->compareNumbers($actual, $expected, static fn(float $a, float $b): bool => $a <= $b),
             'in' => is_array($expected) && in_array($actual, $expected, true),
             'not_in' => is_array($expected) && !in_array($actual, $expected, true),
             default => false,
         };
+    }
+
+    /** @param callable(float, float): bool $comparator */
+    private function compareNumbers(mixed $actual, mixed $expected, callable $comparator): bool
+    {
+        if (!is_numeric($actual) || !is_numeric($expected)) {
+            return false;
+        }
+
+        return $comparator((float)$actual, (float)$expected);
     }
 
     /** Приводит скалярное значение к строке для сравнения. */

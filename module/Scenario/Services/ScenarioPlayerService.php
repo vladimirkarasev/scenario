@@ -41,6 +41,7 @@ final readonly class ScenarioPlayerService
         private ScenarioRunUserRepository $users,
         private ScenarioVersionRevisionRepository $revisions,
         private VariableResolver $variableResolver,
+        private ScenarioVariableMapBuilder $variableMapBuilder,
     ) {}
 
     /**
@@ -423,81 +424,9 @@ final readonly class ScenarioPlayerService
             $context,
             [
                 RunContextKeys::PLAYER => ['total_steps' => 0, 'visited' => []],
-                RunContextKeys::VARIABLE_MAP => $this->buildVariableMap($schemaJson),
+                RunContextKeys::VARIABLE_MAP => $this->variableMapBuilder->build($schemaJson),
             ],
         );
-    }
-
-    /**
-     * @param  array<string, mixed>                $schemaJson
-     * @return array<string, array<string, mixed>>
-     */
-    private function buildVariableMap(array $schemaJson): array
-    {
-        $map = [];
-        $rawBlocks = $schemaJson['blocks'] ?? ($schemaJson['nodes'] ?? []);
-        /** @var array<mixed> $blocks */
-        $blocks = is_array($rawBlocks) ? $rawBlocks : [];
-
-        foreach ($blocks as $block) {
-            if (! is_array($block)) {
-                continue;
-            }
-
-            /** @var array<string, mixed> $block */
-            $blockType = isset($block['type']) && is_string($block['type']) ? $block['type'] : '';
-            if ($blockType !== 'block') {
-                continue;
-            }
-
-            $blockId = isset($block['id']) && is_string($block['id']) ? $block['id'] : '';
-            $blockData = isset($block['data']) && is_array($block['data']) ? $block['data'] : [];
-            $rawFields = isset($blockData['fields']) && is_array($blockData['fields']) ? $blockData['fields'] : [];
-
-            foreach ($rawFields as $field) {
-                if (! is_array($field)) {
-                    continue;
-                }
-
-                /** @var array<string, mixed> $field */
-                $varName = isset($field['varName']) && is_string($field['varName']) ? trim($field['varName']) : '';
-                $name = isset($field['name']) && is_string($field['name']) ? trim($field['name']) : '';
-                $fieldType = isset($field['type']) && is_string($field['type']) ? $field['type'] : 'input';
-
-                if ($varName === '' || $name === '') {
-                    continue;
-                }
-
-                /** @var array<string, mixed> $entry */
-                $entry = [
-                    '_block_id' => $blockId,
-                    '_field_name' => $name,
-                    '_field_type' => $fieldType,
-                ];
-
-                if ($fieldType === 'select') {
-                    $rawOpts = isset($field['options']) && is_array($field['options']) ? $field['options'] : [];
-                    $entry['_options'] = array_values(array_filter($rawOpts, is_array(...)));
-                } elseif (in_array($fieldType, ['date', 'datetime'], true)) {
-                    $entry['_format'] = isset($field['format']) && is_string($field['format']) ? $field['format'] : '';
-                } elseif (in_array($fieldType, ['directory_list', 'directory_table'], true)) {
-                    $entry['_directory_id'] = isset($field['directoryId']) && is_string(
-                        $field['directoryId']
-                    ) ? $field['directoryId'] : '';
-                    $entry['_version_id'] = isset($field['versionId']) && is_string(
-                        $field['versionId']
-                    ) ? $field['versionId'] : '';
-                    $entry['_label_template'] = isset($field['labelTemplate']) && is_string(
-                        $field['labelTemplate']
-                    ) ? $field['labelTemplate'] : '';
-                    $entry['_multiple'] = isset($field['multiple']) && (bool) $field['multiple'];
-                }
-
-                $map[$varName] = $entry; // последний блок перезаписывает
-            }
-        }
-
-        return $map;
     }
 
     private function isActive(ScenarioRun $run): bool

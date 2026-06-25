@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Внешний API, куда ActionObserver шлёт обновлённые данные экшена при сохранении.
+    // Пусто → отправка отключена.
+    'action_sync' => [
+        'url' => env('ACTION_SYNC_WEBHOOK_URL'),
+    ],
+
 ];

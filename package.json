@@ -5,6 +5,11 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:e2e": "playwright test",
+        "test:e2e:headed": "playwright test --headed",
+        "test:e2e:debug": "playwright test --debug",
         "openapi:bundle": "redocly bundle docs/openapi/openapi.yaml --output public/openapi.yaml",
         "lint": "eslint resources/js",
         "lint:fix": "eslint resources/js --fix",
@@ -13,6 +18,7 @@
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@inertiajs/vue3": "^2.0.0",
+        "@playwright/test": "^1.61.1",
         "@redocly/cli": "^2.30.5",
         "@tailwindcss/forms": "^0.5.3",
         "@tailwindcss/vite": "^4.2.2",
@@ -32,6 +38,7 @@
         "typescript-eslint": "^8.60.1",
         "vite": "^8.0.0",
         "vite-plugin-vue-devtools": "^8.1.1",
+        "vitest": "^4.1.9",
         "vue": "^3.4.0",
         "vue-tsc": "^3.2.7",
         "yaml": "^2.9.0"
