@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Module\Projects\Providers;
 
+use App\Models\IframeRefreshToken;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\PersonalAccessToken;
 use Module\Projects\CurrentProject;
+use Module\Projects\Models\Project;
 use Module\Projects\Repositories\ProjectRepository;
 
 final class ProjectsServiceProvider extends ServiceProvider
@@ -19,14 +23,37 @@ final class ProjectsServiceProvider extends ServiceProvider
         $this->app->scoped(CurrentProject::class, function (): CurrentProject {
             $user = $this->app->make(AuthFactory::class)->user();
 
-            if (!$user instanceof User || !$user->sitekey || !$user->host) {
+            if (!$user instanceof User) {
                 return new CurrentProject(null);
             }
 
-            $project = $this->app->make(ProjectRepository::class)
-                ->activeBySitekeyAndHost($user->sitekey, $user->host);
+            $projects = $this->app->make(ProjectRepository::class);
 
-            return new CurrentProject($project);
+            // 1. Embed/iframe-доступ: проект привязан к access-токену, а не к юзеру.
+            $bearer = $this->app->make(Request::class)->bearerToken();
+            if (is_string($bearer)) {
+                $token = PersonalAccessToken::findToken($bearer);
+
+                if ($token !== null) {
+                    $projectId = IframeRefreshToken::query()
+                        ->where('personal_access_token_id', $token->getKey())
+                        ->value('project_id');
+
+                    if (is_string($projectId)) {
+                        $project = $projects->activeById($projectId);
+                        if ($project instanceof Project) {
+                            return new CurrentProject($project);
+                        }
+                    }
+                }
+            }
+
+            // 2. Фолбэк: стандартный web-доступ по sitekey/host пользователя.
+            if ($user->sitekey && $user->host) {
+                return new CurrentProject($projects->activeBySitekeyAndHost($user->sitekey, $user->host));
+            }
+
+            return new CurrentProject(null);
         });
     }
 

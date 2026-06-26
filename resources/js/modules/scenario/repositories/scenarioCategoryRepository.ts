@@ -7,6 +7,7 @@ interface JsonApiItem {
         parent_id: string | null
         name: string
         is_active: boolean
+        is_workspace?: boolean
         group_ids?: string[]
         created_at?: string | null
         updated_at?: string | null
@@ -26,6 +27,7 @@ function normalize(item: JsonApiItem): CategoryRef {
         parent_id: item.attributes?.parent_id ?? null,
         name: item.attributes?.name ?? '',
         is_active: item.attributes?.is_active ?? true,
+        is_workspace: item.attributes?.is_workspace ?? false,
         children_count: item.relationships?.children?.meta?.count ?? 0,
         group_ids: item.attributes?.group_ids ?? [],
         created_at: item.attributes?.created_at ?? null,
@@ -39,6 +41,7 @@ export interface ScenarioCategoryPayload {
     is_active: boolean
     group_ids?: string[]
     inherit_to_descendants?: boolean
+    is_workspace?: boolean
 }
 
 export const scenarioCategoryRepository = {

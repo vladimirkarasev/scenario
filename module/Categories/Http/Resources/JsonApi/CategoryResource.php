@@ -37,6 +37,7 @@ final class CategoryResource extends JsonApiResource
             'name' => $this->name,
             'is_active' => $this->is_active,
             'is_system' => $this->is_system,
+            'is_workspace' => $this->is_workspace,
             'group_ids' => $this->relationLoaded('groups')
                 ? $this->groups->pluck('id')->values()->all()
                 : [],

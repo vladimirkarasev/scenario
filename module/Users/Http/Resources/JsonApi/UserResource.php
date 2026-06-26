@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Resources\JsonApi;
 
+use App\Http\Resources\JsonApi\RoleResource;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiRequest;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
+use Module\Groups\Http\Resources\JsonApi\UserGroupResource;
 use Module\Groups\Models\UserGroup;
 
 /**
@@ -43,32 +45,41 @@ final class UserResource extends JsonApiResource
         ];
     }
 
-    /** @return array<string, mixed> */
-    #[\Override]
-    protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
+    public function toRelationships(Request $request): array
     {
-        $result = [];
-
-        if ($this->relationLoaded('roles')) {
-            $result['roles'] = [
-                'data' => $this->roles->map(static fn(Role $r): array => [
-                    'type' => 'roles',
-                    'id' => (string)$r->id,
-                    'meta' => ['name' => $r->name, 'title' => $r->title],
-                ])->all(),
-            ];
-        }
-
-        if ($this->relationLoaded('groups')) {
-            $result['groups'] = [
-                'data' => $this->groups->map(static fn(UserGroup $g): array => [
-                    'type' => 'groups',
-                    'id' => $g->id,
-                    'meta' => ['name' => $g->name, 'slug' => $g->slug],
-                ])->all(),
-            ];
-        }
-
-        return $result;
+        return [
+            'roles' => RoleResource::class,
+            'groups' => UserGroupResource::class,
+        ];
     }
+
+
+//    /** @return array<string, mixed> */
+//    #[\Override]
+//    protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
+//    {
+//        $result = [];
+//
+//        if ($this->relationLoaded('roles')) {
+//            $result['roles'] = [
+//                'data' => $this->roles->map(static fn(Role $r): array => [
+//                    'type' => 'roles',
+//                    'id' => (string)$r->id,
+//                    'meta' => ['name' => $r->name, 'title' => $r->title],
+//                ])->all(),
+//            ];
+//        }
+//
+//        if ($this->relationLoaded('groups')) {
+//            $result['groups'] = [
+//                'data' => $this->groups->map(static fn(UserGroup $g): array => [
+//                    'type' => 'groups',
+//                    'id' => $g->id,
+//                    'meta' => ['name' => $g->name, 'slug' => $g->slug],
+//                ])->all(),
+//            ];
+//        }
+//
+//        return $result;
+//    }
 }

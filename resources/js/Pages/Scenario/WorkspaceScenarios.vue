@@ -6,11 +6,18 @@ import type {ScenarioRunPayload} from '@/modules/scenario/lib/scenario-player-ty
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useStartScenarioListener} from '@/modules/scenario/composables/useStartScenarioListener'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
-import type {Scenario, ScenarioCategory} from '@/modules/scenario/types/scenario'
+import type {FeedFolder, FeedScenario} from '@/modules/scenario/repositories/scenarioRepository'
+import {useAuthStore} from '@/stores/auth'
 import {formatDateTime} from '@/lib/formatters'
 import {Head, router} from '@inertiajs/vue3'
 import {ClipboardList} from 'lucide-vue-next'
 import {computed, onMounted, ref, watch} from 'vue'
+
+// project_id берём из /api/user (резолвится по access-токену) и передаём в feed.
+const authStore = useAuthStore()
+const projectId = ref<string | null>(authStore.user?.project_id ?? null)
+const workspaceCategoryId = ref<string | null>(null)
+const hasWorkspace = computed(() => workspaceCategoryId.value !== null)
 
 const {navigationItems} = useDashboardNavigation()
 
@@ -22,68 +29,64 @@ interface ScenarioItem {
   status: 'active' | 'draft' | 'archived'
 }
 
-const ROOT_KEY = '__root__'
+// ── Lazy tree state (единый источник — /api/scenarios/feed) ───────────
 
-function mapStatus(s: Scenario): ScenarioItem['status'] {
-  if (!s.is_active) return 'archived'
-  if (s.active_version_id) return 'active'
-  return 'draft'
-}
-
-// ── Lazy tree state ──────────────────────────────────────────────────
-
-// Children categories per parent. ROOT_KEY holds top-level categories.
-const childrenByParent = ref<Map<string, ScenarioCategory[]>>(new Map())
-// Scenarios per category. ROOT_KEY holds uncategorized scenarios.
+const childrenByParent = ref<Map<string, FeedFolder[]>>(new Map())
 const scenariosByCategory = ref<Map<string, ScenarioItem[]>>(new Map())
 const expandedIds = ref(new Set<string>())
 const loadingIds = ref(new Set<string>())
 const rootLoading = ref(false)
 
-async function loadCategoriesUnder(parentId: string | null): Promise<void> {
-  const items = await scenarioRepository.categoriesByParent(parentId)
-  const next = new Map(childrenByParent.value)
-  next.set(parentId ?? ROOT_KEY, items)
-  childrenByParent.value = next
+// Метаданные категорий (пути и цепочки предков) из ответов feed.
+const pathById = new Map<string, string>()
+const parentPathById = new Map<string, string>()
+const pathIdsById = new Map<string, string[]>()
+
+function recordFolders(folders: FeedFolder[]): void {
+  for (const folder of folders) {
+    pathById.set(folder.id, folder.parent_path ? `${folder.parent_path} / ${folder.name}` : folder.name)
+    parentPathById.set(folder.id, folder.parent_path)
+    if (folder.path_ids.length) pathIdsById.set(folder.id, folder.path_ids)
+  }
 }
 
-async function loadScenariosIn(categoryId: string | null): Promise<void> {
-  const qs = new URLSearchParams()
-  qs.set('filter[active_only]', '0')
-  qs.set('page[size]', '100')
-  qs.set('filter[category_id]', categoryId ?? 'null')
-  const page = await scenarioRepository.list(qs)
-  const items: ScenarioItem[] = page.data.map(s => ({
-    id: s.id,
-    name: s.name,
-    status: mapStatus(s),
-  }))
-  const next = new Map(scenariosByCategory.value)
-  next.set(categoryId ?? ROOT_KEY, items)
-  scenariosByCategory.value = next
+function recordScenarioFolders(scenarios: FeedScenario[]): void {
+  for (const scenario of scenarios) {
+    if (scenario.folder_id && scenario.folder_path) pathById.set(scenario.folder_id, scenario.folder_path)
+  }
+}
+
+async function loadNode(parentId: string): Promise<void> {
+  const {folders, scenarios} = await scenarioRepository.feed({parentId, projectId: projectId.value})
+  recordFolders(folders)
+
+  const nextCats = new Map(childrenByParent.value)
+  nextCats.set(parentId, folders)
+  childrenByParent.value = nextCats
+
+  const nextScens = new Map(scenariosByCategory.value)
+  nextScens.set(parentId, scenarios.map(s => ({id: s.id, name: s.name, status: s.status})))
+  scenariosByCategory.value = nextScens
 }
 
 async function loadRoot(): Promise<void> {
+  const rootId = workspaceCategoryId.value
+  if (rootId === null) return
   rootLoading.value = true
   try {
-    await Promise.all([loadCategoriesUnder(null), loadScenariosIn(null)])
+    await loadNode(rootId)
   } finally {
     rootLoading.value = false
   }
 }
 
 async function expandFolder(catId: string): Promise<void> {
-  const needCats = !childrenByParent.value.has(catId)
-  const needScens = !scenariosByCategory.value.has(catId)
-  if (!needCats && !needScens) return
+  if (childrenByParent.value.has(catId)) return
   const nextLoading = new Set(loadingIds.value)
   nextLoading.add(catId)
   loadingIds.value = nextLoading
   try {
-    await Promise.all([
-      needCats ? loadCategoriesUnder(catId) : Promise.resolve(),
-      needScens ? loadScenariosIn(catId) : Promise.resolve(),
-    ])
+    await loadNode(catId)
   } finally {
     const done = new Set(loadingIds.value)
     done.delete(catId)
@@ -104,8 +107,11 @@ async function toggleExpand(catId: string): Promise<void> {
   await expandFolder(catId)
 }
 
-onMounted(() => {
-  loadRoot()
+onMounted(async () => {
+  if (!authStore.user) await authStore.initialize()
+  projectId.value = authStore.user?.project_id ?? null
+  workspaceCategoryId.value = await scenarioRepository.workspaceCategoryId()
+  await loadRoot()
 })
 
 // ── Sidebar tree ─────────────────────────────────────────────────────
@@ -116,14 +122,14 @@ interface FlatTreeItem {
   depth: number
   hasChildren: boolean
   loading?: boolean
-  folder?: ScenarioCategory
+  folder?: FeedFolder
   scenario?: ScenarioItem
 }
 
 const sidebarTreeItems = computed<FlatTreeItem[]>(() => {
   const result: FlatTreeItem[] = []
 
-  function walk(cats: ScenarioCategory[], depth: number) {
+  function walk(cats: FeedFolder[], depth: number) {
     for (const cat of cats) {
       const hasChildren = cat.children_count > 0 || (scenariosByCategory.value.get(cat.id)?.length ?? 1) > 0
       result.push({
@@ -145,8 +151,10 @@ const sidebarTreeItems = computed<FlatTreeItem[]>(() => {
     }
   }
 
-  walk(childrenByParent.value.get(ROOT_KEY) ?? [], 0)
-  const rootScens = scenariosByCategory.value.get(ROOT_KEY) ?? []
+  const rootId = workspaceCategoryId.value
+  if (rootId === null) return result
+  walk(childrenByParent.value.get(rootId) ?? [], 0)
+  const rootScens = scenariosByCategory.value.get(rootId) ?? []
   for (const s of rootScens) {
     result.push({type: 'scenario', id: s.id, depth: 0, hasChildren: false, scenario: s})
   }
@@ -165,32 +173,20 @@ interface SearchScenarioResult {
 const searchQuery = ref('')
 const searchLoading = ref(false)
 const searchScenarios = ref<SearchScenarioResult[]>([])
-const allCategories = ref<ScenarioCategory[] | null>(null)
-const searchAncestors = ref<ScenarioCategory[]>([])
+const searchFolders = ref<FeedFolder[]>([])
 
 const isSearchMode = computed(() => searchQuery.value.trim().length > 0)
 
-async function ensureAllCategories(): Promise<void> {
-  if (allCategories.value !== null) return
-  allCategories.value = await scenarioRepository.categories()
-}
-
 async function runSearch(q: string): Promise<void> {
+  const rootId = workspaceCategoryId.value
+  if (rootId === null) return
   searchLoading.value = true
   try {
-    await ensureAllCategories()
-    const qs = new URLSearchParams()
-    qs.set('filter[search]', q)
-    qs.set('filter[active_only]', '0')
-    qs.set('page[size]', '100')
-    const page = await scenarioRepository.list(qs)
-    searchScenarios.value = page.data.map(s => ({
-      id: s.id,
-      name: s.name,
-      status: mapStatus(s),
-      folderId: s.categories[0]?.id ?? null,
-    }))
-    searchAncestors.value = page.includedCategories
+    const {folders, scenarios} = await scenarioRepository.feed({rootId, search: q, projectId: projectId.value})
+    recordFolders(folders)
+    recordScenarioFolders(scenarios)
+    searchFolders.value = folders
+    searchScenarios.value = scenarios.map(s => ({id: s.id, name: s.name, status: s.status, folderId: s.folder_id}))
   } finally {
     searchLoading.value = false
   }
@@ -202,7 +198,7 @@ watch(searchQuery, (q) => {
   const t = q.trim()
   if (!t) {
     searchScenarios.value = []
-    searchAncestors.value = []
+    searchFolders.value = []
     return
   }
   searchTimer = setTimeout(() => {
@@ -210,42 +206,15 @@ watch(searchQuery, (q) => {
   }, 250)
 })
 
-function findCategory(id: string): ScenarioCategory | undefined {
-  return allCategories.value?.find(c => c.id === id)
-      ?? searchAncestors.value.find(c => c.id === id)
-      ?? childrenByParent.value.get(ROOT_KEY)?.find(c => c.id === id)
-}
-
 function pathFor(catId: string | null | undefined): string {
-  if (!catId) return ''
-  const cat = findCategory(catId)
-  if (!cat) return ''
-  const parts: string[] = [cat.name]
-  let parentId = cat.parent_id
-  while (parentId) {
-    const parent = findCategory(parentId)
-    if (!parent) break
-    parts.unshift(parent.name)
-    parentId = parent.parent_id
-  }
-  return parts.join(' / ')
+  return catId ? (pathById.get(catId) ?? '') : ''
 }
 
 function parentPathFor(catId: string | null | undefined): string {
-  if (!catId) return ''
-  const cat = findCategory(catId)
-  if (!cat?.parent_id) return ''
-  return pathFor(cat.parent_id)
+  return catId ? (parentPathById.get(catId) ?? '') : ''
 }
 
-const searchFolderResults = computed<ScenarioCategory[]>(() => {
-  if (!isSearchMode.value || !allCategories.value) return []
-  const words = searchQuery.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
-  if (!words.length) return []
-  return allCategories.value.filter(c =>
-      words.every(w => c.name.toLowerCase().includes(w)),
-  )
-})
+const searchFolderResults = computed<FeedFolder[]>(() => searchFolders.value)
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -264,16 +233,10 @@ function highlight(text: string, query: string): string {
 async function jumpToFolder(catId: string): Promise<void> {
   searchQuery.value = ''
   searchScenarios.value = []
-  searchAncestors.value = []
-  // Walk parent chain to expand all ancestors + the target folder
-  const chain: string[] = []
-  let curr: string | null = catId
-  while (curr) {
-    chain.unshift(curr)
-    const cat = findCategory(curr)
-    curr = cat?.parent_id ?? null
-  }
+  searchFolders.value = []
+  const chain = pathIdsById.get(catId) ?? [catId]
   for (const id of chain) {
+    if (id === workspaceCategoryId.value) continue
     if (!expandedIds.value.has(id)) {
       const next = new Set(expandedIds.value)
       next.add(id)
@@ -332,6 +295,7 @@ function onRunUpdate(run: ScenarioRunPayload | null) {
           :is-search-mode="isSearchMode"
           :search-loading="searchLoading"
           :root-loading="rootLoading"
+          :has-workspace="hasWorkspace"
           :search-folder-results="searchFolderResults"
           :search-scenarios="searchScenarios"
           :sidebar-tree-items="sidebarTreeItems"

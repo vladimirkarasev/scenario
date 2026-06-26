@@ -196,8 +196,19 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             parsedHeaders.value = headerRow.map(h => ({key: h, label: h}))
             parsedPreviewRows.value = rows.slice(1, 4).map(r => headerRow.map((_, i) => String((r as string[])[i] ?? '')))
             storedSchemaFields.value = schemaFields
+
+            // Авто-сопоставление: заголовок колонки == названию поля (регистр/пробелы не важны),
+            // фолбэк — совпадение с ключом поля. Иначе оставляем пустым.
+            const normalize = (s: string): string => s.trim().toLowerCase()
+            const headerKeyByLabel = new Map<string, string>()
+            parsedHeaders.value.forEach(h => {
+                const key = normalize(h.label)
+                if (!headerKeyByLabel.has(key)) headerKeyByLabel.set(key, h.key)
+            })
             schemaFields.forEach(f => {
-                importMapping[f.key] = ''
+                importMapping[f.key] = headerKeyByLabel.get(normalize(f.name))
+                    ?? headerKeyByLabel.get(normalize(f.key))
+                    ?? ''
             })
         } catch {
             importError.value = 'Не удалось прочитать файл. Убедитесь, что это Excel или CSV.'

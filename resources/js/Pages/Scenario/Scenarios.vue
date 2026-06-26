@@ -314,7 +314,7 @@ function onDeleteFolderRow(row: FeedFolderItem): void {
     </div>
   </AppShell>
 
-  <SectionFormDialog :modal="sectionModal" :tree="tree" :load-groups="loadGroups"/>
+  <SectionFormDialog :modal="sectionModal" :load-groups="loadGroups"/>
 
   <ScenarioCreateFormDialog
       :modal="createModal"

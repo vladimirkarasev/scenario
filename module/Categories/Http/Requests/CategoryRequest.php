@@ -33,6 +33,7 @@ final class CategoryRequest extends FormRequest
             'group_ids' => ['nullable', 'array'],
             'group_ids.*' => ['required', 'uuid', 'exists:user_groups,id'],
             'inherit_to_descendants' => ['nullable', 'boolean'],
+            'is_workspace' => ['nullable', 'boolean'],
         ];
     }
 }

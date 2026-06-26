@@ -17,6 +17,8 @@ final readonly class ScenarioFeedData
         public ?string $excludeScenarioId,
         public int $page,
         public int $perPage,
+        /** Ограничить выдачу поддеревом этой категории (изоляция, напр. Workspace). */
+        public ?string $rootId = null,
     ) {
     }
 
@@ -44,6 +46,10 @@ final readonly class ScenarioFeedData
             ? $filter['exclude_scenario_id']
             : null;
 
+        $rootId = isset($filter['root_id']) && is_string($filter['root_id']) && $filter['root_id'] !== ''
+            ? $filter['root_id']
+            : null;
+
         return new self(
             parentSet: $parentSet,
             parentId: $parentId,
@@ -52,6 +58,7 @@ final readonly class ScenarioFeedData
             excludeScenarioId: $excludeScenarioId,
             page: max(1, $request->integer('page.number', 1)),
             perPage: max(1, min(100, $request->integer('page.size', 20))),
+            rootId: $rootId,
         );
     }
 }

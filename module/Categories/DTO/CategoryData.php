@@ -19,6 +19,7 @@ final readonly class CategoryData
         public bool $canManageCatalog,
         public array $groupIds = [],
         public bool $inheritToDescendants = false,
+        public bool $isWorkspace = false,
     ) {}
 
     public static function fromRequest(Request $request, ?bool $canManageCatalog = null): self
@@ -43,6 +44,7 @@ final readonly class CategoryData
             canManageCatalog: $canManageCatalog ?? (bool) $request->user()?->can('category_create'),
             groupIds: $groupIds,
             inheritToDescendants: (bool) $request->input('inherit_to_descendants'),
+            isWorkspace: (bool) $request->input('is_workspace'),
         );
     }
 
@@ -53,6 +55,7 @@ final readonly class CategoryData
             'parent_id' => $this->parentId,
             'name' => $this->name,
             'is_active' => $this->isActive,
+            'is_workspace' => $this->isWorkspace,
         ];
     }
 }

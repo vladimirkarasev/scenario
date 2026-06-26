@@ -6,17 +6,11 @@ import {
   FormCheckbox, FormError, FormInput, FormTagSearch,
 } from '@/components/form'
 import {Button} from '@/components/ui/button'
-import {Label} from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 import {Pencil, FolderPlus, Plus, RefreshCw} from 'lucide-vue-next'
 import type {useScenarioSectionModal} from '@/modules/scenario/composables/useScenarioSectionModal'
-import type {useScenarioSectionTree} from '@/modules/scenario/composables/useScenarioSectionTree'
 
 defineProps<{
   modal: ReturnType<typeof useScenarioSectionModal>
-  tree: ReturnType<typeof useScenarioSectionTree>
   loadGroups: (q: string) => Promise<Array<Record<string, unknown>>>
 }>()
 </script>
@@ -44,28 +38,6 @@ defineProps<{
             :error="modal.errors.name"
             @keydown.enter="modal.submit()"
         />
-        <div v-if="!modal.isEditing.value && tree.allSectionsFlat.value.length" class="space-y-1.5">
-          <Label>Родительский раздел</Label>
-          <Select
-              :model-value="modal.form.parent_id ?? '__root__'"
-              @update:model-value="(v: string) => modal.form.parent_id = v === '__root__' ? null : v"
-          >
-            <SelectTrigger class="w-full">
-              <SelectValue placeholder="Корневой раздел"/>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__root__">— Корневой раздел</SelectItem>
-              <SelectItem
-                  v-for="s in tree.allSectionsFlat.value"
-                  :key="s.id"
-                  :value="s.id"
-              >
-                {{ '    '.repeat(s.depth) }}{{ s.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         <FormTagSearch
             v-model="modal.selectedGroups.value"
             :loader="loadGroups"
@@ -80,6 +52,12 @@ defineProps<{
             v-model="modal.form.inherit_to_descendants"
             label="Применить ко всем вложенным разделам и сценариям"
             description="Существующие группы у вложенных объектов будут заменены на эти. Без галочки — изменится только сам раздел."
+        />
+
+        <FormCheckbox
+            v-model="modal.form.is_workspace"
+            label="Использовать как рабочую папку"
+            description="Сценарии этого раздела показываются на странице «Workspace». В проекте рабочая папка одна — флаг снимется с остальных разделов."
         />
 
         <DialogFooter>

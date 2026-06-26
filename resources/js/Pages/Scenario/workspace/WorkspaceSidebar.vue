@@ -2,12 +2,16 @@
 import SearchInput from '@/components/SearchInput.vue'
 import {Link} from '@inertiajs/vue3'
 import {ChevronRight, Folder, FolderOpen, Loader2} from 'lucide-vue-next'
-import type {ScenarioCategory} from '@/modules/scenario/types/scenario'
 
 interface ScenarioItem {
   id: string
   name: string
   status: 'active' | 'draft' | 'archived'
+}
+
+interface FolderNode {
+  id: string
+  name: string
 }
 
 interface SearchScenarioResult extends ScenarioItem {
@@ -20,7 +24,7 @@ interface FlatTreeItem {
   depth: number
   hasChildren: boolean
   loading?: boolean
-  folder?: ScenarioCategory
+  folder?: FolderNode
   scenario?: ScenarioItem
 }
 
@@ -35,7 +39,8 @@ defineProps<{
   isSearchMode: boolean
   searchLoading: boolean
   rootLoading: boolean
-  searchFolderResults: ScenarioCategory[]
+  hasWorkspace: boolean
+  searchFolderResults: FolderNode[]
   searchScenarios: SearchScenarioResult[]
   sidebarTreeItems: FlatTreeItem[]
   expandedIds: Set<string>
@@ -174,7 +179,10 @@ defineEmits<{
             </button>
           </template>
 
-          <div v-if="sidebarTreeItems.length === 0" class="px-3 py-2 text-[12px] text-slate-400">
+          <div v-if="!hasWorkspace" class="px-3 py-2 text-[12px] leading-relaxed text-slate-400">
+            Рабочая папка не настроена. Откройте раздел сценариев и включите «Использовать как рабочую папку».
+          </div>
+          <div v-else-if="sidebarTreeItems.length === 0" class="px-3 py-2 text-[12px] text-slate-400">
             Сценариев нет
           </div>
         </div>

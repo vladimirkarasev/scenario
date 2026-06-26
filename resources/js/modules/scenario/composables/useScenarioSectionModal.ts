@@ -19,6 +19,7 @@ export function useScenarioSectionModal(
             parent_id: null as string | null,
             group_ids: [] as string[],
             inherit_to_descendants: false,
+            is_workspace: false,
         })
 
     const isEditing = computed(() => editingId.value !== null)
@@ -36,6 +37,7 @@ export function useScenarioSectionModal(
             parent_id: pId,
             group_ids: [],
             inherit_to_descendants: false,
+            is_workspace: false,
         })
         open.value = true
     }
@@ -50,6 +52,7 @@ export function useScenarioSectionModal(
             parent_id: category.parent_id,
             group_ids: groupIds,
             inherit_to_descendants: false,
+            is_workspace: category.is_workspace ?? false,
         })
         open.value = true
     }
@@ -69,6 +72,7 @@ export function useScenarioSectionModal(
                     is_active: true,
                     group_ids: groupIds,
                     inherit_to_descendants: data.inherit_to_descendants,
+                    is_workspace: data.is_workspace,
                 }
                 if (editingId.value) {
                     const updated = await scenarioCategoryRepository.update(editingId.value, payload)

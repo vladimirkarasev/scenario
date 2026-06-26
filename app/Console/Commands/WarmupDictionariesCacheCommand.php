@@ -16,7 +16,9 @@ final class WarmupDictionariesCacheCommand extends Command
 
     public function handle(DirectoryCacheService $cacheService): int
     {
-        $query = Directory::query()->where('status', 'active');
+        // «Активный» справочник — тот, у которого есть активная версия
+        // (у таблицы directories нет колонки status). warmup() сам вернёт 0 для прочих.
+        $query = Directory::query()->whereHas('activeVersion');
 
         if (filled($this->argument('code'))) {
             $query->where('slug', $this->argument('code'));

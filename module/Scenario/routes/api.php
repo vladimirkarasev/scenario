@@ -13,26 +13,14 @@ use Module\Scenario\Http\Controllers\ScenariosController;
 use Module\Scenario\Http\Controllers\ScenariosVersionController;
 use Module\Scenario\Http\Controllers\SurveysController;
 
-// WEB
-// GET scenarios - список сценариев
-// GET scenarios/{uuid} - сценарий
-// GET scenarios/{uuid}/versions - список версий сценария
-// GET scenarios/version/{uuid} - версия сценария
-// GET scenarios/surveys - список опросов
-// GET scenarios/survey/{uuid} - опрос
-// GET scenarios/workspace - рабочее пространство сценария
-
 Route::prefix('scenarios/catalog')->group(static function (): void {
     Route::get('', [CatalogController::class, 'index']);
 });
 
-// Запуск опроса у пользователя по тегу сценария — для внешних интеграций.
-// Сервис-пользователь должен иметь permission scenario_dispatch и project_id.
 Route::middleware('permission:scenario_dispatch')->group(static function (): void {
     Route::post('scenarios/dispatch', ScenarioDispatchController::class);
 });
 
-// Литеральные сегменты должны быть ДО параметрического {scenario}
 Route::get('scenarios/surveys', [SurveysController::class, 'index']);
 Route::get('scenarios/survey/{runId}', [SurveysController::class, 'show']);
 

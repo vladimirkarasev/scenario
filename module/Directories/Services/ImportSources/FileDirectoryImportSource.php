@@ -53,7 +53,7 @@ final class FileDirectoryImportSource implements DirectoryImportSource
     public function start(DirectoryImport $import, callable $importChunk): void
     {
         Excel::queueImport(
-            new DirectoryExcelImport($import->id, $import->chunk_size, app()),
+            new DirectoryExcelImport($import->id, $import->chunk_size),
             $import->file_path,
             $import->file_disk,
         )->onQueue('imports');

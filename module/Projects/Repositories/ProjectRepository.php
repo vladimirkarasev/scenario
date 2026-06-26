@@ -45,4 +45,12 @@ final class ProjectRepository
             ->where('is_active', true)
             ->first();
     }
+
+    public function activeById(string $id): ?Project
+    {
+        return Project::query()
+            ->where('id', $id)
+            ->where('is_active', true)
+            ->first();
+    }
 }

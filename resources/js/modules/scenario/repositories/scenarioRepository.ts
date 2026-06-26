@@ -115,7 +115,68 @@ function normalizeCategory(r: RawCategory): ScenarioCategory {
     }
 }
 
+export interface FeedFolder {
+    id: string
+    name: string
+    parent_id: string | null
+    parent_path: string
+    path_ids: string[]
+    children_count: number
+}
+
+export interface FeedScenario {
+    id: string
+    name: string
+    status: ScenarioStatus
+    folder_id: string | null
+    folder_path: string
+    active_version_id: string | null
+}
+
+export interface ScenarioFeedResult {
+    folders: FeedFolder[]
+    scenarios: FeedScenario[]
+}
+
+interface FeedRow {
+    type?: string
+
+    [key: string]: unknown
+}
+
+function parseFeedRows(rows: FeedRow[]): ScenarioFeedResult {
+    const folders: FeedFolder[] = rows.filter(r => r.type === 'folder').map(r => ({
+        id: String(r.id),
+        name: typeof r.name === 'string' ? r.name : '',
+        parent_id: typeof r.parent_id === 'string' ? r.parent_id : null,
+        parent_path: typeof r.parent_path === 'string' ? r.parent_path : '',
+        path_ids: Array.isArray(r.path_ids) ? r.path_ids.map(String) : [],
+        children_count: typeof r.children_count === 'number' ? r.children_count : 0,
+    }))
+    const scenarios: FeedScenario[] = rows.filter(r => r.type === 'scenario').map(r => ({
+        id: String(r.id),
+        name: typeof r.name === 'string' ? r.name : '',
+        status: (typeof r.status === 'string' ? r.status : 'draft') as ScenarioStatus,
+        folder_id: typeof r.folder_id === 'string' ? r.folder_id : null,
+        folder_path: typeof r.folder_path === 'string' ? r.folder_path : '',
+        active_version_id: typeof r.active_version_id === 'string' ? r.active_version_id : null,
+    }))
+    return {folders, scenarios}
+}
+
 export const scenarioRepository = {
+    // Id раздела-«рабочей папки»: фильтр is_workspace на эндпоинте категорий.
+    async workspaceCategoryId(): Promise<string | null> {
+        const qs = new URLSearchParams()
+        qs.set('filter[is_workspace]', 'true')
+
+        const raw = await getJson<{ data?: Array<{ id: string }> }>(
+            `/api/scenarios/categories?${qs}`,
+            'Не удалось определить рабочую папку.',
+        )
+        return raw.data?.[0]?.id ?? null
+    },
+
     async categories(): Promise<ScenarioCategory[]> {
         const raw = await getJson<Record<string, unknown>>('/api/scenarios/categories', 'Не удалось загрузить категории.') as {
             data: RawCategory[]
@@ -130,6 +191,20 @@ export const scenarioRepository = {
             data: RawCategory[]
         }
         return raw.data.map(normalizeCategory)
+    },
+
+    async feed(params: { parentId?: string | null; rootId?: string | null; search?: string | null; projectId?: string | null }): Promise<ScenarioFeedResult> {
+        const qs = new URLSearchParams()
+        qs.set('page[size]', '100')
+        if (params.parentId !== undefined) qs.set('filter[parent_id]', params.parentId ?? 'null')
+        if (params.rootId) qs.set('filter[root_id]', params.rootId)
+        if (params.search) qs.set('filter[search]', params.search)
+        if (params.projectId) qs.set('filter[project_id]', params.projectId)
+
+        const raw = await getJson<Record<string, unknown>>(`/api/scenarios/feed?${qs}`, 'Не удалось загрузить.') as {
+            data?: FeedRow[]
+        }
+        return parseFeedRows(Array.isArray(raw.data) ? raw.data : [])
     },
 
     async list(qs: URLSearchParams): Promise<ScenariosPage> {

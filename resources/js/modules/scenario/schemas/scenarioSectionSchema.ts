@@ -5,6 +5,7 @@ export const scenarioSectionSchema = z.object({
     parent_id: z.string().nullable(),
     group_ids: z.array(z.string()),
     inherit_to_descendants: z.boolean(),
+    is_workspace: z.boolean(),
 })
 
 export type ScenarioSectionFormValues = z.infer<typeof scenarioSectionSchema>

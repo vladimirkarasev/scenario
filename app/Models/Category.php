@@ -22,6 +22,7 @@ use Module\Scenario\Models\Scenario;
  * @property string      $name
  * @property bool        $is_active
  * @property bool        $is_system
+ * @property bool        $is_workspace
  * @property int|null    $created_by
  * @property int|null    $updated_by
  * @property Carbon|null $created_at
@@ -49,6 +50,7 @@ final class Category extends Model
         'name',
         'is_active',
         'is_system',
+        'is_workspace',
         'created_by',
         'updated_by',
     ];
@@ -116,6 +118,7 @@ final class Category extends Model
         return [
             'is_active' => 'boolean',
             'is_system' => 'boolean',
+            'is_workspace' => 'boolean',
         ];
     }
 }

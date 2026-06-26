@@ -114,17 +114,20 @@ final readonly class ExpressionService
 
     private function registerFunctions(): void
     {
-        $notCompilable = static fn(): string => throw new \LogicException(
-            'compile() is not supported for application expressions',
-        );
-
         foreach ($this->functions() as $function) {
-            $this->expressionLanguage->register(
-                $function->name(),
-                $notCompilable,
-                static fn(array $context, mixed ...$args): mixed => $function->evaluate($context, ...$args),
-            );
+            $this->registerExpressionFunctions($function);
         }
+    }
+
+    private function registerExpressionFunctions(ExpressionFunctionInterface $function): void
+    {
+        $this->expressionLanguage->register(
+            $function->name(),
+            static fn(): string => throw new \LogicException(
+                'compile() is not supported for application expressions',
+            ),
+            static fn(array $context, mixed ...$args): mixed => $function->evaluate($context, ...$args),
+        );
     }
 
     /** @return Generator<ExpressionFunctionInterface> */

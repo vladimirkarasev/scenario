@@ -22,10 +22,17 @@ final class ScenarioFeedController extends Controller
     public function __invoke(ScenarioFeedRequest $request): JsonResponse
     {
         return new JsonResponse(
-            $this->feed->feed(
-                $this->currentProject->id(),
-                ScenarioFeedData::fromRequest($request),
-            ),
+            $this->feed->feed($this->resolveProjectId($request), ScenarioFeedData::fromRequest($request)),
         );
+    }
+
+    /**
+     * Проект берём из запроса (фронт получает его из /api/user), иначе — из токена.
+     */
+    private function resolveProjectId(ScenarioFeedRequest $request): ?string
+    {
+        $raw = $request->input('filter.project_id');
+
+        return is_string($raw) && $raw !== '' ? $raw : $this->currentProject->id();
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Directories\Imports;
 
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -28,7 +27,6 @@ final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToColle
     public function __construct(
         private readonly int $directoryImportId,
         private readonly int $chunkSize,
-        private readonly Container $container,
     ) {
     }
 
@@ -81,6 +79,8 @@ final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToColle
 
     private function importService(): ImportService
     {
-        return $this->container->make(ImportService::class);
+        // Резолвим в момент выполнения: объект импорта сериализуется при постановке
+        // chunk-job в очередь, поэтому хранить контейнер/сервис в свойстве нельзя.
+        return app(ImportService::class);
     }
 }

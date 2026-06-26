@@ -8,6 +8,10 @@ import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
 import Color from '@tiptap/extension-color'
 import {TextStyle} from '@tiptap/extension-text-style'
+import {Table} from '@tiptap/extension-table'
+import {TableRow} from '@tiptap/extension-table-row'
+import {TableHeader} from '@tiptap/extension-table-header'
+import {TableCell} from '@tiptap/extension-table-cell'
 import {Details} from '@/lib/tiptap-details'
 
 const props = defineProps({
@@ -23,7 +27,7 @@ const props = defineProps({
 
 const extensions = [
   StarterKit.configure({
-    heading: {levels: [1, 2, 3]},
+    heading: {levels: [1, 2, 3, 4, 5, 6]},
     link: false,
     underline: false,
   }),
@@ -34,6 +38,10 @@ const extensions = [
   TextStyle,
   Color,
   Details,
+  Table,
+  TableRow,
+  TableHeader,
+  TableCell,
 ]
 
 function isTiptapDocument(value) {
