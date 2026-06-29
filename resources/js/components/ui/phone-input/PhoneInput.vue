@@ -12,6 +12,7 @@ interface Country {
   flag: string
   dialCode: string
   mask: string
+  trunk?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -36,27 +37,27 @@ function toFormattedString(v: PhoneValue | string | null | undefined): string {
 
 
 const COUNTRIES: Country[] = [
-  {code: 'RU', name: 'Россия', flag: '🇷🇺', dialCode: '+7', mask: '+{7} (000) 000-00-00'},
-  {code: 'BY', name: 'Беларусь', flag: '🇧🇾', dialCode: '+375', mask: '+{375} (00) 000-00-00'},
-  {code: 'KZ', name: 'Казахстан', flag: '🇰🇿', dialCode: '+7', mask: '+{7} (000) 000-00-00'},
-  {code: 'UA', name: 'Украина', flag: '🇺🇦', dialCode: '+380', mask: '+{380} (00) 000-00-00'},
-  {code: 'UZ', name: 'Узбекистан', flag: '🇺🇿', dialCode: '+998', mask: '+{998} (00) 000-00-00'},
-  {code: 'AZ', name: 'Азербайджан', flag: '🇦🇿', dialCode: '+994', mask: '+{994} (00) 000-00-00'},
-  {code: 'AM', name: 'Армения', flag: '🇦🇲', dialCode: '+374', mask: '+{374} (00) 000-000'},
-  {code: 'GE', name: 'Грузия', flag: '🇬🇪', dialCode: '+995', mask: '+{995} (000) 000-000'},
-  {code: 'TJ', name: 'Таджикистан', flag: '🇹🇯', dialCode: '+992', mask: '+{992} (00) 000-0000'},
-  {code: 'TM', name: 'Туркменистан', flag: '🇹🇲', dialCode: '+993', mask: '+{993} (00) 000-000'},
-  {code: 'KG', name: 'Кыргызстан', flag: '🇰🇬', dialCode: '+996', mask: '+{996} (000) 000-000'},
-  {code: 'MD', name: 'Молдова', flag: '🇲🇩', dialCode: '+373', mask: '+{373} (0000) 0000'},
-  {code: 'US', name: 'США', flag: '🇺🇸', dialCode: '+1', mask: '+{1} (000) 000-0000'},
-  {code: 'GB', name: 'Великобритания', flag: '🇬🇧', dialCode: '+44', mask: '+{44} 00 0000 0000'},
-  {code: 'DE', name: 'Германия', flag: '🇩🇪', dialCode: '+49', mask: '+{49} 000 0000000'},
-  {code: 'FR', name: 'Франция', flag: '🇫🇷', dialCode: '+33', mask: '+{33} 0 00 00 00 00'},
+  {code: 'RU', name: 'Россия', flag: '🇷🇺', dialCode: '+7', mask: '+{7} (000) 000-00-00', trunk: '8'},
+  {code: 'BY', name: 'Беларусь', flag: '🇧🇾', dialCode: '+375', mask: '+{375} (00) 000-00-00', trunk: '8'},
+  {code: 'KZ', name: 'Казахстан', flag: '🇰🇿', dialCode: '+7', mask: '+{7} (000) 000-00-00', trunk: '8'},
+  {code: 'UA', name: 'Украина', flag: '🇺🇦', dialCode: '+380', mask: '+{380} (00) 000-00-00', trunk: '0'},
+  {code: 'UZ', name: 'Узбекистан', flag: '🇺🇿', dialCode: '+998', mask: '+{998} (00) 000-00-00', trunk: '8'},
+  {code: 'AZ', name: 'Азербайджан', flag: '🇦🇿', dialCode: '+994', mask: '+{994} (00) 000-00-00', trunk: '0'},
+  {code: 'AM', name: 'Армения', flag: '🇦🇲', dialCode: '+374', mask: '+{374} (00) 000-000', trunk: '0'},
+  {code: 'GE', name: 'Грузия', flag: '🇬🇪', dialCode: '+995', mask: '+{995} (000) 000-000', trunk: '0'},
+  {code: 'TJ', name: 'Таджикистан', flag: '🇹🇯', dialCode: '+992', mask: '+{992} (00) 000-0000', trunk: '8'},
+  {code: 'TM', name: 'Туркменистан', flag: '🇹🇲', dialCode: '+993', mask: '+{993} (00) 000-000', trunk: '8'},
+  {code: 'KG', name: 'Кыргызстан', flag: '🇰🇬', dialCode: '+996', mask: '+{996} (000) 000-000', trunk: '0'},
+  {code: 'MD', name: 'Молдова', flag: '🇲🇩', dialCode: '+373', mask: '+{373} (0000) 0000', trunk: '0'},
+  {code: 'US', name: 'США', flag: '🇺🇸', dialCode: '+1', mask: '+{1} (000) 000-0000', trunk: '1'},
+  {code: 'GB', name: 'Великобритания', flag: '🇬🇧', dialCode: '+44', mask: '+{44} 00 0000 0000', trunk: '0'},
+  {code: 'DE', name: 'Германия', flag: '🇩🇪', dialCode: '+49', mask: '+{49} 000 0000000', trunk: '0'},
+  {code: 'FR', name: 'Франция', flag: '🇫🇷', dialCode: '+33', mask: '+{33} 0 00 00 00 00', trunk: '0'},
   {code: 'IT', name: 'Италия', flag: '🇮🇹', dialCode: '+39', mask: '+{39} 000 000 0000'},
   {code: 'ES', name: 'Испания', flag: '🇪🇸', dialCode: '+34', mask: '+{34} 000 000 000'},
   {code: 'PL', name: 'Польша', flag: '🇵🇱', dialCode: '+48', mask: '+{48} 000 000 000'},
-  {code: 'TR', name: 'Турция', flag: '🇹🇷', dialCode: '+90', mask: '+{90} 000 000 00 00'},
-  {code: 'CN', name: 'Китай', flag: '🇨🇳', dialCode: '+86', mask: '+{86} 000 0000 0000'},
+  {code: 'TR', name: 'Турция', flag: '🇹🇷', dialCode: '+90', mask: '+{90} 000 000 00 00', trunk: '0'},
+  {code: 'CN', name: 'Китай', flag: '🇨🇳', dialCode: '+86', mask: '+{86} 000 0000 0000', trunk: '0'},
 ]
 
 
@@ -107,6 +108,28 @@ function applyMask(initialValue = '') {
   if (initialValue) im.value = initialValue
 }
 
+function nationalLength(): number {
+  return (selectedCountry.value.mask.match(/0/g) ?? []).length
+}
+
+// Цифры номера без кода страны: отсекаем код (+7, +375…) или магистральный
+// префикс набора (РФ — «8», Европа — «0», США — «1»). Возвращаем максимум
+// nationalLength цифр.
+function normalizeNationalDigits(raw: string): string {
+  let digits = raw.replace(/\D/g, '')
+  const codeDigits = selectedCountry.value.dialCode.replace(/\D/g, '')
+  const trunk = selectedCountry.value.trunk ?? ''
+  const nat = nationalLength()
+
+  if (digits.length === nat + codeDigits.length && digits.startsWith(codeDigits)) {
+    digits = digits.slice(codeDigits.length)
+  } else if (trunk && digits.length === nat + trunk.length && digits.startsWith(trunk)) {
+    digits = digits.slice(trunk.length)
+  }
+
+  return digits.slice(0, nat)
+}
+
 function handleAccept() {
   if (!im || detecting) return
   const formatted = im.value
@@ -115,11 +138,25 @@ function handleAccept() {
     emit('update:modelValue', null)
     return
   }
+  const codeDigits = selectedCountry.value.dialCode.replace(/\D/g, '')
+  const national = digits.startsWith(codeDigits) ? digits.slice(codeDigits.length) : digits
   emit('update:modelValue', {
     country: selectedCountry.value.code,
     formatted,
     original: digits,
+    national,
   })
+}
+
+function handlePaste(e: ClipboardEvent) {
+  if (!im) return
+  const text = e.clipboardData?.getData('text') ?? ''
+  if (!text.trim()) return
+  e.preventDefault()
+  // unmaskedValue — только цифры плейсхолдеров (без фиксированного «+7»):
+  // маска сама подставит код страны и расставит разделители.
+  im.unmaskedValue = normalizeNationalDigits(text)
+  handleAccept()
 }
 
 onMounted(() => {
@@ -215,6 +252,7 @@ function handleOutsideClick(e: MouseEvent) {
         :placeholder="phonePlaceholder"
         class="flex-1 min-w-0 bg-transparent px-2.5 py-1 text-base md:text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed border-0 focus:border-0"
         @focus="isOpen = false"
+        @paste="handlePaste"
     />
   </div>
 

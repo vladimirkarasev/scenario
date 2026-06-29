@@ -23,6 +23,14 @@ describe('scenario library', () => {
         ])
     })
 
+    it('рендерит ключи-слаги с дефисами', () => {
+        expect(renderLabelTemplate(
+            '{{ gorod }}:{{ nazvanie-goroda-dlya-gl }}',
+            {gorod: 'Москва', 'nazvanie-goroda-dlya-gl': 'Мск'},
+        )).toBe('Москва:Мск')
+        expect(extractTemplateKeys('{{ city-name }}')).toEqual(['city-name'])
+    })
+
     it('нормализует пустой и legacy flow document', () => {
         expect(normalizeScenarioFlowDocument(null)).toEqual(createEmptyScenarioFlowDocument())
 

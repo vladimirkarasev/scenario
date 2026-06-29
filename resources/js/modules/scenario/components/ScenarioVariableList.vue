@@ -5,12 +5,13 @@ import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import DateVariableHints from './variable-hints/DateVariableHints.vue'
 import SelectVariableHints from './variable-hints/SelectVariableHints.vue'
 import DirectoryVariableHints from './variable-hints/DirectoryVariableHints.vue'
+import PhoneVariableHints from './variable-hints/PhoneVariableHints.vue'
 import SystemVariableHints from './variable-hints/SystemVariableHints.vue'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
 import type {DirectorySchemaField} from '@/modules/directories/types/directory'
 import {
   type VarLike, type SystemVariableGroup, SYSTEM_VARIABLE_GROUPS,
-  systemGroupRef, hasHints, isDateVar, isSelectVar, extractVarName,
+  systemGroupRef, hasHints, isDateVar, isSelectVar, isPhoneVar, extractVarName,
 } from '@/modules/scenario/lib/scenario-variable-hints'
 
 interface BlockEntry {
@@ -228,7 +229,7 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
                 <PopoverTrigger as-child>
                   <button
                       type="button"
-                      :title="isDateVar(v) ? 'Подсказки по форматам даты' : isSelectVar(v) ? 'Подсказки по опциям' : 'Подсказки по полям справочника'"
+                      :title="isDateVar(v) ? 'Подсказки по форматам даты' : isSelectVar(v) ? 'Подсказки по опциям' : isPhoneVar(v) ? 'Подсказки по частям телефона' : 'Подсказки по полям справочника'"
                       class="flex size-5 items-center justify-center rounded-md text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"
                       :class="openVarId === v.fieldId ? 'bg-blue-50 text-blue-600' : ''"
                       @click.stop
@@ -267,6 +268,12 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
                   />
                   <SelectVariableHints
                       v-else-if="isSelectVar(v)"
+                      :v="v"
+                      :copied-id="copiedId"
+                      @copy="copy"
+                  />
+                  <PhoneVariableHints
+                      v-else-if="isPhoneVar(v)"
                       :v="v"
                       :copied-id="copiedId"
                       @copy="copy"

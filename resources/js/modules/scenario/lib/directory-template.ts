@@ -1,5 +1,6 @@
-// Поддерживаем как простые ключи ({{ name }}), так и точечные пути ({{ user.name }}).
-const TEMPLATE_RE = /\{\{\s*([\w.]+)\s*\}\}/g
+// Поддерживаем простые ключи ({{ name }}), слаги с дефисами ({{ city-name }})
+// и точечные пути ({{ user.name }}). Дефис в конце класса — литеральный.
+const TEMPLATE_RE = /\{\{\s*([\w.-]+)\s*\}\}/g
 
 function resolvePath(source: unknown, path: string): unknown {
     const parts = path.split('.')

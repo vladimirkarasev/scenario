@@ -50,4 +50,14 @@ final readonly class PhoneShape
     {
         return self::matches($value) ? $value['country'] : null;
     }
+
+    /**
+     * Возвращает national (цифры без кода страны), если поле присутствует; иначе null.
+     */
+    public static function national(mixed $value): ?string
+    {
+        return is_array($value) && isset($value['national']) && is_string($value['national'])
+            ? $value['national']
+            : null;
+    }
 }

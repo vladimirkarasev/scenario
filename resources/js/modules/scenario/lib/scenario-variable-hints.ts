@@ -45,6 +45,15 @@ export interface SystemVariableGroup {
 export const DIRECTORY_FIELD_TYPES = new Set(['directory_list', 'directory_table'])
 export const DATE_FIELD_TYPES = new Set(['date', 'datetime'])
 export const SELECT_FIELD_TYPE = 'select'
+export const PHONE_FIELD_TYPE = 'phone'
+
+// Значение телефона — объект {country, formatted, original} (см. PhoneShape).
+export const PHONE_ACCESSORS: StructureItem[] = [
+    {suffix: 'formatted', name: 'Форматированный', description: '+7 (999) 999-99-99'},
+    {suffix: 'original', name: 'Цифры с кодом страны', description: '79999999999'},
+    {suffix: 'national', name: 'Без кода страны', description: '9999999999'},
+    {suffix: 'country', name: 'Код страны', description: 'ISO-код, напр. RU'},
+]
 
 export const STRUCTURE_ITEMS: StructureItem[] = [
     {suffix: 'id', name: 'ID записи', description: 'Уникальный идентификатор строки'},
@@ -162,8 +171,12 @@ export function isSelectVar(v: VarLike): boolean {
     return !v.isAccessor && v.fieldType === SELECT_FIELD_TYPE
 }
 
+export function isPhoneVar(v: VarLike): boolean {
+    return !v.isAccessor && v.fieldType === PHONE_FIELD_TYPE
+}
+
 export function hasHints(v: VarLike): boolean {
-    return isDirectoryVar(v) || isDateVar(v) || isSelectVar(v)
+    return isDirectoryVar(v) || isDateVar(v) || isSelectVar(v) || isPhoneVar(v)
 }
 
 export function dateFormatsFor(v: VarLike): DateFormatItem[] {
