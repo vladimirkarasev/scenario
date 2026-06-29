@@ -12,17 +12,12 @@ final class SyncProxiesCommand extends Command
 {
     protected $signature = 'proxies:sync';
 
-    protected $description = 'Sync proxy endpoints from ProxyRegistry to the database';
+    protected $description = 'Sync proxy integrations (endpoints) from the registry to the database';
 
     public function handle(): int
     {
-        $inserted = 0;
-        $updated = 0;
-
         foreach (ProxyRegistry::all() as $definition) {
-            $exists = ProxyEndpoint::query()
-                ->where('code', $definition->code)
-                ->exists();
+            $exists = ProxyEndpoint::query()->where('code', $definition->code)->exists();
 
             if (! $exists) {
                 ProxyEndpoint::query()->create([
@@ -33,27 +28,29 @@ final class SyncProxiesCommand extends Command
                     'description' => $definition->description,
                     'handler_class' => $definition->handlerClass,
                     'method' => $definition->method,
+                    'base_uri' => $definition->baseUri,
+                    'credentials' => $definition->credentials === [] ? null : $definition->credentials,
                     'is_active' => true,
                     'config' => [],
                 ]);
                 $this->line("  <fg=green>+</> {$definition->code}");
-                $inserted++;
-            } else {
-                ProxyEndpoint::query()
-                    ->where('code', $definition->code)
-                    ->update([
-                        'type' => $definition->type,
-                        'name' => $definition->name,
-                        'description' => $definition->description,
-                        'handler_class' => $definition->handlerClass,
-                        'method' => $definition->method,
-                    ]);
-                $this->line("  <fg=yellow>~</> {$definition->code}");
-                $updated++;
-            }
-        }
 
-        $this->info("Done. Inserted: {$inserted}, updated: {$updated}.");
+                continue;
+            }
+
+            // Обновляем только код-определяемые поля; доступы (base_uri/credentials)
+            // не трогаем — админ мог изменить их в UI.
+            ProxyEndpoint::query()
+                ->where('code', $definition->code)
+                ->update([
+                    'type' => $definition->type,
+                    'name' => $definition->name,
+                    'description' => $definition->description,
+                    'handler_class' => $definition->handlerClass,
+                    'method' => $definition->method,
+                ]);
+            $this->line("  <fg=yellow>~</> {$definition->code}");
+        }
 
         return self::SUCCESS;
     }

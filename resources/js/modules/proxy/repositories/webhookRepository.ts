@@ -1,5 +1,5 @@
 import {getJson, sendJson} from '@/lib/http'
-import type {WebhookEndpoint, WebhookField, WebhookPayload} from '@/modules/proxy/types/webhook'
+import type {HandlerOption, WebhookEndpoint, WebhookField, WebhookPayload} from '@/modules/proxy/types/webhook'
 
 export const webhookRepository = {
     async list(): Promise<WebhookEndpoint[]> {
@@ -32,13 +32,37 @@ export const webhookRepository = {
         return raw.item
     },
 
+    async create(payload: WebhookPayload): Promise<WebhookEndpoint> {
+        const raw = await sendJson('/api/proxy/endpoints', {
+            method: 'POST',
+            body: payload,
+            fallbackMessage: 'Не удалось создать интеграцию.',
+        }) as { item: WebhookEndpoint }
+        return raw.item
+    },
+
     async update(id: number, payload: WebhookPayload): Promise<WebhookEndpoint> {
         const raw = await sendJson(`/api/proxy/endpoints/${id}`, {
             method: 'PUT',
             body: payload,
-            fallbackMessage: 'Не удалось сохранить эндпоинт.',
+            fallbackMessage: 'Не удалось сохранить интеграцию.',
         }) as { item: WebhookEndpoint }
         return raw.item
+    },
+
+    async destroy(id: number): Promise<void> {
+        await sendJson(`/api/proxy/endpoints/${id}`, {
+            method: 'DELETE',
+            body: {},
+            fallbackMessage: 'Не удалось удалить интеграцию.',
+        })
+    },
+
+    async handlers(): Promise<HandlerOption[]> {
+        const raw = await getJson('/api/proxy/handlers', 'Не удалось загрузить обработчики.') as {
+            items: HandlerOption[]
+        }
+        return raw.items
     },
 
     async fields(webhookUuid: string): Promise<WebhookField[]> {

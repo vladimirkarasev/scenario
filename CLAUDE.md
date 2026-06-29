@@ -115,8 +115,10 @@ Custom middleware `iframe-or-web` handles both paths. See `docs/iframe-embed.md`
 - Управление эндпоинтами: `WebhookRegistry` → `php artisan webhooks:sync` (вызывать после `migrate`)
 - Поля handler-а: `WebhookFieldString`, `WebhookFieldInteger`, `WebhookFieldBoolean`, `WebhookFieldList`, `WebhookFieldArray` и др. — builder API: `->label()->source()->required()->example()->filterable()`
 - Fields API: `GET /api/proxy/webhooks/{id}/fields` (auth) и `GET /api/webhooks/{uuid}/fields` (публичный, только активные)
-- Исходящие gateway-вызовы: `BaseApiGateway` + именованные конфиги в `config/proxy.php → gateways`; AutoCRM gateway: `AutoCrmGateway` (наследуется для разных учётных данных)
-- Безопасность: handler-класс должен быть в namespace `Module\Proxy\Webhooks\` или явно в `proxy.allowed_handlers`
+- Доступы к внешним сервисам — в БД (`proxy_integrations`), не в конфиге. `ProxyHandler::authFields()` объявляет поля доступов (тот же builder + `->secret()`), админ заполняет их в UI (`/proxy/integrations`), значения шифруются (`credentials` → `encrypted:array`). `ProxyEndpoint` привязан к интеграции (`integration_id`); handler строит gateway из неё через `AutoCrmGatewayFactory::forIntegration()` / `ApiGatewayConfig::fromIntegration()`. Интеграции/эндпоинты сидятся `IntegrationRegistry` + `ProxyRegistry` → `php artisan proxies:sync`
+- Исходящие gateway-вызовы: `BaseApiGateway` / `AutoCrmGateway` (конфиг приходит из интеграции, не из статического `config/proxy.php`)
+- Секреты маскируются в API (`secret_filled` флаг); пустое значение при update = «не менять»
+- Безопасность: handler-класс должен быть в namespace `Module\Proxy\Proxies\` или явно в `proxy.allowed_handlers`
 - См. `docs/proxy-webhook-gateway.md`
 
 ### Actions module (orchestration)

@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Module\Proxy\Enums\ProxyEndpointType;
 
 /**
+ * Интеграция: один обработчик (`handler_class`) + доступы (`base_uri` + `credentials`) +
+ * mock + публичный `uuid`. На входящий `POST /api/proxies/{uuid}` обработчик выполняется
+ * с доступами этой записи.
+ *
  * @property int                                   $id
  * @property string                                $uuid
  * @property string                                $name
@@ -19,6 +23,8 @@ use Module\Proxy\Enums\ProxyEndpointType;
  * @property bool                                  $is_mocked
  * @property string                                $handler_class
  * @property string|null                           $method
+ * @property string|null                           $base_uri
+ * @property array<string, mixed>|null             $credentials
  * @property array<string, mixed>|null             $config
  * @property array<int, array<string, mixed>>|null $mock_responses
  * @property int|null                              $created_by
@@ -26,6 +32,18 @@ use Module\Proxy\Enums\ProxyEndpointType;
 final class ProxyEndpoint extends Model
 {
     protected $table = 'proxy_endpoints';
+
+    /**
+     * Дефолты на уровне модели, чтобы только что созданная запись (без refresh)
+     * сразу имела type/флаги — payload() обращается к `type->value`.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'type' => 'webhook',
+        'is_active' => true,
+        'is_mocked' => false,
+    ];
 
     protected $fillable = [
         'uuid',
@@ -37,6 +55,8 @@ final class ProxyEndpoint extends Model
         'is_mocked',
         'handler_class',
         'method',
+        'base_uri',
+        'credentials',
         'config',
         'mock_responses',
         'created_by',
@@ -55,6 +75,7 @@ final class ProxyEndpoint extends Model
             'type' => ProxyEndpointType::class,
             'is_active' => 'boolean',
             'is_mocked' => 'boolean',
+            'credentials' => 'encrypted:array',
             'config' => 'array',
             'mock_responses' => 'array',
         ];

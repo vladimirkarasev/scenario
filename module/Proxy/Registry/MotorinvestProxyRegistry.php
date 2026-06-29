@@ -6,9 +6,9 @@ namespace Module\Proxy\Registry;
 
 use Generator;
 use Module\Proxy\DTO\ProxyEndpointDefinition;
-use Module\Proxy\Proxies\Motorinvest\AutoCrm\BrandsProxyHandler as MotorinvestBrandsProxyHandler;
-use Module\Proxy\Proxies\Motorinvest\AutoCrm\DealersProxyHandler as MotorinvestDealersProxyHandler;
-use Module\Proxy\Proxies\Motorinvest\AutoCrm\ModelsProxyHandler as MotorinvestModelsProxyHandler;
+use Module\Proxy\Proxies\Base\AutoCrm\BrandsProxyHandler;
+use Module\Proxy\Proxies\Base\AutoCrm\DealersProxyHandler;
+use Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler;
 
 final class MotorinvestProxyRegistry
 {
@@ -24,7 +24,9 @@ final class MotorinvestProxyRegistry
             code: 'motorinvest_brands',
             name: 'Motorinvest Бренды',
             description: 'Список брендов Моторинвест из AutoCRM',
-            handlerClass: MotorinvestBrandsProxyHandler::class,
+            handlerClass: BrandsProxyHandler::class,
+            baseUri: self::baseUri(),
+            credentials: self::credentials(),
         );
 
         yield new ProxyEndpointDefinition(
@@ -32,7 +34,9 @@ final class MotorinvestProxyRegistry
             code: 'motorinvest_dealers',
             name: 'Motorinvest Дилеры',
             description: 'Список дилеров Моторинвест из AutoCRM',
-            handlerClass: MotorinvestDealersProxyHandler::class,
+            handlerClass: DealersProxyHandler::class,
+            baseUri: self::baseUri(),
+            credentials: self::credentials(),
         );
 
         yield new ProxyEndpointDefinition(
@@ -40,7 +44,24 @@ final class MotorinvestProxyRegistry
             code: 'motorinvest_models',
             name: 'Motorinvest список моделей',
             description: 'Список моделей Моторинвест из AutoCRM',
-            handlerClass: MotorinvestModelsProxyHandler::class,
+            handlerClass: ModelsProxyHandler::class,
+            baseUri: self::baseUri(),
+            credentials: self::credentials(),
         );
+    }
+
+    private static function baseUri(): ?string
+    {
+        $value = config('proxy.endpoint_seeds.motorinvest.base_uri');
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /** @return array<string, mixed> */
+    private static function credentials(): array
+    {
+        $token = config('proxy.endpoint_seeds.motorinvest.bearer_token');
+
+        return is_string($token) && $token !== '' ? ['bearer_token' => $token] : [];
     }
 }

@@ -1,5 +1,5 @@
 import {usePage} from '@inertiajs/vue3'
-import {Building2, ClipboardList, Database, LayoutPanelLeft, RadioTower, Users, Workflow, Zap} from 'lucide-vue-next'
+import {Building2, ClipboardList, Database, LayoutPanelLeft, PlugZap, RadioTower, Users, Workflow, Zap} from 'lucide-vue-next'
 import {computed} from 'vue'
 
 export function useDashboardNavigation() {
@@ -43,8 +43,8 @@ export function useDashboardNavigation() {
             active: page.url.startsWith('/actions'),
         },
         {
-            label: 'Proxy',
-            icon: RadioTower,
+            label: 'Интеграции',
+            icon: PlugZap,
             href: route('proxy.endpoints'),
             active: page.url.startsWith('/proxy'),
         },

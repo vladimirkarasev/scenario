@@ -12,9 +12,14 @@ const mockVariantSchema = z.object({
 
 export const webhookSchema = z.object({
     name: z.string().min(1, 'Название обязательно'),
+    code: z.string().min(1, 'Code обязателен'),
+    handler_class: z.string().min(1, 'Обработчик обязателен'),
+    method: z.string(),
     description: z.string(),
     is_active: z.boolean(),
     is_mocked: z.boolean(),
+    base_uri: z.string(),
+    bearer_token: z.string(),
     config: jsonValue,
     mocks: z.array(mockVariantSchema),
 })

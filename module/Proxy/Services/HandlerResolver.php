@@ -15,7 +15,11 @@ final readonly class HandlerResolver
 
     public function resolve(ProxyEndpoint $endpoint): ProxyHandler
     {
-        $class = $endpoint->handler_class;
+        return $this->resolveClass($endpoint->handler_class);
+    }
+
+    public function resolveClass(string $class): ProxyHandler
+    {
         $rawNamespace = config('proxy.handler_namespace', 'Module\\Proxy\\Proxies\\');
         $namespace = is_string($rawNamespace) ? $rawNamespace : 'Module\\Proxy\\Proxies\\';
         $allowedHandlers = config('proxy.allowed_handlers', []);

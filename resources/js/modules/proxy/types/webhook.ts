@@ -14,13 +14,23 @@ export interface WebhookEndpoint {
     name: string
     code: string
     type: string
+    method: string | null
     description: string | null
     is_active: boolean
     is_mocked: boolean
     handler_class: string
+    base_uri: string | null
+    credentials: Record<string, unknown>
+    secret_filled: Record<string, boolean>
+    receive_url: string
     config: Record<string, unknown> | unknown[]
     mock_responses: MockResponseVariant[]
     updated_at: string | null
+}
+
+export interface HandlerOption {
+    class: string
+    label: string
 }
 
 export interface WebhookField {
@@ -38,10 +48,13 @@ export interface WebhookField {
 export interface WebhookPayload {
     name: string
     code: string
+    method?: string | null
     description: string | null
     is_active: boolean
     is_mocked: boolean
     handler_class: string
+    base_uri?: string | null
+    credentials?: Record<string, unknown>
     config: Record<string, unknown> | unknown[]
     mock_responses: MockResponseVariant[]
 }

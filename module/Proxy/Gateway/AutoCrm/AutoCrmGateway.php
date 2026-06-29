@@ -29,8 +29,8 @@ use Module\Proxy\Gateway\AutoCrm\Methods\RequestType\GetRequestTypeMethod;
 use Module\Proxy\Gateway\AutoCrm\Methods\Result\GetResultListPageMethod;
 use Module\Proxy\Gateway\AutoCrm\Methods\Result\GetResultMethod;
 use Module\Proxy\Gateway\Base\Contracts\ApiMethod;
+use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayResponse;
-use Module\Proxy\Gateway\Base\Services\ApiGatewayConfigRepository;
 use Module\Proxy\Gateway\Base\Services\BaseApiGateway;
 use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
@@ -39,14 +39,13 @@ use Psr\Log\LoggerInterface;
 class AutoCrmGateway extends BaseApiGateway
 {
     public function __construct(
-        ApiGatewayConfigRepository $configs,
+        ApiGatewayConfig $config,
         GuzzleApiTransport $transport,
         MockApiTransport $mockTransport,
         LoggerInterface $logger,
-        string $gatewayName = 'autocrm',
     ) {
         parent::__construct(
-            config: $configs->get($gatewayName),
+            config: $config,
             transport: $transport,
             mockTransport: $mockTransport,
             logger: $logger,

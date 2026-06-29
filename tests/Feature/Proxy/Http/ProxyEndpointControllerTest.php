@@ -323,6 +323,92 @@ final class ProxyEndpointControllerTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Доступы (интеграция = handler + creds + mock + uuid)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Доступы шифруются в БД, секрет маскируется в ответе, отдаётся receive_url.
+     */
+    public function test_store_persists_credentials_encrypted_and_masks_secret(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/proxy/endpoints', [
+                'name' => 'Интеграция AutoCRM',
+                'code' => 'autocrm-models',
+                'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+                'credentials' => [
+                    'base_uri' => 'https://crm.example.com',
+                    'bearer_token' => 'secret-token-123',
+                ],
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('item.base_uri', 'https://crm.example.com')
+            ->assertJsonPath('item.credentials.bearer_token', null)
+            ->assertJsonPath('item.secret_filled.bearer_token', true);
+
+        $this->assertStringContainsString('/api/proxies/', (string) $response->json('item.receive_url'));
+
+        $raw = \Illuminate\Support\Facades\DB::table('proxy_endpoints')
+            ->where('code', 'autocrm-models')->value('credentials');
+        $this->assertIsString($raw);
+        $this->assertStringNotContainsString('secret-token-123', $raw);
+
+        $endpoint = ProxyEndpoint::query()->where('code', 'autocrm-models')->firstOrFail();
+        $this->assertSame('secret-token-123', $endpoint->credentials['bearer_token']);
+    }
+
+    /**
+     * Пустой секрет при update = «не менять» — сохранённый токен остаётся.
+     */
+    public function test_update_with_blank_secret_preserves_stored_token(): void
+    {
+        $endpoint = ProxyEndpoint::query()->create([
+            'uuid' => Str::uuid()->toString(),
+            'name' => 'AutoCRM', 'code' => 'autocrm-1',
+            'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+            'credentials' => ['bearer_token' => 'original-token'],
+        ]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/proxy/endpoints/{$endpoint->id}", [
+                'name' => 'AutoCRM ren', 'code' => 'autocrm-1',
+                'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+                'credentials' => ['base_uri' => 'https://x.example.com', 'bearer_token' => ''],
+            ])
+            ->assertOk();
+
+        $endpoint->refresh();
+        $this->assertSame('original-token', $endpoint->credentials['bearer_token']);
+    }
+
+    /**
+     * handler_class вне каталога — 422.
+     */
+    public function test_store_rejects_handler_class_not_in_catalog(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('/api/proxy/endpoints', [
+                'name' => 'Bad', 'code' => 'bad-handler',
+                'handler_class' => 'App\\Models\\User',
+            ])
+            ->assertUnprocessable();
+    }
+
+    /**
+     * Каталог обработчиков отдаётся для селекта в UI.
+     */
+    public function test_handlers_catalog_is_returned(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/proxy/handlers')
+            ->assertOk();
+
+        $classes = array_column($response->json('items'), 'class');
+        $this->assertContains(\Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class, $classes);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
