@@ -15,21 +15,26 @@ describe('proxy module', () => {
     it('валидирует mock status и JSON-контейнеры', () => {
         const base = {
             name: 'Suggest',
+            code: 'suggest',
+            handler_class: 'Handler',
+            method: 'POST',
             description: '',
             is_active: true,
             is_mocked: true,
+            category_ids: [],
+            connection_id: null,
             config: {},
         }
         expect(webhookSchema.safeParse({...base, mocks: [{
-            name: null, status: 200, body: [], headers: null, match: null,
+            name: null, status: 200, body: [], headers: null, is_active: true,
         }]}).success).toBe(true)
         expect(webhookSchema.safeParse({...base, mocks: [{
-            name: null, status: 99, body: 'invalid', headers: null, match: null,
+            name: null, status: 99, body: 'invalid', headers: null, is_active: false,
         }]}).success).toBe(false)
     })
 
     it('кодирует type и search фильтры', async () => {
-        vi.mocked(getJson).mockResolvedValue({items: []})
+        vi.mocked(getJson).mockResolvedValue({data: []})
 
         await webhookRepository.listByType('suggest value')
         await webhookRepository.search('Иван + Пётр')
@@ -57,14 +62,14 @@ describe('proxy module', () => {
             config: {},
             mock_responses: [],
         }
-        vi.mocked(sendJson).mockResolvedValue({item: {id: 1}})
+        vi.mocked(sendJson).mockResolvedValue({data: {id: '1', attributes: {}}})
 
         await webhookRepository.update(1, payload)
 
         expect(sendJson).toHaveBeenCalledWith('/api/proxy/endpoints/1', {
             method: 'PUT',
             body: payload,
-            fallbackMessage: 'Не удалось сохранить эндпоинт.',
+            fallbackMessage: 'Не удалось сохранить интеграцию.',
         })
     })
 

@@ -66,7 +66,6 @@ module/
   Projects/     # Project / tenant management; web route: /projects
   Groups/       # User group management; web routes: /users/groups
   Users/        # User management; web routes: /users, /users/roles, /users/groups
-  Gateways/     # API gateway integrations
   Proxy/        # Webhook proxy: receive, log, retry webhook requests
 ```
 

@@ -5,11 +5,13 @@ export interface MockResponseVariant {
     status: number
     body?: Record<string, unknown> | unknown[] | null
     headers?: Record<string, string> | null
-    match?: Record<string, unknown> | null
+    // Активный вариант — тот, что отдаётся в режиме мока (он может быть только один).
+    is_active?: boolean
 }
 
 export interface WebhookEndpoint {
     id: number
+    project_id?: string | null
     uuid: string
     name: string
     code: string
@@ -19,6 +21,8 @@ export interface WebhookEndpoint {
     is_active: boolean
     is_mocked: boolean
     handler_class: string
+    connection_id: number | null
+    category_ids: string[]
     base_uri: string | null
     credentials: Record<string, unknown>
     secret_filled: Record<string, boolean>
@@ -28,9 +32,22 @@ export interface WebhookEndpoint {
     updated_at: string | null
 }
 
+export interface ProxyCategory {
+    id: string
+    parent_id: string | null
+    name: string
+    is_active: boolean
+    is_system: boolean
+    children_count: number
+    created_at?: string | null
+    updated_at?: string | null
+}
+
 export interface HandlerOption {
     class: string
     label: string
+    group: string
+    credential_type: string | null
 }
 
 export interface WebhookField {
@@ -43,6 +60,7 @@ export interface WebhookField {
     default: unknown
     example: string | null
     description: string | null
+    secret?: boolean
 }
 
 export interface WebhookPayload {
@@ -53,8 +71,8 @@ export interface WebhookPayload {
     is_active: boolean
     is_mocked: boolean
     handler_class: string
-    base_uri?: string | null
-    credentials?: Record<string, unknown>
+    connection_id?: number | null
+    category_ids?: string[]
     config: Record<string, unknown> | unknown[]
     mock_responses: MockResponseVariant[]
 }

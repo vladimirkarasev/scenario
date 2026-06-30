@@ -12,7 +12,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Module\Proxy\Console\Commands\SyncProxiesCommand;
 use Module\Proxy\Events\ProxyRequestAccepted;
 use Module\Proxy\Events\ProxyRequestFailed;
 use Module\Proxy\Events\ProxyRequestProcessed;
@@ -31,7 +30,6 @@ final class ProxyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ClientInterface::class, fn (): ClientInterface => new Client);
         $this->app->singleton(MockApiTransport::class);
-        $this->commands([SyncProxiesCommand::class]);
     }
 
     public function boot(): void

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Plus, Trash2} from 'lucide-vue-next'
+import {Check, Plus, Trash2} from 'lucide-vue-next'
 import FormField from './FormField.vue'
 import FormJsonInput from './FormJsonInput.vue'
 import {Input} from '@/components/ui/input'
@@ -9,7 +9,7 @@ interface MockVariant {
   status: number
   body: Record<string, unknown> | unknown[]
   headers: Record<string, unknown> | null
-  match: Record<string, unknown> | null
+  is_active: boolean
 }
 
 const props = withDefaults(defineProps<{
@@ -23,20 +23,29 @@ const emit = defineEmits<{
   'update:modelValue': [value: MockVariant[]]
 }>()
 
-function emptyVariant(): MockVariant {
-  return {name: null, status: 200, body: {}, headers: null, match: null}
+function emptyVariant(active: boolean): MockVariant {
+  return {name: null, status: 200, body: {}, headers: null, is_active: active}
 }
 
 function add(): void {
-  emit('update:modelValue', [...props.modelValue, emptyVariant()])
+  // Первый добавленный вариант сразу становится показываемым.
+  emit('update:modelValue', [...props.modelValue, emptyVariant(props.modelValue.length === 0)])
 }
 
 function remove(idx: number): void {
-  emit('update:modelValue', props.modelValue.filter((_, i) => i !== idx))
+  const next = props.modelValue.filter((_, i) => i !== idx)
+  // Если удалили активный — показываем первый из оставшихся.
+  if (next.length && !next.some(m => m.is_active)) next[0] = {...next[0], is_active: true}
+  emit('update:modelValue', next)
 }
 
 function update(idx: number, patch: Partial<MockVariant>): void {
   emit('update:modelValue', props.modelValue.map((m, i) => i === idx ? {...m, ...patch} : m))
+}
+
+// Активный ответ может быть только один — выбор сбрасывает остальные.
+function setActive(idx: number): void {
+  emit('update:modelValue', props.modelValue.map((m, i) => ({...m, is_active: i === idx})))
 }
 </script>
 
@@ -46,13 +55,23 @@ function update(idx: number, patch: Partial<MockVariant>): void {
       <div
           v-for="(mock, mi) in modelValue"
           :key="mi"
-          class="rounded-xl border border-slate-200 bg-slate-50/50 p-3"
+          class="rounded-xl border bg-slate-50/50 p-3"
+          :class="mock.is_active ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'"
       >
-        <div class="mb-2.5 flex items-center gap-2">
+        <label class="mb-2.5 flex cursor-pointer items-center gap-2">
           <span
-              class="inline-flex h-5 items-center rounded-full bg-slate-200 px-2 text-[11px] font-semibold text-slate-600">#{{
-              mi + 1
-            }}</span>
+              class="flex size-4 flex-none items-center justify-center rounded border transition"
+              :class="mock.is_active ? 'border-amber-500 bg-amber-500' : 'border-slate-300 bg-white'"
+          >
+            <Check v-if="mock.is_active" class="size-2.5 text-white"/>
+          </span>
+          <input type="checkbox" class="sr-only" :checked="mock.is_active" @change="setActive(mi)"/>
+          <span class="text-[12px] font-medium" :class="mock.is_active ? 'text-amber-700' : 'text-slate-500'">
+            {{ mock.is_active ? 'Показывается сейчас' : 'Показывать этот ответ' }}
+          </span>
+        </label>
+
+        <div class="mb-2.5 flex items-center gap-2">
           <Input
               :model-value="mock.name ?? ''"
               placeholder="Название варианта"
@@ -77,20 +96,12 @@ function update(idx: number, patch: Partial<MockVariant>): void {
           </button>
         </div>
 
-        <div class="grid gap-2 sm:grid-cols-2">
-          <FormJsonInput
-              :model-value="mock.match ?? {}"
-              label="Условие match"
-              :rows="3"
-              @update:model-value="(v) => update(mi, { match: !Array.isArray(v) && Object.keys(v).length ? v : null })"
-          />
-          <FormJsonInput
-              :model-value="mock.headers ?? {}"
-              label="Headers"
-              :rows="3"
-              @update:model-value="(v) => update(mi, { headers: !Array.isArray(v) && Object.keys(v).length ? v : null })"
-          />
-        </div>
+        <FormJsonInput
+            :model-value="mock.headers ?? {}"
+            label="Headers"
+            :rows="3"
+            @update:model-value="(v) => update(mi, { headers: !Array.isArray(v) && Object.keys(v).length ? v : null })"
+        />
         <div class="mt-2">
           <FormJsonInput
               :model-value="mock.body"

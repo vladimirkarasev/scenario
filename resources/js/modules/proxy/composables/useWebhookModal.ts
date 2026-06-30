@@ -1,6 +1,8 @@
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
+import {proxyConnectionRepository} from '@/modules/proxy/repositories/proxyConnectionRepository'
 import type {HandlerOption, MockResponseVariant, WebhookEndpoint, WebhookField} from '@/modules/proxy/types/webhook'
+import type {ProxyConnection} from '@/modules/proxy/types/connection'
 import {useFormToast} from '@/composables/useFormToast'
 import {useZodForm} from '@/composables/useZodForm'
 import {webhookSchema, type WebhookFormValues} from '@/modules/proxy/schemas/webhookSchema'
@@ -13,7 +15,7 @@ function toMockVariant(v: MockResponseVariant): MockVariant {
         status: v.status ?? 200,
         body: (v.body ?? {}) as Record<string, unknown> | unknown[],
         headers: v.headers ? (v.headers as Record<string, unknown>) : null,
-        match: v.match ?? null,
+        is_active: v.is_active ?? false,
     }
 }
 
@@ -23,7 +25,7 @@ function fromMockVariant(v: MockVariant): MockResponseVariant {
         status: v.status,
         body: v.body,
         headers: v.headers as Record<string, string> | null,
-        match: v.match,
+        is_active: v.is_active,
     }
 }
 
@@ -36,8 +38,8 @@ function emptyForm(): WebhookFormValues {
         description: '',
         is_active: true,
         is_mocked: false,
-        base_uri: '',
-        bearer_token: '',
+        category_ids: [] as string[],
+        connection_id: null as number | null,
         config: {} as Record<string, unknown> | unknown[],
         mocks: [] as MockVariant[],
     }
@@ -49,12 +51,24 @@ export function useWebhookModal(onSaved: () => void) {
     const handlers = ref<HandlerOption[]>([])
     const secretFilled = ref<Record<string, boolean>>({})
     const receiveUrl = ref<string>('')
+    const connections = ref<ProxyConnection[]>([])
 
     const {formData: form, errors, formError, submitting, submit, reset} =
         useZodForm(webhookSchema, emptyForm())
 
     const fields = ref<WebhookField[]>([])
     const loadingFields = ref(false)
+
+    // Тип доступа, который требует выбранный обработчик (null — доступ не нужен).
+    const requiredCredentialType = computed<string | null>(
+        () => handlers.value.find(h => h.class === form.handler_class)?.credential_type ?? null,
+    )
+    // Доступы, подходящие выбранному обработчику.
+    const availableConnections = computed<ProxyConnection[]>(() =>
+        requiredCredentialType.value === null
+            ? []
+            : connections.value.filter(c => c.credential_type === requiredCredentialType.value),
+    )
 
     const formToast = useFormToast({
         created: 'Интеграция создана',
@@ -64,13 +78,32 @@ export function useWebhookModal(onSaved: () => void) {
 
     async function loadHandlers(): Promise<void> {
         try {
-            handlers.value = await webhookRepository.handlers()
+            const acc: HandlerOption[] = []
+            let page = 1
+            for (; ;) {
+                const qs = new URLSearchParams({'page[number]': String(page), 'page[size]': '100'})
+                const {items, meta} = await webhookRepository.handlers(qs)
+                acc.push(...items)
+                if (page >= meta.last_page || items.length === 0) break
+                page++
+            }
+            handlers.value = acc
         } catch {
             handlers.value = []
         }
     }
 
     void loadHandlers()
+
+    async function loadConnections(): Promise<void> {
+        try {
+            connections.value = await proxyConnectionRepository.list()
+        } catch {
+            connections.value = []
+        }
+    }
+
+    void loadConnections()
 
     async function loadFields(uuid: string): Promise<void> {
         loadingFields.value = true
@@ -83,13 +116,14 @@ export function useWebhookModal(onSaved: () => void) {
         }
     }
 
-    function openCreate(): void {
+    function openCreate(categoryId: string | null = null): void {
         editing.value = null
         secretFilled.value = {}
         receiveUrl.value = ''
-        reset(emptyForm())
+        reset({...emptyForm(), category_ids: categoryId ? [categoryId] : []})
         fields.value = []
         showModal.value = true
+        void loadConnections()
     }
 
     function openEdit(ep: WebhookEndpoint): void {
@@ -104,8 +138,8 @@ export function useWebhookModal(onSaved: () => void) {
             description: ep.description ?? '',
             is_active: ep.is_active,
             is_mocked: ep.is_mocked,
-            base_uri: ep.base_uri ?? '',
-            bearer_token: '',
+            category_ids: ep.category_ids ?? [],
+            connection_id: ep.connection_id ?? null,
             config: (ep.config as Record<string, unknown> | unknown[]) ?? {},
             mocks: (ep.mock_responses ?? []).map(toMockVariant),
         })
@@ -131,7 +165,8 @@ export function useWebhookModal(onSaved: () => void) {
                     description: data.description || null,
                     is_active: data.is_active,
                     is_mocked: data.is_mocked,
-                    credentials: {base_uri: data.base_uri, bearer_token: data.bearer_token},
+                    category_ids: data.category_ids,
+                    connection_id: data.connection_id,
                     config: data.config,
                     mock_responses: data.mocks.map(fromMockVariant),
                 }
@@ -169,6 +204,7 @@ export function useWebhookModal(onSaved: () => void) {
                 description: ep.description,
                 is_active: !ep.is_active,
                 is_mocked: ep.is_mocked,
+                connection_id: ep.connection_id,
                 config: ep.config,
                 mock_responses: ep.mock_responses ?? [],
             })
@@ -183,6 +219,7 @@ export function useWebhookModal(onSaved: () => void) {
         editing, showModal,
         saving: submitting, editError: formError, errors, form,
         handlers, fields, loadingFields, secretFilled, receiveUrl,
+        requiredCredentialType, availableConnections, loadConnections,
         openCreate, openEdit, close, save, remove, toggleActive,
     }
 }

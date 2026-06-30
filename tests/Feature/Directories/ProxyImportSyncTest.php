@@ -54,7 +54,7 @@ final class ProxyImportSyncTest extends TestCase
                         ],
                     ],
                     'headers' => null,
-                    'match' => null,
+                    'is_active' => true,
                 ],
             ],
         ]);

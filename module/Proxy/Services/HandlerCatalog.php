@@ -20,16 +20,16 @@ final class HandlerCatalog
 {
     private function __construct() {}
 
-    /** @return array<class-string, string> */
+    /** @return array<class-string, array{label: string, group: string}> */
     public static function all(): array
     {
         return [
-            ModelsProxyHandler::class => 'AutoCRM: список моделей',
-            BrandsProxyHandler::class => 'AutoCRM: список брендов',
-            DealersProxyHandler::class => 'AutoCRM: список дилеров',
-            TestLeadProxyHandler::class => 'Тест: лид',
-            TestEchoProxyHandler::class => 'Тест: echo',
-            TestSuggestProxyHandler::class => 'Тест: suggest',
+            ModelsProxyHandler::class => ['label' => 'Список моделей', 'group' => 'AutoCRM'],
+            BrandsProxyHandler::class => ['label' => 'Список брендов', 'group' => 'AutoCRM'],
+            DealersProxyHandler::class => ['label' => 'Список дилеров', 'group' => 'AutoCRM'],
+            TestLeadProxyHandler::class => ['label' => 'Лид', 'group' => 'Тест'],
+            TestEchoProxyHandler::class => ['label' => 'Echo', 'group' => 'Тест'],
+            TestSuggestProxyHandler::class => ['label' => 'Suggest', 'group' => 'Тест'],
         ];
     }
 
@@ -38,14 +38,37 @@ final class HandlerCatalog
         return array_key_exists($class, self::all());
     }
 
-    /** @return array<int, array{class: string, label: string}> */
+    /** @return array<int, array{class: string, label: string, group: string}> */
     public static function options(): array
     {
         $options = [];
-        foreach (self::all() as $class => $label) {
-            $options[] = ['class' => $class, 'label' => $label];
+        foreach (self::all() as $class => $meta) {
+            $options[] = ['class' => $class, 'label' => $meta['label'], 'group' => $meta['group']];
         }
 
         return $options;
+    }
+
+    /**
+     * Поиск + срез страницы по каталогу (он статический, но обработчиков может быть много).
+     *
+     * @return array{items: array<int, array{class: string, label: string, group: string}>, total: int}
+     */
+    public static function search(?string $query, int $page, int $perPage): array
+    {
+        $all = self::options();
+
+        if ($query !== null && $query !== '') {
+            $needle = mb_strtolower($query);
+            $all = array_values(array_filter($all, static function (array $o) use ($needle): bool {
+                $haystack = mb_strtolower($o['label'].' '.$o['group'].' '.$o['class']);
+
+                return str_contains($haystack, $needle);
+            }));
+        }
+
+        $total = count($all);
+
+        return ['items' => array_slice($all, ($page - 1) * $perPage, $perPage), 'total' => $total];
     }
 }

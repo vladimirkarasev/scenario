@@ -23,7 +23,27 @@ final readonly class ApiGatewayConfig
     ) {}
 
     /**
-     * Собирает конфиг gateway из доступов эндпоинта (БД) вместо статического config/proxy.php.
+     * Строит конфиг gateway для эндпоинта. Приоритет — привязанный доступ (connection):
+     * драйвер сам мапит свои поля в авторизацию. Если доступа нет — legacy-путь из колонок
+     * самого эндпоинта (до завершения миграции на connections).
+     */
+    public static function forEndpoint(ProxyEndpoint $endpoint): self
+    {
+        $connection = $endpoint->connection;
+
+        if ($connection !== null) {
+            return $connection->driver()->gatewayConfig(
+                $endpoint->code,
+                $connection->values(),
+                $endpoint->is_mocked,
+            );
+        }
+
+        return self::fromEndpoint($endpoint);
+    }
+
+    /**
+     * Legacy: конфиг gateway из колонок доступа самого эндпоинта (`base_uri` + `credentials`).
      * Тип авторизации выводится из credentials: bearer_token → bearer, username → basic,
      * headers → headers; иначе none.
      */

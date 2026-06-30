@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Services;
 
-use Illuminate\Support\Arr;
 use Module\Proxy\DTO\ProxyResponse;
 use Module\Proxy\Models\ProxyEndpoint;
 
@@ -12,12 +11,10 @@ final readonly class MockResponseResolver
 {
     /**
      * Подбирает мок-ответ для endpoint-а в режиме мока.
-     * Берёт первый вариант, чьи поля `match` совпадают со значениями normalized data.
-     * Если ни один не подошёл — берёт первый вариант без `match` (default).
-     *
-     * @param array<string, mixed> $normalizedData
+     * Возвращает вариант, помеченный активным (`is_active`). Если такого нет —
+     * берёт первый из списка (fallback).
      */
-    public function resolve(ProxyEndpoint $endpoint, array $normalizedData): ?ProxyResponse
+    public function resolve(ProxyEndpoint $endpoint): ?ProxyResponse
     {
         $variants = $endpoint->mock_responses ?? [];
 
@@ -25,44 +22,13 @@ final readonly class MockResponseResolver
             return null;
         }
 
-        $default = null;
-
         foreach ($variants as $variant) {
-            $match = $this->stringKeyed($variant['match'] ?? null);
-
-            if ($match === []) {
-                $default ??= $variant;
-
-                continue;
-            }
-
-            if ($this->matches($match, $normalizedData)) {
+            if ($variant['is_active'] ?? false) {
                 return $this->build($variant);
             }
         }
 
-        if ($default !== null) {
-            return $this->build($default);
-        }
-
         return $this->build($variants[0]);
-    }
-
-    /**
-     * @param array<string, mixed> $match
-     * @param array<string, mixed> $data
-     */
-    private function matches(array $match, array $data): bool
-    {
-        foreach ($match as $key => $expected) {
-            $actual = Arr::get($data, $key);
-
-            if ($actual != $expected) { // нестрогое сравнение: "1" совпадает с 1
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /** @param  array<string, mixed>  $variant */

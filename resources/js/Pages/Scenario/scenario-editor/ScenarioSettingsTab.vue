@@ -6,6 +6,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import {FormInput, FormRow, FormTagSearch, FormTextarea} from '@/components/form'
+import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {Check, GitBranch, Save, X} from 'lucide-vue-next'
 import type {ScenarioVersion} from '@/modules/scenario/repositories/scenarioVersionRepository'
 import type {ScenarioCategory} from '@/modules/scenario/types/scenario'
@@ -185,32 +186,11 @@ const STATUSES: ScenarioStatus[] = ['active', 'draft', 'archived']
               </button>
             </Badge>
           </div>
-          <div class="max-h-48 overflow-y-auto rounded-md border">
-            <label
-                v-for="cat in availableCategories"
-                :key="cat.id"
-                class="flex cursor-pointer items-center gap-2.5 border-b px-3 py-2 text-sm transition last:border-0 hover:bg-muted/40"
-                :style="{ paddingLeft: `${12 + (cat.depth ?? 0) * 14}px` }"
-            >
-              <div
-                  class="flex size-4 flex-none items-center justify-center rounded border transition"
-                  :class="form.category_ids.includes(cat.id)
-                                    ? 'border-primary bg-primary'
-                                    : 'border-border bg-background'"
-                  @click="emit('toggleCategory', cat.id)"
-              >
-                <Check v-if="form.category_ids.includes(cat.id)" class="size-2.5 text-primary-foreground"/>
-              </div>
-              <span
-                  class="select-none truncate"
-                  :class="form.category_ids.includes(cat.id) ? 'font-medium text-foreground' : 'text-muted-foreground'"
-                  @click="emit('toggleCategory', cat.id)"
-              >{{ cat.name }}</span>
-            </label>
-            <div v-if="!availableCategories.length" class="px-3 py-6 text-center text-sm text-muted-foreground">
-              Нет папок
-            </div>
-          </div>
+          <SectionTreeSelect
+              :model-value="form.category_ids"
+              :items="availableCategories"
+              @update:model-value="form.category_ids = $event"
+          />
         </CardContent>
       </Card>
 

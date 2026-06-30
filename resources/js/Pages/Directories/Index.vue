@@ -4,9 +4,11 @@ import EmptyState from '@/components/EmptyState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import {Button} from '@/components/ui/button'
+import SectionSidebar from '@/components/sections/SectionSidebar.vue'
+import SectionFormDialog from '@/components/sections/SectionFormDialog.vue'
+import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -14,11 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {Label} from '@/components/ui/label'
 import {
-  FormActions, FormAutoSlug, FormBody, FormCheckbox, FormError, FormInput, FormSection, FormTextarea,
+  FormActions, FormAutoSlug, FormBody, FormError, FormInput, FormSection, FormTextarea,
 } from '@/components/form'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 import {Skeleton} from '@/components/ui/skeleton'
 import {useAuthStore} from '@/stores/auth'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
@@ -30,10 +29,6 @@ import {useDirectorySectionTree} from '@/modules/directories/composables/useDire
 import {categoryRepository, type CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
 import {pluralRu} from '@/lib/pluralize'
 import {Head, Link} from '@inertiajs/vue3'
-import {
-  ContextMenuContent, ContextMenuItem, ContextMenuRoot,
-  ContextMenuSeparator, ContextMenuTrigger,
-} from 'reka-ui'
 import {
   ChevronRight,
   Database, Folder, FolderOpen, FolderPlus, MoreHorizontal,
@@ -149,104 +144,19 @@ async function deleteDirectory(id: string): Promise<void> {
   <AppShell title="Справочники" :navigation-items="navigationItems" flush>
     <div class="flex h-full min-h-0 w-full overflow-hidden">
       <!-- ══ Sidebar ═══════════════════════════════════════════════════ -->
-      <aside class="flex w-64 flex-none flex-col overflow-hidden border-r border-slate-200 bg-white">
-        <div class="flex items-center gap-2.5 px-4 pb-3 pt-4">
-          <div class="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-            <Database :size="16"/>
-          </div>
-          <div class="min-w-0 leading-tight">
-            <div class="truncate text-[13px] font-semibold text-slate-900">Справочники</div>
-          </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto px-3 pt-3">
-          <div class="flex flex-col gap-0.5">
-            <!-- Справочники root item -->
-            <button
-                class="group flex h-8 w-full items-center rounded-lg pr-2 text-[13px] transition-colors"
-                :class="tree.activeSection.value === 'all' ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50'"
-                style="padding-left: 6px"
-                @click="tree.selectSection('all')"
-            >
-                <span
-                    class="inline-flex h-5 w-5 flex-none items-center justify-center rounded transition-transform rotate-90"
-                    :class="tree.activeSection.value === 'all' ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700'"
-                >
-                  <ChevronRight :size="12"/>
-                </span>
-              <span class="mr-2 flex-none"
-                    :class="tree.activeSection.value === 'all' ? 'text-blue-600' : 'text-slate-400'">
-                  <Database :size="14"/>
-                </span>
-              <span class="min-w-0 flex-1 truncate text-left">Справочники</span>
-            </button>
-
-            <!-- Loading skeleton -->
-            <div v-if="tree.loading.value" class="flex flex-col gap-1 px-1 pl-5">
-              <Skeleton v-for="i in 5" :key="i" class="h-8 w-full rounded-lg" :style="{ opacity: 1 - i * 0.15 }"/>
-            </div>
-
-            <!-- Category tree with context menu -->
-            <ContextMenuRoot
-                v-for="item in tree.sidebarItems.value"
-                :key="`folder-${item.section.id}`"
-            >
-              <ContextMenuTrigger as-child>
-                <button
-                    class="group flex h-8 w-full items-center rounded-lg pr-2 text-[13px] transition-colors"
-                    :class="tree.activeSection.value === item.section.id ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50'"
-                    :style="{ paddingLeft: `${6 + (item.depth + 1) * 14}px` }"
-                    @click="tree.selectSection(item.section.id)"
-                >
-                    <span
-                        v-if="item.hasChildren"
-                        class="inline-flex h-5 w-5 flex-none items-center justify-center rounded transition-transform"
-                        :class="[tree.expandedIds.value.has(item.section.id) ? 'rotate-90' : '', tree.activeSection.value === item.section.id ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-700']"
-                        @click.stop="tree.toggleExpand(item.section.id)"
-                    >
-                      <ChevronRight :size="12"/>
-                    </span>
-                  <span v-else class="inline-block w-5 flex-none"/>
-
-                  <span class="mr-2 flex-none"
-                        :class="tree.activeSection.value === item.section.id ? 'text-blue-600' : 'text-slate-400'">
-                      <FolderOpen v-if="tree.expandedIds.value.has(item.section.id) && item.hasChildren" :size="14"/>
-                      <Folder v-else :size="14"/>
-                    </span>
-
-                  <span class="min-w-0 flex-1 truncate text-left">{{ item.section.name }}</span>
-                  <span class="ml-2 tabular-nums text-[11px] font-semibold"
-                        :class="tree.activeSection.value === item.section.id ? 'text-blue-700' : 'text-slate-400'">
-                      {{ tree.countInSection(item.section.id) }}
-                    </span>
-                </button>
-              </ContextMenuTrigger>
-
-              <ContextMenuContent
-                  class="z-50 min-w-[140px] overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
-                <ContextMenuItem
-                    v-if="canManage"
-                    class="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] text-slate-700 outline-none hover:bg-slate-50 focus:bg-slate-50"
-                    @select="sectionModal.openEdit(item.section)"
-                >
-                  <Pencil :size="13" class="text-slate-400"/>
-                  Переименовать
-                </ContextMenuItem>
-                <ContextMenuSeparator v-if="canManage && canDelete" class="my-1 h-px bg-slate-100"/>
-                <ContextMenuItem
-                    v-if="canDelete"
-                    class="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] text-red-600 outline-none hover:bg-red-50 focus:bg-red-50"
-                    @select="confirmDeleteSection(item.section)"
-                >
-                  <Trash2 :size="13"/>
-                  Удалить
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenuRoot>
-          </div>
-        </div>
-
-      </aside>
+      <SectionSidebar
+          :tree="tree"
+          :active-folder="tree.activeSection.value"
+          all-label="Справочники"
+          title="Справочники"
+          :title-icon="Database"
+          :all-icon="Database"
+          :can-edit="canManage"
+          :can-delete="canDelete"
+          @select="(id: string) => tree.selectSection(id)"
+          @edit-section="(s) => sectionModal.openEdit(s)"
+          @delete-section="confirmDeleteSection"
+      />
 
       <!-- ══ Main content ══════════════════════════════════════════════ -->
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -276,27 +186,37 @@ async function deleteDirectory(id: string): Promise<void> {
                 <button
                     v-if="canManage"
                     type="button"
-                    class="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50"
                     @click="sectionModal.openModal(tree.activeSection.value !== 'all' ? tree.activeSection.value : null)"
                 >
-                  <FolderPlus :size="14"/>
-                  {{ tree.activeSection.value !== 'all' ? 'Новый подраздел' : 'Новый раздел' }}
+                  <FolderPlus :size="15"/>
+                  Создать раздел
                 </button>
                 <button
                     v-if="canManage"
                     type="button"
-                    class="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-700"
                     @click="openAddDir"
                 >
-                  <Plus :size="14"/>
-                  Новый справочник
+                  <Plus :size="15"/>
+                  Создать справочник
                 </button>
               </template>
             </PageHeader>
 
             <!-- Search row -->
-            <div class="mb-5 pb-3">
-              <SearchInput v-model="dirSearch" placeholder="Поиск по справочникам..."/>
+            <div class="mb-5 flex flex-col gap-3 pb-3 md:flex-row md:items-center md:justify-between">
+              <div class="max-w-sm flex-1">
+                <SearchInput v-model="dirSearch" placeholder="Поиск по справочникам..."/>
+              </div>
+              <button
+                  type="button"
+                  class="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50"
+                  :disabled="loading" @click="loadFeed()"
+              >
+                <RefreshCw :size="14" :class="loading ? 'animate-spin' : ''"/>
+                Обновить
+              </button>
             </div>
 
             <!-- Loading skeleton -->
@@ -558,21 +478,13 @@ async function deleteDirectory(id: string): Promise<void> {
                 @update:model-value="(v: string) => dirModal.form.description = v || null"
             />
 
-            <div v-if="dirModal.editing.value && tree.allSectionsFlat.value.length" class="space-y-1.5">
+            <div v-if="dirModal.editing.value" class="space-y-1.5">
               <Label>Разделы</Label>
-              <div class="max-h-36 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2">
-                <FormCheckbox
-                    v-for="s in tree.allSectionsFlat.value"
-                    :key="s.id"
-                    :model-value="dirModal.form.category_ids.includes(s.id)"
-                    :label="'  '.repeat(s.depth) + s.name"
-                    @update:model-value="(v: boolean) => {
-                    dirModal.form.category_ids = v
-                      ? [...dirModal.form.category_ids, s.id]
-                      : dirModal.form.category_ids.filter((id: string) => id !== s.id)
-                  }"
-                />
-              </div>
+              <SectionTreeSelect
+                  v-model="dirModal.form.category_ids"
+                  :load-all="() => categoryRepository.list().then(r => r.items)"
+                  :open="dirModal.showModal.value"
+              />
             </div>
 
             <div class="space-y-1.5">
@@ -613,64 +525,12 @@ async function deleteDirectory(id: string): Promise<void> {
   </Dialog>
 
   <!-- ══ Dialog: Новый раздел ══════════════════════════════════════════ -->
-  <Dialog v-model:open="sectionModal.open.value">
-    <DialogContent class="sm:max-w-sm">
-      <DialogHeader>
-        <DialogTitle class="flex items-center gap-2">
-          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-            <Pencil v-if="sectionModal.isEditing.value" :size="14"/>
-            <FolderPlus v-else :size="14"/>
-          </div>
-          {{ sectionModal.isEditing.value ? 'Переименовать раздел' : 'Новый раздел' }}
-        </DialogTitle>
-      </DialogHeader>
-
-      <div class="space-y-4">
-        <FormError :message="sectionModal.formError.value"/>
-        <FormInput
-            v-model="sectionModal.form.name"
-            label="Название"
-            placeholder="Например: HR"
-            required
-            :error="sectionModal.errors.name"
-            @keydown.enter="sectionModal.submit()"
-        />
-
-        <div v-if="!sectionModal.isEditing.value && tree.allSectionsFlat.value.length" class="space-y-1.5">
-          <Label>Родительский раздел</Label>
-          <Select
-              :model-value="sectionModal.form.parent_id ?? '__root__'"
-              @update:model-value="(v: string) => sectionModal.form.parent_id = v === '__root__' ? null : v"
-          >
-            <SelectTrigger class="w-full">
-              <SelectValue placeholder="Корневой раздел"/>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__root__">— Корневой раздел</SelectItem>
-              <SelectItem
-                  v-for="s in tree.allSectionsFlat.value"
-                  :key="s.id"
-                  :value="s.id"
-              >
-                {{ '\u00a0\u00a0\u00a0\u00a0'.repeat(s.depth) }}{{ s.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button type="button" variant="outline" @click="sectionModal.close()">Отмена</Button>
-        <Button :disabled="sectionModal.submitting.value" class="gap-1.5" @click="sectionModal.submit()">
-          <RefreshCw v-if="sectionModal.submitting.value" :size="13" class="animate-spin"/>
-          <Pencil v-else-if="sectionModal.isEditing.value" :size="13"/>
-          <Plus v-else :size="13"/>
-          {{ sectionModal.isEditing.value ? 'Сохранить' : 'Создать' }}
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
+  <SectionFormDialog
+      :modal="sectionModal"
+      :parent-options="tree.allSectionsFlat.value"
+      :exclude-ids="sectionModal.editingId.value ? [...tree.descendantIds(sectionModal.editingId.value)] : []"
+      placeholder="Например: HR"
+  />
   <ConfirmDialog
       :open="!!deleteTarget"
       title="Удалить раздел?"

@@ -4,7 +4,6 @@ use App\Providers\AppServiceProvider;
 use Module\Actions\Providers\ActionsServiceProvider;
 use Module\Categories\Providers\CategoriesServiceProvider;
 use Module\Directories\Providers\DirectoriesServiceProvider;
-use Module\Gateways\Providers\GatewaysServiceProvider;
 use Module\Groups\Providers\GroupsServiceProvider;
 use Module\Projects\Providers\ProjectsServiceProvider;
 use Module\Proxy\Providers\ProxyServiceProvider;
@@ -16,7 +15,6 @@ return [
     ActionsServiceProvider::class,
     CategoriesServiceProvider::class,
     DirectoriesServiceProvider::class,
-    GatewaysServiceProvider::class,
     GroupsServiceProvider::class,
     ProxyServiceProvider::class,
     ProjectsServiceProvider::class,

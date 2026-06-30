@@ -24,7 +24,7 @@ final readonly class AutoCrmGatewayFactory
     public function forEndpoint(ProxyEndpoint $endpoint): AutoCrmGateway
     {
         return new AutoCrmGateway(
-            config: ApiGatewayConfig::fromEndpoint($endpoint),
+            config: ApiGatewayConfig::forEndpoint($endpoint),
             transport: $this->transport,
             mockTransport: $this->mockTransport,
             logger: $this->logger,

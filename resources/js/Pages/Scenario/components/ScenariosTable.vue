@@ -85,7 +85,7 @@ function actorLabel(actor: FeedScenarioItem['created_by']): string | null {
         :subtitle="isSearchMode ? 'Попробуйте изменить запрос' : 'Создайте раздел или сценарий, чтобы начать'"
     >
       <template #icon>
-        <Workflow :size="20"/>
+        <Workflow :size="22"/>
       </template>
     </EmptyState>
 

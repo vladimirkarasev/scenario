@@ -7,7 +7,7 @@ const mockVariantSchema = z.object({
     status: z.number().int().min(100, 'Статус 100..599').max(599, 'Статус 100..599'),
     body: jsonValue,
     headers: z.record(z.unknown()).nullable(),
-    match: z.record(z.unknown()).nullable(),
+    is_active: z.boolean(),
 })
 
 export const webhookSchema = z.object({
@@ -18,8 +18,8 @@ export const webhookSchema = z.object({
     description: z.string(),
     is_active: z.boolean(),
     is_mocked: z.boolean(),
-    base_uri: z.string(),
-    bearer_token: z.string(),
+    category_ids: z.array(z.string()),
+    connection_id: z.number().nullable(),
     config: jsonValue,
     mocks: z.array(mockVariantSchema),
 })

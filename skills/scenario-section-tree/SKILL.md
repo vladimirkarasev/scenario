@@ -5,13 +5,22 @@ description: useScenarioSectionTree / useDirectorySectionTree — lazy section t
 
 # Section Tree (lazy tree для категорий)
 
-Паттерн lazy-загрузки дерева категорий уровень за уровнем. Реализация — `useDirectorySectionTree` (эталон) и `useScenarioSectionTree` (порт для сценариев). Применяй при добавлении section-based навигации в новый модуль.
+Паттерн lazy-загрузки дерева категорий уровень за уровнем. **Вынесен в общие компоненты** — модули proxy / actions / scenario / directories используют их через тонкие обёртки. Применяй их при добавлении section-based навигации в новый модуль (не копируй заново).
 
-## Файлы-эталоны
+## Общие (shared) реализации
 
-- `resources/js/modules/directories/composables/useDirectorySectionTree.ts` — directories.
-- `resources/js/composables/useScenarioSectionTree.ts` — scenarios.
-- `Pages/Directories/Index.vue` / `Pages/Scenario/Scenarios.vue` — потребители.
+- `resources/js/composables/useSectionTree.ts` — generic дерево `useSectionTree<T extends SectionCategory>({ loadByParent, allLabel })`. Возвращает `sidebarItems`, `allSectionsFlat`, `categoryFilterIds`, `visibleSubsections`, `descendantIds`, `selectSection`, `toggleExpand`, CRUD-мутации.
+- `resources/js/composables/useSectionModal.ts` — generic модалка CRUD раздела. Хуки `buildPayload` / `fromCategory` / `onOpenModal` / `onOpenEdit` для модульных расширений (scenario добавляет группы/workspace + `selectedGroups`).
+- `resources/js/components/sections/SectionSidebar.vue` — generic-сайдбар (props: `title`, `titleIcon`, `allIcon`, `allLabel`, `canEdit`, `canDelete`; slot `#top-links`).
+- `resources/js/components/sections/SectionFormDialog.vue` — диалог создания/редактирования раздела (slot для доп. полей, `showParentSelect`).
+- `resources/js/components/sections/SectionTreeSelect.vue` — чекбокс-дерево выбора разделов в форме сущности (`loadAll` + авто-разворот к выбранным через `expandToSelected`).
+- `resources/js/types/section.ts` — базовый `SectionCategory`.
+
+## Тонкие обёртки модулей (эталон)
+
+- `resources/js/modules/{proxy,actions,scenario,directories}/composables/use*SectionTree.ts` — `() => useSectionTree<T>({ loadByParent: <repo>, allLabel })`.
+- `use*SectionModal.ts` — `useSectionModal(...)` с schema/repo (scenario — с `selectedGroups` + `buildPayload`).
+- Потребители: `Pages/Proxy/Proxies.vue`, `Pages/Actions/Index.vue`, `Pages/Scenario/Scenarios.vue`, `Pages/Directories/Index.vue`.
 
 ## Ключевые детали (запомнить, чтобы не наступать)
 
