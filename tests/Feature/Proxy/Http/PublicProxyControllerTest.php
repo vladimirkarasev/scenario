@@ -163,7 +163,7 @@ final class PublicProxyControllerTest extends TestCase
     // -------------------------------------------------------------------------
 
     /**
-     * Когда у эндпоинта is_mocked=true и есть подходящий вариант — отдаётся он,
+     * Когда у эндпоинта is_mocked=true — отдаётся активный вариант,
      * а не результат реального handler-а.
      */
     public function test_mocked_endpoint_returns_configured_response_instead_of_handler(): void
@@ -173,12 +173,13 @@ final class PublicProxyControllerTest extends TestCase
                 'name' => 'Bad request',
                 'status' => 400,
                 'body' => ['error' => 'phone_blocked'],
-                'match' => ['phone' => '+71234567890'],
+                'is_active' => true,
             ],
             [
                 'name' => 'Default',
                 'status' => 202,
                 'body' => ['mocked' => true],
+                'is_active' => false,
             ],
         ]);
 
@@ -193,13 +194,13 @@ final class PublicProxyControllerTest extends TestCase
     }
 
     /**
-     * Если ни один вариант не подошёл — отдаётся первый вариант без `match` (default).
+     * Если ни один вариант не отмечен активным — отдаётся первый из списка (fallback).
      */
-    public function test_mocked_endpoint_returns_default_variant_when_no_match(): void
+    public function test_mocked_endpoint_returns_first_variant_when_none_active(): void
     {
         $endpoint = $this->makeMockedEndpoint([
-            ['name' => 'X', 'status' => 500, 'match' => ['phone' => '+0']],
             ['name' => 'Default', 'status' => 202, 'body' => ['mocked' => true]],
+            ['name' => 'X', 'status' => 500, 'body' => ['fail' => true]],
         ]);
 
         $this->actingAs($this->user)

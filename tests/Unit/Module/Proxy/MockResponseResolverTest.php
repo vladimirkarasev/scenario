@@ -12,7 +12,7 @@ use Module\Proxy\Services\MockResponseResolver;
 use Tests\TestCase;
 
 /**
- * Юнит-тесты подбора мок-варианта по нормализованным данным.
+ * Юнит-тесты подбора активного мок-варианта.
  */
 final class MockResponseResolverTest extends TestCase
 {
@@ -30,72 +30,47 @@ final class MockResponseResolverTest extends TestCase
     {
         $endpoint = $this->makeEndpoint([]);
 
-        $this->assertNull($this->resolver->resolve($endpoint, ['phone' => '+1']));
+        $this->assertNull($this->resolver->resolve($endpoint));
     }
 
-    public function test_returns_first_matching_variant(): void
+    public function test_returns_active_variant(): void
     {
         $endpoint = $this->makeEndpoint([
-            ['name' => 'A', 'status' => 200, 'body' => ['ok' => true], 'match' => ['phone' => '+1']],
-            ['name' => 'B', 'status' => 422, 'body' => ['ok' => false], 'match' => ['phone' => '+2']],
+            ['name' => 'A', 'status' => 200, 'body' => ['ok' => true], 'is_active' => false],
+            ['name' => 'B', 'status' => 422, 'body' => ['ok' => false], 'is_active' => true],
         ]);
 
-        $response = $this->resolver->resolve($endpoint, ['phone' => '+2']);
+        $response = $this->resolver->resolve($endpoint);
 
         $this->assertNotNull($response);
         $this->assertSame(422, $response->statusCode);
         $this->assertSame(['ok' => false], $response->body);
     }
 
-    public function test_falls_back_to_first_variant_without_match(): void
+    public function test_falls_back_to_first_variant_when_none_active(): void
     {
         $endpoint = $this->makeEndpoint([
-            ['name' => 'A', 'status' => 422, 'body' => ['err' => 1], 'match' => ['phone' => '+1']],
-            ['name' => 'Default', 'status' => 202, 'body' => ['default' => true]],
+            ['name' => 'First', 'status' => 202, 'body' => ['first' => true]],
+            ['name' => 'Second', 'status' => 500, 'body' => ['second' => true]],
         ]);
 
-        $response = $this->resolver->resolve($endpoint, ['phone' => '+999']);
+        $response = $this->resolver->resolve($endpoint);
 
         $this->assertNotNull($response);
         $this->assertSame(202, $response->statusCode);
-        $this->assertSame(['default' => true], $response->body);
-    }
-
-    public function test_returns_first_variant_when_no_match_and_no_default(): void
-    {
-        $endpoint = $this->makeEndpoint([
-            ['name' => 'A', 'status' => 500, 'body' => ['fail' => true], 'match' => ['phone' => '+1']],
-        ]);
-
-        $response = $this->resolver->resolve($endpoint, ['phone' => '+999']);
-
-        $this->assertNotNull($response);
-        $this->assertSame(500, $response->statusCode);
+        $this->assertSame(['first' => true], $response->body);
     }
 
     public function test_adds_x_proxy_mock_header(): void
     {
         $endpoint = $this->makeEndpoint([
-            ['status' => 200, 'body' => []],
+            ['status' => 200, 'body' => [], 'is_active' => true],
         ]);
 
-        $response = $this->resolver->resolve($endpoint, []);
+        $response = $this->resolver->resolve($endpoint);
 
         $this->assertNotNull($response);
         $this->assertSame('1', $response->headers['X-Proxy-Mock'] ?? null);
-    }
-
-    public function test_match_requires_all_keys_to_match(): void
-    {
-        $endpoint = $this->makeEndpoint([
-            ['name' => 'A', 'status' => 200, 'match' => ['phone' => '+1', 'email' => 'a@b']],
-            ['name' => 'Default', 'status' => 418],
-        ]);
-
-        $response = $this->resolver->resolve($endpoint, ['phone' => '+1', 'email' => 'wrong@x']);
-
-        $this->assertNotNull($response);
-        $this->assertSame(418, $response->statusCode);
     }
 
     /** @param  array<int, array<string, mixed>>  $mocks */

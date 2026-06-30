@@ -19,7 +19,8 @@ import TabsList from '@/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/components/ui/tabs/TabsTrigger.vue'
 import {ArrowDown, ArrowUp, Check, Pencil, Plus, Trash2, Zap} from 'lucide-vue-next'
 import {ref} from 'vue'
-import ActionSectionTreeSelect from './ActionSectionTreeSelect.vue'
+import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
+import {actionCategoryRepository} from '@/modules/actions/repositories/actionCategoryRepository'
 import type {useActionModal} from '@/modules/actions/composables/useActionModal'
 import type {ActionTypeMeta} from '@/modules/actions/types/action'
 
@@ -105,9 +106,10 @@ function insertInputVar(key: string): void {
           <FormTextarea v-model="modal.form.description" label="Описание" placeholder="Краткое описание для коллег"
                         :rows="3" :error="modal.errors.description"/>
 
-          <FormField label="Разделы">
-            <ActionSectionTreeSelect
+          <FormField v-if="modal.editingId.value" label="Разделы">
+            <SectionTreeSelect
                 v-model="modal.form.category_ids"
+                :load-all="() => actionCategoryRepository.all()"
                 :open="modal.show.value"
             />
           </FormField>

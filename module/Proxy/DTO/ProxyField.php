@@ -29,6 +29,8 @@ class ProxyField
 
     private ?string $sourceFilterable = null;
 
+    private bool $secret = false;
+
     protected function __construct(private readonly string $key)
     {
     }
@@ -112,6 +114,14 @@ class ProxyField
         return $this;
     }
 
+    /** Помечает поле как секретное: значение шифруется и маскируется в API. */
+    public function secret(): static
+    {
+        $this->secret = true;
+
+        return $this;
+    }
+
     public function key(): string
     {
         return $this->key;
@@ -135,6 +145,11 @@ class ProxyField
     public function isFilterable(): bool
     {
         return $this->filterable;
+    }
+
+    public function isSecret(): bool
+    {
+        return $this->secret;
     }
 
     public function filterKey(): string
@@ -169,6 +184,7 @@ class ProxyField
             'description' => $this->description,
             'filterable' => $this->filterable,
             'filter_key' => $this->filterable ? ($this->sourceFilterable ?? $this->key) : null,
+            'secret' => $this->secret,
         ];
     }
 }

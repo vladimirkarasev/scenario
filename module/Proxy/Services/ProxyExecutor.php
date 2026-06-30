@@ -35,7 +35,7 @@ final readonly class ProxyExecutor
         array $normalizedData = []
     ): ProxyExecutionResult {
         if ($endpoint->is_mocked) {
-            $mock = $this->mockResolver->resolve($endpoint, $normalizedData);
+            $mock = $this->mockResolver->resolve($endpoint);
             if ($mock !== null) {
                 return new ProxyExecutionResult($mock, true);
             }

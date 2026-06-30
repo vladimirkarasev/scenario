@@ -33,12 +33,6 @@ export function useScenarioCreateModal(onCreated: (scenario: Scenario) => void) 
         showModal.value = false
     }
 
-    function toggleCategory(id: string): void {
-        form.category_ids = form.category_ids.includes(id)
-            ? form.category_ids.filter(c => c !== id)
-            : [...form.category_ids, id]
-    }
-
     async function save(): Promise<void> {
         try {
             let created: Scenario | null = null
@@ -65,6 +59,6 @@ export function useScenarioCreateModal(onCreated: (scenario: Scenario) => void) 
     return {
         showModal,
         form, errors, formError, submitting,
-        openCreate, close, save, toggleCategory,
+        openCreate, close, save,
     }
 }

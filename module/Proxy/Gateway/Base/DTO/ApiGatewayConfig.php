@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Gateway\Base\DTO;
 
-use InvalidArgumentException;
+use Module\Proxy\Models\ProxyEndpoint;
 
 final readonly class ApiGatewayConfig
 {
@@ -22,29 +22,69 @@ final readonly class ApiGatewayConfig
         public array $headers = [],
     ) {}
 
-    /** @param  array<string, mixed>  $config */
-    public static function fromArray(string $name, array $config): self
+    /**
+     * Строит конфиг gateway для эндпоинта. Приоритет — привязанный доступ (connection):
+     * драйвер сам мапит свои поля в авторизацию. Если доступа нет — legacy-путь из колонок
+     * самого эндпоинта (до завершения миграции на connections).
+     */
+    public static function forEndpoint(ProxyEndpoint $endpoint): self
     {
-        $rawAuth = $config['auth'] ?? ['type' => 'none'];
-        $rawHeaders = $config['headers'] ?? [];
+        $connection = $endpoint->connection;
 
-        if (! is_array($rawAuth) || ! is_array($rawHeaders)) {
-            throw new InvalidArgumentException('Gateway auth and headers config must be arrays.');
+        if ($connection !== null) {
+            return $connection->driver()->gatewayConfig(
+                $endpoint->code,
+                $connection->values(),
+                $endpoint->is_mocked,
+            );
         }
 
-        $baseUri = $config['base_uri'] ?? '';
-        $timeout = $config['timeout'] ?? 10;
-        $connectTimeout = $config['connect_timeout'] ?? 5;
+        return self::fromEndpoint($endpoint);
+    }
+
+    /**
+     * Legacy: конфиг gateway из колонок доступа самого эндпоинта (`base_uri` + `credentials`).
+     * Тип авторизации выводится из credentials: bearer_token → bearer, username → basic,
+     * headers → headers; иначе none.
+     */
+    public static function fromEndpoint(ProxyEndpoint $endpoint): self
+    {
+        $credentials = $endpoint->credentials ?? [];
 
         return new self(
-            name: $name,
-            baseUri: is_scalar($baseUri) ? (string) $baseUri : '',
-            timeout: is_numeric($timeout) ? (float) $timeout : 10.0,
-            connectTimeout: is_numeric($connectTimeout) ? (float) $connectTimeout : 5.0,
-            mock: (bool) ($config['mock'] ?? false),
-            auth: self::toStringKeyed($rawAuth),
-            headers: self::toStringKeyed($rawHeaders),
+            name: $endpoint->code,
+            baseUri: $endpoint->base_uri ?? '',
+            mock: $endpoint->is_mocked,
+            auth: self::resolveAuth($credentials),
+            headers: ['Accept' => 'application/json'],
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $credentials
+     * @return array<string, mixed>
+     */
+    private static function resolveAuth(array $credentials): array
+    {
+        if (filled($credentials['bearer_token'] ?? null)) {
+            return ['type' => 'bearer', 'token' => $credentials['bearer_token']];
+        }
+
+        if (filled($credentials['username'] ?? null)) {
+            return [
+                'type' => 'basic',
+                'username' => $credentials['username'],
+                'password' => $credentials['password'] ?? '',
+            ];
+        }
+
+        $headers = $credentials['headers'] ?? null;
+
+        if (is_array($headers) && $headers !== []) {
+            return ['type' => 'headers', 'headers' => self::toStringKeyed($headers)];
+        }
+
+        return ['type' => 'none'];
     }
 
     /**

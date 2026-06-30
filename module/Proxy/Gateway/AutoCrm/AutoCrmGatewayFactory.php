@@ -2,35 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Gateway\Base\Services;
+namespace Module\Proxy\Gateway\AutoCrm;
 
-use Module\Proxy\Gateway\Base\Contracts\ApiGateway;
+use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
+use Module\Proxy\Models\ProxyEndpoint;
 use Psr\Log\LoggerInterface;
 
-final readonly class ApiGatewayFactory
+/**
+ * Строит AutoCrmGateway с доступами из эндпоинта (БД), а не из статического config/proxy.php.
+ */
+final readonly class AutoCrmGatewayFactory
 {
     public function __construct(
-        private ApiGatewayConfigRepository $configs,
         private GuzzleApiTransport $transport,
         private MockApiTransport $mockTransport,
         private LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
-    public function make(string $name = 'default'): ApiGateway
+    public function forEndpoint(ProxyEndpoint $endpoint): AutoCrmGateway
     {
-        return new BaseApiGateway(
-            config: $this->configs->get($name),
+        return new AutoCrmGateway(
+            config: ApiGatewayConfig::forEndpoint($endpoint),
             transport: $this->transport,
             mockTransport: $this->mockTransport,
             logger: $this->logger,
         );
-    }
-
-    public function mock(): MockApiTransport
-    {
-        return $this->mockTransport;
     }
 }

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Proxies\Base\AutoCrm;
 
+use Module\Proxy\DTO\ProxyContext;
 use Module\Proxy\DTO\ProxyFieldInteger;
 use Module\Proxy\DTO\ProxyFieldString;
-use Module\Proxy\ProxyHandler;
+use Module\Proxy\DTO\ProxyResponse;
+use Module\Proxy\Gateway\AutoCrm\DTO\AutoCrmData;
 
-class ModelsProxyHandler extends ProxyHandler
+class ModelsProxyHandler extends AutoCrmEndpointHandler
 {
     public function fields(): iterable
     {
@@ -31,5 +33,26 @@ class ModelsProxyHandler extends ProxyHandler
             ->label('ID бренда')
             ->nullable()
             ->rules(['nullable', 'integer']);
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    #[\Override]
+    public function handle(ProxyContext $proxyContext): ProxyResponse
+    {
+        $models = $this->autoCrm($proxyContext)->models();
+
+        $items = array_map(static fn (AutoCrmData $model): array => [
+            'id' => $model->id(),
+            'name' => $model->get('name'),
+            'alias_id' => $model->get('alias_id'),
+            'brand_id' => $model->get('brand_id'),
+        ], $models);
+
+        return ProxyResponse::accepted([
+            'request_id' => $proxyContext->requestId(),
+            'items' => $items,
+        ]);
     }
 }

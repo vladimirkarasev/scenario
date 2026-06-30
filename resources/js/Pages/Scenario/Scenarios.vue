@@ -3,10 +3,11 @@ import AppShell from '@/layouts/AppShell.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import ScenariosSidebar from './components/ScenariosSidebar.vue'
+import SectionSidebar from '@/components/sections/SectionSidebar.vue'
+import SectionFormDialog from '@/components/sections/SectionFormDialog.vue'
 import ScenariosTable from './components/ScenariosTable.vue'
-import SectionFormDialog from './components/SectionFormDialog.vue'
 import ScenarioCreateFormDialog from './components/ScenarioCreateFormDialog.vue'
+import {FormCheckbox, FormTagSearch} from '@/components/form'
 
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useScenarioSectionTree, type ScenarioSectionNode} from '@/modules/scenario/composables/useScenarioSectionTree'
@@ -23,7 +24,7 @@ import type {FeedScenarioItem, FeedFolderItem} from '@/modules/scenario/reposito
 import type {CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
 
 import {Head, router} from '@inertiajs/vue3'
-import {ChevronRight, FolderPlus, Plus} from 'lucide-vue-next'
+import {ChevronRight, FolderPlus, Plus, Workflow} from 'lucide-vue-next'
 import {computed, ref} from 'vue'
 import {toast} from 'vue-sonner'
 import {pluralRu} from '@/lib/pluralize'
@@ -217,10 +218,14 @@ function onDeleteFolderRow(row: FeedFolderItem): void {
 
   <AppShell title="Scenarios" :navigation-items="navigationItems" flush>
     <div class="flex h-full min-h-0 w-full overflow-hidden">
-      <ScenariosSidebar
+      <SectionSidebar
           :tree="tree"
           :active-folder="activeFolder"
-          :can-manage="canManage"
+          all-label="Сценарии"
+          title="Scenarios"
+          :title-icon="Workflow"
+          :all-icon="Workflow"
+          :can-edit="canManage"
           :can-delete="canDelete"
           @select="selectFolder"
           @edit-section="sectionModal.openEdit($event)"
@@ -250,18 +255,18 @@ function onDeleteFolderRow(row: FeedFolderItem): void {
                 <button
                     v-if="canManage"
                     type="button"
-                    class="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50"
                     @click="sectionModal.openModal(activeFolder !== 'all' ? activeFolder : null)"
                 >
-                  <FolderPlus :size="14"/>
-                  {{ activeFolder !== 'all' ? 'Новый подраздел' : 'Новый раздел' }}
+                  <FolderPlus :size="15"/>
+                  Создать раздел
                 </button>
                 <button
                     type="button"
-                    class="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-700"
                     @click="openCreateScenario"
                 >
-                  <Plus :size="14"/>
+                  <Plus :size="15"/>
                   Новый сценарий
                 </button>
               </template>
@@ -314,7 +319,34 @@ function onDeleteFolderRow(row: FeedFolderItem): void {
     </div>
   </AppShell>
 
-  <SectionFormDialog :modal="sectionModal" :load-groups="loadGroups"/>
+  <SectionFormDialog
+      :modal="sectionModal"
+      :parent-options="tree.allSectionsFlat.value"
+      :exclude-ids="sectionModal.editingId.value ? [...tree.descendantIds(sectionModal.editingId.value)] : []"
+      placeholder="Например: HR"
+  >
+    <template v-if="sectionModal.isEditing.value">
+      <FormTagSearch
+          v-model="sectionModal.selectedGroups.value"
+          :loader="loadGroups"
+          value-key="id"
+          display-key="name"
+          label="Группы доступа"
+          placeholder="Поиск группы…"
+          hint="Группы, доступ которым к сценариям этого раздела"
+      />
+      <FormCheckbox
+          v-model="sectionModal.form.inherit_to_descendants"
+          label="Применить ко всем вложенным разделам и сценариям"
+          description="Существующие группы у вложенных объектов будут заменены на эти. Без галочки — изменится только сам раздел."
+      />
+      <FormCheckbox
+          v-model="sectionModal.form.is_workspace"
+          label="Использовать как рабочую папку"
+          description="Сценарии этого раздела показываются на странице «Workspace». В проекте рабочая папка одна — флаг снимется с остальных разделов."
+      />
+    </template>
+  </SectionFormDialog>
 
   <ScenarioCreateFormDialog
       :modal="createModal"

@@ -15,6 +15,11 @@ final class ProxyWebController extends Controller
         return Inertia::render('Proxy/Proxies');
     }
 
+    public function connections(): Response
+    {
+        return Inertia::render('Proxy/Connections');
+    }
+
     public function proxyRequests(): Response
     {
         return Inertia::render('Proxy/ProxyRequests');

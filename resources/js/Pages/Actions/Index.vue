@@ -8,8 +8,8 @@ import ActionEditorDrawer from './components/ActionEditorDrawer.vue'
 import ActionFieldModal from './components/ActionFieldModal.vue'
 import ActionRunModal from './components/ActionRunModal.vue'
 import ActionScheduleModal from './components/ActionScheduleModal.vue'
-import ActionsSidebar from './components/ActionsSidebar.vue'
-import ActionSectionFormDialog from './components/ActionSectionFormDialog.vue'
+import SectionSidebar from '@/components/sections/SectionSidebar.vue'
+import SectionFormDialog from '@/components/sections/SectionFormDialog.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useActionModal} from '@/modules/actions/composables/useActionModal'
 import {useActionRunModal} from '@/modules/actions/composables/useActionRunModal'
@@ -23,9 +23,9 @@ import {actionTypeRepository} from '@/modules/actions/repositories/actionTypeRep
 import type {Action, ActionCategory, ActionTypeMeta} from '@/modules/actions/types/action'
 import type {FeedActionRow, FeedFolderRow} from '@/modules/actions/repositories/actionFeedRepository'
 import {computed, ref} from 'vue'
-import {Head} from '@inertiajs/vue3'
+import {Head, router} from '@inertiajs/vue3'
 import {
-  CalendarClock, ChevronRight, Clock3, Folder, MoreHorizontal, Pencil, Play, Plus,
+  CalendarClock, ChevronRight, Clock3, Folder, FolderPlus, MoreHorizontal, Pencil, Play, Plus,
   RefreshCw, Shield, ShieldOff, Trash2, Zap,
 } from 'lucide-vue-next'
 import {
@@ -153,17 +153,44 @@ function formatDate(value: string | null | undefined): string {
 
   <AppShell title="Действия" :navigation-items="navigationItems" flush>
     <div class="flex h-full min-h-0 w-full overflow-hidden">
-      <ActionsSidebar
+      <SectionSidebar
           :tree="tree"
           :active-folder="tree.activeSection.value"
+          all-label="Все действия"
+          title="Действия"
+          :title-icon="Zap"
+          :all-icon="Zap"
           @select="(id: string) => tree.selectSection(id)"
           @edit-section="(s) => sectionModal.openEdit(s)"
           @delete-section="deleteSection"
-      />
+      >
+        <template #top-links>
+          <button
+              class="group flex h-8 w-full items-center gap-2 rounded-lg px-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50"
+              @click="router.visit('/actions/schedules')"
+          >
+            <span class="text-slate-400 transition-colors group-hover:text-slate-700">
+              <CalendarClock :size="14"/>
+            </span>
+            <span class="min-w-0 flex-1 truncate text-left">Расписания</span>
+            <ChevronRight :size="12" class="flex-none text-slate-300"/>
+          </button>
+          <button
+              class="group flex h-8 w-full items-center gap-2 rounded-lg px-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50"
+              @click="router.visit('/actions/runs')"
+          >
+            <span class="text-slate-400 transition-colors group-hover:text-slate-700">
+              <Clock3 :size="14"/>
+            </span>
+            <span class="min-w-0 flex-1 truncate text-left">История запусков</span>
+            <ChevronRight :size="12" class="flex-none text-slate-300"/>
+          </button>
+        </template>
+      </SectionSidebar>
 
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div class="flex-1 overflow-y-auto bg-slate-50">
-          <div class="mx-auto max-w-6xl px-6 py-8">
+        <div class="flex-1 overflow-y-auto bg-white">
+          <div class="px-8 pt-6">
             <!-- Breadcrumb -->
             <nav class="mb-3 flex items-center gap-1.5 text-[13px]">
               <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
@@ -183,23 +210,13 @@ function formatDate(value: string | null | undefined): string {
             >
               <template #actions>
                 <button
-                    class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50"
                     @click="sectionModal.openModal(tree.activeSection.value !== 'all' ? tree.activeSection.value : null)">
-                  <Plus :size="15"/>
-                  Раздел
+                  <FolderPlus :size="15"/>
+                  Создать раздел
                 </button>
-                <a href="/actions/schedules"
-                   class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-                  <CalendarClock :size="15"/>
-                  Расписания
-                </a>
-                <a href="/actions/runs"
-                   class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-                  <Clock3 :size="15"/>
-                  История запусков
-                </a>
                 <button
-                    class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-700"
                     @click="createInActiveSection">
                   <Plus :size="15"/>
                   Новый action
@@ -219,7 +236,26 @@ function formatDate(value: string | null | undefined): string {
               </button>
             </div>
 
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+            <div v-if="feed.loading.value && !feed.rows.value.length"
+                 class="overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-[13px] text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              Загрузка…
+            </div>
+
+            <EmptyState
+                v-else-if="!feed.rows.value.length"
+                title="Здесь пусто"
+                :subtitle="feed.search.value
+                  ? 'Ничего не найдено'
+                  : tree.activeSection.value === 'all'
+                    ? 'Создайте раздел или действие, чтобы начать'
+                    : 'Создайте действие в этом разделе'"
+            >
+              <template #icon>
+                <Zap :size="22"/>
+              </template>
+            </EmptyState>
+
+            <div v-else class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div class="grid border-b border-slate-100 px-5 py-3"
                    style="grid-template-columns: minmax(260px,1fr) 150px 150px 110px 40px">
                 <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Название</div>
@@ -229,19 +265,6 @@ function formatDate(value: string | null | undefined): string {
                 <div/>
               </div>
 
-              <div v-if="feed.loading.value && !feed.rows.value.length"
-                   class="px-5 py-8 text-center text-[13px] text-slate-400">
-                Загрузка…
-              </div>
-
-              <EmptyState v-else-if="!feed.rows.value.length" title="Пусто"
-                          subtitle="Создайте раздел или действие">
-                <template #icon>
-                  <Zap :size="20"/>
-                </template>
-              </EmptyState>
-
-              <template v-else>
                 <div
                     v-for="(row, idx) in feed.rows.value"
                     :key="`${row.type}-${row.id}`"
@@ -366,8 +389,8 @@ function formatDate(value: string | null | undefined): string {
                     :total="feed.meta.value.total"
                     :per-page="feed.meta.value.per_page"
                 />
-              </template>
             </div>
+            <div class="h-8" />
           </div>
         </div>
       </div>
@@ -378,5 +401,9 @@ function formatDate(value: string | null | undefined): string {
   <ActionFieldModal :modal="modal"/>
   <ActionRunModal :run-modal="runModal"/>
   <ActionScheduleModal :schedule-modal="scheduleModal"/>
-  <ActionSectionFormDialog :modal="sectionModal" :tree="tree"/>
+  <SectionFormDialog
+      :modal="sectionModal"
+      :parent-options="tree.allSectionsFlat.value"
+      :exclude-ids="sectionModal.editingId.value ? [...tree.descendantIds(sectionModal.editingId.value)] : []"
+  />
 </template>

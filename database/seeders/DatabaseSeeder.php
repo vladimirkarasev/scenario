@@ -18,6 +18,7 @@ final class DatabaseSeeder extends Seeder
             TestUsersSeeder::class,
             DemoDirectorySeeder::class,
             DemoScenarioSeeder::class,
+            DemoProxySeeder::class,
         ]);
     }
 }
