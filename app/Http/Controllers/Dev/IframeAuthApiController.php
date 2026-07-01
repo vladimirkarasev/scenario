@@ -4,79 +4,64 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Dev;
 
-use App\DTO\EmbedAuth\ProjectUserRegisterData;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Module\Users\Models\User;
 use App\Services\EmbedAuth\EmbedAuthTokenService;
-use App\Services\EmbedAuth\EmbedAuthUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Module\Projects\Models\Project;
+use Module\Users\Models\Role;
 
 final class IframeAuthApiController extends Controller
 {
     public function __construct(
         private readonly EmbedAuthTokenService $tokenService,
-        private readonly EmbedAuthUserService $userService,
     ) {
     }
 
-    public function exchange(Request $request): JsonResponse
+    /**
+     * Симулирует прод-флоу: создаёт/обновляет пользователя проекта и выдаёт одноразовый _token.
+     * Origin у dev-токена не ограничивается (в локали Origin ≠ project->host).
+     */
+    public function launch(Request $request): JsonResponse
     {
         $request->validate([
-            'project_uuid' => ['required', 'string'],
-            'login' => ['required', 'string', 'max:255'],
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'email', 'max:255'],
-            'roles' => ['required', 'array', 'min:1'],
-            'roles.*' => ['required', 'string'],
-        ]);
-
-        /** @var Project|null $project */
-        $project = Project::query()->where('id', $request->string('project_uuid'))->first();
-
-        if ($project === null) {
-            return response()->json(['message' => 'Project not found.'], 404);
-        }
-
-        $secret = $request->bearerToken();
-
-        if ($secret === null || $project->shared_secret === null || !hash_equals($project->shared_secret, $secret)) {
-            return response()->json(['message' => 'Unauthorized.'], 401);
-        }
-
-        $user = $this->userService->syncUser(
-            new ProjectUserRegisterData(
-                login: $request->string('login')->toString(),
-                email: $request->filled('email') ? $request->string('email')->toString() : null,
-                name: $request->string('name')->toString(),
-                externalId: null,
-                roles: array_values(
-                    array_map(static fn(mixed $r): string => is_string($r) ? $r : '', $request->array('roles'))
-                ),
-            ),
-            $project
-        );
-
-        return response()->json($this->tokenService->authorizeUser($user, $project));
-    }
-
-    public function mockToken(Request $request): JsonResponse
-    {
-        $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
             'project_id' => ['required', 'string', 'exists:projects,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'login' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'external_id' => ['nullable', 'string', 'max:255'],
+            'roles' => ['array'],
+            'roles.*' => ['string'],
         ]);
 
-        /** @var User $user */
-        $user = User::query()->findOrFail($request->integer('user_id'));
         /** @var Project $project */
-        $project = Project::query()->findOrFail($request->string('project_id'));
+        $project = Project::query()->findOrFail($request->string('project_id')->toString());
 
-        return response()->json(
-            $this->tokenService->createLaunchToken($user, $project),
+        $user = User::query()->updateOrCreate(
+            ['project_id' => $project->id, 'login' => $request->string('login')->toString()],
+            [
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'external_id' => $request->filled('external_id') ? $request->string('external_id')->toString() : null,
+                'is_system' => false,
+                'password' => Hash::make(Str::random(40)),
+            ],
         );
+
+        $roles = array_values(array_filter($request->array('roles'), is_string(...)));
+
+        foreach ($roles as $role) {
+            Role::findOrCreate($role, 'web');
+        }
+        $user->syncRoles($roles);
+
+        $result = $this->tokenService->createLaunchToken($user, $project, '');
+
+        return response()->json(['_token' => $result['iframe_launch_token']]);
     }
 
     public function devLogin(Request $request): JsonResponse

@@ -17,7 +17,7 @@ final class EmbedAuthExchangeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => ['required', 'string'],
+            '_token' => ['required', 'string'],
         ];
     }
 }

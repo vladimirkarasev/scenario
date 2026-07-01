@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {toast} from 'vue-sonner'
-import {redirectToPartner} from '@/lib/auth-redirect'
+import {markForbidden} from '@/lib/auth-state'
 
 const httpClient = axios.create({
     headers: {
@@ -47,7 +47,7 @@ httpClient.interceptors.response.use(
         const refreshToken = sessionStorage.getItem('refresh_token')
         if (!refreshToken) {
             sessionStorage.removeItem('access_token')
-            redirectToPartner()
+            markForbidden()
             return Promise.reject(error)
         }
 
@@ -80,7 +80,7 @@ httpClient.interceptors.response.use(
             sessionStorage.removeItem('access_token')
             sessionStorage.removeItem('refresh_token')
             queue = []
-            redirectToPartner()
+            markForbidden()
             return Promise.reject(error)
         } finally {
             isRefreshing = false

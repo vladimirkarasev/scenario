@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Scenario\Http;
 
 use Spatie\Permission\PermissionRegistrar;
-use App\Models\User;
+use Module\Users\Models\User;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Scenario\Models\Scenario;

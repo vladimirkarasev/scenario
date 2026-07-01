@@ -19,11 +19,10 @@ final class IframeAuthWebController extends Controller
         $demo = Project::query()->where('sitekey', DemoProjectSeeder::SITEKEY)->first();
 
         return Inertia::render('Auth/IframeAuth', [
-            'demo' => $demo ? [
-                'project_uuid' => $demo->id,
-                'shared_secret' => $demo->shared_secret,
-                'login' => AdminUserSeeder::LOGIN,
+            'demo' => $demo !== null ? [
+                'project_id' => $demo->id,
                 'name' => AdminUserSeeder::NAME,
+                'login' => AdminUserSeeder::LOGIN,
                 'email' => AdminUserSeeder::EMAIL,
                 'roles' => AdminUserSeeder::ROLE,
             ] : null,

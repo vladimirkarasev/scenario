@@ -21,7 +21,7 @@ final class EmbedAuthExchangeController extends Controller
     {
         try {
             $tokens = $this->tokenService->exchange(
-                plainToken: $request->string('token')->toString(),
+                plainToken: $request->string('_token')->toString(),
                 requestOrigin: $request->header('Origin'),
             );
         } catch (InvalidTokenException $e) {

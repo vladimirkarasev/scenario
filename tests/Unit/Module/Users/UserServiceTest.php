@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Users;
 
-use App\Models\Role;
-use App\Models\User;
+use Module\Users\Models\Role;
+use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Module\Projects\CurrentProject;
 use Module\Projects\Models\Project;
+use Module\Groups\Models\UserGroup;
 use Module\Users\DTO\UserData;
 use Module\Users\Services\UserService;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
 use Tests\TestCase;
 
 final class UserServiceTest extends TestCase
@@ -22,6 +23,7 @@ final class UserServiceTest extends TestCase
 
     private UserService $service;
     private Project $project;
+    private User $actor;
 
     protected function setUp(): void
     {
@@ -29,6 +31,13 @@ final class UserServiceTest extends TestCase
         $this->project = $this->makeProject();
         $this->app->instance(CurrentProject::class, new CurrentProject($this->project));
         $this->service = app(UserService::class);
+        $administrator = Role::query()->create([
+            'name' => 'administrator',
+            'guard_name' => 'web',
+            'is_system' => true,
+        ]);
+        $this->actor = $this->makeUserInProject();
+        $this->actor->assignRole($administrator);
     }
 
     /**
@@ -37,11 +46,12 @@ final class UserServiceTest extends TestCase
     public function test_create_persists_user_attributes(): void
     {
         $user = $this->service->create(
+            $this->actor,
             new UserData(
                 name: 'Иван Иванов',
                 fio: null,
                 email: 'ivan@example.com',
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: 'secret1234',
             )
@@ -52,48 +62,46 @@ final class UserServiceTest extends TestCase
     }
 
     /**
-     * Создание пользователя добавляет его в project_users.
+     * Создание пользователя привязывает его к текущему проекту.
      */
     public function test_create_adds_user_to_project(): void
     {
         $user = $this->service->create(
+            $this->actor,
             new UserData(
                 name: 'Проектный',
                 fio: null,
                 email: 'proj-'.Str::random(6).'@example.com',
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: 'secret1234',
             )
         );
 
-        $this->assertDatabaseHas('project_users', [
-            'user_id' => $user->id,
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
             'project_id' => $this->project->id,
         ]);
     }
 
-    /**
-     * Создание без проекта — project_users не заполняется.
-     */
-    public function test_create_does_not_add_to_project_when_no_current_project(): void
+    public function test_create_fails_without_current_project(): void
     {
         $this->app->instance(CurrentProject::class, new CurrentProject(null));
         $service = app(UserService::class);
 
-        $user = $service->create(
+        $this->expectException(\LogicException::class);
+
+        $service->create(
+            $this->actor,
             new UserData(
                 name: 'Без проекта',
                 fio: null,
                 email: 'noproject-'.Str::random(6).'@example.com',
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: 'secret1234',
             )
         );
-
-        $count = DB::table('project_users')->where('user_id', $user->id)->count();
-        $this->assertSame(0, $count);
     }
 
     /**
@@ -104,14 +112,16 @@ final class UserServiceTest extends TestCase
         Role::query()->create(['name' => 'admin', 'guard_name' => 'web']);
 
         $user = $this->service->create(
+            $this->actor,
             new UserData(
                 name: 'Администратор',
                 fio: null,
                 email: 'admin-'.Str::random(6).'@example.com',
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: 'secret1234',
                 roles: ['admin'],
+                rolesProvided: true,
             )
         );
 
@@ -126,11 +136,12 @@ final class UserServiceTest extends TestCase
         $plainPassword = 'plaintext123';
 
         $user = $this->service->create(
+            $this->actor,
             new UserData(
                 name: 'User',
                 fio: null,
                 email: 'hashed-'.Str::random(6).'@example.com',
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: $plainPassword,
             )
@@ -141,23 +152,48 @@ final class UserServiceTest extends TestCase
         $this->assertNotSame($plainPassword, $stored->password);
     }
 
+    public function test_create_rolls_back_when_role_sync_fails(): void
+    {
+        $email = 'rollback-'.Str::random(6).'@example.com';
+
+        try {
+            $this->service->create(
+                $this->actor,
+                new UserData(
+                    name: 'Rollback',
+                    fio: null,
+                    email: $email,
+                    login: 'login-'.Str::random(8),
+                    externalId: null,
+                    password: 'secret1234',
+                    roles: ['missing-role'],
+                    rolesProvided: true,
+                )
+            );
+            self::fail('Expected missing role exception.');
+        } catch (RoleDoesNotExist) {
+            $this->assertDatabaseMissing('users', ['email' => $email]);
+        }
+    }
+
     /**
      * Обновление меняет имя в БД.
      */
     public function test_update_persists_new_name(): void
     {
-        $user = User::factory()->create(['name' => 'Старое имя']);
+        $user = $this->makeUserInProject(['name' => 'Старое имя']);
 
         $this->service->update(
+            $this->actor,
             new UserData(
                 name: 'Новое имя',
                 fio: null,
                 email: $user->email,
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: null,
             ),
-            $user
+            $user,
         );
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Новое имя']);
@@ -168,19 +204,20 @@ final class UserServiceTest extends TestCase
      */
     public function test_update_hashes_new_password_when_provided(): void
     {
-        $user = User::factory()->create();
+        $user = $this->makeUserInProject();
         $newPassword = 'new-secure-pass';
 
         $this->service->update(
+            $this->actor,
             new UserData(
                 name: $user->name,
                 fio: null,
                 email: $user->email,
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: $newPassword,
             ),
-            $user
+            $user,
         );
 
         $stored = User::query()->find($user->id);
@@ -192,23 +229,67 @@ final class UserServiceTest extends TestCase
      */
     public function test_update_does_not_change_password_when_null(): void
     {
-        $user = User::factory()->create();
+        $user = $this->makeUserInProject();
         $originalHash = $user->password;
 
         $this->service->update(
+            $this->actor,
             new UserData(
                 name: $user->name,
                 fio: null,
                 email: $user->email,
-                login: null,
+                login: 'login-'.Str::random(8),
                 externalId: null,
                 password: null,
             ),
-            $user
+            $user,
         );
 
         $stored = User::query()->find($user->id);
         $this->assertSame($originalHash, $stored->password);
+    }
+
+    public function test_update_removes_groups_from_other_projects(): void
+    {
+        $user = $this->makeUserInProject();
+        $otherProject = $this->makeProject();
+        $currentGroup = UserGroup::query()->create([
+            'name' => 'Current',
+            'slug' => 'current',
+            'site_id' => $this->project->id,
+            'is_active' => true,
+        ]);
+        $otherGroup = UserGroup::query()->create([
+            'name' => 'Other',
+            'slug' => 'other',
+            'site_id' => $otherProject->id,
+            'is_active' => true,
+        ]);
+        $user->groups()->sync([$currentGroup->id, $otherGroup->id]);
+
+        $this->service->update(
+            $this->actor,
+            new UserData(
+                name: $user->name,
+                fio: null,
+                email: $user->email,
+                login: 'login-'.Str::random(8),
+                externalId: null,
+                password: null,
+                groupIds: [],
+                groupIdsProvided: true,
+            ),
+            $user,
+        );
+
+        $this->assertDatabaseMissing('user_group_members', [
+            'user_id' => $user->id,
+            'user_group_id' => $currentGroup->id,
+        ]);
+        $this->assertDatabaseMissing('user_group_members', [
+            'user_id' => $user->id,
+            'user_group_id' => $otherGroup->id,
+        ]);
     }
 
     /**
@@ -216,9 +297,9 @@ final class UserServiceTest extends TestCase
      */
     public function test_delete_removes_user_from_db(): void
     {
-        $user = User::factory()->create();
+        $user = $this->makeUserInProject();
 
-        $this->service->delete($user);
+        $this->service->delete($this->actor, $user);
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
@@ -228,7 +309,7 @@ final class UserServiceTest extends TestCase
      */
     public function test_find_loads_roles_and_groups_relations(): void
     {
-        $user = User::factory()->create();
+        $user = $this->makeUserInProject();
 
         $result = $this->service->find($user);
 
@@ -249,5 +330,14 @@ final class UserServiceTest extends TestCase
             'shared_secret' => Str::random(32),
             'is_active' => true,
         ]);
+    }
+
+    /** @param  array<string, mixed>  $attributes */
+    private function makeUserInProject(array $attributes = []): User
+    {
+        return User::factory()->create(array_merge([
+            'project_id' => $this->project->id,
+            'login' => 'login-'.Str::random(8),
+        ], $attributes));
     }
 }

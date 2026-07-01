@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Groups\Services;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Groups\DTO\GroupRegistrationData;
 use Module\Groups\DTO\UserGroupData;

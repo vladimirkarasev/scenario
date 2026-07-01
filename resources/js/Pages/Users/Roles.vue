@@ -12,6 +12,7 @@ import {
   FormActions, FormBody, FormError, FormInput, FormPermissionGroups, FormSection, FormTextarea,
 } from '@/components/form'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
+import {useAuthStore} from '@/stores/auth'
 import {useRoleList} from '@/modules/roles/composables/useRoleList'
 import {useRoleModal} from '@/modules/roles/composables/useRoleModal'
 import type {Role} from '@/modules/roles/types/role'
@@ -20,6 +21,9 @@ import {Check, Copy, Layers, Lock, MoreHorizontal, Pencil, Plus, Shield, Trash2,
 import {computed, ref} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
+const auth = useAuthStore()
+const canManage = computed(() => auth.hasPermission('role_create'))
+const canDelete = computed(() => auth.hasPermission('role_delete'))
 
 const copiedId = ref<string | null>(null)
 
@@ -62,6 +66,7 @@ function displayTitle(r: Role): string {
         <PageHeader title="Пользователи и роли" subtitle="Управление пользователями, группами и ролями доступа.">
           <template #actions>
             <button
+                v-if="canManage"
                 class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
                 @click="openCreate"
             >
@@ -164,7 +169,7 @@ function displayTitle(r: Role): string {
 
             <div class="text-[13px] font-semibold tabular-nums text-slate-900">{{ r.users_count }}</div>
 
-            <div class="flex justify-end">
+            <div v-if="canManage || (canDelete && !r.is_system)" class="flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
@@ -173,11 +178,11 @@ function displayTitle(r: Role): string {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="w-44">
-                  <DropdownMenuItem @click="openEdit(r)">
+                  <DropdownMenuItem v-if="canManage" @click="openEdit(r)">
                     <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
                     Редактировать
                   </DropdownMenuItem>
-                  <template v-if="!r.is_system">
+                  <template v-if="canDelete && !r.is_system">
                     <DropdownMenuSeparator/>
                     <DropdownMenuItem class="text-red-600 focus:text-red-600" @click="openDeleteConfirm(r)">
                       <Trash2 class="mr-2 h-4 w-4"/>
@@ -187,6 +192,7 @@ function displayTitle(r: Role): string {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            <div v-else/>
           </div>
         </div>
       </div>

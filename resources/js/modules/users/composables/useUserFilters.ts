@@ -1,4 +1,4 @@
-import {computed, onMounted, ref} from 'vue'
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import {groupRepository} from '@/modules/groups/repositories/groupRepository'
 import {roleRepository} from '@/modules/roles/repositories/roleRepository'
 import type {UserListParams} from './useUserList'
@@ -61,6 +61,8 @@ export function useUserFilters(params: UserListParams) {
     const filterRoleResults = ref<FilterRole[]>([])
     let groupTimer: ReturnType<typeof setTimeout> | null = null
     let roleTimer: ReturnType<typeof setTimeout> | null = null
+    let groupRequestId = 0
+    let roleRequestId = 0
 
     function onGroupInput(): void {
         if (groupTimer) clearTimeout(groupTimer)
@@ -69,13 +71,16 @@ export function useUserFilters(params: UserListParams) {
             return
         }
         groupTimer = setTimeout(async () => {
+            const requestId = ++groupRequestId
             try {
                 const qs = new URLSearchParams({'page[size]': '15', 'filter[search]': filterGroupSearch.value})
                 const res = await groupRepository.list(qs)
                 const active = toArr(params['filter[group_ids][]'])
-                filterGroupResults.value = res.data
-                    .filter(g => !active.includes(g.id))
-                    .map(g => ({id: g.id, name: g.name}))
+                if (requestId === groupRequestId) {
+                    filterGroupResults.value = res.data
+                        .filter(g => !active.includes(g.id))
+                        .map(g => ({id: g.id, name: g.name}))
+                }
             } catch { /* silent */
             }
         }, 250)
@@ -88,13 +93,16 @@ export function useUserFilters(params: UserListParams) {
             return
         }
         roleTimer = setTimeout(async () => {
+            const requestId = ++roleRequestId
             try {
                 const qs = new URLSearchParams({'page[size]': '20', 'filter[search]': filterRoleSearch.value})
                 const res = await roleRepository.list(qs)
                 const active = toArr(params['filter[role_ids][]'])
-                filterRoleResults.value = res
-                    .filter(r => !active.includes(String(r.id)))
-                    .map(r => ({id: String(r.id), name: r.name, title: r.title}))
+                if (requestId === roleRequestId) {
+                    filterRoleResults.value = res
+                        .filter(r => !active.includes(String(r.id)))
+                        .map(r => ({id: String(r.id), name: r.name, title: r.title}))
+                }
             } catch { /* silent */
             }
         }, 250)
@@ -130,6 +138,13 @@ export function useUserFilters(params: UserListParams) {
         params['filter[group_ids][]'] = undefined
         params['filter[role_ids][]'] = undefined
     }
+
+    onBeforeUnmount(() => {
+        groupRequestId++
+        roleRequestId++
+        if (groupTimer) clearTimeout(groupTimer)
+        if (roleTimer) clearTimeout(roleTimer)
+    })
 
     return {
         filterGroups, filterRoles, hasFilters,

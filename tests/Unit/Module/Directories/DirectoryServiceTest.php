@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Directories;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Directories\Exceptions\DirectoryException;
 use Module\Directories\Models\Directory;

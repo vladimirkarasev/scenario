@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Groups\Models;
 
 use App\Models\Category;
-use App\Models\User;
+use Module\Users\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

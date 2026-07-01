@@ -6,7 +6,7 @@ namespace Tests\Feature\Directories\Http;
 
 use Spatie\Permission\PermissionRegistrar;
 use App\Models\Category;
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

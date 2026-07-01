@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Role;
-use App\Models\User;
+use Module\Users\Models\Role;
+use Module\Users\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Module\Projects\Enums\ProjectPermission;
 use Module\Projects\Models\Project;
-use Module\Users\Enums\GroupPermission;
+use Module\Groups\Enums\GroupPermission;
 use Module\Users\Enums\RolePermission;
 use Module\Users\Enums\UserPermission;
 use Spatie\Permission\Models\Permission;
@@ -79,7 +78,7 @@ final class TestUsersSeeder extends Seeder
     private function createUser(string $email, string $login, string $name, Role $role, ?Project $project): void
     {
         $user = User::query()->updateOrCreate(
-            ['email' => $email],
+            ['email' => $email, 'project_id' => $project?->id],
             [
                 'name' => $name,
                 'login' => $login,
@@ -90,16 +89,5 @@ final class TestUsersSeeder extends Seeder
         );
 
         $user->syncRoles([$role]);
-
-        if ($project === null) {
-            return;
-        }
-
-        DB::table('project_users')->insertOrIgnore([
-            'user_id' => $user->id,
-            'project_id' => $project->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 }

@@ -58,7 +58,7 @@ item:
       schema:
         type: integer
 
-  patch:
+  put:
     tags: [ Роли ]
     summary: Обновить роль
     security:

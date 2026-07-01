@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Users\DTO;
 
-use Illuminate\Http\Request;
+use Module\Users\Http\Requests\UserIndexRequest;
 
 final readonly class UserIndexData
 {
@@ -20,9 +20,11 @@ final readonly class UserIndexData
     ) {
     }
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(UserIndexRequest $request): self
     {
-        $filter = $request->array('filter');
+        /** @var array<string, mixed> $validated */
+        $validated = $request->validated();
+        $filter = is_array($validated['filter'] ?? null) ? $validated['filter'] : [];
 
         $search = isset($filter['search']) && is_string($filter['search']) && $filter['search'] !== ''
             ? $filter['search']
@@ -32,7 +34,7 @@ final readonly class UserIndexData
             search: $search,
             groupIds: self::toStringList($filter['group_ids'] ?? []),
             roleIds: self::toStringList($filter['role_ids'] ?? []),
-            perPage: (int)$request->integer('per_page', 20),
+            perPage: $request->integer('per_page', 15),
         );
     }
 

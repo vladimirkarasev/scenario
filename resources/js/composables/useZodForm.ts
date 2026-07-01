@@ -1,5 +1,5 @@
-import {reactive, ref, watch} from 'vue'
-import type {Ref} from 'vue'
+import {reactive, ref, toValue, watch} from 'vue'
+import type {MaybeRefOrGetter, Ref} from 'vue'
 import type {z} from 'zod'
 import {HttpValidationError} from '@/lib/http'
 
@@ -30,7 +30,7 @@ export interface UseZodFormReturn<T extends object> {
 }
 
 export function useZodForm<Schema extends z.ZodType<object>>(
-    schema: Schema,
+    schema: MaybeRefOrGetter<Schema>,
     initial: z.infer<Schema>,
 ): UseZodFormReturn<z.infer<Schema>> {
     type T = z.infer<Schema>
@@ -44,7 +44,7 @@ export function useZodForm<Schema extends z.ZodType<object>>(
         for (const key of Object.keys(errors)) {
             const value = (data as Record<string, unknown>)[key]
             if (value === '' || value === null || value === undefined) continue
-            const result = schema.safeParse(data)
+            const result = toValue(schema).safeParse(data)
             if (result.success) {
                 delete errors[key]
             } else {
@@ -58,7 +58,7 @@ export function useZodForm<Schema extends z.ZodType<object>>(
         for (const k of Object.keys(errors)) delete errors[k]
         formError.value = null
 
-        const result = schema.safeParse(formData)
+        const result = toValue(schema).safeParse(formData)
         if (result.success) return true
 
         for (const issue of result.error.issues) {

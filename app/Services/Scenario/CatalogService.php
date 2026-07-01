@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Scenario;
 
 use App\Models\Category;
-use App\Models\User;
+use Module\Users\Models\User;
 use App\Queries\Scenario\ActiveCatalogCategoryIdsQuery;
 use App\Queries\Scenario\CatalogItemsQueryBuilder;
 use Illuminate\Support\Collection;

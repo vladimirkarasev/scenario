@@ -5,18 +5,31 @@ collection:
     security:
       - BearerAuth: [ ]
     parameters:
-      - name: search
+      - name: filter[search]
         in: query
         description: Поиск по имени, ФИО, email, логину
         schema:
           type: string
-      - name: group_id
+      - name: filter[group_ids][]
         in: query
-        description: Фильтр по UUID группы
+        description: Фильтр по UUID групп текущего проекта
         schema:
-          type: string
-          format: uuid
+          type: array
+          items:
+            type: string
+            format: uuid
+      - name: filter[role_ids][]
+        in: query
+        description: Фильтр по ID ролей
+        schema:
+          type: array
+          items:
+            type: integer
+      - $ref: '../components/parameters.yaml#/PageNumber'
       - $ref: '../components/parameters.yaml#/PerPage'
+      - $ref: '../components/parameters.yaml#/IncludeUserRelations'
+      - $ref: '../components/parameters.yaml#/FieldsGroups'
+      - $ref: '../components/parameters.yaml#/FieldsRoles'
     responses:
       '200':
         description: Список пользователей (JSON:API коллекция)
@@ -31,8 +44,19 @@ collection:
                       type: array
                       items:
                         $ref: '../components/schemas/users.yaml#/UserResource'
+                    included:
+                      type: array
+                      description: Включённые роли/группы (при ?include=roles,groups).
+                      items:
+                        oneOf:
+                          - $ref: '../components/schemas/users.yaml#/IncludedRole'
+                          - $ref: '../components/schemas/users.yaml#/IncludedGroup'
       '401':
         $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
 
   post:
     tags: [ Пользователи ]
@@ -54,6 +78,8 @@ collection:
               $ref: '../components/schemas/users.yaml#/UserResource'
       '401':
         $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
       '422':
         $ref: '../components/responses.yaml#/ValidationError'
 
@@ -71,19 +97,36 @@ item:
     summary: Получить пользователя
     security:
       - BearerAuth: [ ]
+    parameters:
+      - $ref: '../components/parameters.yaml#/IncludeUserRelations'
+      - $ref: '../components/parameters.yaml#/FieldsGroups'
+      - $ref: '../components/parameters.yaml#/FieldsRoles'
     responses:
       '200':
-        description: Пользователь с группами
+        description: Пользователь (с ролями/группами при ?include=roles,groups)
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/users.yaml#/UserResource'
+              type: object
+              required: [ data ]
+              properties:
+                data:
+                  $ref: '../components/schemas/users.yaml#/UserResource'
+                included:
+                  type: array
+                  description: Включённые роли/группы (при ?include=roles,groups).
+                  items:
+                    oneOf:
+                      - $ref: '../components/schemas/users.yaml#/IncludedRole'
+                      - $ref: '../components/schemas/users.yaml#/IncludedGroup'
       '401':
         $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
       '404':
         $ref: '../components/responses.yaml#/NotFound'
 
-  patch:
+  put:
     tags: [ Пользователи ]
     summary: Обновить пользователя
     security:
@@ -103,6 +146,8 @@ item:
               $ref: '../components/schemas/users.yaml#/UserResource'
       '401':
         $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
       '404':
         $ref: '../components/responses.yaml#/NotFound'
       '422':
@@ -110,14 +155,111 @@ item:
 
   delete:
     tags: [ Пользователи ]
-    summary: Удалить пользователя
+    summary: Удалить пользователя из текущего проекта
+    description: Учётная запись удаляется полностью, только если пользователь больше не состоит ни в одном проекте.
     security:
       - BearerAuth: [ ]
     responses:
       '204':
-        description: Пользователь удалён
+        description: Пользователь удалён из проекта
       '401':
         $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+tokens:
+  parameters:
+    - name: user
+      in: path
+      required: true
+      description: ID пользователя текущего проекта
+      schema:
+        type: integer
+
+  get:
+    tags: [ Пользователи ]
+    summary: Список API-токенов пользователя
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '200':
+        description: Токены без секретного значения
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ data ]
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas/users.yaml#/UserToken'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+  post:
+    tags: [ Пользователи ]
+    summary: Выпустить API-токен пользователю
+    description: Нельзя выпустить токен пользователю с более широкими правами, чем у текущего пользователя.
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/users.yaml#/UserTokenStoreRequest'
+    responses:
+      '201':
+        description: Токен создан; секрет возвращается только один раз
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ data ]
+              properties:
+                data:
+                  $ref: '../components/schemas/users.yaml#/UserTokenCreated'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
+tokenItem:
+  parameters:
+    - name: user
+      in: path
+      required: true
+      schema:
+        type: integer
+    - name: tokenId
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  delete:
+    tags: [ Пользователи ]
+    summary: Отозвать API-токен пользователя
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '204':
+        description: Токен отозван или уже отсутствовал
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        $ref: '../components/responses.yaml#/Forbidden'
       '404':
         $ref: '../components/responses.yaml#/NotFound'
 

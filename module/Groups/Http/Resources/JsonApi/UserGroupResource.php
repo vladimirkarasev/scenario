@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Groups\Http\Resources\JsonApi;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 use Module\Groups\Models\UserGroup;
@@ -14,7 +14,9 @@ use Module\Groups\Models\UserGroup;
  */
 final class UserGroupResource extends JsonApiResource
 {
-    protected bool $usesRequestQueryString = false;
+    // true → ресурс уважает sparse fieldsets (?fields[groups]=name,slug),
+    // чтобы во включённых группах отдавались только нужные поля.
+    protected bool $usesRequestQueryString = true;
 
     public function toId(Request $request): string
     {

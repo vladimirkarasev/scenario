@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Requests;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Module\Projects\CurrentProject;
 
 final class UserUpdateRequest extends FormRequest
 {
@@ -20,6 +21,7 @@ final class UserUpdateRequest extends FormRequest
     {
         /** @var User $user */
         $user = $this->route('user');
+        $projectId = $this->container->make(CurrentProject::class)->id();
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -29,25 +31,32 @@ final class UserUpdateRequest extends FormRequest
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($user->id),
+                Rule::unique('users', 'email')->where('project_id', $projectId)->ignore($user->id),
             ],
             'login' => [
-                'nullable',
+                'required',
                 'string',
                 'max:255',
-                Rule::unique('users', 'login')->ignore($user->id),
+                Rule::unique('users', 'login')->where('project_id', $projectId)->ignore($user->id),
             ],
             'external_id' => [
                 'nullable',
                 'string',
                 'max:255',
-                Rule::unique('users', 'external_id')->ignore($user->id),
+                Rule::unique('users', 'external_id')->where('project_id', $projectId)->ignore($user->id),
             ],
             'password' => ['nullable', 'string', 'min:8'],
             'roles' => ['nullable', 'array'],
-            'roles.*' => ['string', 'exists:roles,name'],
+            'roles.*' => [
+                'string',
+                Rule::exists('roles', 'name')->where('guard_name', 'web'),
+            ],
             'group_ids' => ['nullable', 'array'],
-            'group_ids.*' => ['string', 'exists:user_groups,id'],
+            'group_ids.*' => [
+                'string',
+                'uuid',
+                Rule::exists('user_groups', 'id')->where('site_id', $projectId),
+            ],
         ];
     }
 
@@ -55,7 +64,7 @@ final class UserUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'login' => $this->filled('login') ? $this->input('login') : null,
+            'fio' => $this->filled('fio') ? $this->input('fio') : null,
             'external_id' => $this->filled('external_id') ? $this->input('external_id') : null,
         ]);
     }

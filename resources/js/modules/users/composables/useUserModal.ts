@@ -1,4 +1,4 @@
-import {ref, shallowRef} from 'vue'
+import {onBeforeUnmount, ref, shallowRef} from 'vue'
 import {userRepository} from '@/modules/users/repositories/userRepository'
 import {roleRepository} from '@/modules/roles/repositories/roleRepository'
 import {groupRepository} from '@/modules/groups/repositories/groupRepository'
@@ -23,7 +23,7 @@ export function useUserModal(onSaved: () => void) {
     const schemaRef = shallowRef(userSchema(false))
 
     const {formData: form, errors, formError, submitting, submit, reset} =
-        useZodForm(schemaRef.value, emptyForm())
+        useZodForm(schemaRef, emptyForm())
 
     const formToast = useFormToast({
         created: 'Пользователь создан',
@@ -42,6 +42,7 @@ export function useUserModal(onSaved: () => void) {
     const roleDropdownOpen = ref(false)
     const roleResults = ref<RoleItem[]>([])
     let roleTimer: ReturnType<typeof setTimeout> | null = null
+    let roleRequestId = 0
 
     function onRoleInput(): void {
         roleDropdownOpen.value = false
@@ -51,15 +52,18 @@ export function useUserModal(onSaved: () => void) {
             return
         }
         roleTimer = setTimeout(async () => {
+            const requestId = ++roleRequestId
             try {
                 const res = await roleRepository.list(new URLSearchParams({
                     'page[size]': '20',
                     'filter[search]': roleSearch.value
                 }))
-                roleResults.value = res
-                    .filter(r => !form.roles.includes(r.name))
-                    .map(r => ({id: String(r.id), name: r.name, title: r.title}))
-                roleDropdownOpen.value = roleResults.value.length > 0
+                if (requestId === roleRequestId) {
+                    roleResults.value = res
+                        .filter(r => !form.roles.includes(r.name))
+                        .map(r => ({id: String(r.id), name: r.name, title: r.title}))
+                    roleDropdownOpen.value = roleResults.value.length > 0
+                }
             } catch { /* silent */
             }
         }, 250)
@@ -84,6 +88,8 @@ export function useUserModal(onSaved: () => void) {
     const groupDropdownOpen = ref(false)
     const groupResults = ref<GroupItem[]>([])
     let groupTimer: ReturnType<typeof setTimeout> | null = null
+    let groupRequestId = 0
+    let modalRequestId = 0
 
     function onGroupInput(): void {
         groupDropdownOpen.value = false
@@ -93,15 +99,18 @@ export function useUserModal(onSaved: () => void) {
             return
         }
         groupTimer = setTimeout(async () => {
+            const requestId = ++groupRequestId
             try {
                 const res = await groupRepository.list(new URLSearchParams({
                     'page[size]': '15',
                     'filter[search]': groupSearch.value
                 }))
-                groupResults.value = res.data
-                    .filter(g => !form.group_ids.includes(g.id))
-                    .map(g => ({id: g.id, name: g.name}))
-                groupDropdownOpen.value = groupResults.value.length > 0
+                if (requestId === groupRequestId) {
+                    groupResults.value = res.data
+                        .filter(g => !form.group_ids.includes(g.id))
+                        .map(g => ({id: g.id, name: g.name}))
+                    groupDropdownOpen.value = groupResults.value.length > 0
+                }
             } catch { /* silent */
             }
         }, 250)
@@ -123,6 +132,8 @@ export function useUserModal(onSaved: () => void) {
     // ── Modal lifecycle ──────────────────────────────────────────────────
 
     function resetAll(): void {
+        roleRequestId++
+        groupRequestId++
         reset(emptyForm())
         selectedRoles.value = []
         selectedGroups.value = []
@@ -135,6 +146,7 @@ export function useUserModal(onSaved: () => void) {
     }
 
     function openCreate(): void {
+        modalRequestId++
         editing.value = null
         schemaRef.value = userSchema(false)
         resetAll()
@@ -142,6 +154,7 @@ export function useUserModal(onSaved: () => void) {
     }
 
     async function openEdit(u: User): Promise<void> {
+        const requestId = ++modalRequestId
         editing.value = u
         schemaRef.value = userSchema(true)
         resetAll()
@@ -149,6 +162,7 @@ export function useUserModal(onSaved: () => void) {
         modalLoading.value = true
         try {
             const fresh = await userRepository.find(u.id)
+            if (requestId !== modalRequestId) return
             editing.value = fresh
             reset({
                 name: fresh.name, fio: fresh.fio ?? '', email: fresh.email,
@@ -159,13 +173,16 @@ export function useUserModal(onSaved: () => void) {
             selectedRoles.value = fresh.roles.map(r => ({id: r.id, name: r.name, title: r.title}))
             selectedGroups.value = fresh.groups.map(g => ({id: g.id, name: g.name}))
         } catch (e: unknown) {
-            formError.value = e instanceof Error ? e.message : 'Не удалось загрузить пользователя.'
+            if (requestId === modalRequestId) {
+                formError.value = e instanceof Error ? e.message : 'Не удалось загрузить пользователя.'
+            }
         } finally {
-            modalLoading.value = false
+            if (requestId === modalRequestId) modalLoading.value = false
         }
     }
 
     function close(): void {
+        modalRequestId++
         showModal.value = false
         editing.value = null
     }
@@ -229,6 +246,14 @@ export function useUserModal(onSaved: () => void) {
             deleting.value = false
         }
     }
+
+    onBeforeUnmount(() => {
+        modalRequestId++
+        roleRequestId++
+        groupRequestId++
+        if (roleTimer) clearTimeout(roleTimer)
+        if (groupTimer) clearTimeout(groupTimer)
+    })
 
     return {
         showModal, editing, form, errors, formError, submitting, modalLoading,

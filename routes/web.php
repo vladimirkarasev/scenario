@@ -12,7 +12,8 @@ Route::get('/openapi.yaml', static function () {
     ]);
 });
 
-Route::get('/embed', static fn () => inertia('Embed'))->name('embed');
+Route::view('/swagger', 'swagger')->name('swagger');
+Route::redirect('/scalar', '/swagger', 301);
 
 Route::get('/actions', static fn () => inertia('Actions/Index'))->name('actions');
 Route::get('/actions/runs', static fn () => inertia('Actions/Runs'))->name('actions.runs');
