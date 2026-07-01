@@ -12,6 +12,7 @@ import {
   FormActions, FormAutoSlug, FormBody, FormCheckbox, FormError, FormInput, FormSection, FormTextarea,
 } from '@/components/form'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
+import {useAuthStore} from '@/stores/auth'
 import {useGroupList} from '@/modules/groups/composables/useGroupList'
 import {useGroupModal} from '@/modules/groups/composables/useGroupModal'
 import UsersTabs from '@/modules/users/components/UsersTabs.vue'
@@ -30,9 +31,12 @@ import {
   Users,
   X
 } from 'lucide-vue-next'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
+const auth = useAuthStore()
+const canManage = computed(() => auth.hasPermission('group_create'))
+const canDelete = computed(() => auth.hasPermission('group_delete'))
 
 const copiedId = ref<string | null>(null)
 
@@ -74,6 +78,7 @@ function closeMemberSearchSoon(): void {
         <PageHeader title="Пользователи и роли" subtitle="Управление пользователями, группами и ролями доступа.">
           <template #actions>
             <button
+                v-if="canManage"
                 class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
                 @click="openCreate"
             >
@@ -175,7 +180,7 @@ function closeMemberSearchSoon(): void {
               >{{ g.is_active ? 'Активна' : 'Отключена' }}</span>
             </div>
 
-            <div class="flex justify-end">
+            <div v-if="canManage || canDelete" class="flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
@@ -184,22 +189,23 @@ function closeMemberSearchSoon(): void {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="w-44">
-                  <DropdownMenuItem @click="openEdit(g)">
+                  <DropdownMenuItem v-if="canManage" @click="openEdit(g)">
                     <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
                     Редактировать
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click="toggleGroup(g)">
+                  <DropdownMenuItem v-if="canManage" @click="toggleGroup(g)">
                     <component :is="g.is_active ? UserMinus : UserCheck" class="mr-2 h-4 w-4 text-slate-400"/>
                     {{ g.is_active ? 'Отключить' : 'Активировать' }}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                  <DropdownMenuItem class="text-red-600 focus:text-red-600" @click="openDeleteConfirm(g)">
+                  <DropdownMenuSeparator v-if="canDelete"/>
+                  <DropdownMenuItem v-if="canDelete" class="text-red-600 focus:text-red-600" @click="openDeleteConfirm(g)">
                     <Trash2 class="mr-2 h-4 w-4"/>
                     Удалить
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            <div v-else/>
           </div>
 
           <ListPagination v-model:current-page="page" :total-pages="meta.last_page" :total="meta.total"

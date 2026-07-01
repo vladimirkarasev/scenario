@@ -100,13 +100,13 @@ paths:
           style: deepObject
           explode: true
           description: |
-            Фильтры JSON:API (`filter[search]`, `filter[is_active]`, `filter[active_only]`, `filter[tag]`, `filter[category_id]`)
+            Фильтры JSON:API (`filter[search]`, `filter[is_active]`, `filter[active_only]`, `filter[tags][]`, `filter[category_id]`)
           schema:
             type: object
             properties:
               search:
                 type: string
-                description: Поиск по названию, описанию и тегу (регистронезависимо)
+                description: Поиск по названию, описанию, alias и тегам (регистронезависимо)
                 example: оформление
               is_active:
                 type: boolean
@@ -116,10 +116,14 @@ paths:
                 type: boolean
                 description: Показывать только сценарии с активной версией (по умолчанию `true`)
                 default: true
-              tag:
-                type: string
-                description: Фильтр по тегу
-                example: onboarding
+              tags:
+                type: array
+                items:
+                  type: string
+                description: Фильтр по тегам (любое совпадение)
+                example:
+                  - onboarding
+                  - hr
               category_id:
                 type: string
                 format: uuid
@@ -976,7 +980,7 @@ paths:
         description: ID роли
         schema:
           type: integer
-    patch:
+    put:
       tags:
         - Роли
       summary: Обновить роль
@@ -1029,18 +1033,31 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - name: search
+        - name: filter[search]
           in: query
           description: Поиск по имени, ФИО, email, логину
           schema:
             type: string
-        - name: group_id
+        - name: filter[group_ids][]
           in: query
-          description: Фильтр по UUID группы
+          description: Фильтр по UUID групп текущего проекта
           schema:
-            type: string
-            format: uuid
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: filter[role_ids][]
+          in: query
+          description: Фильтр по ID ролей
+          schema:
+            type: array
+            items:
+              type: integer
+        - $ref: '#/components/parameters/PageNumber'
         - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/IncludeUserRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsRoles'
       responses:
         '200':
           description: Список пользователей (JSON:API коллекция)
@@ -1055,8 +1072,19 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserResource'
+                      included:
+                        type: array
+                        description: Включённые роли/группы (при ?include=roles,groups).
+                        items:
+                          oneOf:
+                            - $ref: '#/components/schemas/IncludedRole'
+                            - $ref: '#/components/schemas/IncludedGroup'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     post:
       tags:
         - Пользователи
@@ -1078,6 +1106,8 @@ paths:
                 $ref: '#/components/schemas/UserResource'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
   /users/{user}:
@@ -1094,18 +1124,36 @@ paths:
       summary: Получить пользователя
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeUserRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsRoles'
       responses:
         '200':
-          description: Пользователь с группами
+          description: Пользователь (с ролями/группами при ?include=roles,groups)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResource'
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserResource'
+                  included:
+                    type: array
+                    description: Включённые роли/группы (при ?include=roles,groups).
+                    items:
+                      oneOf:
+                        - $ref: '#/components/schemas/IncludedRole'
+                        - $ref: '#/components/schemas/IncludedGroup'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-    patch:
+    put:
       tags:
         - Пользователи
       summary: Обновить пользователя
@@ -1126,6 +1174,8 @@ paths:
                 $ref: '#/components/schemas/UserResource'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
@@ -1133,14 +1183,111 @@ paths:
     delete:
       tags:
         - Пользователи
-      summary: Удалить пользователя
+      summary: Удалить пользователя из текущего проекта
+      description: Учётная запись удаляется полностью, только если пользователь больше не состоит ни в одном проекте.
       security:
         - BearerAuth: []
       responses:
         '204':
-          description: Пользователь удалён
+          description: Пользователь удалён из проекта
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users/{user}/tokens:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        description: ID пользователя текущего проекта
+        schema:
+          type: integer
+    get:
+      tags:
+        - Пользователи
+      summary: Список API-токенов пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токены без секретного значения
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Пользователи
+      summary: Выпустить API-токен пользователю
+      description: Нельзя выпустить токен пользователю с более широкими правами, чем у текущего пользователя.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTokenStoreRequest'
+      responses:
+        '201':
+          description: Токен создан; секрет возвращается только один раз
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserTokenCreated'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /users/{user}/tokens/{tokenId}:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: tokenId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Пользователи
+      summary: Отозвать API-токен пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Токен отозван или уже отсутствовал
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
   /groups:
@@ -1362,7 +1509,7 @@ paths:
       parameters:
         - name: filter[search]
           in: query
-          description: Поиск по name/key
+          description: Поиск по name/slug
           schema:
             type: string
         - name: filter[type]
@@ -1919,6 +2066,27 @@ components:
         type: integer
         minimum: 1
         default: 1
+    IncludeUserRelations:
+      name: include
+      in: query
+      description: JSON:API include связей через запятую. Поддерживаются `roles`, `groups`. Включённые объекты возвращаются в top-level `included`.
+      schema:
+        type: string
+        example: roles,groups
+    FieldsGroups:
+      name: fields[groups]
+      in: query
+      description: Sparse fieldset для включённых групп (поля через запятую).
+      schema:
+        type: string
+        example: name,slug
+    FieldsRoles:
+      name: fields[roles]
+      in: query
+      description: Sparse fieldset для включённых ролей (поля через запятую).
+      schema:
+        type: string
+        example: name,title
   responses:
     Unauthorized:
       description: Не аутентифицирован
@@ -2138,15 +2306,16 @@ components:
           nullable: true
         is_active:
           type: boolean
-        tag:
+        alias:
           type: string
           nullable: true
-        aliases:
+          description: Уникальный псевдоним для запуска сценария по alias
+        tags:
           type: array
           items:
             type: string
           nullable: true
-          description: Строковые псевдонимы для запуска по alias
+          description: Теги категоризации
         active_version_id:
           type: string
           format: uuid
@@ -2182,17 +2351,18 @@ components:
         description:
           type: string
           nullable: true
-        tag:
+        alias:
           type: string
           maxLength: 255
           nullable: true
-        aliases:
+          description: Уникальный alias для запуска сценария
+        tags:
           type: array
           nullable: true
           items:
             type: string
             maxLength: 255
-          description: Псевдонимы для запуска сценария по alias
+          description: Теги категоризации
         category_ids:
           type: array
           nullable: true
@@ -2716,6 +2886,15 @@ components:
           type: string
           description: Уникальное имя роли
           example: project_admin
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        is_system:
+          type: boolean
+          description: Системные роли нельзя изменять или удалять через API
         guard_name:
           type: string
           description: Guard, к которому привязана роль (всегда `web`)
@@ -2751,6 +2930,19 @@ components:
           maxLength: 255
           description: Уникальное имя роли
           example: project_admin
+        title:
+          type: string
+          nullable: true
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+        permissions:
+          type: array
+          description: Полный список permissions роли
+          items:
+            type: string
     ProjectResource:
       type: object
       required:
@@ -2845,28 +3037,22 @@ components:
           $ref: '#/components/schemas/UserAttributes'
         relationships:
           type: object
+          description: Linkage связей (только type + id). Сами объекты приходят в top-level `included` при запросе с `?include=roles,groups`.
           properties:
+            roles:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RelationshipLinkage'
             groups:
               type: object
               properties:
                 data:
                   type: array
                   items:
-                    type: object
-                    properties:
-                      type:
-                        type: string
-                        example: groups
-                      id:
-                        type: string
-                        format: uuid
-                      meta:
-                        type: object
-                        properties:
-                          name:
-                            type: string
-                          slug:
-                            type: string
+                    $ref: '#/components/schemas/RelationshipLinkage'
     UserAttributes:
       type: object
       properties:
@@ -2889,6 +3075,9 @@ components:
           type: string
           nullable: true
           example: crm_user_42
+        is_system:
+          type: boolean
+          description: Признак защищённого сервисного пользователя
         created_at:
           type: string
           format: date-time
@@ -2902,7 +3091,7 @@ components:
       required:
         - name
         - email
-        - password
+        - login
       properties:
         name:
           type: string
@@ -2920,7 +3109,6 @@ components:
           example: ivan@example.com
         login:
           type: string
-          nullable: true
           maxLength: 255
           example: ivan123
         external_id:
@@ -2932,11 +3120,23 @@ components:
           type: string
           minLength: 8
           example: s3cr3tP@ss
+        roles:
+          type: array
+          items:
+            type: string
+          description: Имена общих ролей guard `web`; для назначения требуется право role_create
+        group_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: UUID групп текущего проекта
     UserUpdateRequest:
       type: object
       required:
         - name
         - email
+        - login
       properties:
         name:
           type: string
@@ -2951,7 +3151,6 @@ components:
           maxLength: 255
         login:
           type: string
-          nullable: true
           maxLength: 255
         external_id:
           type: string
@@ -2962,6 +3161,76 @@ components:
           nullable: true
           minLength: 8
           description: Если не передан — пароль не меняется
+        roles:
+          type: array
+          items:
+            type: string
+          description: Полный список назначенных ролей; для изменения требуется право role_create
+        group_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Полный список групп текущего проекта; если не передан, группы сохраняются
+    UserToken:
+      type: object
+      required:
+        - id
+        - name
+        - abilities
+        - last_used_at
+        - created_at
+        - expires_at
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        abilities:
+          type: array
+          items:
+            type: string
+        last_used_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        expires_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    UserTokenCreated:
+      allOf:
+        - $ref: '#/components/schemas/UserToken'
+        - type: object
+          required:
+            - plain_text_token
+          properties:
+            plain_text_token:
+              type: string
+              description: Секретное значение, возвращаемое только при создании
+    UserTokenStoreRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        expires_at:
+          anyOf:
+            - type: string
+              format: date
+            - type: string
+              format: date-time
+            - type: 'null'
+          description: Должно быть позже текущего времени
     UserGroup:
       type: object
       required:
@@ -3088,7 +3357,7 @@ components:
         name:
           type: string
           example: Создать XML заявки
-        key:
+        slug:
           type: string
           example: create-lead-xml
         description:
@@ -3132,7 +3401,7 @@ components:
       type: object
       required:
         - name
-        - key
+        - slug
         - type
         - is_active
       properties:
@@ -3140,7 +3409,7 @@ components:
           type: string
           maxLength: 255
           example: Создать отчёт по заявкам
-        key:
+        slug:
           type: string
           maxLength: 255
           example: leads-report
@@ -3759,6 +4028,57 @@ components:
           type: integer
           description: Время жизни access-токена в секундах
           example: 1800
+    RelationshipLinkage:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          example: groups
+        id:
+          type: string
+          example: 9b1f0c8e-1a2b-4c3d-8e9f-000000000001
+    IncludedRole:
+      type: object
+      description: Роль в `included` при ?include=roles (sparse fields[roles]=name,title).
+      properties:
+        type:
+          type: string
+          example: roles
+        id:
+          type: string
+          example: '3'
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              example: manager
+            title:
+              type: string
+              nullable: true
+              example: Менеджер
+    IncludedGroup:
+      type: object
+      description: Группа в `included` при ?include=groups (sparse fields[groups]=name,slug).
+      properties:
+        type:
+          type: string
+          example: groups
+        id:
+          type: string
+          format: uuid
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Операторы
+            slug:
+              type: string
+              example: operators
   securitySchemes:
     BearerAuth:
       type: http

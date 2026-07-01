@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Scenario\QueryBuilders;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Module\Scenario\Enums\ScenarioStatus;
 use Module\Scenario\Models\Scenario;

@@ -3,6 +3,7 @@ import {userSchema} from '@/modules/users/schemas/userSchema'
 import {userRepository} from '@/modules/users/repositories/userRepository'
 import {tokenRepository} from '@/modules/users/repositories/tokenRepository'
 import {useUserTokens} from '@/modules/users/composables/useUserTokens'
+import {useUserModal} from '@/modules/users/composables/useUserModal'
 import {destroyJson, getJson, sendJson} from '@/lib/http'
 
 vi.mock('@/lib/http', () => ({
@@ -16,7 +17,7 @@ const user = {
     name: 'Иван',
     fio: null,
     email: 'ivan@example.test',
-    login: null,
+    login: 'ivan',
     external_id: null,
     created_at: null,
     roles: [],
@@ -26,23 +27,29 @@ const user = {
 describe('users module', () => {
     beforeEach(() => vi.clearAllMocks())
 
-    it('требует пароль только при создании', () => {
+    it('требует логин и email, пароль необязателен', () => {
         const value = {
             name: 'Иван',
             fio: '',
             email: 'ivan@example.test',
-            login: '',
+            login: 'ivan',
             external_id: '',
             password: '',
             roles: [],
             group_ids: [],
         }
-        expect(userSchema(false).safeParse(value).success).toBe(false)
+        // Валидная форма без пароля проходит и при создании, и при редактировании.
+        expect(userSchema(false).safeParse(value).success).toBe(true)
         expect(userSchema(true).safeParse(value).success).toBe(true)
-        expect(userSchema(true).safeParse({...value, email: 'invalid'}).success).toBe(false)
+        // Логин обязателен.
+        expect(userSchema(false).safeParse({...value, login: ''}).success).toBe(false)
+        // Email обязателен и должен быть валидным.
+        expect(userSchema(false).safeParse({...value, email: 'invalid'}).success).toBe(false)
+        // Короткий пароль отклоняется.
+        expect(userSchema(false).safeParse({...value, password: 'short'}).success).toBe(false)
     })
 
-    it('нормализует relationships пользователя с defaults', async () => {
+    it('нормализует пользователя из JSON:API included', async () => {
         vi.mocked(getJson).mockResolvedValue({
             data: {
                 id: 'user-1',
@@ -55,17 +62,37 @@ describe('users module', () => {
                     created_at: null,
                 },
                 relationships: {
-                    roles: {data: [{id: '1', meta: {name: 'admin'}}]},
-                    groups: {data: [{id: 'g1', meta: {name: 'Операторы'}}]},
+                    roles: {data: [{type: 'roles', id: '1'}]},
+                    groups: {data: [{type: 'groups', id: 'g1'}]},
                 },
             },
+            included: [
+                {type: 'roles', id: '1', attributes: {name: 'admin', title: 'Администратор'}},
+                {type: 'groups', id: 'g1', attributes: {name: 'Операторы', slug: 'operators'}},
+            ],
         })
 
         await expect(userRepository.find('user-1')).resolves.toMatchObject({
             id: 'user-1',
-            roles: [{id: '1', name: 'admin', title: null}],
-            groups: [{id: 'g1', name: 'Операторы', slug: ''}],
+            roles: [{id: '1', name: 'admin', title: 'Администратор'}],
+            groups: [{id: 'g1', name: 'Операторы', slug: 'operators'}],
         })
+    })
+
+    it('сохраняет редактирование без обязательной смены пароля', async () => {
+        vi.spyOn(userRepository, 'find').mockResolvedValue(user)
+        vi.spyOn(userRepository, 'update').mockResolvedValue()
+        const onSaved = vi.fn()
+        const modal = useUserModal(onSaved)
+
+        await modal.openEdit(user)
+        modal.form.name = 'Иван Обновлённый'
+        await modal.save()
+
+        expect(userRepository.update).toHaveBeenCalledWith('user-1', expect.objectContaining({
+            name: 'Иван Обновлённый',
+        }))
+        expect(onSaved).toHaveBeenCalledOnce()
     })
 
     it('формирует token endpoints и nullable expires_at', async () => {

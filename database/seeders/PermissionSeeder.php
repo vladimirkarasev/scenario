@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Module\Users\PermissionRegistry;
+use App\Support\PermissionRegistry;
 use Spatie\Permission\Models\Permission;
 
 final class PermissionSeeder extends Seeder

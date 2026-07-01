@@ -74,6 +74,56 @@ Laravel paginator настраивается с именем страницы `p
 }
 ```
 
+## Связи: include и sparse fieldsets
+
+Связанные ресурсы не вкладываются в основной объект, а запрашиваются через
+`?include=` и приходят в top-level массиве `included` (JSON:API). В `relationships`
+лежит только linkage (`type` + `id`), а сами объекты — в `included`.
+
+```
+GET /api/users?include=roles,groups&fields[groups]=name,slug&fields[roles]=name,title
+```
+
+- `include=roles,groups` — какие связи подгрузить (через запятую).
+- `fields[<type>]=...` — sparse fieldset: ограничивает поля включённого ресурса
+  (например, у групп отдаём только `name,slug`).
+
+```json
+{
+  "data": [
+    {
+      "id": "42",
+      "type": "users",
+      "attributes": { "name": "Alice" },
+      "relationships": {
+        "groups": { "data": [ { "type": "groups", "id": "9b1f…" } ] },
+        "roles":  { "data": [ { "type": "roles",  "id": "3" } ] }
+      }
+    }
+  ],
+  "included": [
+    { "type": "groups", "id": "9b1f…", "attributes": { "name": "Операторы", "slug": "operators" } },
+    { "type": "roles",  "id": "3",     "attributes": { "name": "manager", "title": "Менеджер" } }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 15, "total": 1 }
+}
+```
+
+На бэкенде:
+
+- ресурс объявляет связи в `toRelationships()` (`['roles' => RoleResource::class, ...]`);
+- include работает по `?include=` без доп. настройки;
+- чтобы работал `fields[<type>]`, у включаемого ресурса должно быть
+  `protected bool $usesRequestQueryString = true`.
+
+На фронтенде репозиторий строит индекс `included` по `type:id` и резолвит связи:
+
+```ts
+const inc = new Map(included.map(i => [`${i.type}:${i.id}`, i]))
+const groups = (item.relationships?.groups?.data ?? [])
+  .map(ref => inc.get(`${ref.type}:${ref.id}`)?.attributes)
+```
+
 ## Репозитории на фронтенде
 
 Репозитории принимают `URLSearchParams` напрямую — без промежуточных query-объектов:

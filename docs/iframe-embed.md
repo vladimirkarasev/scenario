@@ -1,94 +1,112 @@
 # Iframe Embed
 
-Интеграция сервиса во внешний сайт через `<iframe>`. Авторизация полностью токен-based — сессий нет, токены хранятся в
-`sessionStorage` iframe и сбрасываются при закрытии вкладки.
+Интеграция сервиса во внешний сайт через `<iframe>`. Авторизация полностью токен-based — сессий нет,
+токены хранятся в `sessionStorage` iframe и сбрасываются при закрытии вкладки.
 
 ## Схема работы
 
 ```
-Внешний сервер  →  POST /api/project/{uuid}/user-register  →  launch_token (TTL 5 мин)
-Внешний фронт   →  <iframe src="/embed?token={launch_token}&redirect={path}">
-Scenario (iframe) →  POST /api/embed/auth/exchange  →  access_token + refresh_token
-                  →  сохраняет в sessionStorage
-                  →  router.visit(redirect)
+Создание проекта       →  автоматически создаётся системный пользователь проекта
+Внешний бэкенд         →  POST /api/users (Bearer {system_token})              →  создаёт/обновляет пользователя
+Внешний бэкенд         →  POST /api/users/iframe-token (Bearer {system_token}) →  одноразовый _token (TTL 5 мин)
+Внешний фронт          →  <iframe src="https://scenario.app/scenarios?_token={_token}">
+Scenario (iframe)      →  ловит ?_token= глобально  →  POST /api/embed/auth/exchange  →  access + refresh
+                       →  сохраняет в sessionStorage, вырезает _token из URL, продолжает
 ```
 
-## Шаг 1. Настройка проекта
+Отдельной страницы `/embed` больше нет: `_token` перехватывается на **любой** странице при загрузке
+приложения (`resources/js/app.ts`).
 
-В настройках проекта (раздел Projects) есть два поля:
+## Модель пользователей
 
-| Поле            | Описание                                     |
-|-----------------|----------------------------------------------|
-| `uuid`          | Идентификатор проекта                        |
-| `shared_secret` | Секрет для подписи server-to-server запросов |
+- **Один пользователь = один проект** (`users.project_id`). Один и тот же `login`/`email` может
+  существовать в разных проектах как разные пользователи; в рамках проекта они уникальны.
+- **Системный пользователь** создаётся автоматически при создании проекта (`is_system = true`,
+  роль `project-service`). Через его API-токен внешний бэкенд ходит в обычный API. Системного
+  пользователя нельзя редактировать/удалять через API.
 
-## Шаг 2. Регистрация пользователя (server-to-server)
+## Шаг 1. Токен системного пользователя
 
-Вызывается с **вашего бэкенда** (не с браузера — секрет не должен быть публичным).
+Системный пользователь появляется вместе с проектом. Его bearer-токен выпускается штатно
+(в разделе пользователей проекта или через API), можно бессрочный:
 
 ```http
-POST /api/project/{projectUuid}/user-register
-Authorization: Bearer {shared_secret}
+POST /api/users/{system_user_id}/tokens
+Authorization: Bearer {admin_token}
+
+{ "name": "integration" }
+```
+
+**Ответ** содержит `token` (plaintext) — показывается один раз. Этим токеном авторизуются
+server-to-server запросы ниже.
+
+## Шаг 2. Создание/обновление пользователя (server-to-server)
+
+Обычный API пользователей, авторизация — токеном системного пользователя проекта. Проект
+определяется автоматически по системному пользователю.
+
+```http
+POST /api/users
+Authorization: Bearer {system_token}
 Content-Type: application/json
 
 {
-  "login": "user123",
   "name": "Иван Иванов",
+  "login": "user123",
   "email": "user@company.com",
+  "external_id": "crm-42",
   "roles": ["student"]
 }
 ```
 
-Поля `email` и `roles` — опциональны. `login` используется как уникальный идентификатор пользователя внутри проекта.
+`login` и `email` обязательны и уникальны в рамках проекта. `password` необязателен
+(iframe-пользователи входят по токену). `external_id` — ваш внешний идентификатор.
+
+## Шаг 3. Получение одноразового `_token`
+
+```http
+POST /api/users/iframe-token
+Authorization: Bearer {system_token}
+Content-Type: application/json
+
+{ "external_id": "crm-42" }
+```
 
 **Ответ:**
 
 ```json
-{
-  "iframe_launch_token": "a1b2c3d4...",
-  "expires_in": 300
-}
+{ "_token": "a1b2c3d4...", "expires_in": 300 }
 ```
 
-> Launch token одноразовый и живёт **5 минут**. Запрашивайте его непосредственно перед вставкой iframe — не кешируйте.
+> `_token` одноразовый и живёт **5 минут**. Запрашивайте его непосредственно перед вставкой iframe.
 
-## Шаг 3. Вставка iframe
+## Шаг 4. Вставка iframe
 
-```html
-<iframe
-  src="https://scenario.app/embed?token={launch_token}"
-  allow="fullscreen"
-  style="width: 100%; height: 600px; border: none;"
-/>
-```
-
-### Переход на конкретную страницу
-
-По умолчанию после авторизации открывается `/scenarios`. Чтобы открыть конкретную страницу, добавьте параметр
-`redirect`:
+`_token` передаётся query-параметром на любую страницу приложения:
 
 ```html
-<!-- Список сценариев (по умолчанию) -->
-<iframe src="/embed?token=...&redirect=/scenarios" />
+<!-- Список сценариев -->
+<iframe src="https://scenario.app/scenarios?_token={_token}" allow="fullscreen" />
 
 <!-- Конкретный сценарий -->
-<iframe src="/embed?token=...&redirect=/scenarios/5/play" />
-
-<!-- Конкретная версия сценария -->
-<iframe src="/embed?token=...&redirect=/scenario-versions/12/play" />
+<iframe src="https://scenario.app/scenarios/5/play?_token={_token}" />
 ```
+
+Приложение при загрузке обменивает `_token` на пару access/refresh, вырезает его из URL и
+показывает запрошенную страницу. При невалидном/просроченном `_token` показывается 403-экран
+с кнопкой перезагрузки (перезагружает всё окно вне iframe).
 
 ## Токены
 
-| Токен           | TTL      | Где хранится     |
-|-----------------|----------|------------------|
-| `launch_token`  | 5 минут  | не хранится      |
-| `access_token`  | 30 минут | `sessionStorage` |
-| `refresh_token` | 7 дней   | `sessionStorage` |
+| Токен           | TTL      | Хранилище        | Таблица                   |
+|-----------------|----------|------------------|---------------------------|
+| `_token`        | 5 минут  | не хранится      | `sso_launch_tokens`       |
+| `access_token`  | 30 минут | `sessionStorage` | Sanctum PAT               |
+| `refresh_token` | 7 дней   | `sessionStorage` | `personal_refresh_tokens` |
 
-`sessionStorage` сбрасывается при закрытии вкладки или iframe — пользователь автоматически выходит из системы.
-
-Обновление `access_token` происходит через:
+`sessionStorage` сбрасывается при закрытии вкладки/iframe — пользователь автоматически выходит.
+Sanctum не имеет встроенного refresh: короткий access + отдельный ротируемый refresh-токен —
+это наш слой поверх Sanctum. Обновление access:
 
 ```http
 POST /api/embed/auth/refresh
@@ -99,16 +117,18 @@ Content-Type: application/json
 
 ## Dev-симуляция
 
-В режиме `IFRAME_AUTH_DEV_ENABLED=true` доступна страница `/auth` для симуляции embed-авторизации без внешнего сервера.
-Вводится `project_uuid`, `shared_secret` и данные пользователя — выдаётся токен и происходит редирект в приложение.
+При `IFRAME_AUTH_DEV_ENABLED=true` доступна страница `/auth` — полностью повторяет прод-флоу:
+форма (проект + данные пользователя) создаёт/обновляет пользователя проекта, выпускает
+одноразовый `_token` и делает редирект на `/scenarios?_token=...`, где срабатывает тот же
+глобальный перехват. Dev-`_token` выпускается без Origin-ограничения (в локали Origin ≠ `project->host`).
 
 ## Структура файлов
 
-- `app/Http/Controllers/EmbedAuth/` — контроллеры авторизации
+- `app/Http/Controllers/EmbedAuth/` — exchange / refresh / logout
+- `module/Users/Http/Controllers/IframeTokenController.php` — выпуск `_token`
+- `module/Users/Services/SystemUserService.php` — системный пользователь проекта
 - `app/Services/EmbedAuth/EmbedAuthTokenService.php` — логика токенов
-- `app/Services/EmbedAuth/EmbedAuthUserService.php` — синхронизация пользователей
-- `routes/api.php` — маршруты `/api/project/*/user-register`, `/api/embed/auth/*`
-- `routes/web.php` — маршрут `/embed`
-- `resources/js/Pages/Embed.vue` — entry page внутри iframe
-- `resources/js/stores/auth.ts` — Pinia-стор с текущим пользователем и permissions
-- `resources/js/lib/http-client.ts` — axios с автоматической подстановкой Bearer токена
+- `app/Models/SSOLaunchToken.php`, `app/Models/PersonalRefreshToken.php` — модели токенов
+- `resources/js/app.ts` — глобальный перехват `_token`
+- `resources/js/components/AuthForbidden.vue` — 403-экран
+- `resources/js/lib/auth-state.ts` — флаг `authForbidden`

@@ -124,6 +124,10 @@ paths:
     $ref: './paths/users.yaml#/collection'
   /users/{user}:
     $ref: './paths/users.yaml#/item'
+  /users/{user}/tokens:
+    $ref: './paths/users.yaml#/tokens'
+  /users/{user}/tokens/{tokenId}:
+    $ref: './paths/users.yaml#/tokenItem'
 
   /groups:
     $ref: './paths/groups.yaml#/collection'
@@ -287,6 +291,12 @@ components:
       $ref: './components/schemas/users.yaml#/UserStoreRequest'
     UserUpdateRequest:
       $ref: './components/schemas/users.yaml#/UserUpdateRequest'
+    UserToken:
+      $ref: './components/schemas/users.yaml#/UserToken'
+    UserTokenCreated:
+      $ref: './components/schemas/users.yaml#/UserTokenCreated'
+    UserTokenStoreRequest:
+      $ref: './components/schemas/users.yaml#/UserTokenStoreRequest'
 
     UserGroup:
       $ref: './components/schemas/groups.yaml#/UserGroup'

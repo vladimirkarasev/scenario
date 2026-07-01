@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Module\Users\Models\User;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;

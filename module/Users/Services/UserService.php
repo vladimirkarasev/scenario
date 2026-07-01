@@ -4,135 +4,228 @@ declare(strict_types=1);
 
 namespace Module\Users\Services;
 
-use App\Models\User;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Module\Projects\CurrentProject;
+use Module\Groups\Models\UserGroup;
+use Module\Users\Models\Role;
+use Module\Users\Models\User;
 use Module\Users\DTO\UserData;
 use Module\Users\DTO\UserIndexData;
+use Module\Users\Enums\SystemRole;
+use Module\Users\Events\UserCreated;
+use Module\Users\Events\UserDeleted;
+use Module\Users\Events\UserUpdated;
 use Module\Users\Repositories\UserRepository;
-use Psr\Log\LoggerInterface;
+use Module\Users\Repositories\RoleRepository;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Throwable;
 
 final readonly class UserService
 {
     public function __construct(
         private UserRepository $users,
         private CurrentProject $currentProject,
-        private LoggerInterface $logger,
+        private Dispatcher $events,
+        private RoleRepository $roles,
+        private UserAuthorizationService $authorization,
     ) {
     }
 
     /** @return LengthAwarePaginator<int, User> */
     public function paginate(UserIndexData $filters): LengthAwarePaginator
     {
-        return $this->users->paginate($filters, $this->currentProject->id());
+        return $this->users->paginate($filters, $this->projectId());
     }
 
     public function find(User $user): User
     {
-        return $this->users->find($user);
+        return $this->users->findInProject($user, $this->projectId());
     }
 
-    public function create(UserData $data): User
+    public function create(User $actor, UserData $data): User
     {
-        $user = $this->users->create([
-            'name' => $data->name,
-            'fio' => $data->fio,
-            'email' => $data->email,
-            'login' => $data->login,
-            'external_id' => $data->externalId,
-            'password' => Hash::make($data->password ?? ''),
-        ]);
+        $projectId = $this->projectId();
+        $roles = $this->resolveRoles($data->roles);
 
-        $user->syncRoles($data->roles);
-        $user->groups()->sync($data->groupIds);
+        if ($data->roles !== []) {
+            $this->authorization->assertMayAssignRoles($actor, $roles);
+        }
 
-        $projectId = $this->currentProject->id();
-
-        if ($projectId !== null) {
-            DB::table('project_users')->insertOrIgnore([
-                'user_id' => $user->id,
+        $result = DB::transaction(function () use ($data, $projectId, $roles): User {
+            $user = $this->users->create([
+                'name' => $data->name,
+                'fio' => $data->fio,
+                'email' => $data->email,
+                'login' => $data->login,
+                'external_id' => $data->externalId,
+                'password' => Hash::make($data->password ?? Str::random(40)),
                 'project_id' => $projectId,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
-        }
 
-        $result = $this->users->find($user);
+            $user->syncRoles($roles);
+            $user->groups()->sync($data->groupIds);
 
-        $this->logger->info('user.created', [
-            'user_id' => $result->id,
-            'email' => $result->email,
-            'login' => $result->login,
-            'roles' => $data->roles,
-            'groups' => $data->groupIds,
-            'actor' => Auth::id(),
-            'payload' => $this->payload($data),
-        ]);
+            return $this->users->find($user);
+        });
 
-        return $result;
-    }
-
-    public function update(UserData $data, User $user): User
-    {
-        $attributes = [
-            'name' => $data->name,
-            'fio' => $data->fio,
-            'email' => $data->email,
-            'login' => $data->login,
-            'external_id' => $data->externalId,
-        ];
-
-        if ($data->password !== null) {
-            $attributes['password'] = Hash::make($data->password);
-        }
-
-        $user = $this->users->update($user, $attributes);
-
-        $user->syncRoles($data->roles);
-        $user->groups()->sync($data->groupIds);
-
-        $result = $this->users->find($user);
-
-        $this->logger->info('user.updated', [
-            'user_id' => $result->id,
-            'email' => $result->email,
-            'login' => $result->login,
-            'roles' => $data->roles,
-            'groups' => $data->groupIds,
-            'actor' => Auth::id(),
-            'payload' => $this->payload($data),
-        ]);
+        $this->events->dispatch(
+            new UserCreated(
+                $result,
+                $data->roles,
+                $result->groups
+                    ->map(static fn(UserGroup $group): string => $group->id)
+                    ->values()
+                    ->all(),
+                $actor->id,
+                $projectId,
+            )
+        );
 
         return $result;
     }
 
-    public function delete(User $user): void
+    /**
+     * @throws Throwable
+     */
+    public function update(User $actor, UserData $data, User $user): User
     {
-        $this->logger->info('user.deleted', [
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'login' => $user->login,
-            'actor' => Auth::id(),
-        ]);
+        $projectId = $this->projectId();
+        $roles = ($data->rolesProvided || $data->roles !== [])
+            ? $this->resolveRoles($data->roles)
+            : null;
 
-        $this->users->delete($user);
+        if ($roles !== null) {
+            $this->authorization->assertMayAssignRoles($actor, $roles);
+        }
+
+        $result = DB::transaction(function () use ($actor, $data, $user, $projectId, $roles): User {
+            $user = $this->users->findInProjectForUpdate($user, $projectId);
+
+            if ($user->is_system) {
+                throw new HttpException(403, 'Системного пользователя нельзя редактировать.');
+            }
+
+            $this->authorization->assertMayManage($actor, $user);
+
+            $attributes = [
+                'name' => $data->name,
+                'fio' => $data->fio,
+                'email' => $data->email,
+                'login' => $data->login,
+                'external_id' => $data->externalId,
+            ];
+
+            if ($data->password !== null) {
+                $attributes['password'] = Hash::make($data->password);
+            }
+
+            $user = $this->users->update($user, $attributes);
+
+            if ($roles !== null) {
+                $roles->map(
+                    static fn(Role $role): string => $role->name,
+                )->all()
+                    |> array_values(...)
+                    |> (fn($x) => $this->assertAdministratorRemains($user, $x, $projectId));
+                $user->syncRoles($roles);
+            }
+
+            if ($data->groupIdsProvided) {
+                $user->groups()->sync($data->groupIds);
+            }
+
+            return $this->users->find($user);
+        });
+
+        $this->events->dispatch(
+            new UserUpdated(
+                $result,
+                $result->roles
+                    ->map(static fn(Role $role): string => $role->name)
+                    ->values()
+                    ->all(),
+                $result->groups
+                    ->map(static fn(UserGroup $group): string => $group->id)
+                    ->values()
+                    ->all(),
+                $actor->id,
+                $projectId,
+            )
+        );
+
+        return $result;
     }
 
-    /** @return array<string, mixed> */
-    private function payload(UserData $data): array
+    /**
+     * @throws Throwable
+     */
+    public function delete(User $actor, User $user): void
     {
-        return [
-            'name' => $data->name,
-            'fio' => $data->fio,
-            'email' => $data->email,
-            'login' => $data->login,
-            'external_id' => $data->externalId,
-            'password' => $data->password !== null ? '[hidden]' : null,
-            'roles' => $data->roles,
-            'group_ids' => $data->groupIds,
-        ];
+        $projectId = $this->projectId();
+        $userId = DB::transaction(function () use ($actor, $user, $projectId): int {
+            $user = $this->users->findInProjectForUpdate($user, $projectId);
+
+            if ($user->is_system) {
+                throw new HttpException(403, 'Системного пользователя нельзя удалить.');
+            }
+
+            if ($actor->id === $user->id) {
+                throw new HttpException(422, 'Нельзя удалить текущего пользователя.');
+            }
+
+            $this->authorization->assertMayManage($actor, $user);
+            $this->assertAdministratorRemains($user, [], $projectId);
+
+            $userId = $user->id;
+            $this->users->delete($user);
+
+            return $userId;
+        });
+
+        $this->events->dispatch(new UserDeleted($userId, $projectId, $actor->id));
+    }
+
+    private function projectId(): string
+    {
+        return $this->currentProject->id()
+            ?? throw new \LogicException('User operations require a current project.');
+    }
+
+    /** @param  list<string>  $newRoleNames */
+    private function assertAdministratorRemains(User $user, array $newRoleNames, string $projectId): void
+    {
+        if (
+            $user->hasRole(SystemRole::Administrator->value)
+            && !in_array(SystemRole::Administrator->value, $newRoleNames, true)
+            && $this->users->administratorsInProjectForUpdate($projectId)->count() <= 1
+        ) {
+            throw new HttpException(422, 'В проекте должен остаться хотя бы один администратор.');
+        }
+    }
+
+    /**
+     * @param  list<string>  $names
+     * @return Collection<int, Role>
+     */
+    private function resolveRoles(array $names): Collection
+    {
+        $roles = $this->roles->findByNames($names);
+        $resolvedNames = $roles
+            ->map(static fn(Role $role): string => $role->name)
+            ->values()
+            ->all();
+        $missing = array_diff($names, $resolvedNames);
+
+        if ($missing !== []) {
+            throw RoleDoesNotExist::named((string)reset($missing), 'web');
+        }
+
+        return $roles;
     }
 }

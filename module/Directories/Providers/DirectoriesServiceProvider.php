@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Module\Directories\Providers;
 
+use App\Support\PermissionRegistry;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Module\Directories\Enums\DirectoryPermission;
+use Module\Directories\Enums\DirectoryVersionPermission;
 use Module\Directories\Events\DirectoryImportStatusUpdated;
 use Module\Directories\Exceptions\DictionaryApiSyncException;
 use Module\Directories\Exceptions\DirectoryException;
@@ -28,6 +31,8 @@ final class DirectoriesServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        PermissionRegistry::register(DirectoryPermission::class, DirectoryVersionPermission::class);
+
         Route::middleware('web')
             ->group(dirname(__DIR__).'/routes/web.php');
 

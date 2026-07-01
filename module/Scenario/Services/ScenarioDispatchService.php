@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use denis660\Centrifugo\Centrifugo;
 use Module\Scenario\DTO\ScenarioDispatchData;
 use Module\Scenario\DTO\ScenarioRunData;

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Module\Actions\Models\Action;
 use Module\Groups\Models\UserGroup;
 use Module\Scenario\Models\Scenario;
+use Module\Users\Models\User;
 
 /**
  * @property string      $id

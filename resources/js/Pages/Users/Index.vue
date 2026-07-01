@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import UsersTabs from '@/modules/users/components/UsersTabs.vue'
+import UserTokensDialog from '@/modules/users/components/UserTokensDialog.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -17,13 +18,11 @@ import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useUserFilters} from '@/modules/users/composables/useUserFilters'
 import {useUserList} from '@/modules/users/composables/useUserList'
 import {useUserModal} from '@/modules/users/composables/useUserModal'
-import {useUserTokens} from '@/modules/users/composables/useUserTokens'
+import type {User} from '@/modules/users/types/user'
 import {useAuthStore} from '@/stores/auth'
 import {Head, Link} from '@inertiajs/vue3'
 import {
   ChevronDown,
-  Check,
-  Copy,
   KeyRound,
   Layers,
   MoreHorizontal,
@@ -40,9 +39,13 @@ const {navigationItems} = useDashboardNavigation()
 
 const auth = useAuthStore()
 const canCreate = computed(() => auth.hasPermission('user_create'))
+const canUpdate = computed(() => auth.hasPermission('user_update'))
 const canDelete = computed(() => auth.hasPermission('user_delete'))
+const canViewTokens = computed(() =>
+  auth.hasPermission('user_token_view') || auth.hasPermission('user_token_manage')
+)
 
-const {params, search, page, loading, users, meta, load} = useUserList()
+const {params, search, page, loading, error: listError, users, meta, load} = useUserList()
 
 const {
   filterGroups, filterRoles, hasFilters,
@@ -69,22 +72,10 @@ const {
   openDeleteConfirm, closeDeleteConfirm, doDelete: doDeleteUser,
 } = useUserModal(load)
 
-const {
-  user: tokenUser, showModal: showTokensModal, tokens, loading: tokensLoading, error: tokensError,
-  newTokenName, newTokenExpiresAt, creating: tokenCreating, createError: tokenCreateError, createdToken,
-  revokingId,
-  open: openTokens, close: closeTokens, create: createToken, revoke: revokeToken, dismissCreatedToken,
-} = useUserTokens()
+const tokenDialog = ref<InstanceType<typeof UserTokensDialog> | null>(null)
 
-const copiedTokenId = ref<number | null>(null)
-
-function copyToken(text: string, id: number): void {
-  navigator.clipboard.writeText(text).then(() => {
-    copiedTokenId.value = id
-    setTimeout(() => {
-      copiedTokenId.value = null
-    }, 2000)
-  })
+function openTokens(user: User): void {
+  void tokenDialog.value?.open(user)
 }
 
 function closeFilterGroupSoon(): void {
@@ -128,6 +119,10 @@ function avatarColor(name: string): string {
 
 function formatDate(iso: string | null): string {
   return iso ? iso.slice(0, 10) : '—'
+}
+
+function canDeleteUser(user: {id: string}): boolean {
+  return canDelete.value && String(auth.user?.id) !== user.id
 }
 </script>
 
@@ -330,6 +325,10 @@ function formatDate(iso: string | null): string {
             <div/>
           </div>
 
+          <div v-if="listError" class="border-b border-red-100 bg-red-50 px-5 py-3 text-[13px] text-red-700">
+            {{ listError }}
+          </div>
+
           <div v-if="loading" class="flex items-center justify-center py-12 text-[13px] text-slate-400">Загрузка…</div>
 
           <EmptyState v-else-if="!users.length" title="Нет пользователей">
@@ -369,7 +368,7 @@ function formatDate(iso: string | null): string {
 
             <div class="text-[12px] text-slate-400">{{ formatDate(u.created_at) }}</div>
 
-            <div v-if="canCreate || canDelete" class="flex justify-end">
+            <div v-if="canUpdate || canDeleteUser(u) || canViewTokens" class="flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
@@ -378,16 +377,16 @@ function formatDate(iso: string | null): string {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="w-44">
-                  <DropdownMenuItem v-if="canCreate" @click="openEdit(u)">
+                  <DropdownMenuItem v-if="canUpdate" @click="openEdit(u)">
                     <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
                     Редактировать
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click="openTokens(u)">
+                  <DropdownMenuItem v-if="canViewTokens" @click="openTokens(u)">
                     <KeyRound class="mr-2 h-4 w-4 text-slate-400"/>
                     API-токены
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator v-if="canDelete"/>
-                  <DropdownMenuItem v-if="canDelete" class="text-red-600 focus:text-red-600"
+                  <DropdownMenuSeparator v-if="canDeleteUser(u)"/>
+                  <DropdownMenuItem v-if="canDeleteUser(u)" class="text-red-600 focus:text-red-600"
                                     @click="openDeleteConfirm(u)">
                     <Trash2 class="mr-2 h-4 w-4"/>
                     Удалить
@@ -413,8 +412,8 @@ function formatDate(iso: string | null): string {
       @update:open="(v: boolean) => !v && closeDeleteConfirm()"
       @confirm="doDeleteUser"
   >
-    Пользователь <span class="font-semibold text-slate-900">{{ confirmDelete?.name }}</span> будет удалён без
-    возможности восстановления.
+    Пользователь <span class="font-semibold text-slate-900">{{ confirmDelete?.name }}</span> будет удалён из текущего
+    проекта. Если он не состоит в других проектах, его учётная запись будет удалена полностью.
   </ConfirmDialog>
 
   <!-- Create / Edit modal -->
@@ -473,6 +472,7 @@ function formatDate(iso: string | null): string {
                     v-model="form.login"
                     label="Логин"
                     placeholder="ivan"
+                    required
                     autocomplete="username"
                     :error="errors.login"
                 />
@@ -486,8 +486,7 @@ function formatDate(iso: string | null): string {
               </FormRow>
               <FormPassword
                   v-model="form.password"
-                  :label="editing ? 'Пароль (оставьте пустым, чтобы не менять)' : 'Пароль'"
-                  :required="!editing"
+                  :label="editing ? 'Пароль (оставьте пустым, чтобы не менять)' : 'Пароль (необязательно)'"
                   placeholder="Минимум 8 символов"
                   autocomplete="new-password"
                   :error="errors.password"
@@ -607,154 +606,5 @@ function formatDate(iso: string | null): string {
     </div>
   </Teleport>
 
-  <!-- Tokens modal -->
-  <Teleport to="body">
-    <div
-        v-if="showTokensModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-        @click.self="closeTokens"
-    >
-      <div
-          class="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_64px_-12px_rgba(15,23,42,0.2)]"
-          style="max-height: 90vh">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <div>
-            <div class="text-[15px] font-bold text-slate-900">API-токены</div>
-            <div v-if="tokenUser" class="mt-0.5 text-[12px] text-slate-400">{{ tokenUser.name }}</div>
-          </div>
-          <button class="text-slate-400 transition hover:text-slate-700" @click="closeTokens">
-            <X :size="18"/>
-          </button>
-        </div>
-
-        <div class="flex-1 overflow-y-auto px-6 py-5">
-          <!-- Create new token -->
-          <div class="mb-5 space-y-2">
-            <label class="block text-[12px] font-semibold text-slate-700">Создать новый токен</label>
-            <div class="flex gap-2">
-              <input
-                  v-model="newTokenName"
-                  type="text"
-                  class="h-9 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
-                  placeholder="Название токена"
-                  @keydown.enter="createToken"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="relative flex-1">
-                <input
-                    v-model="newTokenExpiresAt"
-                    type="date"
-                    class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] text-slate-700 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:opacity-40"
-                    :disabled="newTokenExpiresAt === 'never'"
-                    :placeholder="'Дата окончания (необязательно)'"
-                />
-              </div>
-              <label class="flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500 select-none">
-                <input
-                    type="checkbox"
-                    class="h-3.5 w-3.5 rounded accent-blue-600"
-                    :checked="newTokenExpiresAt === 'never'"
-                    @change="newTokenExpiresAt = (newTokenExpiresAt === 'never') ? '' : 'never'"
-                />
-                Бессрочный
-              </label>
-              <button
-                  class="h-9 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-                  :disabled="tokenCreating || !newTokenName.trim()"
-                  @click="createToken"
-              >
-                {{ tokenCreating ? '…' : 'Создать' }}
-              </button>
-            </div>
-            <div v-if="tokenCreateError" class="rounded-lg bg-red-50 px-3 py-2 text-[12px] text-red-700">
-              {{ tokenCreateError }}
-            </div>
-          </div>
-
-          <!-- Newly created token banner -->
-          <div v-if="createdToken" class="mb-5 overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50">
-            <div class="flex items-center justify-between border-b border-emerald-100 px-4 py-2.5">
-              <div>
-                <span class="text-[12px] font-semibold text-emerald-800">Токен создан — скопируйте сейчас, он больше не будет показан</span>
-                <div class="mt-0.5 text-[11px] text-emerald-600">Создан {{ formatDate(createdToken.created_at) }}</div>
-              </div>
-              <button class="text-emerald-500 hover:text-emerald-700" @click="dismissCreatedToken">
-                <X :size="14"/>
-              </button>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-3">
-              <code class="min-w-0 flex-1 break-all text-[12px] font-mono text-emerald-900">{{
-                  createdToken.plain_text_token
-                }}</code>
-              <button
-                  class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-emerald-600 transition hover:bg-emerald-100"
-                  @click="copyToken(createdToken.plain_text_token, createdToken.id)"
-              >
-                <Check v-if="copiedTokenId === createdToken.id" :size="14"/>
-                <Copy v-else :size="14"/>
-              </button>
-            </div>
-          </div>
-
-          <!-- Tokens list -->
-          <div v-if="tokensError" class="mb-4 rounded-lg bg-red-50 px-4 py-2.5 text-[13px] text-red-700">{{
-              tokensError
-            }}
-          </div>
-
-          <div v-if="tokensLoading" class="flex items-center justify-center py-8 text-[13px] text-slate-400">Загрузка…
-          </div>
-
-          <div v-else-if="!tokens.length" class="flex flex-col items-center justify-center gap-2 py-8 text-center">
-            <KeyRound :size="28" class="text-slate-200"/>
-            <p class="text-[13px] text-slate-400">Нет токенов</p>
-          </div>
-
-          <div v-else class="overflow-hidden rounded-xl border border-slate-200">
-            <div
-                v-for="(t, idx) in tokens"
-                :key="t.id"
-                class="flex items-center gap-3 px-4 py-3 transition hover:bg-slate-50"
-                :class="idx !== tokens.length - 1 ? 'border-b border-slate-100' : ''"
-            >
-              <KeyRound :size="14" class="flex-none text-slate-300"/>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="text-[13px] font-medium text-slate-800">{{ t.name }}</span>
-                  <span
-                      v-if="t.expires_at"
-                      class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                      :class="new Date(t.expires_at) < new Date() ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'"
-                  >
-                    до {{ formatDate(t.expires_at) }}
-                  </span>
-                  <span v-else
-                        class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">бессрочный</span>
-                </div>
-                <div class="mt-0.5 text-[11px] text-slate-400">
-                  Создан {{ formatDate(t.created_at) }}
-                  <template v-if="t.last_used_at"> · Использован {{ formatDate(t.last_used_at) }}</template>
-                </div>
-              </div>
-              <button
-                  class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
-                  :disabled="revokingId === t.id"
-                  @click="revokeToken(t.id)"
-              >
-                <Trash2 :size="13"/>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end border-t border-slate-100 px-6 py-4">
-          <button
-              class="h-9 rounded-xl border border-slate-200 px-4 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50"
-              @click="closeTokens">Закрыть
-          </button>
-        </div>
-      </div>
-    </div>
-  </Teleport>
+  <UserTokensDialog ref="tokenDialog"/>
 </template>

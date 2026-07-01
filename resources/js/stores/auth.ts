@@ -1,5 +1,5 @@
 import {getJson} from '@/lib/http'
-import {redirectToPartner} from '@/lib/auth-redirect'
+import {markForbidden} from '@/lib/auth-state'
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
 
@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
         const token = sessionStorage.getItem('access_token')
         const refreshToken = sessionStorage.getItem('refresh_token')
         if (!token && !refreshToken) {
-            redirectToPartner()
+            markForbidden()
             ready.value = true
             return
         }

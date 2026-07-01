@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Resources\JsonApi;
 
-use App\Http\Resources\JsonApi\RoleResource;
-use App\Models\Role;
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\JsonApi\JsonApiRequest;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 use Module\Groups\Http\Resources\JsonApi\UserGroupResource;
-use Module\Groups\Models\UserGroup;
 
 /**
  * @mixin User
@@ -22,7 +18,7 @@ final class UserResource extends JsonApiResource
 
     public function toId(Request $request): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 
     public function toType(Request $request): string
@@ -40,11 +36,19 @@ final class UserResource extends JsonApiResource
             'email' => $this->email,
             'login' => $this->login,
             'external_id' => $this->external_id,
+            'is_system' => $this->is_system,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 
+    /**
+     * Связи отдаются как JSON:API include (?include=roles,groups);
+     * сами объекты приходят в top-level `included`.
+     *
+     * @return array<string, mixed>
+     */
+    #[\Override]
     public function toRelationships(Request $request): array
     {
         return [
@@ -52,34 +56,4 @@ final class UserResource extends JsonApiResource
             'groups' => UserGroupResource::class,
         ];
     }
-
-
-//    /** @return array<string, mixed> */
-//    #[\Override]
-//    protected function resolveResourceRelationshipIdentifiers(JsonApiRequest $request): array
-//    {
-//        $result = [];
-//
-//        if ($this->relationLoaded('roles')) {
-//            $result['roles'] = [
-//                'data' => $this->roles->map(static fn(Role $r): array => [
-//                    'type' => 'roles',
-//                    'id' => (string)$r->id,
-//                    'meta' => ['name' => $r->name, 'title' => $r->title],
-//                ])->all(),
-//            ];
-//        }
-//
-//        if ($this->relationLoaded('groups')) {
-//            $result['groups'] = [
-//                'data' => $this->groups->map(static fn(UserGroup $g): array => [
-//                    'type' => 'groups',
-//                    'id' => $g->id,
-//                    'meta' => ['name' => $g->name, 'slug' => $g->slug],
-//                ])->all(),
-//            ];
-//        }
-//
-//        return $result;
-//    }
 }

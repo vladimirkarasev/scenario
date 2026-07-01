@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Groups;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Groups\DTO\GroupRegistrationData;

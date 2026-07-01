@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Groups\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Groups\Http\Requests\GroupMemberStoreRequest;

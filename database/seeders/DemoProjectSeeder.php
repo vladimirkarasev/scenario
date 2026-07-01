@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Module\Projects\Models\Project;
+use Module\Users\Services\SystemUserService;
 
 final class DemoProjectSeeder extends Seeder
 {
@@ -27,7 +28,9 @@ final class DemoProjectSeeder extends Seeder
 
     public function run(): void
     {
-        Project::query()->updateOrCreate(
+        $systemUsers = app(SystemUserService::class);
+
+        $demo = Project::query()->updateOrCreate(
             ['sitekey' => self::SITEKEY, 'host' => self::HOST],
             [
                 'id' => '019e5d9f-86d8-7311-9f8b-fb1dfef34a71',
@@ -37,7 +40,7 @@ final class DemoProjectSeeder extends Seeder
             ],
         );
 
-        Project::query()->updateOrCreate(
+        $alpha = Project::query()->updateOrCreate(
             ['sitekey' => self::SITEKEY_2, 'host' => self::HOST_2],
             [
                 'id' => '019e5d9f-86d8-7311-9f8b-fb1dfef34a72',
@@ -46,5 +49,8 @@ final class DemoProjectSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+
+        $systemUsers->provision($demo);
+        $systemUsers->provision($alpha);
     }
 }

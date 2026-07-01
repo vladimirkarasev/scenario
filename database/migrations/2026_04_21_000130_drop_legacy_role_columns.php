@@ -24,7 +24,7 @@ return new class extends Migration
 
                     DB::table('model_has_roles')->updateOrInsert([
                         'role_id' => $role->id,
-                        'model_type' => 'App\\Models\\User',
+                        'model_type' => 'Module\\Users\\Models\\User',
                         'model_id' => $user->id,
                     ], []);
                 });
@@ -35,24 +35,12 @@ return new class extends Migration
                 $table->dropColumn('role');
             }
         });
-
-        Schema::table('iframe_access_tokens', static function (Blueprint $table): void {
-            if (Schema::hasColumn('iframe_access_tokens', 'role')) {
-                $table->dropColumn('role');
-            }
-        });
     }
 
     public function down(): void
     {
         Schema::table('users', static function (Blueprint $table): void {
             if (! Schema::hasColumn('users', 'role')) {
-                $table->string('role')->nullable()->after('login');
-            }
-        });
-
-        Schema::table('iframe_access_tokens', static function (Blueprint $table): void {
-            if (! Schema::hasColumn('iframe_access_tokens', 'role')) {
                 $table->string('role')->nullable()->after('login');
             }
         });

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Module\Directories\Cache\DirectoryCache;
 use Module\Directories\DTO\DirectoryData;
 use Module\Directories\Exceptions\DirectoryException;

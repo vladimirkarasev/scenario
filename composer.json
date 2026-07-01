@@ -31,7 +31,6 @@
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^12.5.12",
         "rector/rector": "^2.4",
-        "scalar/laravel": "^0.2.1",
         "spiral/roadrunner-http": "^4.1"
     },
     "autoload": {

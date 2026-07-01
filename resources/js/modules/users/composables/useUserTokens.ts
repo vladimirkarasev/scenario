@@ -17,6 +17,7 @@ export function useUserTokens() {
     const createdToken = ref<ApiTokenCreated | null>(null)
 
     const revokingId = ref<number | null>(null)
+    let loadRequestId = 0
 
     async function open(u: User): Promise<void> {
         user.value = u
@@ -29,6 +30,7 @@ export function useUserTokens() {
     }
 
     function close(): void {
+        loadRequestId++
         showModal.value = false
         user.value = null
         tokens.value = []
@@ -41,14 +43,18 @@ export function useUserTokens() {
 
     async function load(): Promise<void> {
         if (!user.value) return
+        const requestId = ++loadRequestId
         loading.value = true
         error.value = null
         try {
-            tokens.value = await tokenRepository.list(user.value.id)
+            const loadedTokens = await tokenRepository.list(user.value.id)
+            if (requestId === loadRequestId) tokens.value = loadedTokens
         } catch (e: unknown) {
-            error.value = e instanceof Error ? e.message : 'Ошибка загрузки.'
+            if (requestId === loadRequestId) {
+                error.value = e instanceof Error ? e.message : 'Ошибка загрузки.'
+            }
         } finally {
-            loading.value = false
+            if (requestId === loadRequestId) loading.value = false
         }
     }
 

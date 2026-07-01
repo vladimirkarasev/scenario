@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Role;
-use App\Models\User;
+use Module\Users\Models\Role;
+use Module\Users\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Module\Projects\Models\Project;
 
@@ -25,8 +24,11 @@ final class AdminUserSeeder extends Seeder
 
     public function run(): void
     {
+        /** @var Project|null $project */
+        $project = Project::query()->where('sitekey', DemoProjectSeeder::SITEKEY)->first();
+
         $user = User::query()->updateOrCreate(
-            ['email' => self::EMAIL],
+            ['email' => self::EMAIL, 'project_id' => $project?->id],
             [
                 'name' => 'Admin',
                 'login' => self::LOGIN,
@@ -42,23 +44,5 @@ final class AdminUserSeeder extends Seeder
             $user->syncRoles([$role]);
         }
 
-        /** @var Project|null $project */
-        $project = Project::query()->where('sitekey', DemoProjectSeeder::SITEKEY)->first();
-
-        if ($project === null) {
-            return;
-        }
-
-        DB::table('project_users')->insertOrIgnore([
-            'user_id' => $user->id,
-            'project_id' => $project->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        DB::table('project_user_roles')->updateOrInsert(
-            ['user_id' => $user->id, 'project_id' => $project->id, 'role' => 'administrator'],
-            ['created_at' => now(), 'updated_at' => now()],
-        );
     }
 }

@@ -15,7 +15,10 @@ export default defineConfig({
         vueDevTools(),
         tailwindcss(),
         laravel({
-            input: 'resources/js/app.ts',
+            input: [
+                'resources/js/app.ts',
+                'resources/js/swagger.ts',
+            ],
             refresh: true,
         }),
         vue({

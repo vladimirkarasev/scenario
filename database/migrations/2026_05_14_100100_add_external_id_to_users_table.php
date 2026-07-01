@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table): void {
-            $table->string('external_id')->nullable()->unique()->after('login');
+            $table->string('external_id')->nullable()->index()->after('login');
         });
     }
 

@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use App\Support\PermissionRegistry;
+use Module\Proxy\Enums\ProxyPermission;
 use Module\Proxy\Events\ProxyRequestAccepted;
 use Module\Proxy\Events\ProxyRequestFailed;
 use Module\Proxy\Events\ProxyRequestProcessed;
@@ -34,6 +36,8 @@ final class ProxyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        PermissionRegistry::register(ProxyPermission::class);
+
         $this->registerExceptionHandlers();
 
         Route::middleware('web')

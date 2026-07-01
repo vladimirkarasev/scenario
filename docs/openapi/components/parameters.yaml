@@ -71,3 +71,29 @@ PageNumber:
     type: integer
     minimum: 1
     default: 1
+
+IncludeUserRelations:
+  name: include
+  in: query
+  description: >-
+    JSON:API include связей через запятую. Поддерживаются `roles`, `groups`.
+    Включённые объекты возвращаются в top-level `included`.
+  schema:
+    type: string
+    example: roles,groups
+
+FieldsGroups:
+  name: fields[groups]
+  in: query
+  description: Sparse fieldset для включённых групп (поля через запятую).
+  schema:
+    type: string
+    example: name,slug
+
+FieldsRoles:
+  name: fields[roles]
+  in: query
+  description: Sparse fieldset для включённых ролей (поля через запятую).
+  schema:
+    type: string
+    example: name,title

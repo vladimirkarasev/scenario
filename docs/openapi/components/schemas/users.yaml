@@ -13,28 +13,76 @@ UserResource:
       $ref: '#/UserAttributes'
     relationships:
       type: object
+      description: >-
+        Linkage связей (только type + id). Сами объекты приходят в top-level
+        `included` при запросе с `?include=roles,groups`.
       properties:
+        roles:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/RelationshipLinkage'
         groups:
           type: object
           properties:
             data:
               type: array
               items:
-                type: object
-                properties:
-                  type:
-                    type: string
-                    example: groups
-                  id:
-                    type: string
-                    format: uuid
-                  meta:
-                    type: object
-                    properties:
-                      name:
-                        type: string
-                      slug:
-                        type: string
+                $ref: '#/RelationshipLinkage'
+
+RelationshipLinkage:
+  type: object
+  required: [ type, id ]
+  properties:
+    type:
+      type: string
+      example: groups
+    id:
+      type: string
+      example: "9b1f0c8e-1a2b-4c3d-8e9f-000000000001"
+
+IncludedRole:
+  type: object
+  description: Роль в `included` при ?include=roles (sparse fields[roles]=name,title).
+  properties:
+    type:
+      type: string
+      example: roles
+    id:
+      type: string
+      example: "3"
+    attributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: manager
+        title:
+          type: string
+          nullable: true
+          example: Менеджер
+
+IncludedGroup:
+  type: object
+  description: Группа в `included` при ?include=groups (sparse fields[groups]=name,slug).
+  properties:
+    type:
+      type: string
+      example: groups
+    id:
+      type: string
+      format: uuid
+    attributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Операторы
+        slug:
+          type: string
+          example: operators
 
 UserAttributes:
   type: object
@@ -58,6 +106,9 @@ UserAttributes:
       type: string
       nullable: true
       example: crm_user_42
+    is_system:
+      type: boolean
+      description: Признак защищённого сервисного пользователя
     created_at:
       type: string
       format: date-time
@@ -69,7 +120,7 @@ UserAttributes:
 
 UserStoreRequest:
   type: object
-  required: [ name, email, password ]
+  required: [ name, email, login ]
   properties:
     name:
       type: string
@@ -87,7 +138,6 @@ UserStoreRequest:
       example: ivan@example.com
     login:
       type: string
-      nullable: true
       maxLength: 255
       example: ivan123
     external_id:
@@ -99,10 +149,21 @@ UserStoreRequest:
       type: string
       minLength: 8
       example: s3cr3tP@ss
+    roles:
+      type: array
+      items:
+        type: string
+      description: Имена общих ролей guard `web`; для назначения требуется право role_create
+    group_ids:
+      type: array
+      items:
+        type: string
+        format: uuid
+      description: UUID групп текущего проекта
 
 UserUpdateRequest:
   type: object
-  required: [ name, email ]
+  required: [ name, email, login ]
   properties:
     name:
       type: string
@@ -117,7 +178,6 @@ UserUpdateRequest:
       maxLength: 255
     login:
       type: string
-      nullable: true
       maxLength: 255
     external_id:
       type: string
@@ -128,3 +188,62 @@ UserUpdateRequest:
       nullable: true
       minLength: 8
       description: Если не передан — пароль не меняется
+    roles:
+      type: array
+      items:
+        type: string
+      description: Полный список назначенных ролей; для изменения требуется право role_create
+    group_ids:
+      type: array
+      items:
+        type: string
+        format: uuid
+      description: Полный список групп текущего проекта; если не передан, группы сохраняются
+
+UserToken:
+  type: object
+  required: [ id, name, abilities, last_used_at, created_at, expires_at ]
+  properties:
+    id:
+      type: integer
+    name:
+      type: string
+    abilities:
+      type: array
+      items:
+        type: string
+    last_used_at:
+      type: [ string, 'null' ]
+      format: date-time
+    created_at:
+      type: [ string, 'null' ]
+      format: date-time
+    expires_at:
+      type: [ string, 'null' ]
+      format: date-time
+
+UserTokenCreated:
+  allOf:
+    - $ref: '#/UserToken'
+    - type: object
+      required: [ plain_text_token ]
+      properties:
+        plain_text_token:
+          type: string
+          description: Секретное значение, возвращаемое только при создании
+
+UserTokenStoreRequest:
+  type: object
+  required: [ name ]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+    expires_at:
+      anyOf:
+        - type: string
+          format: date
+        - type: string
+          format: date-time
+        - type: 'null'
+      description: Должно быть позже текущего времени

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Users\QueryBuilders;
 
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -12,18 +12,50 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class UserBuilder extends Builder
 {
-    public function forProject(?string $projectId): static
+    public function forProject(string $projectId): static
     {
-        if ($projectId === null) {
-            return $this;
-        }
+        return $this->where('users.project_id', $projectId);
+    }
 
-        return $this->whereExists(
-            static fn(\Illuminate\Database\Query\Builder $q) => $q
-                ->from('project_users')
-                ->whereColumn('project_users.user_id', 'users.id')
-                ->where('project_users.project_id', $projectId),
+    public function notSystem(): static
+    {
+        return $this->where('users.is_system', false);
+    }
+
+    public function system(): static
+    {
+        return $this->where('users.is_system', true);
+    }
+
+    public function withExternalId(string $externalId): static
+    {
+        return $this->where('users.external_id', $externalId);
+    }
+
+    public function withEmail(string $email): static
+    {
+        return $this->where('users.email', $email);
+    }
+
+    public function withActiveProject(): static
+    {
+        return $this->whereHas(
+            'project',
+            static fn (Builder $query) => $query->where('projects.is_active', true),
         );
+    }
+
+    public function withRoleName(string $roleName): static
+    {
+        return $this->whereHas(
+            'roles',
+            static fn (Builder $query) => $query->where('roles.name', $roleName),
+        );
+    }
+
+    public function ordered(): static
+    {
+        return $this->orderBy('users.name')->orderBy('users.id');
     }
 
     /** @param  list<string>  $groupIds */

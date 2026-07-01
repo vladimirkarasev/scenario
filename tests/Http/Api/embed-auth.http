@@ -1,8 +1,9 @@
 @baseUrl        = http://scenario.localhost/api
-@projectUuid    = 00000000-0000-0000-0000-000000000001
-@sharedSecret   = super-secret-key-32-chars-long!!
 
-# After user-register — paste the returned iframe_launch_token here
+# Bearer-токен системного пользователя проекта (см. POST /api/users/{id}/tokens)
+@systemToken    = PASTE_SYSTEM_TOKEN_HERE
+
+# After iframe-token — paste the returned _token here
 @launchToken    = PASTE_LAUNCH_TOKEN_HERE
 
 # After exchange — paste the returned tokens here
@@ -10,18 +11,18 @@
 @refreshToken   = PASTE_REFRESH_TOKEN_HERE
 
 ###
-### ── 1. User Register ─────────────────────────────────────────────────────
+### ── 1. Создание пользователя (обычный API, токен системного пользователя) ─
 ###
 
-### Register new user (creates user + membership + launch token)
-POST {{baseUrl}}/project/{{projectUuid}}/user-register
+### Создать пользователя проекта
+POST {{baseUrl}}/users
 Content-Type: application/json
-Authorization: Bearer {{sharedSecret}}
+Authorization: Bearer {{systemToken}}
 
 {
+  "name": "Иван Иванов",
   "login": "user_123",
   "email": "user@example.com",
-  "name": "Иван Иванов",
   "external_id": "crm_user_123",
   "roles": [
     "client",
@@ -29,86 +30,47 @@ Authorization: Bearer {{sharedSecret}}
   ]
 }
 
-### Register without email (generates fake email)
-POST {{baseUrl}}/project/{{projectUuid}}/user-register
-Content-Type: application/json
-Authorization: Bearer {{sharedSecret}}
-
-{
-  "login": "user_no_email",
-  "name": "Без Email",
-  "roles": [
-    "client"
-  ]
-}
-
-### Register with external_id only (no email, no login match)
-POST {{baseUrl}}/project/{{projectUuid}}/user-register
-Content-Type: application/json
-Authorization: Bearer {{sharedSecret}}
-
-{
-  "login": "some_login",
-  "name": "External User",
-  "external_id": "ext_456",
-  "roles": [
-    "viewer"
-  ]
-}
-
-### 404 — project not found
-POST {{baseUrl}}/project/00000000-0000-0000-0000-000000000000/user-register
-Content-Type: application/json
-Authorization: Bearer {{sharedSecret}}
-
-{
-  "login": "user_123",
-  "name": "Test",
-  "roles": [
-    "client"
-  ]
-}
-
-### 401 — wrong shared secret
-POST {{baseUrl}}/project/{{projectUuid}}/user-register
-Content-Type: application/json
-Authorization: Bearer wrong-secret
-
-{
-  "login": "user_123",
-  "name": "Test",
-  "roles": [
-    "client"
-  ]
-}
-
 ### 422 — validation error (missing required fields)
-POST {{baseUrl}}/project/{{projectUuid}}/user-register
+POST {{baseUrl}}/users
 Content-Type: application/json
-Authorization: Bearer {{sharedSecret}}
+Authorization: Bearer {{systemToken}}
 
 {}
 
 ###
-### ── 2. Exchange ──────────────────────────────────────────────────────────
+### ── 2. Одноразовый _token для входа в iframe ─────────────────────────────
 ###
 
-### Exchange launch token for access + refresh tokens
-# Paste iframe_launch_token from user-register response into @launchToken above
+### Выпустить _token по external_id
+POST {{baseUrl}}/users/iframe-token
+Content-Type: application/json
+Authorization: Bearer {{systemToken}}
+
+{
+  "external_id": "crm_user_123"
+}
+
+### 404 — пользователь не найден в проекте
+POST {{baseUrl}}/users/iframe-token
+Content-Type: application/json
+Authorization: Bearer {{systemToken}}
+
+{
+  "external_id": "unknown"
+}
+
+###
+### ── 3. Exchange ──────────────────────────────────────────────────────────
+###
+
+### Обменять _token на access + refresh
+# Вставьте _token из ответа iframe-token в @launchToken выше
 POST {{baseUrl}}/embed/auth/exchange
 Content-Type: application/json
 Origin: http://scenario.localhost
 
 {
-  "token": "{{launchToken}}"
-}
-
-### Exchange without Origin header (should fail if project.host is set)
-POST {{baseUrl}}/embed/auth/exchange
-Content-Type: application/json
-
-{
-  "token": "{{launchToken}}"
+  "_token": "{{launchToken}}"
 }
 
 ### 401 — token not found
@@ -116,21 +78,21 @@ POST {{baseUrl}}/embed/auth/exchange
 Content-Type: application/json
 
 {
-  "token": "nonexistent-token"
+  "_token": "nonexistent-token"
 }
 
-### 422 — missing token field
+### 422 — missing _token field
 POST {{baseUrl}}/embed/auth/exchange
 Content-Type: application/json
 
 {}
 
 ###
-### ── 3. Refresh ───────────────────────────────────────────────────────────
+### ── 4. Refresh ───────────────────────────────────────────────────────────
 ###
 
 ### Refresh access token (token rotation)
-# Paste refresh_token from exchange response into @refreshToken above
+# Вставьте refresh_token из ответа exchange в @refreshToken выше
 POST {{baseUrl}}/embed/auth/refresh
 Content-Type: application/json
 
@@ -153,11 +115,11 @@ Content-Type: application/json
 {}
 
 ###
-### ── 4. Logout ────────────────────────────────────────────────────────────
+### ── 5. Logout ────────────────────────────────────────────────────────────
 ###
 
 ### Logout (revokes access token + refresh token)
-# Paste access_token from exchange/refresh response into @accessToken above
+# Вставьте access_token из ответа exchange/refresh в @accessToken выше
 POST {{baseUrl}}/embed/auth/logout
 Authorization: Bearer {{accessToken}}
 

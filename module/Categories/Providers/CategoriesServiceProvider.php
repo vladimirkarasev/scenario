@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Categories\Providers;
 
+use App\Support\PermissionRegistry;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Module\Categories\Enums\CategoryPermission;
 use Module\Categories\Repositories\CachedCategoryRepository;
 use Module\Categories\Repositories\CategoryRepository;
 use Module\Categories\Repositories\CategoryRepositoryContract;
@@ -29,6 +31,8 @@ final class CategoriesServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        PermissionRegistry::register(CategoryPermission::class);
+
         $this->loadRoutesFrom(dirname(__DIR__).'/routes/api.php');
     }
 }

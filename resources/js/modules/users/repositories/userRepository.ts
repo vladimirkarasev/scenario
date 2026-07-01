@@ -2,8 +2,8 @@ import {destroyJson, getJson, sendJson} from '@/lib/http'
 import type {User, UsersPage, UserPayload} from '@/modules/users/types/user'
 
 interface RawRelRef {
-    id: string;
-    meta?: Record<string, string>
+    type: string
+    id: string
 }
 
 interface RawUser {
@@ -22,7 +22,39 @@ interface RawUser {
     }
 }
 
-function normalizeUser(item: RawUser): User {
+interface RawIncluded {
+    type: string
+    id: string
+    attributes: Record<string, unknown>
+}
+
+// JSON:API: связи приходят отдельным массивом `included`; запросы шлём с
+// ?include=roles,groups и sparse fieldsets, чтобы тянуть только нужные поля.
+const INCLUDE_PARAMS: Record<string, string> = {
+    include: 'roles,groups',
+    'fields[groups]': 'name,slug',
+    'fields[roles]': 'name,title',
+}
+
+function withIncludes(qs: URLSearchParams): URLSearchParams {
+    for (const [key, value] of Object.entries(INCLUDE_PARAMS)) qs.set(key, value)
+    return qs
+}
+
+function indexIncluded(included: RawIncluded[]): Map<string, RawIncluded> {
+    const map = new Map<string, RawIncluded>()
+    for (const item of included) map.set(`${item.type}:${item.id}`, item)
+    return map
+}
+
+function str(value: unknown): string {
+    return typeof value === 'string' ? value : ''
+}
+
+function normalizeUser(item: RawUser, included: Map<string, RawIncluded>): User {
+    const attrsOf = (ref: RawRelRef): Record<string, unknown> =>
+        included.get(`${ref.type}:${ref.id}`)?.attributes ?? {}
+
     return {
         id: item.id,
         name: item.attributes.name,
@@ -31,31 +63,35 @@ function normalizeUser(item: RawUser): User {
         login: item.attributes.login,
         external_id: item.attributes.external_id,
         created_at: item.attributes.created_at,
-        roles: (item.relationships?.roles?.data ?? []).map(r => ({
-            id: r.id,
-            name: r.meta?.name ?? '',
-            title: r.meta?.title ?? null,
-        })),
-        groups: (item.relationships?.groups?.data ?? []).map(g => ({
-            id: g.id,
-            name: g.meta?.name ?? '',
-            slug: g.meta?.slug ?? '',
-        })),
+        roles: (item.relationships?.roles?.data ?? []).map((ref) => {
+            const a = attrsOf(ref)
+            return {id: ref.id, name: str(a.name), title: typeof a.title === 'string' ? a.title : null}
+        }),
+        groups: (item.relationships?.groups?.data ?? []).map((ref) => {
+            const a = attrsOf(ref)
+            return {id: ref.id, name: str(a.name), slug: str(a.slug)}
+        }),
     }
 }
 
 export const userRepository = {
     async list(qs: URLSearchParams): Promise<UsersPage> {
-        const raw = await getJson(`/api/users?${qs}`, 'Не удалось загрузить пользователей.') as {
+        const raw = await getJson(`/api/users?${withIncludes(qs)}`, 'Не удалось загрузить пользователей.') as {
             data: RawUser[]
+            included?: RawIncluded[]
             meta: UsersPage['meta']
         }
-        return {data: raw.data.map(normalizeUser), meta: raw.meta}
+        const included = indexIncluded(raw.included ?? [])
+        return {data: raw.data.map(u => normalizeUser(u, included)), meta: raw.meta}
     },
 
     async find(id: string): Promise<User> {
-        const raw = await getJson(`/api/users/${id}`, 'Не удалось загрузить пользователя.') as { data: RawUser }
-        return normalizeUser(raw.data)
+        const qs = withIncludes(new URLSearchParams())
+        const raw = await getJson(`/api/users/${id}?${qs}`, 'Не удалось загрузить пользователя.') as {
+            data: RawUser
+            included?: RawIncluded[]
+        }
+        return normalizeUser(raw.data, indexIncluded(raw.included ?? []))
     },
 
     async create(payload: UserPayload): Promise<void> {

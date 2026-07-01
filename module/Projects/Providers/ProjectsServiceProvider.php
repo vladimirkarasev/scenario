@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Projects\Providers;
 
-use App\Models\IframeRefreshToken;
-use App\Models\User;
+use App\Models\PersonalRefreshToken;
+use App\Support\PermissionRegistry;
+use Module\Projects\Enums\ProjectPermission;
+use Module\Users\Models\User;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +37,7 @@ final class ProjectsServiceProvider extends ServiceProvider
                 $token = PersonalAccessToken::findToken($bearer);
 
                 if ($token !== null) {
-                    $projectId = IframeRefreshToken::query()
+                    $projectId = PersonalRefreshToken::query()
                         ->where('personal_access_token_id', $token->getKey())
                         ->value('project_id');
 
@@ -48,7 +50,16 @@ final class ProjectsServiceProvider extends ServiceProvider
                 }
             }
 
-            // 2. Фолбэк: стандартный web-доступ по sitekey/host пользователя.
+            // 2. Системный пользователь проекта: проект задан прямо на юзере.
+            //    Так системник, ходящий по своему API-токену, скоупится на свой проект.
+            if (is_string($user->project_id) && $user->project_id !== '') {
+                $project = $projects->activeById($user->project_id);
+                if ($project instanceof Project) {
+                    return new CurrentProject($project);
+                }
+            }
+
+            // 3. Фолбэк: стандартный web-доступ по sitekey/host пользователя.
             if ($user->sitekey && $user->host) {
                 return new CurrentProject($projects->activeBySitekeyAndHost($user->sitekey, $user->host));
             }
@@ -59,6 +70,8 @@ final class ProjectsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        PermissionRegistry::register(ProjectPermission::class);
+
         Route::middleware('web')
             ->group(dirname(__DIR__).'/routes/web.php');
 

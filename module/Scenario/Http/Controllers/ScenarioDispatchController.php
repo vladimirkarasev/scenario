@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Module\Users\Models\User;
 use Illuminate\Http\JsonResponse;
 use Module\Scenario\DTO\ScenarioDispatchData;
 use Module\Scenario\Http\Requests\DispatchScenarioRequest;

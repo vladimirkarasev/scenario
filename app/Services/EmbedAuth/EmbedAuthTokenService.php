@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Services\EmbedAuth;
 
 use App\Exceptions\EmbedAuth\InvalidTokenException;
-use App\Models\IframeLaunchToken;
-use App\Models\IframeRefreshToken;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\SSOLaunchToken;
+use App\Models\PersonalRefreshToken;
+use Module\Users\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
 use Module\Projects\Models\Project;
 
@@ -23,15 +22,15 @@ final class EmbedAuthTokenService
     /**
      * @return array{iframe_launch_token: string, expires_in: int}
      */
-    public function createLaunchToken(User $user, Project $project): array
+    public function createLaunchToken(User $user, Project $project, ?string $allowedOrigin = null): array
     {
         $plainToken = bin2hex(random_bytes(40));
 
-        IframeLaunchToken::query()->create([
+        SSOLaunchToken::query()->create([
             'user_id' => $user->id,
             'project_id' => $project->id,
             'token_hash' => hash('sha256', $plainToken),
-            'allowed_origin' => (string)$project->host,
+            'allowed_origin' => $allowedOrigin ?? (string)$project->host,
             'expires_at' => now()->addSeconds(self::LAUNCH_TOKEN_TTL_SECONDS),
         ]);
 
@@ -48,7 +47,7 @@ final class EmbedAuthTokenService
      */
     public function exchange(string $plainToken, ?string $requestOrigin): array
     {
-        $launchToken = IframeLaunchToken::query()
+        $launchToken = SSOLaunchToken::query()
             ->with(['user', 'project'])
             ->where('token_hash', hash('sha256', $plainToken))
             ->first();
@@ -98,7 +97,7 @@ final class EmbedAuthTokenService
      */
     public function refresh(string $plainRefreshToken): array
     {
-        $refreshToken = IframeRefreshToken::query()
+        $refreshToken = PersonalRefreshToken::query()
             ->with(['user', 'project'])
             ->where('token_hash', hash('sha256', $plainRefreshToken))
             ->whereNull('revoked_at')
@@ -149,22 +148,12 @@ final class EmbedAuthTokenService
             return;
         }
 
-        IframeRefreshToken::query()
+        PersonalRefreshToken::query()
             ->where('personal_access_token_id', $sanctumToken->id)
             ->whereNull('revoked_at')
             ->update(['revoked_at' => now()]);
 
         $sanctumToken->delete();
-    }
-
-    /**
-     * Issue tokens directly, bypassing the launch-token exchange flow (dev use only).
-     *
-     * @return array{access_token: string, refresh_token: string, token_type: string, expires_in: int}
-     */
-    public function authorizeUser(User $user, Project $project): array
-    {
-        return $this->issueTokenPair($user, $project);
     }
 
     /**
@@ -185,7 +174,7 @@ final class EmbedAuthTokenService
             throw new \UnexpectedValueException('Personal access token key must be integer.');
         }
 
-        IframeRefreshToken::query()->create([
+        PersonalRefreshToken::query()->create([
             'user_id' => $user->id,
             'project_id' => $project->id,
             'personal_access_token_id' => $accessTokenKey,
@@ -203,10 +192,7 @@ final class EmbedAuthTokenService
 
     private function userInProject(User $user, Project $project): bool
     {
-        return DB::table('project_users')
-            ->where('user_id', $user->id)
-            ->where('project_id', $project->id)
-            ->exists();
+        return $user->project_id === $project->id;
     }
 
     private function originsMatch(string $a, string $b): bool

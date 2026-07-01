@@ -1,5 +1,5 @@
 import {useUrlSearchParams} from '@vueuse/core'
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {userRepository} from '@/modules/users/repositories/userRepository'
 import type {User, UsersPage} from '@/modules/users/types/user'
 
@@ -18,21 +18,30 @@ function toArr(v: string | string[] | undefined): string[] {
 export function useUserList() {
     const params = useUrlSearchParams<UserListParams>('history', {removeNullishValues: true})
     const loading = ref(false)
+    const error = ref<string | null>(null)
     const users = ref<User[]>([])
     const meta = ref<UsersPage['meta']>({current_page: 1, last_page: 1, per_page: 15, total: 0})
+    let requestId = 0
 
     async function load(): Promise<void> {
+        const currentRequestId = ++requestId
         loading.value = true
+        error.value = null
         try {
             const qs = new URLSearchParams(window.location.search)
             qs.set('per_page', '15')
             if (!qs.has('page[number]')) qs.set('page[number]', '1')
             const result = await userRepository.list(qs)
-            users.value = result.data
-            meta.value = result.meta
-        } catch { /* silent */
+            if (currentRequestId === requestId) {
+                users.value = result.data
+                meta.value = result.meta
+            }
+        } catch (e: unknown) {
+            if (currentRequestId === requestId) {
+                error.value = e instanceof Error ? e.message : 'Не удалось загрузить пользователей.'
+            }
         } finally {
-            loading.value = false
+            if (currentRequestId === requestId) loading.value = false
         }
     }
 
@@ -68,6 +77,10 @@ export function useUserList() {
         {deep: true},
     )
     onMounted(load)
+    onBeforeUnmount(() => {
+        requestId++
+        if (searchTimer) clearTimeout(searchTimer)
+    })
 
-    return {params, search, page, loading, users, meta, load}
+    return {params, search, page, loading, error, users, meta, load}
 }
