@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Controllers;
 
+use App\Exceptions\ForbiddenException;
+use App\Exceptions\NotFoundException;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Services\EmbedAuth\EmbedAuthTokenService;
 use Illuminate\Http\JsonResponse;
 use Module\Projects\CurrentProject;
+use Module\Users\Enums\UserErrorCode;
 use Module\Users\Http\Requests\LaunchTokenRequest;
 use Module\Users\Repositories\UserRepository;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Выпуск одноразового launch-токена (_token) для пользователя проекта по external_id.
@@ -30,7 +33,7 @@ final class LaunchTokenController extends Controller
         $project = $this->currentProject->get();
 
         if ($project === null) {
-            throw new HttpException(403, 'Контекст проекта не определён.');
+            throw ForbiddenException::make('Контекст проекта не определён.', UserErrorCode::NoProjectContext);
         }
 
         $user = $this->users->findNonSystemByExternalId(
@@ -39,12 +42,12 @@ final class LaunchTokenController extends Controller
         );
 
         if ($user === null) {
-            throw new HttpException(404, 'Пользователь не найден в проекте.');
+            throw NotFoundException::make('Пользователь не найден в проекте.', UserErrorCode::UserNotFound, 'Пользователь не найден');
         }
 
         $result = $this->tokens->createLaunchToken($user, $project);
 
-        return new JsonResponse([
+        return new ApiResponse([
             '_token' => $result['launch_token'],
             'expires_in' => $result['expires_in'],
         ]);

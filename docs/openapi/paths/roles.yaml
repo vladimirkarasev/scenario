@@ -22,9 +22,9 @@ collection:
                       items:
                         $ref: '../components/schemas/roles.yaml#/RoleResource'
                     meta:
-                      $ref: '../components/schemas/common.yaml#/Pagination'
+                      $ref: '../components/schemas/common.yaml#/CollectionMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
 
   post:
     tags: [ Роли ]
@@ -43,11 +43,17 @@ collection:
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/roles.yaml#/RoleResource'
+              allOf:
+                - $ref: '../components/schemas/roles.yaml#/RoleResource'
+                - type: object
+                  required: [ meta ]
+                  properties:
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 item:
   parameters:
@@ -75,13 +81,19 @@ item:
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/roles.yaml#/RoleResource'
+              allOf:
+                - $ref: '../components/schemas/roles.yaml#/RoleResource'
+                - type: object
+                  required: [ meta ]
+                  properties:
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
   delete:
     tags: [ Роли ]
@@ -93,12 +105,12 @@ item:
       '204':
         description: Роль удалена
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
         description: Роль назначена пользователям — удаление невозможно
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+              $ref: '../components/schemas/common.yaml#/ApiErrorResponse'

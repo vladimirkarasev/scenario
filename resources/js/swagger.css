@@ -1,0 +1,30 @@
+/* Кастомные оверрайды поверх swagger-ui.css */
+
+/*
+ * Инлайн-code в markdown-описаниях (info + теги) имеет фон и вертикальный
+ * паддинг; при тесном line-height чипы соседних строк наезжают друг на друга.
+ * Даём строкам воздух и делаем чипы компактнее по вертикали.
+ */
+.swagger-ui .renderedMarkdown p,
+.swagger-ui .renderedMarkdown li,
+.swagger-ui .renderedMarkdown ol,
+.swagger-ui .renderedMarkdown ul,
+.swagger-ui .info .markdown p,
+.swagger-ui .info .markdown li,
+.swagger-ui .info .markdown ol,
+.swagger-ui .info .markdown ul {
+    line-height: 2;
+}
+
+.swagger-ui .renderedMarkdown li,
+.swagger-ui .info .markdown li {
+    margin-bottom: 0.35em;
+}
+
+.swagger-ui .renderedMarkdown code,
+.swagger-ui .info .markdown code {
+    padding: 1px 6px;
+    line-height: 1.4;
+    vertical-align: baseline;
+    white-space: nowrap;
+}

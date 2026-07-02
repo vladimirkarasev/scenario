@@ -32,19 +32,6 @@ final class UserBuilder extends Builder
         return $this->where('users.external_id', $externalId);
     }
 
-    public function withEmail(string $email): static
-    {
-        return $this->where('users.email', $email);
-    }
-
-    public function withActiveProject(): static
-    {
-        return $this->whereHas(
-            'project',
-            static fn (Builder $query) => $query->where('projects.is_active', true),
-        );
-    }
-
     public function withRoleName(string $roleName): static
     {
         return $this->whereHas(

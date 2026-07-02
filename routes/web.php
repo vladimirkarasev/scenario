@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Dev\DevAuthWebController;
-use App\Http\Controllers\Dev\LoginWebController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/openapi.yaml', static function () {
@@ -20,6 +19,5 @@ Route::get('/actions/runs', static fn () => inertia('Actions/Runs'))->name('acti
 Route::get('/actions/schedules', static fn () => inertia('Actions/Schedules'))->name('actions.schedules');
 
 if (config('dev_auth.enabled')) {
-    Route::get('/login', LoginWebController::class)->name('login');
     Route::get('/auth', DevAuthWebController::class)->name('auth.page');
 }

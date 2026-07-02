@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use App\Support\PermissionRegistry;
 
@@ -26,6 +27,6 @@ final class PermissionController extends Controller
 
         usort($permissions, static fn(array $a, array $b): int => $a['name'] <=> $b['name']);
 
-        return new JsonResponse(['data' => $permissions]);
+        return new ApiResponse($permissions);
     }
 }

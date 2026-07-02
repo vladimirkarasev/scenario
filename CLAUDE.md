@@ -101,7 +101,7 @@ Models/ DTO/ Enums/ Http/{Controllers,Requests}/ Services/ Providers/ routes/api
 
 ### Auth
 
-Sanctum-based auth. Production flow for embedding in external systems: launch-token → exchange → access/refresh (`App\Services\EmbedAuth`, routes `embed/auth/*`). `DEV_AUTH_ENABLED` включает dev-хелперы: страницу `/auth` (симуляция входа, `DevAuthWebController`/`DevAuth.vue`), `dev/auth/*` API (`DevAuthApiController`) и `POST /auth/login` по паролю (`TokenAuthController`). См. `docs/embed-integration.md`.
+Sanctum-based auth. Production flow for embedding in external systems: launch-token → exchange → access/refresh (`App\Services\EmbedAuth`, routes `embed/auth/*`). `DEV_AUTH_ENABLED` включает dev-хелперы: страницу `/auth` (симуляция входа, `DevAuthWebController`/`DevAuth.vue`) и `dev/auth/*` API (`DevAuthApiController`). Вход по логину/паролю удалён; остаётся `POST /auth/logout` (`TokenAuthController`) для отзыва токена. См. `docs/embed-integration.md`.
 
 ### Proxy module (webhook gateway)
 

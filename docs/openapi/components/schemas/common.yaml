@@ -57,6 +57,71 @@ Pagination:
       type: integer
       example: 94
 
+ApiMeta:
+  type: object
+  description: >
+    Сквозной блок meta, присутствует в каждом ответе модуля Users
+    (и успешном, и ошибочном).
+  required: [ timestamp, requestId ]
+  properties:
+    timestamp:
+      type: string
+      format: date-time
+      description: Момент формирования ответа (ISO 8601).
+      example: '2026-07-02T10:00:00+00:00'
+    requestId:
+      type: string
+      description: Идентификатор запроса (echo заголовка `X-Request-Id`).
+      example: a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+
+CollectionMeta:
+  description: >
+    meta для JSON:API коллекции: пагинация плюс сквозные timestamp и requestId.
+  allOf:
+    - $ref: '#/Pagination'
+    - $ref: '#/ApiMeta'
+
+ApiError:
+  type: object
+  description: Одна ошибка в формате JSON:API.
+  required: [ status, code, title, detail ]
+  properties:
+    status:
+      type: string
+      description: HTTP-статус строкой.
+      example: '404'
+    code:
+      type: string
+      description: Машиночитаемый код ошибки (см. UserErrorCode).
+      example: USER_NOT_FOUND
+    title:
+      type: string
+      description: Краткий заголовок.
+      example: Пользователь не найден
+    detail:
+      type: string
+      description: Человекочитаемое описание.
+      example: Пользователь не найден в проекте.
+    source:
+      type: object
+      description: Указатель на источник ошибки (для ошибок валидации).
+      properties:
+        pointer:
+          type: string
+          example: /data/attributes/login
+
+ApiErrorResponse:
+  type: object
+  description: Единый конверт ошибки модуля Users.
+  required: [ errors, meta ]
+  properties:
+    errors:
+      type: array
+      items:
+        $ref: '#/ApiError'
+    meta:
+      $ref: '#/ApiMeta'
+
 ErrorResponse:
   type: object
   properties:

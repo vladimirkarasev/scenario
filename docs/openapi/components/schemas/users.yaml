@@ -237,48 +237,36 @@ UserTokenStoreRequest:
         - type: 'null'
       description: Должно быть позже текущего времени
 
-LoginRequest:
-  type: object
-  required: [ email, password ]
-  properties:
-    email:
-      type: string
-      format: email
-      example: ivan@example.com
-    password:
-      type: string
-      example: s3cr3tP@ss
-    project_id:
-      type: [ string, 'null' ]
-      format: uuid
-      description: >
-        UUID активного проекта. Обязателен, только если один email
-        принадлежит нескольким проектам.
-
 CurrentUser:
   type: object
-  required: [ id, name, email, project_id, permissions ]
+  required: [ data, meta ]
   properties:
-    id:
-      type: integer
-      example: 42
-    name:
-      type: string
-      example: Иван Иванов
-    email:
-      type: string
-      format: email
-      example: ivan@example.com
-    project_id:
-      type: [ string, 'null' ]
-      format: uuid
-      description: UUID текущего проекта
-    permissions:
-      type: array
-      description: Имена всех разрешений пользователя
-      items:
-        type: string
-      example: [ user_view, user_create, role_view ]
+    data:
+      type: object
+      required: [ id, name, email, project_id, permissions ]
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        project_id:
+          type: [ string, 'null' ]
+          format: uuid
+          description: UUID текущего проекта
+        permissions:
+          type: array
+          description: Имена всех разрешений пользователя
+          items:
+            type: string
+          example: [ user_view, user_create, role_view ]
+    meta:
+      $ref: './common.yaml#/ApiMeta'
 
 Permission:
   type: object

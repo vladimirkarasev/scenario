@@ -1,0 +1,73 @@
+logout:
+  post:
+    tags: [ Авторизация ]
+    summary: Выход (отзыв текущего токена)
+    description: >
+      Единый выход. Отзывает Sanctum access-токен из заголовка `Authorization`
+      и связанный с ним refresh-токен (если был выдан при embed-обмене).
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '200':
+        description: Токен отозван
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ data, meta ]
+              properties:
+                data:
+                  type: object
+                  required: [ message ]
+                  properties:
+                    message:
+                      type: string
+                      example: Logged out.
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+
+currentUser:
+  get:
+    tags: [ Авторизация ]
+    summary: Текущий пользователь
+    description: Возвращает профиль авторизованного пользователя, текущий проект и список его разрешений.
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '200':
+        description: Профиль текущего пользователя
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/users.yaml#/CurrentUser'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+
+permissions:
+  get:
+    tags: [ Авторизация ]
+    summary: Справочник разрешений
+    description: >
+      Полный список системных разрешений (permissions) с человекочитаемыми
+      названиями и группировкой. Используется UI при настройке ролей.
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '200':
+        description: Список разрешений
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ data, meta ]
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas/users.yaml#/Permission'
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'

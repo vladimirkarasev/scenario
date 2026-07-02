@@ -39,7 +39,8 @@ export const useAuthStore = defineStore('auth', () => {
             return
         }
         try {
-            user.value = await getJson('/api/user', 'Failed to load user') as AuthUser
+            const {data} = await getJson('/api/user', 'Failed to load user') as { data: AuthUser }
+            user.value = data
         } catch {
             sessionStorage.removeItem('access_token')
         } finally {

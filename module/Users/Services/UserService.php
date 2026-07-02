@@ -20,10 +20,11 @@ use Module\Users\Enums\SystemRole;
 use Module\Users\Events\UserCreated;
 use Module\Users\Events\UserDeleted;
 use Module\Users\Events\UserUpdated;
+use App\Exceptions\ConflictException;
+use App\Exceptions\ForbiddenException;
+use Module\Users\Enums\UserErrorCode;
 use Module\Users\Repositories\UserRepository;
 use Module\Users\Repositories\RoleRepository;
-use Spatie\Permission\Exceptions\RoleDoesNotExist;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 final readonly class UserService
@@ -108,7 +109,7 @@ final readonly class UserService
             $user = $this->users->findInProjectForUpdate($user, $projectId);
 
             if ($user->is_system) {
-                throw new HttpException(403, 'Системного пользователя нельзя редактировать.');
+                throw ForbiddenException::make('Системного пользователя нельзя редактировать.', UserErrorCode::SystemUserImmutable);
             }
 
             $this->authorization->assertMayManage($actor, $user);
@@ -172,11 +173,11 @@ final readonly class UserService
             $user = $this->users->findInProjectForUpdate($user, $projectId);
 
             if ($user->is_system) {
-                throw new HttpException(403, 'Системного пользователя нельзя удалить.');
+                throw ForbiddenException::make('Системного пользователя нельзя удалить.', UserErrorCode::SystemUserImmutable);
             }
 
             if ($actor->id === $user->id) {
-                throw new HttpException(422, 'Нельзя удалить текущего пользователя.');
+                throw ConflictException::make('Нельзя удалить текущего пользователя.', UserErrorCode::SelfDeleteForbidden);
             }
 
             $this->authorization->assertMayManage($actor, $user);
@@ -205,7 +206,7 @@ final readonly class UserService
             && !in_array(SystemRole::Administrator->value, $newRoleNames, true)
             && $this->users->administratorsInProjectForUpdate($projectId)->count() <= 1
         ) {
-            throw new HttpException(422, 'В проекте должен остаться хотя бы один администратор.');
+            throw ConflictException::make('В проекте должен остаться хотя бы один администратор.', UserErrorCode::LastAdministrator);
         }
     }
 
@@ -223,7 +224,10 @@ final readonly class UserService
         $missing = array_diff($names, $resolvedNames);
 
         if ($missing !== []) {
-            throw RoleDoesNotExist::named((string)reset($missing), 'web');
+            throw ConflictException::make(
+                sprintf('Роль «%s» не найдена.', (string) reset($missing)),
+                UserErrorCode::RoleNotFound,
+            );
         }
 
         return $roles;

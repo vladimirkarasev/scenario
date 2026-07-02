@@ -87,9 +87,9 @@ createInertiaApp({
             })
             .mount(el);
 
-        // Публичные страницы входа (dev) не требуют токена — иначе глобальная авторизация
-        // покажет 403 поверх формы логина.
-        const publicPaths = ['/login', '/auth'];
+        // Публичная dev-страница входа (/auth) не требует токена — иначе глобальная
+        // авторизация покажет 403 поверх формы.
+        const publicPaths = ['/auth'];
         if (!publicPaths.includes(window.location.pathname)) {
             void (async () => {
                 await consumeLaunchToken();

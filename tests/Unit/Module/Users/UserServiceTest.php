@@ -14,7 +14,7 @@ use Module\Projects\Models\Project;
 use Module\Groups\Models\UserGroup;
 use Module\Users\DTO\UserData;
 use Module\Users\Services\UserService;
-use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use App\Exceptions\ConflictException;
 use Tests\TestCase;
 
 final class UserServiceTest extends TestCase
@@ -171,7 +171,8 @@ final class UserServiceTest extends TestCase
                 )
             );
             self::fail('Expected missing role exception.');
-        } catch (RoleDoesNotExist) {
+        } catch (ConflictException $e) {
+            $this->assertSame('ROLE_NOT_FOUND', $e->errorCode);
             $this->assertDatabaseMissing('users', ['email' => $email]);
         }
     }

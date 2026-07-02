@@ -39,6 +39,7 @@ collection:
               allOf:
                 - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
                 - type: object
+                  required: [ meta ]
                   properties:
                     data:
                       type: array
@@ -51,12 +52,14 @@ collection:
                         oneOf:
                           - $ref: '../components/schemas/users.yaml#/IncludedRole'
                           - $ref: '../components/schemas/users.yaml#/IncludedGroup'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/CollectionMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
   post:
     tags: [ Пользователи ]
@@ -75,13 +78,19 @@ collection:
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/users.yaml#/UserResource'
+              allOf:
+                - $ref: '../components/schemas/users.yaml#/UserResource'
+                - type: object
+                  required: [ meta ]
+                  properties:
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 item:
   parameters:
@@ -108,7 +117,7 @@ item:
           application/json:
             schema:
               type: object
-              required: [ data ]
+              required: [ data, meta ]
               properties:
                 data:
                   $ref: '../components/schemas/users.yaml#/UserResource'
@@ -119,12 +128,14 @@ item:
                     oneOf:
                       - $ref: '../components/schemas/users.yaml#/IncludedRole'
                       - $ref: '../components/schemas/users.yaml#/IncludedGroup'
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
   put:
     tags: [ Пользователи ]
@@ -143,15 +154,21 @@ item:
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/users.yaml#/UserResource'
+              allOf:
+                - $ref: '../components/schemas/users.yaml#/UserResource'
+                - type: object
+                  required: [ meta ]
+                  properties:
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
   delete:
     tags: [ Пользователи ]
@@ -163,11 +180,11 @@ item:
       '204':
         description: Пользователь удалён из проекта
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
 launchToken:
   post:
@@ -192,23 +209,21 @@ launchToken:
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/users.yaml#/LaunchTokenResponse'
+              type: object
+              required: [ data, meta ]
+              properties:
+                data:
+                  $ref: '../components/schemas/users.yaml#/LaunchTokenResponse'
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        description: Нет права `user_impersonate` или контекст проекта не определён
-        content:
-          application/json:
-            schema:
-              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        description: Пользователь с таким `external_id` не найден в проекте
-        content:
-          application/json:
-            schema:
-              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 tokens:
   parameters:
@@ -231,18 +246,20 @@ tokens:
           application/json:
             schema:
               type: object
-              required: [ data ]
+              required: [ data, meta ]
               properties:
                 data:
                   type: array
                   items:
                     $ref: '../components/schemas/users.yaml#/UserToken'
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
   post:
     tags: [ Пользователи ]
@@ -263,18 +280,20 @@ tokens:
           application/json:
             schema:
               type: object
-              required: [ data ]
+              required: [ data, meta ]
               properties:
                 data:
                   $ref: '../components/schemas/users.yaml#/UserTokenCreated'
+                meta:
+                  $ref: '../components/schemas/common.yaml#/ApiMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 tokenItem:
   parameters:
@@ -298,11 +317,11 @@ tokenItem:
       '204':
         description: Токен отозван или уже отсутствовал
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '403':
-        $ref: '../components/responses.yaml#/Forbidden'
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
 members:
   parameters:

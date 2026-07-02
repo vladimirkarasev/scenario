@@ -1,9 +1,19 @@
 import axios, {type AxiosRequestConfig, type Method} from 'axios'
 import httpClient from '@/lib/http-client'
 
+// Ошибка в формате JSON:API (новый единый конверт: errors[] + meta).
+interface JsonApiError {
+    status?: string
+    code?: string
+    title?: string
+    detail?: string
+    source?: { pointer?: string }
+}
+
 interface ErrorPayload {
     message?: string
-    errors?: Record<string, string[]>
+    // Старый формат — Record<field, string[]>; новый (JSON:API) — массив объектов.
+    errors?: Record<string, string[]> | JsonApiError[]
 }
 
 export class HttpValidationError extends Error {
@@ -14,6 +24,26 @@ export class HttpValidationError extends Error {
         super(message)
         this.name = 'HttpValidationError'
     }
+}
+
+function isJsonApiErrors(errors: ErrorPayload['errors']): errors is JsonApiError[] {
+    return Array.isArray(errors)
+}
+
+// `/data/attributes/group_ids.0` → `group_ids.0`; иначе — код ошибки или '_'.
+function fieldFromError(error: JsonApiError): string {
+    const match = (error.source?.pointer ?? '').match(/\/data\/attributes\/(.+)$/)
+    return match ? match[1] : (error.code ?? '_')
+}
+
+// Свести JSON:API errors[] к привычному Record<field, string[]>.
+function jsonApiFieldErrors(errors: JsonApiError[]): Record<string, string[]> {
+    const result: Record<string, string[]> = {}
+    for (const error of errors) {
+        const field = fieldFromError(error)
+        ;(result[field] ??= []).push(error.detail || error.title || '')
+    }
+    return result
 }
 
 interface SendJsonOptions {
@@ -30,6 +60,12 @@ interface SendMultipartOptions {
 
 function resolveErrorMessage(payload: unknown, fallbackMessage: string): string {
     const p = payload as ErrorPayload | null
+
+    if (isJsonApiErrors(p?.errors)) {
+        const detail = p.errors.map(e => e.detail || e.title || '').filter(Boolean).join(' ')
+        return detail || fallbackMessage
+    }
+
     const validationMessage = Object.values(p?.errors ?? {}).flat().join(' ')
 
     return p?.message || validationMessage || fallbackMessage
@@ -38,12 +74,15 @@ function resolveErrorMessage(payload: unknown, fallbackMessage: string): string 
 function normalizeHttpError(error: unknown, fallbackMessage: string): never {
     if (axios.isAxiosError(error)) {
         const data = error.response?.data as ErrorPayload | null
+
         if (error.response?.status === 422 && data?.errors) {
-            throw new HttpValidationError(
-                data.message || resolveErrorMessage(data, fallbackMessage),
-                data.errors,
-            )
+            const fieldErrors = isJsonApiErrors(data.errors)
+                ? jsonApiFieldErrors(data.errors)
+                : data.errors
+
+            throw new HttpValidationError(resolveErrorMessage(data, fallbackMessage), fieldErrors)
         }
+
         throw new Error(resolveErrorMessage(data, fallbackMessage))
     }
 
