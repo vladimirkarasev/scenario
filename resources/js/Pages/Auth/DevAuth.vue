@@ -33,7 +33,7 @@ async function launch() {
   error.value = ''
 
   try {
-    const {data} = await axios.post('/api/dev/iframe-auth/launch', {
+    const {data} = await axios.post('/api/dev/auth/launch', {
       project_id: projectId.value,
       name: name.value,
       login: login.value,
@@ -59,7 +59,7 @@ async function launch() {
         <h1 class="text-sm font-semibold text-slate-900">Dev: симуляция embed-входа</h1>
         <p class="mt-0.5 text-xs text-slate-500">
           Создаёт пользователя проекта, выпускает одноразовый <code>_token</code> и делает редирект
-          на страницу с <code>?_token=</code> — как настоящий iframe.
+          на страницу с <code>?_token=</code> — как во внешней системе.
         </p>
       </div>
 

@@ -8,9 +8,9 @@ use Module\Projects\Models\Project;
 use Module\Users\Models\User;
 use Module\Users\Repositories\UserRepository;
 
-final class ProjectUserCleanupService
+final readonly class ProjectUserCleanupService
 {
-    public function __construct(private readonly UserRepository $users)
+    public function __construct(private UserRepository $users)
     {
     }
 

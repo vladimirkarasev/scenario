@@ -3,7 +3,7 @@
 # Bearer-токен системного пользователя проекта (см. POST /api/users/{id}/tokens)
 @systemToken    = PASTE_SYSTEM_TOKEN_HERE
 
-# After iframe-token — paste the returned _token here
+# After launch-token — paste the returned _token here
 @launchToken    = PASTE_LAUNCH_TOKEN_HERE
 
 # After exchange — paste the returned tokens here
@@ -42,7 +42,7 @@ Authorization: Bearer {{systemToken}}
 ###
 
 ### Выпустить _token по external_id
-POST {{baseUrl}}/users/iframe-token
+POST {{baseUrl}}/users/launch-token
 Content-Type: application/json
 Authorization: Bearer {{systemToken}}
 
@@ -51,7 +51,7 @@ Authorization: Bearer {{systemToken}}
 }
 
 ### 404 — пользователь не найден в проекте
-POST {{baseUrl}}/users/iframe-token
+POST {{baseUrl}}/users/launch-token
 Content-Type: application/json
 Authorization: Bearer {{systemToken}}
 
@@ -64,7 +64,7 @@ Authorization: Bearer {{systemToken}}
 ###
 
 ### Обменять _token на access + refresh
-# Вставьте _token из ответа iframe-token в @launchToken выше
+# Вставьте _token из ответа launch-token в @launchToken выше
 POST {{baseUrl}}/embed/auth/exchange
 Content-Type: application/json
 Origin: http://scenario.localhost

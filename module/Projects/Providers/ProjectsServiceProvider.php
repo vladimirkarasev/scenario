@@ -31,7 +31,7 @@ final class ProjectsServiceProvider extends ServiceProvider
 
             $projects = $this->app->make(ProjectRepository::class);
 
-            // 1. Embed/iframe-доступ: проект привязан к access-токену, а не к юзеру.
+            // 1. Embed-доступ: проект привязан к access-токену, а не к юзеру.
             $bearer = $this->app->make(Request::class)->bearerToken();
             if (is_string($bearer)) {
                 $token = PersonalAccessToken::findToken($bearer);

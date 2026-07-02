@@ -60,8 +60,7 @@ IncludedRole:
           type: string
           example: manager
         title:
-          type: string
-          nullable: true
+          type: [ string, 'null' ]
           example: Менеджер
 
 IncludedGroup:
@@ -91,32 +90,27 @@ UserAttributes:
       type: string
       example: Иван Иванов
     fio:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: Иванов Иван Иванович
     email:
       type: string
       format: email
       example: ivan@example.com
     login:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: ivan123
     external_id:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: crm_user_42
     is_system:
       type: boolean
       description: Признак защищённого сервисного пользователя
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 UserStoreRequest:
   type: object
@@ -127,8 +121,7 @@ UserStoreRequest:
       maxLength: 255
       example: Иван Иванов
     fio:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
       example: Иванов Иван Иванович
     email:
@@ -141,8 +134,7 @@ UserStoreRequest:
       maxLength: 255
       example: ivan123
     external_id:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
       example: crm_user_42
     password:
@@ -169,8 +161,7 @@ UserUpdateRequest:
       type: string
       maxLength: 255
     fio:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
     email:
       type: string
@@ -180,12 +171,10 @@ UserUpdateRequest:
       type: string
       maxLength: 255
     external_id:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
     password:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       minLength: 8
       description: Если не передан — пароль не меняется
     roles:
@@ -247,3 +236,85 @@ UserTokenStoreRequest:
           format: date-time
         - type: 'null'
       description: Должно быть позже текущего времени
+
+LoginRequest:
+  type: object
+  required: [ email, password ]
+  properties:
+    email:
+      type: string
+      format: email
+      example: ivan@example.com
+    password:
+      type: string
+      example: s3cr3tP@ss
+    project_id:
+      type: [ string, 'null' ]
+      format: uuid
+      description: >
+        UUID активного проекта. Обязателен, только если один email
+        принадлежит нескольким проектам.
+
+CurrentUser:
+  type: object
+  required: [ id, name, email, project_id, permissions ]
+  properties:
+    id:
+      type: integer
+      example: 42
+    name:
+      type: string
+      example: Иван Иванов
+    email:
+      type: string
+      format: email
+      example: ivan@example.com
+    project_id:
+      type: [ string, 'null' ]
+      format: uuid
+      description: UUID текущего проекта
+    permissions:
+      type: array
+      description: Имена всех разрешений пользователя
+      items:
+        type: string
+      example: [ user_view, user_create, role_view ]
+
+Permission:
+  type: object
+  required: [ name, label, group ]
+  properties:
+    name:
+      type: string
+      description: Машинное имя разрешения
+      example: user_view
+    label:
+      type: string
+      description: Человекочитаемое название
+      example: Просмотр пользователей
+    group:
+      type: string
+      description: Группа, к которой относится разрешение
+      example: Пользователи
+
+LaunchTokenRequest:
+  type: object
+  required: [ external_id ]
+  properties:
+    external_id:
+      type: string
+      maxLength: 255
+      description: Внешний идентификатор пользователя в системе клиента
+      example: crm_user_42
+
+LaunchTokenResponse:
+  type: object
+  required: [ _token, expires_in ]
+  properties:
+    _token:
+      type: string
+      description: Одноразовый launch-токен для обмена через /embed/auth/exchange
+    expires_in:
+      type: integer
+      description: TTL токена в секундах
+      example: 300

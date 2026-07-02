@@ -1,140 +1,90 @@
 openapi: 3.1.0
-
 info:
   title: Platform API
-  description: API платформы сценариев
-  version: 2.0.0
+  description: |
+    API платформы сценариев.
 
+    ## Как авторизоваться
+
+    Все запросы (кроме публичных) требуют заголовок `Authorization: Bearer {access_token}`.
+
+    **Боевой флоу (встраивание во внешнюю систему).** Авторизация не по паролю, а через обмен одноразового launch-токена:
+
+    1. Внешний бэкенд с токеном системного пользователя проекта вызывает `POST /api/users/launch-token` → получает одноразовый `_token` (TTL 5 мин).
+    2. Внешний фронт открывает приложение в `<iframe>` с `?_token={_token}`.
+    3. Приложение вызывает `POST /api/embed/auth/exchange` с этим `_token` → получает пару `access_token` + `refresh_token` (**здесь и происходит авторизация**).
+    4. Дальше все запросы идут с `Authorization: Bearer {access_token}`; протухший access обновляется через `POST /api/embed/auth/refresh` (ротация).
+    5. Выход — `POST /api/auth/logout` (отзывает access и связанный refresh).
+
+    **Dev-флоу.** `POST /api/auth/login` — вход по email/паролю, доступен только при `DEV_AUTH_ENABLED=true` для локальной отладки. В проде не используется.
+
+    Подробнее — см. тег «Авторизация».
+  version: 1.0.0
 servers:
   - url: /api
     description: Основной сервер
-
 security:
-  - BearerAuth: [ ]
-
-x-tagGroups:
-  - name: Модуль «Сценарии»
-    tags:
-      - Каталог
-      - Сценарии
-      - Версии
-      - Категории сценариев
-      - Запуск
-      - Прогоны
-      - Опросы
-  - name: Модуль «Справочники»
-    tags:
-      - Справочники
-      - Версии справочника
-      - Элементы справочника
-      - Категории справочников
-  - name: Модуль «Действия»
-    tags:
-      - Действия
-      - Учётные данные
-  - name: Модуль «Прокси / Вебхуки»
-    tags:
-      - Вебхуки (admin)
-      - Вебхуки (public)
-  - name: Модуль «Проекты»
-    tags:
-      - Проекты
-  - name: Пользователи и роли
-    tags:
-      - Пользователи
-      - Токены пользователей
-      - Группы
-      - Участники групп
-      - Роли
-  - name: Embed Auth
-    tags:
-      - Регистрация
-      - Авторизация iframe
-
+  - BearerAuth: []
 tags:
-  # Сценарии
   - name: Каталог
     description: Сводный каталог категорий и сценариев
   - name: Сценарии
     description: CRUD-операции над сценариями
   - name: Версии
     description: Управление версиями сценариев
-  - name: Категории сценариев
-    description: CRUD-операции над категориями сценариев
+  - name: Категории
+    description: CRUD-операции над категориями
   - name: Запуск
     description: Запуск сценария и прохождение шагов
   - name: Прогоны
     description: Административный журнал прогонов — просмотр, создание, управление
   - name: Опросы
     description: Список прогонов и просмотр состояния прогона
-  # Справочники
-  - name: Справочники
-    description: CRUD-операции над справочниками
-  - name: Версии справочника
-    description: Управление версиями справочника (черновики, публикация)
-  - name: Элементы справочника
-    description: CRUD-операции над элементами опубликованной версии справочника
-  - name: Категории справочников
-    description: CRUD-операции над категориями справочников
-  # Действия
-  - name: Действия
-    description: Управление переиспользуемыми шагами-действиями
-  - name: Учётные данные
-    description: Управление учётными данными (credentials) для действий
-  # Прокси
-  - name: Вебхуки (admin)
-    description: Администрирование вебхук-эндпоинтов, просмотр логов
-  - name: Вебхуки (public)
-    description: Публичный приём вебхуков (без авторизации)
-  # Проекты
-  - name: Проекты
-    description: Управление проектами (тенантами)
-  # Пользователи
+  - name: Авторизация
+    description: Вход/выход, текущий пользователь, разрешения и обмен токенов. Полный флоу — во вступлении вверху страницы.
   - name: Пользователи
     description: CRUD-операции над пользователями системы
-  - name: Токены пользователей
-    description: Управление API-токенами пользователей
-  - name: Группы
-    description: CRUD-операции над группами пользователей
-  - name: Участники групп
-    description: Управление составом групп
+  - name: Проекты
+    description: Управление проектами. Запись требует роль `project_admin`.
   - name: Роли
-    description: CRUD-операции над ролями доступа (Spatie Permission)
-  # Embed Auth
-  - name: Регистрация
-    description: Регистрация пользователя в проекте и выдача одноразового launch-токена
-  - name: Авторизация iframe
-    description: Обмен launch-токена на access/refresh токены, ротация и выход
-
-# ─────────────────────────────────────────────────────────────────────────────
-# ПУТИ
-# ─────────────────────────────────────────────────────────────────────────────
+    description: Управление ролями (Spatie Permission). Роли назначаются пользователям и используются для авторизации (`project_admin` и др.).
+  - name: Actions
+    description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
+  - name: Группы
+    description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
 paths:
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # СЦЕНАРИИ
-  # ══════════════════════════════════════════════════════════════════════════
-
-  # ── Каталог ────────────────────────────────────────────────────────────────
   /scenarios/catalog:
     get:
-      tags: [ Каталог ]
+      tags:
+        - Каталог
       summary: Сводный каталог (категории + сценарии)
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает постраничный список элементов каталога. Каждый элемент имеет тип `category` или `scenario` и содержит атрибуты соответствующей сущности.
       parameters:
         - name: filter
           in: query
           style: deepObject
           explode: true
+          description: |
+            Фильтры каталога (`filter[q]`, `filter[parent_id]`).
           schema:
             type: object
             properties:
               q:
                 type: string
+                description: |
+                  Текстовый поиск по названию (категории) и названию/описанию (сценарии). Регистронезависимый ILIKE-поиск.
                 example: оформление
               parent_id:
-                type: string
+                type:
+                  - string
+                  - 'null'
                 format: uuid
-                nullable: true
+                description: |
+                  UUID родительской категории. Если ключ передан с пустым значением — возвращаются элементы корневого уровня (без родителя). При одновременном использовании с `filter[q]` поиск ведётся по всему поддереву указанной категории.
+                example: 018e1b2c-3d4f-7e8a-9b0c-1d2e3f4a5b6c
         - $ref: '#/components/parameters/PerPage'
         - $ref: '#/components/parameters/Page'
       responses:
@@ -153,37 +103,53 @@ paths:
                           $ref: '#/components/schemas/CatalogItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
-  # ── Сценарии ───────────────────────────────────────────────────────────────
   /scenarios:
     get:
-      tags: [ Сценарии ]
+      tags:
+        - Сценарии
       summary: Список сценариев
+      security:
+        - BearerAuth: []
       parameters:
         - name: filter
           in: query
           style: deepObject
           explode: true
+          description: |
+            Фильтры JSON:API (`filter[search]`, `filter[is_active]`, `filter[active_only]`, `filter[tags][]`, `filter[category_id]`)
           schema:
             type: object
             properties:
               search:
                 type: string
+                description: Поиск по названию, описанию, alias и тегам (регистронезависимо)
+                example: оформление
               is_active:
                 type: boolean
+                description: Фильтр по признаку активности сценария
+                example: true
               active_only:
                 type: boolean
+                description: Показывать только сценарии с активной версией (по умолчанию `true`)
                 default: true
-              tag:
-                type: string
+              tags:
+                type: array
+                items:
+                  type: string
+                description: Фильтр по тегам (любое совпадение)
+                example:
+                  - onboarding
+                  - hr
               category_id:
                 type: string
                 format: uuid
-        - $ref: '#/components/parameters/PageNumber'
+                description: UUID категории для фильтрации
+                example: 018e1b2c-3d4f-7e8a-9b0c-1d2e3f4a5b6c
         - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
       responses:
         '200':
-          description: Список сценариев
+          description: Список сценариев (JSON:API коллекция)
           content:
             application/json:
               schema:
@@ -194,102 +160,103 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Scenario'
+                          $ref: '#/components/schemas/ScenarioResource'
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [ Сценарии ]
+      tags:
+        - Сценарии
       summary: Создать сценарий
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ name ]
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                tag:
-                  type: string
-                is_active:
-                  type: boolean
-                  default: false
-                category_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/ScenarioRequest'
       responses:
         '201':
           description: Сценарий создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Scenario'
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/ScenarioItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '422':
           $ref: '#/components/responses/ValidationError'
-
   /scenarios/{scenario}:
     parameters:
       - $ref: '#/components/parameters/ScenarioId'
     get:
-      tags: [ Сценарии ]
-      summary: Просмотр сценария
+      tags:
+        - Сценарии
+      summary: Получить сценарий
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Сценарий
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Scenario'
+                $ref: '#/components/schemas/ScenarioResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      tags: [ Сценарии ]
+    patch:
+      tags:
+        - Сценарии
       summary: Обновить сценарий
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                tag:
-                  type: string
-                is_active:
-                  type: boolean
-                category_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/ScenarioRequest'
       responses:
         '200':
-          description: Сценарий обновлён
+          description: Обновлённый сценарий
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Scenario'
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/ScenarioItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [ Сценарии ]
+      tags:
+        - Сценарии
       summary: Удалить сценарий
+      security:
+        - BearerAuth: []
       responses:
         '204':
-          description: Удалено
-
-  /scenarios/{scenario}/copy:
+          description: Сценарий удалён
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenarios/{scenario}/duplicate:
     post:
-      tags: [ Сценарии ]
+      tags:
+        - Сценарии
       summary: Дублировать сценарий
+      security:
+        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/ScenarioId'
       responses:
@@ -298,299 +265,544 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Scenario'
-
-  # ── Версии ─────────────────────────────────────────────────────────────────
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/ScenarioItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /scenarios/{scenario}/versions:
     parameters:
       - $ref: '#/components/parameters/ScenarioId'
     get:
-      tags: [ Версии ]
+      tags:
+        - Версии
       summary: Список версий сценария
+      security:
+        - BearerAuth: []
       responses:
         '200':
-          description: Список версий
+          description: Список версий (JSON:API коллекция)
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ScenarioVersion'
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/VersionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
-      tags: [ Версии ]
-      summary: Создать новую версию (черновик)
+      tags:
+        - Версии
+      summary: Создать версию сценария
+      security:
+        - BearerAuth: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                nodes_json:
-                  type: string
-                edges_json:
-                  type: string
-                schema_json:
-                  type: string
+              $ref: '#/components/schemas/VersionRequest'
       responses:
         '201':
           description: Версия создана
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScenarioVersion'
-
+                $ref: '#/components/schemas/VersionItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /scenarios/{scenario}/versions/{version}:
     parameters:
       - $ref: '#/components/parameters/ScenarioId'
       - $ref: '#/components/parameters/VersionId'
     get:
-      tags: [ Версии ]
-      summary: Просмотр версии
+      tags:
+        - Версии
+      summary: Получить версию сценария
+      security:
+        - BearerAuth: []
       responses:
         '200':
-          description: Версия сценария
+          description: Версия
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScenarioVersion'
+                $ref: '#/components/schemas/VersionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      tags: [ Версии ]
-      summary: Обновить версию
+    patch:
+      tags:
+        - Версии
+      summary: Обновить версию сценария
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                nodes_json:
-                  type: string
-                edges_json:
-                  type: string
-                schema_json:
-                  type: string
+              $ref: '#/components/schemas/VersionRequest'
       responses:
         '200':
-          description: Версия обновлена
+          description: Обновлённая версия
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScenarioVersion'
+                $ref: '#/components/schemas/VersionItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [ Версии ]
-      summary: Удалить черновик версии
-      responses:
-        '204':
-          description: Удалено
-
-  /scenarios/{scenario}/versions/{version}/activate:
-    post:
-      tags: [ Версии ]
-      summary: Активировать версию
-      parameters:
-        - $ref: '#/components/parameters/ScenarioId'
-        - $ref: '#/components/parameters/VersionId'
+      tags:
+        - Версии
+      summary: Удалить версию сценария
+      security:
+        - BearerAuth: []
       responses:
         '200':
-          description: Версия активирована
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioVersion'
-
-  /scenarios/{scenario}/versions/{version}/archive:
-    post:
-      tags: [ Версии ]
-      summary: Архивировать версию
-      parameters:
-        - $ref: '#/components/parameters/ScenarioId'
-        - $ref: '#/components/parameters/VersionId'
-      responses:
-        '200':
-          description: Версия архивирована
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioVersion'
-
-  # ── Категории сценариев ────────────────────────────────────────────────────
-  /scenarios/categories:
-    get:
-      tags: [ Категории сценариев ]
-      summary: Список категорий сценариев
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              parent_id:
-                type: string
-                format: uuid
-                nullable: true
-      responses:
-        '200':
-          description: Список категорий
+          description: Результат удаления
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenarios/categories:
+    get:
+      tags:
+        - Категории
+      summary: Список категорий
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список категорий (JSON:API коллекция)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [ Категории сценариев ]
+      tags:
+        - Категории
       summary: Создать категорию
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              $ref: '#/components/schemas/CategoryRequest'
       responses:
         '201':
           description: Категория создана
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
-
+                $ref: '#/components/schemas/CategoryResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /scenarios/categories/{category}:
     parameters:
       - $ref: '#/components/parameters/CategoryId'
     get:
-      tags: [ Категории сценариев ]
-      summary: Просмотр категории
+      tags:
+        - Категории
+      summary: Получить категорию
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Категория
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
-    put:
-      tags: [ Категории сценариев ]
+                $ref: '#/components/schemas/CategoryResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Категории
       summary: Обновить категорию
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CategoryInput'
+              $ref: '#/components/schemas/CategoryRequest'
       responses:
         '200':
-          description: Категория обновлена
+          description: Обновлённая категория
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Category'
-    delete:
-      tags: [ Категории сценариев ]
-      summary: Удалить категорию
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Запуск ─────────────────────────────────────────────────────────────────
-  /scenarios/{scenario}/run:
-    post:
-      tags: [ Запуск ]
-      summary: Запустить сценарий
-      parameters:
-        - $ref: '#/components/parameters/ScenarioId'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                context:
-                  type: object
-                  additionalProperties: true
-                  description: Произвольный начальный контекст (переменные)
-      responses:
-        '200':
-          description: Прогон запущен, возвращается первый шаг
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RunStep'
+                $ref: '#/components/schemas/CategoryResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
-
-  /scenario-runs/{run}/step:
+    delete:
+      tags:
+        - Категории
+      summary: Удалить категорию
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Категория удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenarios/runner/start:
     post:
-      tags: [ Запуск ]
-      summary: Выполнить шаг прогона
-      parameters:
-        - name: run
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      tags:
+        - Запуск
+      summary: Запустить сценарий
+      security:
+        - BearerAuth: []
+      description: |
+        Создаёт новый прогон (`ScenarioRun`) и автоматически продвигает его до первого интерактивного узла. Возвращает ID прогона, который затем используется в `/runner/{runId}/jump`.
+        Необходимо передать ровно один из параметров: `scenario_id`, `version_id` или `alias`.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                input:
-                  type: object
-                  additionalProperties: true
-                  description: Данные из формы текущего шага
-                transition:
-                  type: string
-                  description: ID целевого узла (для condition-нод)
+              $ref: '#/components/schemas/RunnerStartRequest'
       responses:
-        '200':
-          description: Следующий шаг или завершение прогона
+        '201':
+          description: Прогон создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunStep'
+                type: object
+                required:
+                  - id
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: ID созданного прогона
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
-
-  /scenario-runs/{run}/restart:
+  /scenarios/runner/{runId}/jump:
     post:
-      tags: [ Запуск ]
-      summary: Перезапустить прогон с начала
+      tags:
+        - Запуск
+      summary: Перейти к следующему узлу
+      security:
+        - BearerAuth: []
+      description: |
+        Принимает пользовательский ввод для текущего узла и продвигает прогон вперёд до следующего интерактивного узла. Возвращает полный payload прогона с отрендеренным состоянием текущего узла и историей шагов.
       parameters:
-        - name: run
+        - name: runId
           in: path
           required: true
+          description: UUID прогона
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunnerJumpRequest'
       responses:
         '200':
-          description: Прогон перезапущен
+          description: Обновлённое состояние прогона
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunStep'
-
-  /scenario-runs/{run}/state:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /scenario-runs:
     get:
-      tags: [ Запуск ]
-      summary: Текущее состояние прогона
+      tags:
+        - Прогоны
+      summary: Список прогонов
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает постраничный список прогонов сценариев с информацией об авторах. Поддерживает фильтрацию по `scenario_id`, `status`, `created_by` и текстовый поиск по названию сценария и ID прогона.
       parameters:
-        - name: run
+        - name: scenario_id
+          in: query
+          description: UUID сценария для фильтрации
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Фильтр по статусу прогона
+          schema:
+            $ref: '#/components/schemas/RunStatus'
+        - name: created_by
+          in: query
+          description: ID пользователя (можно передать массив)
+          schema:
+            oneOf:
+              - type: integer
+              - type: array
+                items:
+                  type: integer
+        - name: search
+          in: query
+          description: Текстовый поиск по названию сценария и UUID прогона
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список прогонов с пагинацией
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioRunListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Прогоны
+      summary: Создать прогон
+      security:
+        - BearerAuth: []
+      description: |
+        Создаёт новый прогон и автоматически продвигает его до первого интерактивного узла через `ScenarioPlayerService`. Публикует начальный payload в Centrifugo-канал `scenario-run:{id}`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreScenarioRunRequest'
+      responses:
+        '201':
+          description: Прогон создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /scenario-runs/users:
+    get:
+      tags:
+        - Прогоны
+      summary: Поиск пользователей
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает до 30 пользователей, совпадающих с поисковым запросом. Используется для фильтра «создатель прогона» в интерфейсе. Если `search` не передан или пустой — возвращает пустой список.
+      parameters:
+        - name: search
+          in: query
+          required: true
+          description: Строка поиска по имени, ФИО, логину или email
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - users
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScenarioRunUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /scenario-runs/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      tags:
+        - Прогоны
+      summary: Получить прогон
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает полный payload прогона (текущий узел, рендер, история шагов). Прогон автоматически продвигается до ближайшего интерактивного узла.
+      responses:
+        '200':
+          description: Состояние прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenario-runs/{runId}/continue:
+    post:
+      tags:
+        - Прогоны
+      summary: Продолжить прогон
+      security:
+        - BearerAuth: []
+      description: |
+        Принимает пользовательский ввод и продвигает прогон вперёд. Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContinueRunRequest'
+      responses:
+        '200':
+          description: Обновлённое состояние прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenario-runs/{runId}/jump:
+    post:
+      tags:
+        - Прогоны
+      summary: Перейти к узлу
+      security:
+        - BearerAuth: []
+      description: |
+        Переводит прогон к конкретному узлу (`node_id`). Публикует обновлённый payload в Centrifugo-канал `scenario-run:{id}`.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminJumpRunRequest'
+      responses:
+        '200':
+          description: Обновлённое состояние прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /scenarios/surveys:
+    get:
+      tags:
+        - Опросы
+      summary: Список прогонов (опросов)
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает постраничный список запущенных прогонов сценариев. Позволяет вернуться к незавершённому опросу — достаточно взять `id` нужного прогона и вызвать `/scenarios/survey/{id}`.
+      parameters:
+        - name: status
+          in: query
+          description: Фильтр по статусу прогона
+          schema:
+            $ref: '#/components/schemas/RunStatus'
+        - name: scenario_id
+          in: query
+          description: UUID сценария для фильтрации
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Список прогонов с пагинацией
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - surveys
+                  - pagination
+                properties:
+                  surveys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SurveySummary'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /scenarios/survey/{runId}:
+    get:
+      tags:
+        - Опросы
+      summary: Получить состояние прогона
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает полный payload прогона: текущий узел, его отрендеренное содержимое и историю пройденных шагов. Прогон автоматически продвигается до ближайшего интерактивного узла перед возвратом.
+      parameters:
+        - name: runId
           in: path
           required: true
+          description: UUID прогона
           schema:
             type: string
             format: uuid
@@ -600,1017 +812,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RunStep'
-
-  # ── Прогоны (admin) ────────────────────────────────────────────────────────
-  /scenario-runs:
-    get:
-      tags: [ Прогоны ]
-      summary: Список прогонов (административный)
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              scenario_id:
-                type: string
-                format: uuid
-              status:
-                type: string
-                enum: [ pending, running, completed, failed, cancelled ]
-              user_id:
-                type: string
-                format: uuid
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список прогонов
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ScenarioRun'
-    post:
-      tags: [ Прогоны ]
-      summary: Создать прогон (административно)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [ scenario_id ]
-              properties:
-                scenario_id:
-                  type: string
-                  format: uuid
-                context:
-                  type: object
-                  additionalProperties: true
-      responses:
-        '201':
-          description: Прогон создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioRun'
-
-  /scenario-runs/{run}:
-    parameters:
-      - name: run
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Прогоны ]
-      summary: Просмотр прогона
-      responses:
-        '200':
-          description: Прогон
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioRun'
-    delete:
-      tags: [ Прогоны ]
-      summary: Удалить прогон
-      responses:
-        '204':
-          description: Удалено
-
-  /scenario-runs/{run}/cancel:
-    post:
-      tags: [ Прогоны ]
-      summary: Отменить прогон
-      parameters:
-        - name: run
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Прогон отменён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioRun'
-
-  /scenario-runs/{run}/steps:
-    get:
-      tags: [ Прогоны ]
-      summary: Шаги прогона (audit log)
-      parameters:
-        - name: run
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Список шагов
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ScenarioRunStep'
-
-  # ── Опросы ─────────────────────────────────────────────────────────────────
-  /surveys:
-    get:
-      tags: [ Опросы ]
-      summary: Список прогонов (опросная точка зрения)
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              scenario_id:
-                type: string
-                format: uuid
-              status:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список прогонов
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ScenarioRun'
-
-  /surveys/{run}:
-    get:
-      tags: [ Опросы ]
-      summary: Состояние прогона (опросная точка зрения)
-      parameters:
-        - name: run
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Прогон
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScenarioRun'
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # СПРАВОЧНИКИ
-  # ══════════════════════════════════════════════════════════════════════════
-
-  /directories:
-    get:
-      tags: [ Справочники ]
-      summary: Список справочников
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-              category_id:
-                type: string
-                format: uuid
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список справочников
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Directory'
-    post:
-      tags: [ Справочники ]
-      summary: Создать справочник
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryInput'
-      responses:
-        '201':
-          description: Справочник создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Directory'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /directories/{directory}:
-    parameters:
-      - $ref: '#/components/parameters/DirectoryId'
-    get:
-      tags: [ Справочники ]
-      summary: Просмотр справочника
-      responses:
-        '200':
-          description: Справочник
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Directory'
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      tags: [ Справочники ]
-      summary: Обновить справочник
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryInput'
-      responses:
-        '200':
-          description: Справочник обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Directory'
-    delete:
-      tags: [ Справочники ]
-      summary: Удалить справочник
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Версии справочника ─────────────────────────────────────────────────────
-  /directories/{directory}/versions:
-    parameters:
-      - $ref: '#/components/parameters/DirectoryId'
-    get:
-      tags: [ Версии справочника ]
-      summary: Список версий справочника
-      responses:
-        '200':
-          description: Список версий
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/DirectoryVersion'
-    post:
-      tags: [ Версии справочника ]
-      summary: Создать новую версию (черновик)
-      responses:
-        '201':
-          description: Версия создана
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryVersion'
-
-  /directories/{directory}/versions/{version}:
-    parameters:
-      - $ref: '#/components/parameters/DirectoryId'
-      - name: version
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Версии справочника ]
-      summary: Просмотр версии
-      responses:
-        '200':
-          description: Версия справочника
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryVersion'
-    delete:
-      tags: [ Версии справочника ]
-      summary: Удалить черновик
-      responses:
-        '204':
-          description: Удалено
-
-  /directories/{directory}/versions/{version}/publish:
-    post:
-      tags: [ Версии справочника ]
-      summary: Опубликовать версию
-      parameters:
-        - $ref: '#/components/parameters/DirectoryId'
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Версия опубликована
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryVersion'
-
-  /directories/{directory}/versions/{version}/import:
-    post:
-      tags: [ Версии справочника ]
-      summary: Импорт элементов из CSV/Excel
-      parameters:
-        - $ref: '#/components/parameters/DirectoryId'
-        - name: version
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [ file ]
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: CSV или Excel-файл
-      responses:
-        '202':
-          description: Импорт запущен асинхронно
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  import_id:
-                    type: string
-                    format: uuid
-
-  # ── Элементы справочника ───────────────────────────────────────────────────
-  /directories/{directory}/items:
-    parameters:
-      - $ref: '#/components/parameters/DirectoryId'
-    get:
-      tags: [ Элементы справочника ]
-      summary: Список элементов опубликованной версии
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-              parent_id:
-                type: string
-                format: uuid
-                nullable: true
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список элементов
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/DirectoryItem'
-    post:
-      tags: [ Элементы справочника ]
-      summary: Создать элемент
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryItemInput'
-      responses:
-        '201':
-          description: Элемент создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryItem'
-
-  /directories/{directory}/items/{item}:
-    parameters:
-      - $ref: '#/components/parameters/DirectoryId'
-      - name: item
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Элементы справочника ]
-      summary: Просмотр элемента
-      responses:
-        '200':
-          description: Элемент справочника
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryItem'
-    put:
-      tags: [ Элементы справочника ]
-      summary: Обновить элемент
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryItemInput'
-      responses:
-        '200':
-          description: Элемент обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryItem'
-    delete:
-      tags: [ Элементы справочника ]
-      summary: Удалить элемент
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Категории справочников ─────────────────────────────────────────────────
-  /directories/categories:
-    get:
-      tags: [ Категории справочников ]
-      summary: Список категорий справочников
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              parent_id:
-                type: string
-                format: uuid
-                nullable: true
-      responses:
-        '200':
-          description: Список категорий
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Category'
-    post:
-      tags: [ Категории справочников ]
-      summary: Создать категорию
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryInput'
-      responses:
-        '201':
-          description: Категория создана
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-
-  /directories/categories/{category}:
-    parameters:
-      - $ref: '#/components/parameters/CategoryId'
-    get:
-      tags: [ Категории справочников ]
-      summary: Просмотр категории
-      responses:
-        '200':
-          description: Категория
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-    put:
-      tags: [ Категории справочников ]
-      summary: Обновить категорию
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryInput'
-      responses:
-        '200':
-          description: Категория обновлена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-    delete:
-      tags: [ Категории справочников ]
-      summary: Удалить категорию
-      responses:
-        '204':
-          description: Удалено
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # ДЕЙСТВИЯ
-  # ══════════════════════════════════════════════════════════════════════════
-
-  /actions:
-    get:
-      tags: [ Действия ]
-      summary: Список действий
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-              type:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список действий
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Action'
-    post:
-      tags: [ Действия ]
-      summary: Создать действие
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionInput'
-      responses:
-        '201':
-          description: Действие создано
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Action'
-
-  /actions/{action}:
-    parameters:
-      - name: action
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Действия ]
-      summary: Просмотр действия
-      responses:
-        '200':
-          description: Действие
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Action'
-    put:
-      tags: [ Действия ]
-      summary: Обновить действие
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionInput'
-      responses:
-        '200':
-          description: Действие обновлено
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Action'
-    delete:
-      tags: [ Действия ]
-      summary: Удалить действие
-      responses:
-        '204':
-          description: Удалено
-
-  /actions/{action}:
-    post:
-      tags: [ Действия ]
-      summary: Выполнить действие вручную
-      parameters:
-        - name: action
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                input:
-                  type: object
-                  additionalProperties: true
-      responses:
-        '200':
-          description: Результат выполнения
-          content:
-            application/json:
-              schema:
-                type: object
-
-  # ── Учётные данные ─────────────────────────────────────────────────────────
-  /action-credentials:
-    get:
-      tags: [ Учётные данные ]
-      summary: Список учётных данных
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              type:
-                type: string
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список учётных данных
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ActionCredential'
-    post:
-      tags: [ Учётные данные ]
-      summary: Создать учётные данные
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionCredentialInput'
-      responses:
-        '201':
-          description: Учётные данные созданы
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionCredential'
-
-  /action-credentials/{credential}:
-    parameters:
-      - name: credential
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Учётные данные ]
-      summary: Просмотр учётных данных
-      responses:
-        '200':
-          description: Учётные данные
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionCredential'
-    put:
-      tags: [ Учётные данные ]
-      summary: Обновить учётные данные
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionCredentialInput'
-      responses:
-        '200':
-          description: Учётные данные обновлены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionCredential'
-    delete:
-      tags: [ Учётные данные ]
-      summary: Удалить учётные данные
-      responses:
-        '204':
-          description: Удалено
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # ПРОКСИ / ВЕБХУКИ
-  # ══════════════════════════════════════════════════════════════════════════
-
-  /proxy/webhooks:
-    get:
-      tags: [ Вебхуки (admin) ]
-      summary: Список вебхук-эндпоинтов
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-              is_active:
-                type: boolean
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список эндпоинтов
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ProxyEndpoint'
-
-  /proxy/webhooks/{webhook}:
-    parameters:
-      - name: webhook
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags: [ Вебхуки (admin) ]
-      summary: Просмотр эндпоинта
-      responses:
-        '200':
-          description: Эндпоинт
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyEndpoint'
-    put:
-      tags: [ Вебхуки (admin) ]
-      summary: Обновить эндпоинт
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                is_active:
-                  type: boolean
-                config:
-                  type: object
-                  additionalProperties: true
-      responses:
-        '200':
-          description: Эндпоинт обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyEndpoint'
-
-  /proxy/webhooks/{webhook}/fields:
-    get:
-      tags: [ Вебхуки (admin) ]
-      summary: Поля схемы вебхука (авторизованный)
-      parameters:
-        - name: webhook
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Список полей
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/WebhookField'
-
-  /proxy/webhooks/{webhook}/logs:
-    get:
-      tags: [ Вебхуки (admin) ]
-      summary: Лог входящих запросов
-      parameters:
-        - name: webhook
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Лог запросов
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/WebhookLog'
-
-  /proxy/webhooks/{webhook}/logs/{log}/retry:
-    post:
-      tags: [ Вебхуки (admin) ]
-      summary: Повторить обработку запроса
-      parameters:
-        - name: webhook
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: log
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Запрос поставлен в очередь на повтор
-
-  # ── Публичный приём вебхуков ───────────────────────────────────────────────
-  /webhooks/{uuid}:
-    post:
-      tags: [ Вебхуки (public) ]
-      summary: Принять вебхук (публичный эндпоинт)
-      security: [ ]
-      parameters:
-        - name: uuid
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: true
-      responses:
-        '200':
-          description: Вебхук принят
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /webhooks/{uuid}/fields:
-    get:
-      tags: [ Вебхуки (public) ]
-      summary: Поля схемы вебхука (публичный, только активные)
-      security: [ ]
-      parameters:
-        - name: uuid
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Список полей
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/WebhookField'
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # ПРОЕКТЫ
-  # ══════════════════════════════════════════════════════════════════════════
-
   /projects:
     get:
-      tags: [ Проекты ]
+      tags:
+        - Проекты
       summary: Список проектов
+      security:
+        - BearerAuth: []
       parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          description: Список проектов
+          description: Список проектов (JSON:API коллекция)
           content:
             application/json:
               schema:
@@ -1621,99 +839,117 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/Project'
+                          $ref: '#/components/schemas/ProjectResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [ Проекты ]
+      tags:
+        - Проекты
       summary: Создать проект
+      description: Требует роль `project_admin`.
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectInput'
+              $ref: '#/components/schemas/ProjectRequest'
       responses:
         '201':
           description: Проект создан
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
-
+                $ref: '#/components/schemas/ProjectResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /projects/{project}:
     parameters:
       - name: project
         in: path
         required: true
+        description: ID проекта
         schema:
-          type: string
-          format: uuid
+          type: integer
     get:
-      tags: [ Проекты ]
-      summary: Просмотр проекта
+      tags:
+        - Проекты
+      summary: Получить проект
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Проект
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
-    put:
-      tags: [ Проекты ]
+                $ref: '#/components/schemas/ProjectResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Проекты
       summary: Обновить проект
+      description: Требует роль `project_admin`.
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProjectInput'
+              $ref: '#/components/schemas/ProjectRequest'
       responses:
         '200':
-          description: Проект обновлён
+          description: Обновлённый проект
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                $ref: '#/components/schemas/ProjectResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [ Проекты ]
+      tags:
+        - Проекты
       summary: Удалить проект
+      description: Требует роль `project_admin`.
+      security:
+        - BearerAuth: []
       responses:
         '204':
-          description: Удалено
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # ПОЛЬЗОВАТЕЛИ И РОЛИ
-  # ══════════════════════════════════════════════════════════════════════════
-
-  /users:
+          description: Проект удалён
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /roles:
     get:
-      tags: [ Пользователи ]
-      summary: Список пользователей
+      tags:
+        - Роли
+      summary: Список ролей
+      security:
+        - BearerAuth: []
       parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-                description: Поиск по имени и email
-              group_ids:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-              role_ids:
-                type: array
-                items:
-                  type: string
-                  format: uuid
+        - $ref: '#/components/parameters/PerPage'
         - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
-          description: Список пользователей
+          description: Список ролей (JSON:API коллекция с пагинацией)
           content:
             application/json:
               schema:
@@ -1724,504 +960,1138 @@ paths:
                       data:
                         type: array
                         items:
-                          $ref: '#/components/schemas/User'
+                          $ref: '#/components/schemas/RoleResource'
+                      meta:
+                        $ref: '#/components/schemas/Pagination'
         '401':
           $ref: '#/components/responses/Unauthorized'
     post:
-      tags: [ Пользователи ]
-      summary: Создать пользователя
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-      responses:
-        '201':
-          description: Пользователь создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /users/{user}:
-    parameters:
-      - $ref: '#/components/parameters/UserId'
-    get:
-      tags: [ Пользователи ]
-      summary: Просмотр пользователя
-      responses:
-        '200':
-          description: Пользователь
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      tags: [ Пользователи ]
-      summary: Обновить пользователя
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserInput'
-      responses:
-        '200':
-          description: Пользователь обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-    delete:
-      tags: [ Пользователи ]
-      summary: Удалить пользователя
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Токены пользователей ───────────────────────────────────────────────────
-  /users/{user}/tokens:
-    parameters:
-      - $ref: '#/components/parameters/UserId'
-    get:
-      tags: [ Токены пользователей ]
-      summary: Список API-токенов пользователя
-      responses:
-        '200':
-          description: Список токенов
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UserToken'
-    post:
-      tags: [ Токены пользователей ]
-      summary: Создать API-токен
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [ name ]
-              properties:
-                name:
-                  type: string
-      responses:
-        '201':
-          description: Токен создан (plainTextToken возвращается только один раз)
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/UserToken'
-                  - type: object
-                    properties:
-                      plain_text_token:
-                        type: string
-
-  /users/{user}/tokens/{token}:
-    parameters:
-      - $ref: '#/components/parameters/UserId'
-      - name: token
-        in: path
-        required: true
-        schema:
-          type: integer
-    delete:
-      tags: [ Токены пользователей ]
-      summary: Удалить токен
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Группы ─────────────────────────────────────────────────────────────────
-  /users/groups:
-    get:
-      tags: [ Группы ]
-      summary: Список групп
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список групп
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Group'
-    post:
-      tags: [ Группы ]
-      summary: Создать группу
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GroupInput'
-      responses:
-        '201':
-          description: Группа создана
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-
-  /users/groups/{group}:
-    parameters:
-      - $ref: '#/components/parameters/GroupId'
-    get:
-      tags: [ Группы ]
-      summary: Просмотр группы
-      responses:
-        '200':
-          description: Группа
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-    put:
-      tags: [ Группы ]
-      summary: Обновить группу
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GroupInput'
-      responses:
-        '200':
-          description: Группа обновлена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-    delete:
-      tags: [ Группы ]
-      summary: Удалить группу
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Участники групп ────────────────────────────────────────────────────────
-  /users/groups/{group}/members:
-    parameters:
-      - $ref: '#/components/parameters/GroupId'
-    get:
-      tags: [ Участники групп ]
-      summary: Список участников группы
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список участников
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/User'
-    post:
-      tags: [ Участники групп ]
-      summary: Добавить участников в группу
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [ user_ids ]
-              properties:
-                user_ids:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-      responses:
-        '200':
-          description: Участники добавлены
-
-  /users/groups/{group}/members/{user}:
-    parameters:
-      - $ref: '#/components/parameters/GroupId'
-      - $ref: '#/components/parameters/UserId'
-    delete:
-      tags: [ Участники групп ]
-      summary: Удалить участника из группы
-      responses:
-        '204':
-          description: Удалено
-
-  # ── Роли ───────────────────────────────────────────────────────────────────
-  /users/roles:
-    get:
-      tags: [ Роли ]
-      summary: Список ролей
-      parameters:
-        - name: filter
-          in: query
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              search:
-                type: string
-        - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PageSize'
-      responses:
-        '200':
-          description: Список ролей
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/JsonApiCollection'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Role'
-    post:
-      tags: [ Роли ]
+      tags:
+        - Роли
       summary: Создать роль
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RoleInput'
+              $ref: '#/components/schemas/RoleRequest'
       responses:
         '201':
           description: Роль создана
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
-
-  /users/roles/{role}:
+                $ref: '#/components/schemas/RoleResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /roles/{role}:
     parameters:
-      - $ref: '#/components/parameters/RoleId'
-    get:
-      tags: [ Роли ]
-      summary: Просмотр роли
-      responses:
-        '200':
-          description: Роль
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Role'
+      - name: role
+        in: path
+        required: true
+        description: ID роли
+        schema:
+          type: integer
     put:
-      tags: [ Роли ]
+      tags:
+        - Роли
       summary: Обновить роль
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RoleInput'
+              $ref: '#/components/schemas/RoleRequest'
       responses:
         '200':
-          description: Роль обновлена
+          description: Обновлённая роль
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/RoleResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     delete:
-      tags: [ Роли ]
+      tags:
+        - Роли
       summary: Удалить роль
+      description: Нельзя удалить роль, если она назначена хотя бы одному пользователю.
+      security:
+        - BearerAuth: []
       responses:
         '204':
-          description: Удалено
-
-  # ── Права доступа (permissions) ─────────────────────────────────────────────
-  /users/permissions:
-    get:
-      tags: [ Роли ]
-      summary: Список всех прав доступа
+          description: Роль удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Роль назначена пользователям — удаление невозможно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Авторизация
+      summary: Вход по логину/паролю (dev)
+      description: |
+        Выдаёт Sanctum access-токен (TTL 8 часов) по email + паролю. Доступен **только** при включённом `DEV_AUTH_ENABLED` (иначе `404`). Ограничение частоты — 5 запросов в минуту. Если один email принадлежит нескольким проектам, нужно указать `project_id`, иначе вернётся `422`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Список прав
+          description: Токен выдан
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: Sanctum access-токен (plain-text)
+                    example: 42|abcdef0123456789...
+        '401':
+          description: Неверные учётные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Dev-вход отключён (`DEV_AUTH_ENABLED=false`)
+        '422':
+          description: Требуется `project_id` либо ошибка валидации тела запроса
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Превышен лимит попыток входа (5 в минуту)
+  /auth/logout:
+    post:
+      tags:
+        - Авторизация
+      summary: Выход (отзыв текущего токена)
+      description: |
+        Единый выход. Отзывает Sanctum access-токен из заголовка `Authorization` и связанный с ним refresh-токен (если был выдан при embed-обмене).
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токен отозван
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /user:
+    get:
+      tags:
+        - Авторизация
+      summary: Текущий пользователь
+      description: Возвращает профиль авторизованного пользователя, текущий проект и список его разрешений.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Профиль текущего пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /permissions:
+    get:
+      tags:
+        - Авторизация
+      summary: Справочник разрешений
+      description: |
+        Полный список системных разрешений (permissions) с человекочитаемыми названиями и группировкой. Используется UI при настройке ролей.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список разрешений
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
                 properties:
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        guard_name:
-                          type: string
-
-  # ══════════════════════════════════════════════════════════════════════════
-  # EMBED AUTH
-  # ══════════════════════════════════════════════════════════════════════════
-
-  /embed/register:
+                      $ref: '#/components/schemas/Permission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users:
+    get:
+      tags:
+        - Пользователи
+      summary: Список пользователей
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[search]
+          in: query
+          description: Поиск по имени, ФИО, email, логину
+          schema:
+            type: string
+        - name: filter[group_ids][]
+          in: query
+          description: Фильтр по UUID групп текущего проекта
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: filter[role_ids][]
+          in: query
+          description: Фильтр по ID ролей
+          schema:
+            type: array
+            items:
+              type: integer
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/IncludeUserRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsRoles'
+      responses:
+        '200':
+          description: Список пользователей (JSON:API коллекция)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+                      included:
+                        type: array
+                        description: Включённые роли/группы (при ?include=roles,groups).
+                        items:
+                          oneOf:
+                            - $ref: '#/components/schemas/IncludedRole'
+                            - $ref: '#/components/schemas/IncludedGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
     post:
-      tags: [ Регистрация ]
-      summary: Зарегистрировать пользователя и получить launch-токен
-      description: >
-        Регистрирует пользователя (или возвращает существующего по `external_id`)
-        и выдаёт одноразовый `launch_token` для последующего обмена на JWT.
-      security: [ ]
+      tags:
+        - Пользователи
+      summary: Создать пользователя
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ external_id, project_id ]
-              properties:
-                external_id:
-                  type: string
-                  description: Уникальный идентификатор пользователя во внешней системе
-                project_id:
-                  type: string
-                  format: uuid
-                name:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                meta:
-                  type: object
-                  additionalProperties: true
+              $ref: '#/components/schemas/UserStoreRequest'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /users/launch-token:
+    post:
+      tags:
+        - Пользователи
+      summary: Выпустить одноразовый launch-токен
+      description: |
+        Выдаёт одноразовый launch-токен (`_token`) для пользователя текущего проекта, найденного по `external_id`. Фронт обменивает `_token` на пару access/refresh через `/embed/auth/exchange`. Требует право `user_impersonate`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchTokenRequest'
       responses:
         '200':
-          description: Launch-токен выдан
+          description: Launch-токен создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Нет права `user_impersonate` или контекст проекта не определён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Пользователь с таким `external_id` не найден в проекте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /users/{user}:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        description: ID пользователя
+        schema:
+          type: integer
+    get:
+      tags:
+        - Пользователи
+      summary: Получить пользователя
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeUserRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsRoles'
+      responses:
+        '200':
+          description: Пользователь (с ролями/группами при ?include=roles,groups)
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - data
                 properties:
-                  launch_token:
-                    type: string
-                    description: Одноразовый токен (TTL 5 минут)
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /embed/auth/token:
-    post:
-      tags: [ Авторизация iframe ]
-      summary: Обменять launch-токен на access/refresh токены
-      security: [ ]
+                  data:
+                    $ref: '#/components/schemas/UserResource'
+                  included:
+                    type: array
+                    description: Включённые роли/группы (при ?include=roles,groups).
+                    items:
+                      oneOf:
+                        - $ref: '#/components/schemas/IncludedRole'
+                        - $ref: '#/components/schemas/IncludedGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Пользователи
+      summary: Обновить пользователя
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [ launch_token ]
-              properties:
-                launch_token:
-                  type: string
+              $ref: '#/components/schemas/UserUpdateRequest'
       responses:
         '200':
-          description: JWT-токены выданы
+          description: Обновлённый пользователь
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenPair'
+                $ref: '#/components/schemas/UserResource'
         '401':
           $ref: '#/components/responses/Unauthorized'
-
-  /embed/auth/refresh:
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Пользователи
+      summary: Удалить пользователя из текущего проекта
+      description: Учётная запись удаляется полностью, только если пользователь больше не состоит ни в одном проекте.
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Пользователь удалён из проекта
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users/{user}/tokens:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        description: ID пользователя текущего проекта
+        schema:
+          type: integer
+    get:
+      tags:
+        - Пользователи
+      summary: Список API-токенов пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токены без секретного значения
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
-      tags: [ Авторизация iframe ]
-      summary: Обновить access-токен через refresh-токен
-      security: [ ]
+      tags:
+        - Пользователи
+      summary: Выпустить API-токен пользователю
+      description: Нельзя выпустить токен пользователю с более широкими правами, чем у текущего пользователя.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserTokenStoreRequest'
+      responses:
+        '201':
+          description: Токен создан; секрет возвращается только один раз
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserTokenCreated'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /users/{user}/tokens/{tokenId}:
+    parameters:
+      - name: user
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: tokenId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Пользователи
+      summary: Отозвать API-токен пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Токен отозван или уже отсутствовал
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /groups:
+    get:
+      tags:
+        - Группы
+      summary: Список групп
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          description: Поиск по названию или slug
+          schema:
+            type: string
+        - name: is_active
+          in: query
+          description: Фильтр по активности
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Список групп (JSON:API коллекция)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Группы
+      summary: Создать группу
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGroupRequest'
+      responses:
+        '201':
+          description: Группа создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /groups/{group}:
+    parameters:
+      - name: group
+        in: path
+        required: true
+        description: UUID группы
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Группы
+      summary: Получить группу
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Группа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Группы
+      summary: Обновить группу
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGroupRequest'
+      responses:
+        '200':
+          description: Обновлённая группа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Группы
+      summary: Удалить группу
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Группа удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /groups/{group}/members:
+    parameters:
+      - name: group
+        in: path
+        required: true
+        description: UUID группы
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Группы
+      summary: Участники группы
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список участников (JSON:API коллекция)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Группы
+      summary: Добавить пользователя в группу
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [ refresh_token ]
+              required:
+                - user_id
               properties:
-                refresh_token:
-                  type: string
+                user_id:
+                  type: integer
+                  description: ID пользователя
+                  example: 42
+      responses:
+        '204':
+          description: Пользователь добавлен
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /groups/{group}/members/{user}:
+    parameters:
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags:
+        - Группы
+      summary: Удалить пользователя из группы
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Пользователь удалён из группы
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /actions:
+    get:
+      tags:
+        - Actions
+      summary: Список actions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[search]
+          in: query
+          description: Поиск по name/slug
+          schema:
+            type: string
+        - name: filter[type]
+          in: query
+          schema:
+            $ref: '#/components/schemas/ActionType'
+        - name: filter[is_active]
+          in: query
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: JSON:API коллекция actions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ActionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Actions
+      summary: Создать action
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '201':
+          description: Action создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /actions/{action}:
+    parameters:
+      - name: action
+        in: path
+        required: true
+        description: ID action
+        schema:
+          type: integer
+    get:
+      tags:
+        - Actions
+      summary: Получить action
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Actions
+      summary: Обновить action
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '200':
+          description: Action обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Actions
+      summary: Удалить action
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Action удалён
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /actions/{action}/execute:
+    parameters:
+      - name: action
+        in: path
+        required: true
+        description: ID action
+        schema:
+          type: integer
+    post:
+      tags:
+        - Actions
+      summary: Выполнить action синхронно
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionExecutionRequest'
+      responses:
+        '200':
+          description: Результат синхронного выполнения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionExecutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /actions/{action}/run:
+    parameters:
+      - name: action
+        in: path
+        required: true
+        description: ID action-оркестратора или action для запуска
+        schema:
+          type: integer
+    post:
+      tags:
+        - Actions
+      summary: Запустить action через оркестратор
+      description: |
+        Режим, основной список actions и lifecycle hooks передаются в теле запроса: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`. Если параметры не переданы, используется текущий action и fallback из `action.config` для старых записей.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRunRequest'
+      responses:
+        '200':
+          description: Выполнено синхронно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunResponse'
+        '202':
+          description: Поставлено в очередь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /actions/{action}/schedule:
+    parameters:
+      - name: action
+        in: path
+        required: true
+        description: ID action
+        schema:
+          type: integer
+    get:
+      tags:
+        - Actions
+      summary: Получить расписание action
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 'Расписание action или `data: null`, если расписание не задано.'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ActionScheduleResource'
+                  - type: object
+                    properties:
+                      data:
+                        type: 'null'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Actions
+      summary: Создать или обновить расписание action
+      description: |
+        Scheduler раз в минуту запускает due-расписания командой `actions:run-scheduled`. В `options` можно передать тот же payload, что и в `POST /actions/{action}/run`: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionScheduleRequest'
+      responses:
+        '200':
+          description: Расписание сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionScheduleResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+        - Actions
+      summary: Удалить расписание action
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Расписание удалено
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /action-runs:
+    get:
+      tags:
+        - Actions
+      summary: Список выполнений actions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+            enum:
+              - running
+              - success
+              - failed
+              - skipped
+        - name: filter[action_id]
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Последние выполнения actions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /action-runs/completed:
+    get:
+      tags:
+        - Actions
+      summary: Список успешно выполненных задач
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[action_id]
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Успешно выполненные задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /action-runs/failed:
+    get:
+      tags:
+        - Actions
+      summary: Список задач с ошибкой
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[action_id]
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Задачи с ошибкой. Причина ошибки находится в `reason` и `error`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /embed/auth/exchange:
+    post:
+      tags:
+        - Авторизация
+      summary: Обмен launch-токена на access + refresh токены
+      description: |
+        Принимает одноразовый `launch_token`, полученный через `POST /api/users/launch-token`. Проверяет: токен существует, не использован, не истёк; проект активен; пользователь состоит в проекте; заголовок `Origin` совпадает с `project.host` (если задан). Помечает токен использованным, создаёт Sanctum access-токен (TTL 30 мин) и refresh-токен (TTL 7 дней).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedAuthExchangeRequest'
+      responses:
+        '200':
+          description: Пара токенов выдана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedTokenPairResponse'
+        '401':
+          description: Токен не найден, истёк или уже использован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Origin не разрешён или пользователь не в проекте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Проект неактивен или ошибка валидации
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+  /embed/auth/refresh:
+    post:
+      tags:
+        - Авторизация
+      summary: Обновление access-токена (token rotation)
+      description: |
+        Принимает действующий `refresh_token`. Отзывает старый access-токен, создаёт новые access и refresh токены (ротация). Старый refresh-токен помечается отозванным и повторно использован быть не может.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedAuthRefreshRequest'
       responses:
         '200':
           description: Новая пара токенов
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenPair'
+                $ref: '#/components/schemas/EmbedTokenPairResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /embed/auth/logout:
-    post:
-      tags: [ Авторизация iframe ]
-      summary: Выход — инвалидация refresh-токена
-      responses:
-        '204':
-          description: Выполнено
-
-# ─────────────────────────────────────────────────────────────────────────────
-# КОМПОНЕНТЫ
-# ─────────────────────────────────────────────────────────────────────────────
+          description: Refresh-токен не найден, отозван или истёк
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Пользователь не состоит в проекте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Проект неактивен или ошибка валидации
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
 components:
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  # ── Параметры ─────────────────────────────────────────────────────────────
   parameters:
     ScenarioId:
       name: scenario
       in: path
       required: true
+      description: UUID сценария
       schema:
         type: string
         format: uuid
@@ -2229,6 +2099,7 @@ components:
       name: version
       in: path
       required: true
+      description: UUID версии сценария
       schema:
         type: string
         format: uuid
@@ -2236,716 +2107,2261 @@ components:
       name: category
       in: path
       required: true
+      description: UUID категории
       schema:
         type: string
         format: uuid
-    DirectoryId:
-      name: directory
+    RunId:
+      name: runId
       in: path
       required: true
+      description: UUID прогона
       schema:
         type: string
         format: uuid
-    UserId:
-      name: user
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    GroupId:
-      name: group
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    RoleId:
-      name: role
-      in: path
-      required: true
-      schema:
-        type: integer
-
-    # Устаревшие flat-параметры пагинации (legacy, некоторые эндпоинты)
     PerPage:
       name: per_page
       in: query
+      description: Количество записей на страницу (1–100, по умолчанию 15)
       schema:
         type: integer
-        default: 20
         minimum: 1
         maximum: 100
+        default: 15
     Page:
       name: page
       in: query
+      description: Номер страницы
       schema:
         type: integer
-        default: 1
         minimum: 1
-
-    # JSON:API-стиль пагинации (предпочтительный)
-    PageNumber:
-      name: page[number]
-      in: query
-      schema:
-        type: integer
         default: 1
-        minimum: 1
     PageSize:
       name: page[size]
       in: query
+      description: Количество записей на страницу — JSON:API (1–100, по умолчанию 15)
       schema:
         type: integer
-        default: 20
         minimum: 1
         maximum: 100
-
-  # ── Ответы ────────────────────────────────────────────────────────────────
+        default: 15
+    PageNumber:
+      name: page[number]
+      in: query
+      description: Номер страницы — JSON:API
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    IncludeUserRelations:
+      name: include
+      in: query
+      description: JSON:API include связей через запятую. Поддерживаются `roles`, `groups`. Включённые объекты возвращаются в top-level `included`.
+      schema:
+        type: string
+        example: roles,groups
+    FieldsGroups:
+      name: fields[groups]
+      in: query
+      description: Sparse fieldset для включённых групп (поля через запятую).
+      schema:
+        type: string
+        example: name,slug
+    FieldsRoles:
+      name: fields[roles]
+      in: query
+      description: Sparse fieldset для включённых ролей (поля через запятую).
+      schema:
+        type: string
+        example: name,title
   responses:
     Unauthorized:
-      description: Не авторизован
+      description: Не аутентифицирован
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Unauthenticated.
+            $ref: '#/components/schemas/ErrorResponse'
     NotFound:
       description: Ресурс не найден
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: No query results for model.
-    ValidationError:
-      description: Ошибка валидации
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Недостаточно прав
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              message:
-                type: string
-              errors:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    type: string
-
-  # ── Схемы ─────────────────────────────────────────────────────────────────
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Ошибки валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
   schemas:
-
-    # Общие
+    Actor:
+      type:
+        - object
+        - 'null'
+      description: Пользователь (автор создания или изменения)
+      properties:
+        id:
+          type: integer
+        name:
+          type:
+            - string
+            - 'null'
+        login:
+          type:
+            - string
+            - 'null'
     JsonApiCollection:
       type: object
+      required:
+        - data
       properties:
+        data:
+          type: array
+          items:
+            type: object
         meta:
           type: object
-          properties:
-            total:
-              type: integer
-            per_page:
-              type: integer
-            current_page:
-              type: integer
-            last_page:
-              type: integer
+          description: Мета-данные (пагинация и др.)
         links:
           type: object
-          properties:
-            first:
-              type: string
-            last:
-              type: string
-            prev:
-              type: [ string, 'null' ]
-            next:
-              type: [ string, 'null' ]
-
-    # ── Сценарии ──────────────────────────────────────────────────────────
-    Scenario:
+    JsonApiResourceEnvelope:
       type: object
+      required:
+        - data
       properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-          nullable: true
-        tag:
-          type: string
-          nullable: true
-        is_active:
-          type: boolean
-        active_version_id:
-          type: string
-          format: uuid
-          nullable: true
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    ScenarioVersion:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        scenario_id:
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum: [ draft, active, archived ]
-        nodes_json:
-          type: string
-          description: JSON граф узлов (Vue Flow nodes)
-        edges_json:
-          type: string
-          description: JSON граф рёбер (Vue Flow edges)
-        schema_json:
-          type: string
-          description: JSON схема блоков
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    CatalogItem:
-      type: object
-      properties:
-        type:
-          type: string
-          enum: [ category, scenario ]
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        children_count:
-          type: integer
-          description: Только для type=category
-        is_active:
-          type: boolean
-          description: Только для type=scenario
-
-    ScenarioRun:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        scenario_id:
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum: [ pending, running, completed, failed, cancelled ]
-        current_node_id:
-          type: string
-          nullable: true
-        context:
-          type: object
-          additionalProperties: true
-        started_at:
-          type: string
-          format: date-time
-          nullable: true
-        finished_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-
-    ScenarioRunStep:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        run_id:
-          type: string
-          format: uuid
-        node_id:
-          type: string
-        node_type:
-          type: string
-        input:
-          type: object
-          additionalProperties: true
-        output:
-          type: object
-          additionalProperties: true
-        created_at:
-          type: string
-          format: date-time
-
-    RunStep:
-      type: object
-      description: Текущий шаг прогона, возвращаемый player-сервисом
-      properties:
-        run_id:
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum: [ pending, running, completed, failed, cancelled ]
-        node_type:
-          type: string
-          enum: [ block, condition, end, scenario_link ]
-        node_id:
-          type: string
         data:
           type: object
-          additionalProperties: true
-          description: Данные узла (заголовок, поля и т.д.)
-
-    # ── Справочники ────────────────────────────────────────────────────────
-    Directory:
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+            attributes:
+              type: object
+            relationships:
+              type: object
+    Pagination:
       type: object
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 5
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 94
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Ресурс не найден.
+    ValidationErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Поле name обязательно для заполнения.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            name:
+              - Поле name обязательно для заполнения.
+    CatalogItem:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - category
+            - scenario
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            is_active:
+              type: boolean
+            active_version_id:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: Только для type=scenario
+            parent_id:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: Только для type=category
+            child_count:
+              type: integer
+              description: Количество вложенных категорий (только для type=category)
+            scenario_count:
+              type: integer
+              description: Количество сценариев в категории (только для type=category)
+            version_count:
+              type: integer
+              description: Количество версий (только для type=scenario)
+        relationships:
+          type: object
+          properties:
+            path:
+              type: object
+              description: Цепочка родительских категорий
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: category
+                      id:
+                        type: string
+                        format: uuid
+                      meta:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+    ScenarioResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          example: scenarios
+        attributes:
+          $ref: '#/components/schemas/ScenarioAttributes'
+        relationships:
+          type: object
+          properties:
+            created_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+            updated_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+    ScenarioAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Опрос клиента
+        description:
+          type:
+            - string
+            - 'null'
+        is_active:
+          type: boolean
+        alias:
+          type:
+            - string
+            - 'null'
+          description: Уникальный псевдоним для запуска сценария по alias
+        tags:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+          description: Теги категоризации
+        active_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ScenarioItem:
+      type: object
+      description: Упрощённое представление сценария (возвращается при create/update)
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
-        description:
-          type: string
-          nullable: true
-        published_version_id:
-          type: string
-          format: uuid
-          nullable: true
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    DirectoryInput:
+        is_active:
+          type: boolean
+    ScenarioRequest:
       type: object
-      required: [ name ]
+      required:
+        - name
       properties:
         name:
           type: string
+          maxLength: 255
+          example: Опрос клиента
         description:
-          type: string
+          type:
+            - string
+            - 'null'
+        alias:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          description: Уникальный alias для запуска сценария
+        tags:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            maxLength: 255
+          description: Теги категоризации
         category_ids:
-          type: array
+          type:
+            - array
+            - 'null'
           items:
             type: string
             format: uuid
-
-    DirectoryVersion:
+          description: UUID категорий, к которым относится сценарий
+        active_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID активной версии (должна принадлежать этому сценарию)
+    VersionResource:
       type: object
+      required:
+        - id
+        - type
+        - attributes
       properties:
         id:
           type: string
           format: uuid
-        directory_id:
+        type:
           type: string
-          format: uuid
-        status:
-          type: string
-          enum: [ draft, published ]
-        items_count:
-          type: integer
-        published_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-
-    DirectoryItem:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        directory_id:
-          type: string
-          format: uuid
-        parent_id:
-          type: string
-          format: uuid
-          nullable: true
-        label:
-          type: string
-        value:
-          type: string
-        extra:
+          example: scenario_versions
+        attributes:
+          $ref: '#/components/schemas/VersionAttributes'
+        relationships:
           type: object
-          additionalProperties: true
-          nullable: true
-        children_count:
-          type: integer
-        created_at:
-          type: string
-          format: date-time
-
-    DirectoryItemInput:
-      type: object
-      required: [ label, value ]
-      properties:
-        label:
-          type: string
-        value:
-          type: string
-        parent_id:
-          type: string
-          format: uuid
-          nullable: true
-        extra:
-          type: object
-          additionalProperties: true
-
-    # ── Действия ──────────────────────────────────────────────────────────
-    Action:
+          properties:
+            created_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+            updated_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+    VersionAttributes:
       type: object
       properties:
-        id:
+        scenario_id:
           type: string
           format: uuid
         name:
-          type: string
-        type:
-          type: string
-          description: Тип действия (email, http, crm и т.д.)
-        config:
+          type:
+            - string
+            - 'null'
+        status:
+          $ref: '#/components/schemas/VersionStatus'
+        schema_json:
           type: object
-          additionalProperties: true
-        credential_id:
-          type: string
-          format: uuid
-          nullable: true
+          description: Граф сценария (узлы и рёбра)
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    ActionInput:
+    VersionItem:
       type: object
-      required: [ name, type ]
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        config:
-          type: object
-          additionalProperties: true
-        credential_id:
-          type: string
-          format: uuid
-          nullable: true
-
-    ActionCredential:
-      type: object
+      description: Представление версии (возвращается при create/update)
       properties:
         id:
           type: string
           format: uuid
-        name:
-          type: string
-        type:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-
-    ActionCredentialInput:
-      type: object
-      required: [ name, type ]
-      properties:
-        name:
-          type: string
-        type:
-          type: string
-        config:
-          type: object
-          additionalProperties: true
-          description: Конфиденциальные поля (токены, пароли и т.д.) — не возвращаются в GET
-
-    # ── Прокси / Вебхуки ──────────────────────────────────────────────────
-    ProxyEndpoint:
-      type: object
-      properties:
-        id:
+        scenario_id:
           type: string
           format: uuid
         name:
-          type: string
-        slug:
-          type: string
-        handler:
-          type: string
-          description: FQCN handler-класса
-        is_active:
-          type: boolean
-        config:
-          type: object
-          additionalProperties: true
-        created_at:
-          type: string
-          format: date-time
-
-    WebhookField:
-      type: object
-      properties:
-        name:
-          type: string
-        label:
-          type: string
-        type:
-          type: string
-          enum: [ string, integer, boolean, list, array ]
-        required:
-          type: boolean
-        example:
-          nullable: true
-        filterable:
-          type: boolean
-
-    WebhookLog:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        endpoint_id:
-          type: string
-          format: uuid
+          type:
+            - string
+            - 'null'
         status:
-          type: string
-          enum: [ received, processed, failed, retrying ]
-        payload:
+          $ref: '#/components/schemas/VersionStatus'
+    VersionRequest:
+      type: object
+      required:
+        - schema_json
+      properties:
+        name:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          example: v1.0
+        status:
+          $ref: '#/components/schemas/VersionStatus'
+        schema_json:
           type: object
-          additionalProperties: true
-        error:
+          description: |
+            Граф сценария. Содержит массивы `nodes` и `edges` в формате Vue Flow / React Flow.
+          example:
+            nodes:
+              - id: node_start
+                type: start
+                data: {}
+            edges: []
+    VersionStatus:
+      type: string
+      enum:
+        - draft
+        - active
+        - archived
+      description: |
+        - `draft` — черновик, не виден пользователям - `active` — активная версия - `archived` — архивная версия
+    VersionRevision:
+      type: object
+      description: Снимок версии сценария (создаётся при каждом сохранении графа)
+      properties:
+        id:
           type: string
-          nullable: true
-        attempts:
+          format: uuid
+        scenario_version_id:
+          type: string
+          format: uuid
+        schema_json:
+          type: object
+          description: Граф сценария на момент создания ревизии
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_by:
+          $ref: '#/components/schemas/Actor'
+    CategoryResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          example: category
+        attributes:
+          $ref: '#/components/schemas/CategoryAttributes'
+        relationships:
+          type: object
+          properties:
+            parent:
+              type:
+                - object
+                - 'null'
+              description: Родительская категория (если есть)
+              properties:
+                data:
+                  $ref: '#/components/schemas/CategoryResource'
+            created_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+            updated_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+    CategoryAttributes:
+      type: object
+      properties:
+        parent_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        name:
+          type: string
+          example: Онбординг
+        is_active:
+          type: boolean
+        scenarios_count:
           type: integer
+          description: Количество сценариев в категории
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    # ── Проекты ───────────────────────────────────────────────────────────
-    Project:
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    CategoryRequest:
+      type: object
+      required:
+        - name
+        - is_active
+      properties:
+        parent_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID родительской категории (не может быть самой категорией или её потомком)
+        name:
+          type: string
+          maxLength: 255
+          description: Уникальное название категории
+          example: Онбординг
+        is_active:
+          type: boolean
+          example: true
+    RunnerStartRequest:
+      type: object
+      description: |
+        Необходимо передать ровно один из трёх параметров: `scenario_id`, `version_id` или `alias`.
+      properties:
+        scenario_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID сценария — будет выбрана активная версия
+        version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID конкретной версии сценария
+        alias:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          description: Строковый псевдоним сценария
+        context:
+          type:
+            - object
+            - 'null'
+          description: Начальные переменные контекста прогона
+          additionalProperties: true
+          example:
+            user_name: Иван
+            score: 10
+        user_data:
+          type:
+            - object
+            - 'null'
+          description: Произвольные пользовательские данные (сохраняются в прогоне)
+          additionalProperties: true
+    RunnerJumpRequest:
+      type: object
+      properties:
+        input:
+          type:
+            - object
+            - 'null'
+          description: Пользовательский ввод для текущего узла
+          additionalProperties: true
+          example:
+            answer: Да
+        selected_target_node_id:
+          type:
+            - string
+            - 'null'
+          description: ID узла для явного перехода (используется в узлах с ручным выбором ветки)
+    RunPayload:
+      type: object
+      required:
+        - run
+      properties:
+        run:
+          $ref: '#/components/schemas/RunState'
+    RunState:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        name:
+          description: UUID прогона
+        scenario_id:
           type: string
-        slug:
+          format: uuid
+        scenario_name:
+          type:
+            - string
+            - 'null'
+        scenario_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        scenario_version_revision_id:
           type: string
-        is_active:
-          type: boolean
-        created_at:
-          type: string
+          format: uuid
+        scenario_version_name:
+          type:
+            - string
+            - 'null'
+        scenario_version_created_at:
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    ProjectInput:
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        current_node_id:
+          type:
+            - string
+            - 'null'
+          description: ID текущего (активного) узла
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        context:
+          type: object
+          description: Текущий контекст прогона (переменные)
+          additionalProperties: true
+        current_node:
+          type:
+            - object
+            - 'null'
+          description: Сырые данные текущего узла из графа
+        rendered:
+          type:
+            - object
+            - 'null'
+          description: Отрендеренное содержимое текущего узла (поля, кнопки и т.д.)
+        steps:
+          type: array
+          description: История пройденных шагов (от новых к старым)
+          items:
+            $ref: '#/components/schemas/RunStep'
+    RunStep:
       type: object
-      required: [ name ]
       properties:
-        name:
+        id:
+          type: integer
+        node_id:
           type: string
-        slug:
+        node_type:
           type: string
-        is_active:
-          type: boolean
-
-    # ── Пользователи ──────────────────────────────────────────────────────
-    User:
+          description: Тип узла (`block`, `condition`, `end` и др.)
+        input:
+          type:
+            - object
+            - 'null'
+          description: Данные, которые пользователь ввёл при прохождении узла
+          additionalProperties: true
+        output:
+          type:
+            - object
+            - 'null'
+          description: Вычисленный результат узла
+          additionalProperties: true
+        rendered:
+          type:
+            - object
+            - 'null'
+          description: Отрендеренное состояние узла на момент прохождения
+        entered_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        exited_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    RunStatus:
+      type: string
+      enum:
+        - active
+        - completed
+        - failed
+      description: |
+        - `active` — прогон в процессе - `completed` — прогон завершён - `failed` — прогон прерван по ошибке или по превышению лимита шагов
+    ScenarioRunListResponse:
+      type: object
+      required:
+        - runs
+        - pagination
+        - total
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScenarioRunAdminItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        total:
+          type: integer
+          description: Общее число прогонов
+    ScenarioRunAdminItem:
       type: object
       properties:
         id:
           type: string
           format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        scenario_name:
+          type:
+            - string
+            - 'null'
+        scenario_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        scenario_version_created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        current_node_id:
+          type:
+            - string
+            - 'null'
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        created_by:
+          $ref: '#/components/schemas/ScenarioRunUser'
+        updated_by:
+          $ref: '#/components/schemas/ScenarioRunUser'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ScenarioRunUser:
+      type:
+        - object
+        - 'null'
+      properties:
+        id:
+          type: integer
+        name:
+          type:
+            - string
+            - 'null'
+        fio:
+          type:
+            - string
+            - 'null'
+        login:
+          type:
+            - string
+            - 'null'
+    StoreScenarioRunRequest:
+      type: object
+      required:
+        - scenario_id
+      properties:
+        scenario_id:
+          type: string
+          format: uuid
+          description: UUID сценария (обязателен)
+        scenario_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID конкретной версии (если не передан — выбирается активная)
+        context:
+          type:
+            - object
+            - 'null'
+          description: Начальный контекст прогона
+          additionalProperties: true
+        user_data:
+          type:
+            - object
+            - 'null'
+          description: Произвольные пользовательские данные
+          additionalProperties: true
+    ContinueRunRequest:
+      type: object
+      properties:
+        input:
+          type:
+            - object
+            - 'null'
+          description: Пользовательский ввод для текущего узла
+          additionalProperties: true
+        selected_target_node_id:
+          type:
+            - string
+            - 'null'
+          description: ID целевого узла при ручном выборе перехода
+    AdminJumpRunRequest:
+      type: object
+      required:
+        - node_id
+      properties:
+        node_id:
+          type: string
+          description: ID узла, к которому нужно перейти
+    SurveySummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID прогона
+        scenario_id:
+          type: string
+          format: uuid
+        scenario_name:
+          type:
+            - string
+            - 'null'
+        current_node_id:
+          type:
+            - string
+            - 'null'
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        created_by:
+          $ref: '#/components/schemas/Actor'
+        updated_by:
+          $ref: '#/components/schemas/Actor'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    RoleResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+        - relationships
+      properties:
+        id:
+          type: string
+          description: ID роли (целое число в виде строки)
+          example: '3'
+        type:
+          type: string
+          example: roles
+        attributes:
+          $ref: '#/components/schemas/RoleAttributes'
+        relationships:
+          $ref: '#/components/schemas/RoleRelationships'
+    RoleAttributes:
+      type: object
+      properties:
         name:
           type: string
+          description: Уникальное имя роли
+          example: project_admin
+        title:
+          type:
+            - string
+            - 'null'
+        description:
+          type:
+            - string
+            - 'null'
+        is_system:
+          type: boolean
+          description: Системные роли нельзя изменять или удалять через API
+        guard_name:
+          type: string
+          description: Guard, к которому привязана роль (всегда `web`)
+          example: web
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    RoleRelationships:
+      type: object
+      properties:
+        users:
+          type: object
+          properties:
+            meta:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  description: Количество пользователей с этой ролью
+                  example: 5
+    RoleRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Уникальное имя роли
+          example: project_admin
+        title:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        description:
+          type:
+            - string
+            - 'null'
+          maxLength: 1000
+        permissions:
+          type: array
+          description: Полный список permissions роли
+          items:
+            type: string
+    ProjectResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          description: Внутренний числовой ID (в виде строки)
+          example: '1'
+        type:
+          type: string
+          example: projects
+        attributes:
+          $ref: '#/components/schemas/ProjectAttributes'
+    ProjectAttributes:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: Публичный UUID проекта (используется во внешних интеграциях)
+        name:
+          type: string
+          example: Мой проект
+        sitekey:
+          type: string
+          example: my-site
+        host:
+          type: string
+          example: example.com
+        shared_secret:
+          type: string
+          description: Секрет для подписи запросов из внешних систем
+          example: supersecretkey32charslong00000000
+        is_active:
+          type: boolean
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ProjectRequest:
+      type: object
+      required:
+        - name
+        - sitekey
+        - host
+        - shared_secret
+        - is_active
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Мой проект
+        sitekey:
+          type: string
+          maxLength: 255
+          example: my-site
+        host:
+          type: string
+          maxLength: 255
+          example: example.com
+        shared_secret:
+          type: string
+          minLength: 32
+          maxLength: 255
+          description: Минимум 32 символа
+          example: supersecretkey32charslong00000000
+        is_active:
+          type: boolean
+          example: true
+    UserResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          description: ID пользователя (целое число в виде строки)
+          example: '42'
+        type:
+          type: string
+          example: users
+        attributes:
+          $ref: '#/components/schemas/UserAttributes'
+        relationships:
+          type: object
+          description: Linkage связей (только type + id). Сами объекты приходят в top-level `included` при запросе с `?include=roles,groups`.
+          properties:
+            roles:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RelationshipLinkage'
+            groups:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RelationshipLinkage'
+    UserAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Иван Иванов
+        fio:
+          type:
+            - string
+            - 'null'
+          example: Иванов Иван Иванович
         email:
           type: string
           format: email
+          example: ivan@example.com
+        login:
+          type:
+            - string
+            - 'null'
+          example: ivan123
+        external_id:
+          type:
+            - string
+            - 'null'
+          example: crm_user_42
+        is_system:
+          type: boolean
+          description: Признак защищённого сервисного пользователя
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    UserStoreRequest:
+      type: object
+      required:
+        - name
+        - email
+        - login
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Иван Иванов
+        fio:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          example: Иванов Иван Иванович
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: ivan@example.com
+        login:
+          type: string
+          maxLength: 255
+          example: ivan123
+        external_id:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          example: crm_user_42
+        password:
+          type: string
+          minLength: 8
+          example: s3cr3tP@ss
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/Role'
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/Group'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    UserInput:
-      type: object
-      required: [ name, email ]
-      properties:
-        name:
-          type: string
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          format: password
-          minLength: 8
-        role_ids:
-          type: array
-          items:
-            type: integer
+            type: string
+          description: Имена общих ролей guard `web`; для назначения требуется право role_create
         group_ids:
           type: array
           items:
             type: string
             format: uuid
-
+          description: UUID групп текущего проекта
+    UserUpdateRequest:
+      type: object
+      required:
+        - name
+        - email
+        - login
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        fio:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        login:
+          type: string
+          maxLength: 255
+        external_id:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+        password:
+          type:
+            - string
+            - 'null'
+          minLength: 8
+          description: Если не передан — пароль не меняется
+        roles:
+          type: array
+          items:
+            type: string
+          description: Полный список назначенных ролей; для изменения требуется право role_create
+        group_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Полный список групп текущего проекта; если не передан, группы сохраняются
     UserToken:
       type: object
+      required:
+        - id
+        - name
+        - abilities
+        - last_used_at
+        - created_at
+        - expires_at
       properties:
         id:
           type: integer
         name:
           type: string
+        abilities:
+          type: array
+          items:
+            type: string
         last_used_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    # ── Группы ────────────────────────────────────────────────────────────
-    Group:
+        expires_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    UserTokenCreated:
+      allOf:
+        - $ref: '#/components/schemas/UserToken'
+        - type: object
+          required:
+            - plain_text_token
+          properties:
+            plain_text_token:
+              type: string
+              description: Секретное значение, возвращаемое только при создании
+    UserTokenStoreRequest:
       type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        expires_at:
+          anyOf:
+            - type: string
+              format: date
+            - type: string
+              format: date-time
+            - type: 'null'
+          description: Должно быть позже текущего времени
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        password:
+          type: string
+          example: s3cr3tP@ss
+        project_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: |
+            UUID активного проекта. Обязателен, только если один email принадлежит нескольким проектам.
+    CurrentUser:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - project_id
+        - permissions
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        project_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID текущего проекта
+        permissions:
+          type: array
+          description: Имена всех разрешений пользователя
+          items:
+            type: string
+          example:
+            - user_view
+            - user_create
+            - role_view
+    Permission:
+      type: object
+      required:
+        - name
+        - label
+        - group
+      properties:
+        name:
+          type: string
+          description: Машинное имя разрешения
+          example: user_view
+        label:
+          type: string
+          description: Человекочитаемое название
+          example: Просмотр пользователей
+        group:
+          type: string
+          description: Группа, к которой относится разрешение
+          example: Пользователи
+    LaunchTokenRequest:
+      type: object
+      required:
+        - external_id
+      properties:
+        external_id:
+          type: string
+          maxLength: 255
+          description: Внешний идентификатор пользователя в системе клиента
+          example: crm_user_42
+    LaunchTokenResponse:
+      type: object
+      required:
+        - _token
+        - expires_in
+      properties:
+        _token:
+          type: string
+          description: Одноразовый launch-токен для обмена через /embed/auth/exchange
+        expires_in:
+          type: integer
+          description: TTL токена в секундах
+          example: 300
+    UserGroup:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
       properties:
         id:
           type: string
           format: uuid
+        type:
+          type: string
+          example: groups
+        attributes:
+          $ref: '#/components/schemas/UserGroupAttributes'
+        relationships:
+          type: object
+          properties:
+            created_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+            updated_by:
+              type:
+                - object
+                - 'null'
+              properties:
+                data:
+                  $ref: '#/components/schemas/Actor'
+    UserGroupAttributes:
+      type: object
+      properties:
         name:
           type: string
+          example: Отдел продаж
+        slug:
+          type: string
+          example: sales_team
+          description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
+        ext_id:
+          type:
+            - string
+            - 'null'
+          description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
+          example: crm_group_42
+        description:
+          type:
+            - string
+            - 'null'
+        is_active:
+          type: boolean
         members_count:
           type: integer
+          description: Количество участников группы
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    GroupInput:
+    UserGroupRequest:
       type: object
-      required: [ name ]
+      required:
+        - name
+        - slug
       properties:
         name:
           type: string
-
-    # ── Роли ──────────────────────────────────────────────────────────────
-    Role:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
+          maxLength: 255
+          example: Отдел продаж
+        slug:
           type: string
-        guard_name:
-          type: string
-        permissions:
-          type: array
-          items:
-            type: string
-          description: Имена прав доступа
-        users_count:
-          type: integer
-
-    RoleInput:
+          maxLength: 255
+          description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
+          example: sales_team
+        ext_id:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          description: Идентификатор группы во внешней системе
+          example: crm_group_42
+        description:
+          type:
+            - string
+            - 'null'
+        is_active:
+          type: boolean
+          example: true
+    ActionResource:
       type: object
-      required: [ name ]
-      properties:
-        name:
-          type: string
-        permissions:
-          type: array
-          items:
-            type: string
-
-    # ── Категории (общая схема) ────────────────────────────────────────────
-    Category:
-      type: object
+      required:
+        - id
+        - type
+        - attributes
       properties:
         id:
           type: string
-          format: uuid
+          example: '12'
+        type:
+          type: string
+          example: actions
+        attributes:
+          $ref: '#/components/schemas/ActionAttributes'
+        relationships:
+          type: object
+          properties:
+            runs:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ActionRun'
+            schedule:
+              type: object
+              properties:
+                data:
+                  oneOf:
+                    - $ref: '#/components/schemas/ActionSchedule'
+                    - type: 'null'
+    ActionAttributes:
+      type: object
+      properties:
         name:
           type: string
-        parent_id:
+          example: Создать XML заявки
+        slug:
           type: string
-          format: uuid
-          nullable: true
-        children_count:
-          type: integer
+          example: create-lead-xml
+        description:
+          type:
+            - string
+            - 'null'
+        type:
+          $ref: '#/components/schemas/ActionType'
+        is_active:
+          type: boolean
+        config:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        schema:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        ui_schema:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-
-    CategoryInput:
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionType:
+      type: string
+      enum:
+        - email
+        - template_file
+        - proxy_request
+        - excel_report
+        - directory_import
+      description: |
+        `email` зарегистрирован как тип, но отправка пока не реализована. `template_file` создаёт xml/txt/html по шаблону. `proxy_request` отправляет данные через Proxy module. `excel_report` создаёт xlsx-отчёт. `directory_import` запускает импорт справочника через Directories module.
+    ActionRequest:
       type: object
-      required: [ name ]
+      required:
+        - name
+        - slug
+        - type
+        - is_active
       properties:
         name:
           type: string
-        parent_id:
+          maxLength: 255
+          example: Создать отчёт по заявкам
+        slug:
+          type: string
+          maxLength: 255
+          example: leads-report
+        description:
+          type:
+            - string
+            - 'null'
+        type:
+          $ref: '#/components/schemas/ActionType'
+        is_active:
+          type: boolean
+          example: true
+        config:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        schema:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        ui_schema:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+    TemplateFileActionConfig:
+      type: object
+      required:
+        - format
+        - template
+      properties:
+        format:
+          type: string
+          enum:
+            - xml
+            - txt
+            - html
+        template:
+          type: string
+          example: <lead><name>{{ lead.name }}</name></lead>
+        file_name:
+          type:
+            - string
+            - 'null'
+          example: lead.xml
+    ProxyRequestActionConfig:
+      type: object
+      description: |
+        Action вызывает существующий endpoint модуля Proxy через `endpoint_uuid` и получает ответ Proxy module. Нормализация, валидация, логирование и handler остаются внутри `module/Proxy`.
+      required:
+        - endpoint_uuid
+      properties:
+        endpoint_uuid:
           type: string
           format: uuid
-          nullable: true
-
-    # ── Embed Auth ─────────────────────────────────────────────────────────
-    TokenPair:
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+          default: POST
+        headers:
+          type: object
+          additionalProperties: true
+        query:
+          type: object
+          additionalProperties: true
+        payload:
+          type: object
+          additionalProperties: true
+    ExcelReportActionConfig:
       type: object
+      required:
+        - columns
+      properties:
+        file_name:
+          type:
+            - string
+            - 'null'
+          example: leads.xlsx
+        sheet_name:
+          type:
+            - string
+            - 'null'
+          example: Leads
+        columns:
+          type: array
+          items:
+            type: object
+            required:
+              - header
+              - key
+            properties:
+              header:
+                type: string
+                example: Email
+              key:
+                type: string
+                example: lead.email
+        rows:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            additionalProperties: true
+    DirectoryImportActionConfig:
+      type: object
+      description: |
+        Action создаёт `DirectoryImport` через `Module\Directories\Services\ImportService`. Сам импорт, версии, mapping, обработка строк и ошибки остаются внутри `module/Directories`.
+      required:
+        - directory_id
+        - source_type
+        - mode
+        - mapping
+        - columns
+      properties:
+        directory_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum:
+            - file
+            - proxy
+            - remote
+        mode:
+          type: string
+          enum:
+            - create
+            - update
+            - replace
+        file_disk:
+          type:
+            - string
+            - 'null'
+          example: local
+        file_path:
+          type:
+            - string
+            - 'null'
+          description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
+          example: actions/leads/leads.xlsx
+        proxy_endpoint_id:
+          type:
+            - integer
+            - 'null'
+          description: ID ProxyEndpoint для `source_type=proxy`.
+        proxy_endpoint_uuid:
+          type:
+            - string
+            - 'null'
+          description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
+        remote:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        mapping:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            email: email
+            name: name
+        columns:
+          type: array
+          items:
+            type: object
+            required:
+              - key
+              - name
+            properties:
+              key:
+                type: string
+              name:
+                type: string
+              type:
+                type:
+                  - string
+                  - 'null'
+              nullable:
+                type:
+                  - boolean
+                  - 'null'
+        match_by:
+          type:
+            - string
+            - 'null'
+        parent_key_field:
+          type:
+            - string
+            - 'null'
+        chunk_size:
+          type:
+            - integer
+            - 'null'
+          example: 500
+        activate:
+          type:
+            - boolean
+            - 'null'
+        version_id:
+          type:
+            - integer
+            - 'null'
+    ActionExecutionRequest:
+      type: object
+      properties:
+        input:
+          type: object
+          additionalProperties: true
+          example:
+            lead:
+              name: Иван
+              email: ivan@example.com
+    ActionExecutionResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - failed
+            - skipped
+        output:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        error:
+          type:
+            - string
+            - 'null'
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionRun'
+    ActionRunRequest:
+      type: object
+      properties:
+        execution_mode:
+          type: string
+          enum:
+            - sync
+            - async
+            - chain
+            - batch
+          description: |
+            Режим выполнения текущего запуска. `chain` выполняет `action_ids` последовательно, `batch` запускает `action_ids` параллельно.
+          example: chain
+        action_ids:
+          type: array
+          description: Основные actions для последовательного или параллельного выполнения.
+          items:
+            type: integer
+          example:
+            - 10
+            - 11
+            - 12
+        before_action_ids:
+          type: array
+          description: Actions, которые выполняются перед основной очередью.
+          items:
+            type: integer
+          example:
+            - 7
+        after_action_ids:
+          type: array
+          description: Actions, которые выполняются после успешной обработки основной очереди.
+          items:
+            type: integer
+          example:
+            - 20
+        failed_action_ids:
+          type: array
+          description: Actions, которые выполняются при ошибке before/main/batch обработки.
+          items:
+            type: integer
+          example:
+            - 30
+        retry:
+          type: object
+          properties:
+            attempts:
+              type: integer
+              minimum: 1
+              example: 3
+            backoff:
+              type: array
+              items:
+                type: integer
+              example:
+                - 60
+                - 120
+                - 300
+        input:
+          type: object
+          additionalProperties: true
+          example:
+            scenario_run_id: 15
+            rows:
+              - lead:
+                  email: ivan@example.com
+    ActionRunResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - completed
+            - queued
+        result:
+          type:
+            - object
+            - 'null'
+          properties:
+            status:
+              type: string
+              enum:
+                - success
+                - failed
+                - skipped
+            output:
+              type:
+                - object
+                - 'null'
+              additionalProperties: true
+            error:
+              type:
+                - string
+                - 'null'
+    ActionScheduleRequest:
+      type: object
+      required:
+        - enabled
+        - frequency
+      properties:
+        enabled:
+          type: boolean
+          example: true
+        frequency:
+          type: string
+          enum:
+            - every_minute
+            - hourly
+            - daily
+            - weekly
+            - monthly
+          example: daily
+        run_at:
+          type:
+            - string
+            - 'null'
+          pattern: ^\\d{2}:\\d{2}$
+          description: |
+            Время запуска в указанной timezone. Для `hourly` используется только минута, для `every_minute` поле игнорируется.
+          example: '09:30'
+        timezone:
+          type:
+            - string
+            - 'null'
+          example: Europe/Moscow
+        input:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          description: Input, который будет передан в orchestrator.
+          example:
+            source: schedule
+        options:
+          anyOf:
+            - $ref: '#/components/schemas/ActionRunRequest'
+            - type: 'null'
+        settings:
+          type:
+            - object
+            - 'null'
+          properties:
+            day_of_week:
+              type: integer
+              minimum: 1
+              maximum: 7
+              description: Для weekly. 1 = понедельник, 7 = воскресенье.
+              example: 1
+            day_of_month:
+              type: integer
+              minimum: 1
+              maximum: 31
+              description: Для monthly.
+              example: 1
+    ActionSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+        action_id:
+          type: integer
+        enabled:
+          type: boolean
+        frequency:
+          type: string
+          enum:
+            - every_minute
+            - hourly
+            - daily
+            - weekly
+            - monthly
+        run_at:
+          type:
+            - string
+            - 'null'
+        timezone:
+          type: string
+        input:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        options:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        settings:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        last_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        next_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionScheduleResource:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          example: '5'
+        type:
+          type: string
+          example: action-schedules
+        attributes:
+          $ref: '#/components/schemas/ActionSchedule'
+    ActionRun:
+      type: object
+      properties:
+        id:
+          type: integer
+        action_id:
+          type: integer
+        status:
+          type: string
+          enum:
+            - running
+            - success
+            - failed
+            - skipped
+        input:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        output:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        error:
+          type:
+            - string
+            - 'null'
+        reason:
+          type:
+            - string
+            - 'null'
+          description: Причина ошибки. Для успешных задач `null`.
+        attempts_count:
+          type: integer
+          minimum: 1
+          description: Номер попытки, на которой была создана запись выполнения.
+        started_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        finished_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        duration_ms:
+          type:
+            - integer
+            - 'null'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionRunListResponse:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionRun'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+    EmbedAuthExchangeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Значение `launch_token`, полученное от `POST /api/users/launch-token`
+          example: a3f8c2d1e9b7...
+    EmbedAuthRefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Действующий refresh-токен
+          example: 4f9a1b2c3d5e...
+    EmbedTokenPairResponse:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+        - token_type
+        - expires_in
       properties:
         access_token:
           type: string
-          description: JWT access-токен (короткоживущий)
+          description: Sanctum Bearer-токен для API-запросов (TTL 30 мин)
+          example: 1|Abc123...
         refresh_token:
           type: string
-          description: Refresh-токен для ротации
+          description: Токен для ротации (TTL 7 дней). Хранить только в памяти JS
+          example: 4f9a1b2c3d5e...
+        token_type:
+          type: string
+          example: Bearer
         expires_in:
           type: integer
-          description: TTL access-токена в секундах
+          description: Время жизни access-токена в секундах
+          example: 1800
+    RelationshipLinkage:
+      type: object
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          example: groups
+        id:
+          type: string
+          example: 9b1f0c8e-1a2b-4c3d-8e9f-000000000001
+    IncludedRole:
+      type: object
+      description: Роль в `included` при ?include=roles (sparse fields[roles]=name,title).
+      properties:
+        type:
+          type: string
+          example: roles
+        id:
+          type: string
+          example: '3'
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              example: manager
+            title:
+              type:
+                - string
+                - 'null'
+              example: Менеджер
+    IncludedGroup:
+      type: object
+      description: Группа в `included` при ?include=groups (sparse fields[groups]=name,slug).
+      properties:
+        type:
+          type: string
+          example: groups
+        id:
+          type: string
+          format: uuid
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Операторы
+            slug:
+              type: string
+              example: operators
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Sanctum access-токен (`Authorization: Bearer {access_token}`)
+x-tagGroups:
+  - name: Модуль «Сценарии»
+    tags:
+      - Каталог
+      - Сценарии
+      - Версии
+      - Категории
+      - Запуск
+      - Прогоны
+      - Опросы
+  - name: Пользователи
+    tags:
+      - Пользователи
+  - name: Администрирование
+    tags:
+      - Проекты
+      - Роли
+      - Actions
+  - name: Группы доступа
+    tags:
+      - Группы
+  - name: Авторизация
+    tags:
+      - Авторизация

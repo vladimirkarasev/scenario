@@ -38,32 +38,26 @@ ActionAttributes:
       type: string
       example: create-lead-xml
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     type:
       $ref: '#/ActionType'
     is_active:
       type: boolean
     config:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     schema:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     ui_schema:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 ActionType:
   type: string
@@ -88,24 +82,20 @@ ActionRequest:
       maxLength: 255
       example: leads-report
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     type:
       $ref: '#/ActionType'
     is_active:
       type: boolean
       example: true
     config:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     schema:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     ui_schema:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
 
 TemplateFileActionConfig:
@@ -119,8 +109,7 @@ TemplateFileActionConfig:
       type: string
       example: '<lead><name>{{ lead.name }}</name></lead>'
     file_name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: lead.xml
 
 ProxyRequestActionConfig:
@@ -153,12 +142,10 @@ ExcelReportActionConfig:
   required: [ columns ]
   properties:
     file_name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: leads.xlsx
     sheet_name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: Leads
     columns:
       type: array
@@ -173,8 +160,7 @@ ExcelReportActionConfig:
             type: string
             example: lead.email
     rows:
-      type: array
-      nullable: true
+      type: [ array, 'null' ]
       items:
         type: object
         additionalProperties: true
@@ -197,25 +183,20 @@ DirectoryImportActionConfig:
       type: string
       enum: [ create, update, replace ]
     file_disk:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: local
     file_path:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
       example: actions/leads/leads.xlsx
     proxy_endpoint_id:
-      type: integer
-      nullable: true
+      type: [ integer, 'null' ]
       description: ID ProxyEndpoint для `source_type=proxy`.
     proxy_endpoint_uuid:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
     remote:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     mapping:
       type: object
@@ -235,27 +216,20 @@ DirectoryImportActionConfig:
           name:
             type: string
           type:
-            type: string
-            nullable: true
+            type: [ string, 'null' ]
           nullable:
-            type: boolean
-            nullable: true
+            type: [ boolean, 'null' ]
     match_by:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     parent_key_field:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     chunk_size:
-      type: integer
-      nullable: true
+      type: [ integer, 'null' ]
       example: 500
     activate:
-      type: boolean
-      nullable: true
+      type: [ boolean, 'null' ]
     version_id:
-      type: integer
-      nullable: true
+      type: [ integer, 'null' ]
 
 ActionExecutionRequest:
   type: object
@@ -276,12 +250,10 @@ ActionExecutionResponse:
       type: string
       enum: [ success, failed, skipped ]
     output:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     error:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     runs:
       type: array
       items:
@@ -350,19 +322,16 @@ ActionRunResponse:
       type: string
       enum: [ completed, queued ]
     result:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       properties:
         status:
           type: string
           enum: [ success, failed, skipped ]
         output:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           additionalProperties: true
         error:
-          type: string
-          nullable: true
+          type: [ string, 'null' ]
 
 ActionScheduleRequest:
   type: object
@@ -376,30 +345,27 @@ ActionScheduleRequest:
       enum: [ every_minute, hourly, daily, weekly, monthly ]
       example: daily
     run_at:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       pattern: '^\\d{2}:\\d{2}$'
       description: >
         Время запуска в указанной timezone. Для `hourly` используется только
         минута, для `every_minute` поле игнорируется.
       example: '09:30'
     timezone:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       example: Europe/Moscow
     input:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
       description: Input, который будет передан в orchestrator.
       example:
         source: schedule
     options:
-      $ref: '#/ActionRunRequest'
-      nullable: true
+      anyOf:
+        - $ref: '#/ActionRunRequest'
+        - type: 'null'
     settings:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       properties:
         day_of_week:
           type: integer
@@ -427,38 +393,30 @@ ActionSchedule:
       type: string
       enum: [ every_minute, hourly, daily, weekly, monthly ]
     run_at:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     timezone:
       type: string
     input:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     options:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     settings:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     last_run_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     next_run_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 ActionScheduleResource:
   type: object
@@ -484,39 +442,31 @@ ActionRun:
       type: string
       enum: [ running, success, failed, skipped ]
     input:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     output:
-      type: object
-      nullable: true
+      type: [ object, 'null' ]
       additionalProperties: true
     error:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     reason:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       description: Причина ошибки. Для успешных задач `null`.
     attempts_count:
       type: integer
       minimum: 1
       description: Номер попытки, на которой была создана запись выполнения.
     started_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     finished_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     duration_ms:
-      type: integer
-      nullable: true
+      type: [ integer, 'null' ]
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 ActionRunListResponse:
   type: object

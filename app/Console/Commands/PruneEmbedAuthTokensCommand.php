@@ -12,18 +12,18 @@ final class PruneEmbedAuthTokensCommand extends Command
 {
     protected $signature = 'embed-auth:prune-tokens';
 
-    protected $description = 'Delete expired and consumed iframe launch/refresh tokens';
+    protected $description = 'Delete expired and consumed launch/refresh tokens';
 
     public function handle(): int
     {
-        $launch = DB::table('iframe_launch_tokens')
+        $launch = DB::table('launch_tokens')
             ->where(function (Builder $q): void {
                 $q->where('expires_at', '<', now())
                     ->orWhereNotNull('used_at');
             })
             ->delete();
 
-        $refresh = DB::table('iframe_refresh_tokens')
+        $refresh = DB::table('personal_refresh_tokens')
             ->where(function (Builder $q): void {
                 $q->where('expires_at', '<', now())
                     ->orWhereNotNull('revoked_at');

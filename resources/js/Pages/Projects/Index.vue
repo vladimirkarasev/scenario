@@ -63,7 +63,7 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
       <div class="mx-auto max-w-5xl px-6 py-8">
         <!-- Header -->
         <PageHeader title="Проекты"
-                    subtitle="Управление проектами для iframe-аутентификации. Каждый проект задаёт sitekey, host и shared secret для обмена JWT-токенами.">
+                    subtitle="Управление проектами для встраивания (embed). Каждый проект задаёт sitekey, host и shared secret для обмена JWT-токенами.">
           <template #actions>
             <button
                 class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
@@ -112,7 +112,7 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
 
           <!-- Empty -->
           <EmptyState v-else-if="!loading && !projects.length" title="Нет проектов"
-                      subtitle="Создайте первый проект для настройки iframe-аутентификации">
+                      subtitle="Создайте первый проект для настройки встраивания (embed)">
             <template #icon>
               <Building2 :size="20"/>
             </template>
@@ -218,7 +218,7 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
             class="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[12px] text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <ExternalLink :size="13" class="mt-0.5 flex-none text-slate-400"/>
           Один активный проект с корректными <code class="mx-0.5 rounded bg-slate-100 px-1 font-mono text-[11px]">sitekey
-          + host + shared_secret</code> обязателен для обмена iframe-токенов.
+          + host + shared_secret</code> обязателен для обмена embed-токенов.
         </div>
       </div>
     </div>

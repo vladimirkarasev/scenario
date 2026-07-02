@@ -1,7 +1,24 @@
 openapi: 3.1.0
 info:
   title: Platform API
-  description: API платформы сценариев
+  description: |
+    API платформы сценариев.
+
+    ## Как авторизоваться
+
+    Все запросы (кроме публичных) требуют заголовок `Authorization: Bearer {access_token}`.
+
+    **Боевой флоу (встраивание во внешнюю систему).** Авторизация не по паролю, а через обмен одноразового launch-токена:
+
+    1. Внешний бэкенд с токеном системного пользователя проекта вызывает `POST /api/users/launch-token` → получает одноразовый `_token` (TTL 5 мин).
+    2. Внешний фронт открывает приложение в `<iframe>` с `?_token={_token}`.
+    3. Приложение вызывает `POST /api/embed/auth/exchange` с этим `_token` → получает пару `access_token` + `refresh_token` (**здесь и происходит авторизация**).
+    4. Дальше все запросы идут с `Authorization: Bearer {access_token}`; протухший access обновляется через `POST /api/embed/auth/refresh` (ротация).
+    5. Выход — `POST /api/auth/logout` (отзывает access и связанный refresh).
+
+    **Dev-флоу.** `POST /api/auth/login` — вход по email/паролю, доступен только при `DEV_AUTH_ENABLED=true` для локальной отладки. В проде не используется.
+
+    Подробнее — см. тег «Авторизация».
   version: 1.0.0
 servers:
   - url: /api
@@ -23,6 +40,8 @@ tags:
     description: Административный журнал прогонов — просмотр, создание, управление
   - name: Опросы
     description: Список прогонов и просмотр состояния прогона
+  - name: Авторизация
+    description: Вход/выход, текущий пользователь, разрешения и обмен токенов. Полный флоу — во вступлении вверху страницы.
   - name: Пользователи
     description: CRUD-операции над пользователями системы
   - name: Проекты
@@ -33,10 +52,6 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
-  - name: Регистрация
-    description: Регистрация пользователя в проекте и выдача одноразового launch-токена
-  - name: Авторизация iframe
-    description: Обмен launch-токена на access/refresh токены, ротация и выход
 paths:
   /scenarios/catalog:
     get:
@@ -63,9 +78,10 @@ paths:
                   Текстовый поиск по названию (категории) и названию/описанию (сценарии). Регистронезависимый ILIKE-поиск.
                 example: оформление
               parent_id:
-                type: string
+                type:
+                  - string
+                  - 'null'
                 format: uuid
-                nullable: true
                 description: |
                   UUID родительской категории. Если ключ передан с пустым значением — возвращаются элементы корневого уровня (без родителя). При одновременном использовании с `filter[q]` поиск ведётся по всему поддереву указанной категории.
                 example: 018e1b2c-3d4f-7e8a-9b0c-1d2e3f4a5b6c
@@ -1025,6 +1041,116 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Авторизация
+      summary: Вход по логину/паролю (dev)
+      description: |
+        Выдаёт Sanctum access-токен (TTL 8 часов) по email + паролю. Доступен **только** при включённом `DEV_AUTH_ENABLED` (иначе `404`). Ограничение частоты — 5 запросов в минуту. Если один email принадлежит нескольким проектам, нужно указать `project_id`, иначе вернётся `422`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Токен выдан
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: Sanctum access-токен (plain-text)
+                    example: 42|abcdef0123456789...
+        '401':
+          description: Неверные учётные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Dev-вход отключён (`DEV_AUTH_ENABLED=false`)
+        '422':
+          description: Требуется `project_id` либо ошибка валидации тела запроса
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponse'
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+        '429':
+          description: Превышен лимит попыток входа (5 в минуту)
+  /auth/logout:
+    post:
+      tags:
+        - Авторизация
+      summary: Выход (отзыв текущего токена)
+      description: |
+        Единый выход. Отзывает Sanctum access-токен из заголовка `Authorization` и связанный с ним refresh-токен (если был выдан при embed-обмене).
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токен отозван
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /user:
+    get:
+      tags:
+        - Авторизация
+      summary: Текущий пользователь
+      description: Возвращает профиль авторизованного пользователя, текущий проект и список его разрешений.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Профиль текущего пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /permissions:
+    get:
+      tags:
+        - Авторизация
+      summary: Справочник разрешений
+      description: |
+        Полный список системных разрешений (permissions) с человекочитаемыми названиями и группировкой. Используется UI при настройке ролей.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список разрешений
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /users:
     get:
       tags:
@@ -1108,6 +1234,44 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /users/launch-token:
+    post:
+      tags:
+        - Пользователи
+      summary: Выпустить одноразовый launch-токен
+      description: |
+        Выдаёт одноразовый launch-токен (`_token`) для пользователя текущего проекта, найденного по `external_id`. Фронт обменивает `_token` на пару access/refresh через `/embed/auth/exchange`. Требует право `user_impersonate`.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchTokenRequest'
+      responses:
+        '200':
+          description: Launch-токен создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Нет права `user_impersonate` или контекст проекта не определён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Пользователь с таким `external_id` не найден в проекте
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '422':
           $ref: '#/components/responses/ValidationError'
   /users/{user}:
@@ -1839,64 +2003,13 @@ paths:
                 $ref: '#/components/schemas/ActionRunListResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /project/{projectUuid}/user-register:
-    post:
-      tags:
-        - Регистрация
-      summary: Регистрация / обновление пользователя проекта
-      description: |
-        Находит пользователя по `external_id` → `email` → `login` (в порядке приоритета), создаёт или обновляет запись, привязывает к проекту, синхронизирует роли и возвращает одноразовый `iframe_launch_token` (TTL 5 минут). Endpoint вызывается **backend-системой клиента**, авторизация — `shared_secret` проекта.
-      security:
-        - SharedSecretAuth: []
-      parameters:
-        - name: projectUuid
-          in: path
-          required: true
-          description: UUID проекта
-          schema:
-            type: string
-            format: uuid
-            example: 018f1a2b-3c4d-7e8f-9a0b-1c2d3e4f5a6b
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectUserRegisterRequest'
-      responses:
-        '200':
-          description: Launch-токен создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IframeLaunchTokenResponse'
-        '401':
-          description: Неверный или отсутствующий `shared_secret`
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Проект не найден
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '422':
-          description: Проект неактивен или ошибка валидации тела запроса
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ErrorResponse'
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
   /embed/auth/exchange:
     post:
       tags:
-        - Авторизация iframe
+        - Авторизация
       summary: Обмен launch-токена на access + refresh токены
       description: |
-        Принимает одноразовый `iframe_launch_token`, полученный через `/project/{uuid}/user-register`. Проверяет: токен существует, не использован, не истёк; проект активен; пользователь состоит в проекте; заголовок `Origin` совпадает с `project.host` (если задан). Помечает токен использованным, создаёт Sanctum access-токен (TTL 30 мин) и refresh-токен (TTL 7 дней).
+        Принимает одноразовый `launch_token`, полученный через `POST /api/users/launch-token`. Проверяет: токен существует, не использован, не истёк; проект активен; пользователь состоит в проекте; заголовок `Origin` совпадает с `project.host` (если задан). Помечает токен использованным, создаёт Sanctum access-токен (TTL 30 мин) и refresh-токен (TTL 7 дней).
       security: []
       requestBody:
         required: true
@@ -1934,7 +2047,7 @@ paths:
   /embed/auth/refresh:
     post:
       tags:
-        - Авторизация iframe
+        - Авторизация
       summary: Обновление access-токена (token rotation)
       description: |
         Принимает действующий `refresh_token`. Отзывает старый access-токен, создаёт новые access и refresh токены (ротация). Старый refresh-токен помечается отозванным и повторно использован быть не может.
@@ -1972,32 +2085,6 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/ErrorResponse'
                   - $ref: '#/components/schemas/ValidationErrorResponse'
-  /embed/auth/logout:
-    post:
-      tags:
-        - Авторизация iframe
-      summary: Завершение iframe-сессии
-      description: |
-        Отзывает текущий Sanctum access-токен и связанный с ним refresh-токен. Требует `Authorization: Bearer {access_token}`.
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Сессия завершена
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Logged out.
-        '401':
-          description: Токен отсутствует или недействителен
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 components:
   parameters:
     ScenarioId:
@@ -2114,18 +2201,21 @@ components:
             $ref: '#/components/schemas/ValidationErrorResponse'
   schemas:
     Actor:
-      type: object
-      nullable: true
+      type:
+        - object
+        - 'null'
       description: Пользователь (автор создания или изменения)
       properties:
         id:
           type: integer
         name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         login:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
     JsonApiCollection:
       type: object
       required:
@@ -2224,14 +2314,16 @@ components:
             is_active:
               type: boolean
             active_version_id:
-              type: string
+              type:
+                - string
+                - 'null'
               format: uuid
-              nullable: true
               description: Только для type=scenario
             parent_id:
-              type: string
+              type:
+                - string
+                - 'null'
               format: uuid
-              nullable: true
               description: Только для type=category
             child_count:
               type: integer
@@ -2284,14 +2376,16 @@ components:
           type: object
           properties:
             created_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
             updated_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
@@ -2302,32 +2396,38 @@ components:
           type: string
           example: Опрос клиента
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         is_active:
           type: boolean
         alias:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: Уникальный псевдоним для запуска сценария по alias
         tags:
-          type: array
+          type:
+            - array
+            - 'null'
           items:
             type: string
-          nullable: true
           description: Теги категоризации
         active_version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ScenarioItem:
       type: object
       description: Упрощённое представление сценария (возвращается при create/update)
@@ -2349,31 +2449,36 @@ components:
           maxLength: 255
           example: Опрос клиента
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         alias:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 255
-          nullable: true
           description: Уникальный alias для запуска сценария
         tags:
-          type: array
-          nullable: true
+          type:
+            - array
+            - 'null'
           items:
             type: string
             maxLength: 255
           description: Теги категоризации
         category_ids:
-          type: array
-          nullable: true
+          type:
+            - array
+            - 'null'
           items:
             type: string
             format: uuid
           description: UUID категорий, к которым относится сценарий
         active_version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
           description: UUID активной версии (должна принадлежать этому сценарию)
     VersionResource:
       type: object
@@ -2394,14 +2499,16 @@ components:
           type: object
           properties:
             created_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
             updated_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
@@ -2412,21 +2519,24 @@ components:
           type: string
           format: uuid
         name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         status:
           $ref: '#/components/schemas/VersionStatus'
         schema_json:
           type: object
           description: Граф сценария (узлы и рёбра)
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     VersionItem:
       type: object
       description: Представление версии (возвращается при create/update)
@@ -2438,8 +2548,9 @@ components:
           type: string
           format: uuid
         name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         status:
           $ref: '#/components/schemas/VersionStatus'
     VersionRequest:
@@ -2448,9 +2559,10 @@ components:
         - schema_json
       properties:
         name:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 255
-          nullable: true
           example: v1.0
         status:
           $ref: '#/components/schemas/VersionStatus'
@@ -2486,9 +2598,10 @@ components:
           type: object
           description: Граф сценария на момент создания ревизии
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         created_by:
           $ref: '#/components/schemas/Actor'
     CategoryResource:
@@ -2510,21 +2623,24 @@ components:
           type: object
           properties:
             parent:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               description: Родительская категория (если есть)
               properties:
                 data:
                   $ref: '#/components/schemas/CategoryResource'
             created_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
             updated_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
@@ -2532,9 +2648,10 @@ components:
       type: object
       properties:
         parent_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
         name:
           type: string
           example: Онбординг
@@ -2544,13 +2661,15 @@ components:
           type: integer
           description: Количество сценариев в категории
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     CategoryRequest:
       type: object
       required:
@@ -2558,9 +2677,10 @@ components:
         - is_active
       properties:
         parent_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
           description: UUID родительской категории (не может быть самой категорией или её потомком)
         name:
           type: string
@@ -2576,46 +2696,53 @@ components:
         Необходимо передать ровно один из трёх параметров: `scenario_id`, `version_id` или `alias`.
       properties:
         scenario_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
           description: UUID сценария — будет выбрана активная версия
         version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
           description: UUID конкретной версии сценария
         alias:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 255
-          nullable: true
           description: Строковый псевдоним сценария
         context:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Начальные переменные контекста прогона
           additionalProperties: true
           example:
             user_name: Иван
             score: 10
         user_data:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Произвольные пользовательские данные (сохраняются в прогоне)
           additionalProperties: true
     RunnerJumpRequest:
       type: object
       properties:
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Пользовательский ввод для текущего узла
           additionalProperties: true
           example:
             answer: Да
         selected_target_node_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: ID узла для явного перехода (используется в узлах с ручным выбором ветки)
     RunPayload:
       type: object
@@ -2635,29 +2762,35 @@ components:
           type: string
           format: uuid
         scenario_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         scenario_version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
         scenario_version_revision_id:
           type: string
           format: uuid
         scenario_version_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         scenario_version_created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         current_node_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: ID текущего (активного) узла
         status:
           $ref: '#/components/schemas/RunStatus'
@@ -2666,12 +2799,14 @@ components:
           description: Текущий контекст прогона (переменные)
           additionalProperties: true
         current_node:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Сырые данные текущего узла из графа
         rendered:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Отрендеренное содержимое текущего узла (поля, кнопки и т.д.)
         steps:
           type: array
@@ -2689,27 +2824,32 @@ components:
           type: string
           description: Тип узла (`block`, `condition`, `end` и др.)
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Данные, которые пользователь ввёл при прохождении узла
           additionalProperties: true
         output:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Вычисленный результат узла
           additionalProperties: true
         rendered:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Отрендеренное состояние узла на момент прохождения
         entered_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         exited_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     RunStatus:
       type: string
       enum:
@@ -2744,19 +2884,23 @@ components:
           type: string
           format: uuid
         scenario_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         scenario_version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
         scenario_version_created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         current_node_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         status:
           $ref: '#/components/schemas/RunStatus'
         created_by:
@@ -2764,28 +2908,34 @@ components:
         updated_by:
           $ref: '#/components/schemas/ScenarioRunUser'
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ScenarioRunUser:
-      type: object
-      nullable: true
+      type:
+        - object
+        - 'null'
       properties:
         id:
           type: integer
         name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         fio:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         login:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
     StoreScenarioRunRequest:
       type: object
       required:
@@ -2796,31 +2946,36 @@ components:
           format: uuid
           description: UUID сценария (обязателен)
         scenario_version_id:
-          type: string
+          type:
+            - string
+            - 'null'
           format: uuid
-          nullable: true
           description: UUID конкретной версии (если не передан — выбирается активная)
         context:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Начальный контекст прогона
           additionalProperties: true
         user_data:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Произвольные пользовательские данные
           additionalProperties: true
     ContinueRunRequest:
       type: object
       properties:
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           description: Пользовательский ввод для текущего узла
           additionalProperties: true
         selected_target_node_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: ID целевого узла при ручном выборе перехода
     AdminJumpRunRequest:
       type: object
@@ -2841,11 +2996,13 @@ components:
           type: string
           format: uuid
         scenario_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         current_node_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         status:
           $ref: '#/components/schemas/RunStatus'
         created_by:
@@ -2853,13 +3010,15 @@ components:
         updated_by:
           $ref: '#/components/schemas/Actor'
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     RoleResource:
       type: object
       required:
@@ -2887,11 +3046,13 @@ components:
           description: Уникальное имя роли
           example: project_admin
         title:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         is_system:
           type: boolean
           description: Системные роли нельзя изменять или удалять через API
@@ -2900,13 +3061,15 @@ components:
           description: Guard, к которому привязана роль (всегда `web`)
           example: web
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     RoleRelationships:
       type: object
       properties:
@@ -2931,12 +3094,14 @@ components:
           description: Уникальное имя роли
           example: project_admin
         title:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 1000
         permissions:
           type: array
@@ -2982,13 +3147,15 @@ components:
         is_active:
           type: boolean
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ProjectRequest:
       type: object
       required:
@@ -3060,32 +3227,37 @@ components:
           type: string
           example: Иван Иванов
         fio:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: Иванов Иван Иванович
         email:
           type: string
           format: email
           example: ivan@example.com
         login:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: ivan123
         external_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: crm_user_42
         is_system:
           type: boolean
           description: Признак защищённого сервисного пользователя
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     UserStoreRequest:
       type: object
       required:
@@ -3098,8 +3270,9 @@ components:
           maxLength: 255
           example: Иван Иванов
         fio:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
           example: Иванов Иван Иванович
         email:
@@ -3112,8 +3285,9 @@ components:
           maxLength: 255
           example: ivan123
         external_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
           example: crm_user_42
         password:
@@ -3142,8 +3316,9 @@ components:
           type: string
           maxLength: 255
         fio:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
         email:
           type: string
@@ -3153,12 +3328,14 @@ components:
           type: string
           maxLength: 255
         external_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
         password:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           minLength: 8
           description: Если не передан — пароль не меняется
         roles:
@@ -3231,6 +3408,102 @@ components:
               format: date-time
             - type: 'null'
           description: Должно быть позже текущего времени
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        password:
+          type: string
+          example: s3cr3tP@ss
+        project_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: |
+            UUID активного проекта. Обязателен, только если один email принадлежит нескольким проектам.
+    CurrentUser:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - project_id
+        - permissions
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Иван Иванов
+        email:
+          type: string
+          format: email
+          example: ivan@example.com
+        project_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: UUID текущего проекта
+        permissions:
+          type: array
+          description: Имена всех разрешений пользователя
+          items:
+            type: string
+          example:
+            - user_view
+            - user_create
+            - role_view
+    Permission:
+      type: object
+      required:
+        - name
+        - label
+        - group
+      properties:
+        name:
+          type: string
+          description: Машинное имя разрешения
+          example: user_view
+        label:
+          type: string
+          description: Человекочитаемое название
+          example: Просмотр пользователей
+        group:
+          type: string
+          description: Группа, к которой относится разрешение
+          example: Пользователи
+    LaunchTokenRequest:
+      type: object
+      required:
+        - external_id
+      properties:
+        external_id:
+          type: string
+          maxLength: 255
+          description: Внешний идентификатор пользователя в системе клиента
+          example: crm_user_42
+    LaunchTokenResponse:
+      type: object
+      required:
+        - _token
+        - expires_in
+      properties:
+        _token:
+          type: string
+          description: Одноразовый launch-токен для обмена через /embed/auth/exchange
+        expires_in:
+          type: integer
+          description: TTL токена в секундах
+          example: 300
     UserGroup:
       type: object
       required:
@@ -3250,14 +3523,16 @@ components:
           type: object
           properties:
             created_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
             updated_by:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               properties:
                 data:
                   $ref: '#/components/schemas/Actor'
@@ -3272,26 +3547,30 @@ components:
           example: sales_team
           description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
         ext_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
           example: crm_group_42
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         is_active:
           type: boolean
         members_count:
           type: integer
           description: Количество участников группы
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     UserGroupRequest:
       type: object
       required:
@@ -3308,14 +3587,16 @@ components:
           description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
           example: sales_team
         ext_id:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           maxLength: 255
           description: Идентификатор группы во внешней системе
           example: crm_group_42
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         is_active:
           type: boolean
           example: true
@@ -3361,32 +3642,38 @@ components:
           type: string
           example: create-lead-xml
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         type:
           $ref: '#/components/schemas/ActionType'
         is_active:
           type: boolean
         config:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         schema:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         ui_schema:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ActionType:
       type: string
       enum:
@@ -3414,24 +3701,28 @@ components:
           maxLength: 255
           example: leads-report
         description:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         type:
           $ref: '#/components/schemas/ActionType'
         is_active:
           type: boolean
           example: true
         config:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         schema:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         ui_schema:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
     TemplateFileActionConfig:
       type: object
@@ -3449,8 +3740,9 @@ components:
           type: string
           example: <lead><name>{{ lead.name }}</name></lead>
         file_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: lead.xml
     ProxyRequestActionConfig:
       type: object
@@ -3486,12 +3778,14 @@ components:
         - columns
       properties:
         file_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: leads.xlsx
         sheet_name:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: Leads
         columns:
           type: array
@@ -3508,8 +3802,9 @@ components:
                 type: string
                 example: lead.email
         rows:
-          type: array
-          nullable: true
+          type:
+            - array
+            - 'null'
           items:
             type: object
             additionalProperties: true
@@ -3540,25 +3835,30 @@ components:
             - update
             - replace
         file_disk:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: local
         file_path:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
           example: actions/leads/leads.xlsx
         proxy_endpoint_id:
-          type: integer
-          nullable: true
+          type:
+            - integer
+            - 'null'
           description: ID ProxyEndpoint для `source_type=proxy`.
         proxy_endpoint_uuid:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
         remote:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         mapping:
           type: object
@@ -3580,27 +3880,34 @@ components:
               name:
                 type: string
               type:
-                type: string
-                nullable: true
+                type:
+                  - string
+                  - 'null'
               nullable:
-                type: boolean
-                nullable: true
+                type:
+                  - boolean
+                  - 'null'
         match_by:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         parent_key_field:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         chunk_size:
-          type: integer
-          nullable: true
+          type:
+            - integer
+            - 'null'
           example: 500
         activate:
-          type: boolean
-          nullable: true
+          type:
+            - boolean
+            - 'null'
         version_id:
-          type: integer
-          nullable: true
+          type:
+            - integer
+            - 'null'
     ActionExecutionRequest:
       type: object
       properties:
@@ -3623,12 +3930,14 @@ components:
             - failed
             - skipped
         output:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         error:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         runs:
           type: array
           items:
@@ -3710,8 +4019,9 @@ components:
             - completed
             - queued
         result:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           properties:
             status:
               type: string
@@ -3720,12 +4030,14 @@ components:
                 - failed
                 - skipped
             output:
-              type: object
-              nullable: true
+              type:
+                - object
+                - 'null'
               additionalProperties: true
             error:
-              type: string
-              nullable: true
+              type:
+                - string
+                - 'null'
     ActionScheduleRequest:
       type: object
       required:
@@ -3745,29 +4057,34 @@ components:
             - monthly
           example: daily
         run_at:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           pattern: ^\\d{2}:\\d{2}$
           description: |
             Время запуска в указанной timezone. Для `hourly` используется только минута, для `every_minute` поле игнорируется.
           example: '09:30'
         timezone:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           example: Europe/Moscow
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
           description: Input, который будет передан в orchestrator.
           example:
             source: schedule
         options:
-          $ref: '#/components/schemas/ActionRunRequest'
-          nullable: true
+          anyOf:
+            - $ref: '#/components/schemas/ActionRunRequest'
+            - type: 'null'
         settings:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           properties:
             day_of_week:
               type: integer
@@ -3799,38 +4116,46 @@ components:
             - weekly
             - monthly
         run_at:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         timezone:
           type: string
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         options:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         settings:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         last_run_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         next_run_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         updated_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ActionScheduleResource:
       type: object
       required:
@@ -3861,39 +4186,47 @@ components:
             - failed
             - skipped
         input:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         output:
-          type: object
-          nullable: true
+          type:
+            - object
+            - 'null'
           additionalProperties: true
         error:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
         reason:
-          type: string
-          nullable: true
+          type:
+            - string
+            - 'null'
           description: Причина ошибки. Для успешных задач `null`.
         attempts_count:
           type: integer
           minimum: 1
           description: Номер попытки, на которой была создана запись выполнения.
         started_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         finished_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
         duration_ms:
-          type: integer
-          nullable: true
+          type:
+            - integer
+            - 'null'
         created_at:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date-time
-          nullable: true
     ActionRunListResponse:
       type: object
       required:
@@ -3909,84 +4242,6 @@ components:
           properties:
             total:
               type: integer
-    ProjectUserRegisterRequest:
-      type: object
-      required:
-        - login
-        - name
-        - roles
-      properties:
-        login:
-          type: string
-          maxLength: 255
-          description: Логин пользователя во внешней системе
-          example: user_123
-        email:
-          type: string
-          format: email
-          nullable: true
-          description: Email. Если не передан — генерируется фейковый `embed-*@local.invalid`
-          example: user@example.com
-        name:
-          type: string
-          maxLength: 255
-          description: Отображаемое имя
-          example: Иван Иванов
-        external_id:
-          type: string
-          nullable: true
-          maxLength: 255
-          description: ID пользователя во внешней системе (CRM, ERP и т.п.)
-          example: crm_user_123
-        roles:
-          type: array
-          minItems: 1
-          items:
-            type: string
-            maxLength: 100
-          description: Роли пользователя в контексте данного проекта
-          example:
-            - client
-            - manager
-        group:
-          type: object
-          nullable: true
-          description: |
-            Группа доступа пользователя. Если группа с таким `slug` не существует — создаётся автоматически. Пользователь добавляется в группу. Передавать при каждом вызове, чтобы поддерживать актуальность состава.
-          required:
-            - slug
-            - name
-          properties:
-            slug:
-              type: string
-              maxLength: 255
-              description: Уникальный идентификатор группы (буквы, цифры, дефис, подчёркивание)
-              example: sales_team
-            name:
-              type: string
-              maxLength: 255
-              description: Отображаемое название группы
-              example: Отдел продаж
-            ext_id:
-              type: string
-              nullable: true
-              maxLength: 255
-              description: Идентификатор группы во внешней системе
-              example: crm_group_42
-    IframeLaunchTokenResponse:
-      type: object
-      required:
-        - iframe_launch_token
-        - expires_in
-      properties:
-        iframe_launch_token:
-          type: string
-          description: Одноразовый токен для передачи в iframe через `postMessage`
-          example: a3f8c2d1e9b7...
-        expires_in:
-          type: integer
-          description: Время жизни токена в секундах
-          example: 300
     EmbedAuthExchangeRequest:
       type: object
       required:
@@ -3994,7 +4249,7 @@ components:
       properties:
         token:
           type: string
-          description: Значение `iframe_launch_token`, полученное от `/user-register`
+          description: Значение `launch_token`, полученное от `POST /api/users/launch-token`
           example: a3f8c2d1e9b7...
     EmbedAuthRefreshRequest:
       type: object
@@ -4057,8 +4312,9 @@ components:
               type: string
               example: manager
             title:
-              type: string
-              nullable: true
+              type:
+                - string
+                - 'null'
               example: Менеджер
     IncludedGroup:
       type: object
@@ -4085,11 +4341,6 @@ components:
       scheme: bearer
       description: |
         Sanctum access-токен (`Authorization: Bearer {access_token}`)
-    SharedSecretAuth:
-      type: http
-      scheme: bearer
-      description: |
-        `shared_secret` проекта (`Authorization: Bearer {shared_secret}`). Используется только для `/project/{uuid}/user-register`.
 x-tagGroups:
   - name: Модуль «Сценарии»
     tags:
@@ -4111,7 +4362,6 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
-  - name: Embed Auth
+  - name: Авторизация
     tags:
-      - Регистрация
-      - Авторизация iframe
+      - Авторизация

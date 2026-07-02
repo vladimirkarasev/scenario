@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\EmbedAuth;
 
 use App\Exceptions\EmbedAuth\InvalidTokenException;
-use App\Models\SSOLaunchToken;
+use App\Models\LaunchToken;
 use App\Models\PersonalRefreshToken;
 use Module\Users\Models\User;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -20,13 +20,13 @@ final class EmbedAuthTokenService
     private const int REFRESH_TOKEN_TTL_DAYS = 7;
 
     /**
-     * @return array{iframe_launch_token: string, expires_in: int}
+     * @return array{launch_token: string, expires_in: int}
      */
     public function createLaunchToken(User $user, Project $project, ?string $allowedOrigin = null): array
     {
         $plainToken = bin2hex(random_bytes(40));
 
-        SSOLaunchToken::query()->create([
+        LaunchToken::query()->create([
             'user_id' => $user->id,
             'project_id' => $project->id,
             'token_hash' => hash('sha256', $plainToken),
@@ -35,7 +35,7 @@ final class EmbedAuthTokenService
         ]);
 
         return [
-            'iframe_launch_token' => $plainToken,
+            'launch_token' => $plainToken,
             'expires_in' => self::LAUNCH_TOKEN_TTL_SECONDS,
         ];
     }
@@ -47,7 +47,7 @@ final class EmbedAuthTokenService
      */
     public function exchange(string $plainToken, ?string $requestOrigin): array
     {
-        $launchToken = SSOLaunchToken::query()
+        $launchToken = LaunchToken::query()
             ->with(['user', 'project'])
             ->where('token_hash', hash('sha256', $plainToken))
             ->first();
@@ -162,8 +162,8 @@ final class EmbedAuthTokenService
     private function issueTokenPair(User $user, Project $project): array
     {
         $newAccessToken = $user->createToken(
-            'iframe-access',
-            ['iframe:access'],
+            'embed-access',
+            ['embed:access'],
             now()->addMinutes(self::ACCESS_TOKEN_TTL_MINUTES),
         );
 

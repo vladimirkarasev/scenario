@@ -30,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->validateCsrfTokens(except: [
-            'api/iframe/auth/exchange',
+            'api/embed/auth/exchange',
             'api/scenario-runs',
             'api/scenario-runs/*',
             'api/scenario',

@@ -5,23 +5,25 @@ declare(strict_types=1);
 namespace Module\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\EmbedAuth\EmbedAuthTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\PersonalAccessToken;
 use Module\Users\Http\Requests\LoginRequest;
 use Module\Users\Models\User;
 use Module\Users\Repositories\UserRepository;
 
 final class TokenAuthController extends Controller
 {
-    public function __construct(private readonly UserRepository $users)
-    {
+    public function __construct(
+        private readonly UserRepository $users,
+        private readonly EmbedAuthTokenService $tokens,
+    ) {
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
-        abort_unless(config('iframe_auth.dev_enabled', false) === true, 404);
+        abort_unless(config('dev_auth.enabled', false) === true, 404);
 
         $projectId = $request->filled('project_id')
             ? $request->string('project_id')->toString()
@@ -61,7 +63,7 @@ final class TokenAuthController extends Controller
         $bearer = $request->bearerToken();
 
         if (is_string($bearer) && $bearer !== '') {
-            PersonalAccessToken::findToken($bearer)?->delete();
+            $this->tokens->logout($bearer);
         }
 
         return new JsonResponse(['message' => 'Logged out.']);

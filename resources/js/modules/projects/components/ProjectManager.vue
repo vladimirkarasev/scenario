@@ -123,7 +123,7 @@ watch(
             </TableRow>
             <TableRow v-if="!projects.length">
               <TableCell :colspan="editable ? 6 : 5" class="h-24 text-center text-sm text-muted-foreground">
-                No projects yet. Create one to enable iframe login.
+                No projects yet. Create one to enable embed login.
               </TableCell>
             </TableRow>
           </TableBody>
@@ -132,7 +132,7 @@ watch(
     </CardContent>
 
     <CardFooter class="text-xs text-muted-foreground">
-      One active project with valid `sitekey + host + shared_secret` is required for iframe token exchange.
+      One active project with valid `sitekey + host + shared_secret` is required for embed token exchange.
     </CardFooter>
   </Card>
 
@@ -141,7 +141,7 @@ watch(
       <DialogHeader>
         <DialogTitle>{{ dialogTitle }}</DialogTitle>
         <DialogDescription>
-          Configure project identity and signing secret used for iframe authentication.
+          Configure project identity and signing secret used for embed authentication.
         </DialogDescription>
       </DialogHeader>
 

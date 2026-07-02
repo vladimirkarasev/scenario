@@ -169,6 +169,47 @@ item:
       '404':
         $ref: '../components/responses.yaml#/NotFound'
 
+launchToken:
+  post:
+    tags: [ Пользователи ]
+    summary: Выпустить одноразовый launch-токен
+    description: >
+      Выдаёт одноразовый launch-токен (`_token`) для пользователя текущего
+      проекта, найденного по `external_id`. Фронт обменивает `_token` на пару
+      access/refresh через `/embed/auth/exchange`. Требует право
+      `user_impersonate`.
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/users.yaml#/LaunchTokenRequest'
+    responses:
+      '200':
+        description: Launch-токен создан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/users.yaml#/LaunchTokenResponse'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '403':
+        description: Нет права `user_impersonate` или контекст проекта не определён
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '404':
+        description: Пользователь с таким `external_id` не найден в проекте
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ErrorResponse'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
 tokens:
   parameters:
     - name: user

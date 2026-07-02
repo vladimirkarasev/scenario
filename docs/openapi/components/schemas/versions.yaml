@@ -14,14 +14,12 @@ VersionResource:
       type: object
       properties:
         created_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
         updated_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
@@ -33,21 +31,18 @@ VersionAttributes:
       type: string
       format: uuid
     name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     status:
       $ref: '#/VersionStatus'
     schema_json:
       type: object
       description: Граф сценария (узлы и рёбра)
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 VersionItem:
   type: object
@@ -60,8 +55,7 @@ VersionItem:
       type: string
       format: uuid
     name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     status:
       $ref: '#/VersionStatus'
 
@@ -70,9 +64,8 @@ VersionRequest:
   required: [ schema_json ]
   properties:
     name:
-      type: string
+      type: [ string, 'null' ]
       maxLength: 255
-      nullable: true
       example: v1.0
     status:
       $ref: '#/VersionStatus'
@@ -110,8 +103,7 @@ VersionRevision:
       type: object
       description: Граф сценария на момент создания ревизии
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     created_by:
       $ref: './common.yaml#/Actor'

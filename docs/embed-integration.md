@@ -1,16 +1,16 @@
-# Iframe Embed
+# Embed (встраивание)
 
 Интеграция сервиса во внешний сайт через `<iframe>`. Авторизация полностью токен-based — сессий нет,
-токены хранятся в `sessionStorage` iframe и сбрасываются при закрытии вкладки.
+токены хранятся в `sessionStorage` встроенного приложения и сбрасываются при закрытии вкладки.
 
 ## Схема работы
 
 ```
 Создание проекта       →  автоматически создаётся системный пользователь проекта
 Внешний бэкенд         →  POST /api/users (Bearer {system_token})              →  создаёт/обновляет пользователя
-Внешний бэкенд         →  POST /api/users/iframe-token (Bearer {system_token}) →  одноразовый _token (TTL 5 мин)
+Внешний бэкенд         →  POST /api/users/launch-token (Bearer {system_token}) →  одноразовый _token (TTL 5 мин)
 Внешний фронт          →  <iframe src="https://scenario.app/scenarios?_token={_token}">
-Scenario (iframe)      →  ловит ?_token= глобально  →  POST /api/embed/auth/exchange  →  access + refresh
+Scenario (embed)      →  ловит ?_token= глобально  →  POST /api/embed/auth/exchange  →  access + refresh
                        →  сохраняет в sessionStorage, вырезает _token из URL, продолжает
 ```
 
@@ -60,12 +60,12 @@ Content-Type: application/json
 ```
 
 `login` и `email` обязательны и уникальны в рамках проекта. `password` необязателен
-(iframe-пользователи входят по токену). `external_id` — ваш внешний идентификатор.
+(встроенные пользователи входят по токену). `external_id` — ваш внешний идентификатор.
 
 ## Шаг 3. Получение одноразового `_token`
 
 ```http
-POST /api/users/iframe-token
+POST /api/users/launch-token
 Authorization: Bearer {system_token}
 Content-Type: application/json
 
@@ -78,9 +78,9 @@ Content-Type: application/json
 { "_token": "a1b2c3d4...", "expires_in": 300 }
 ```
 
-> `_token` одноразовый и живёт **5 минут**. Запрашивайте его непосредственно перед вставкой iframe.
+> `_token` одноразовый и живёт **5 минут**. Запрашивайте его непосредственно перед вставкой в `<iframe>`.
 
-## Шаг 4. Вставка iframe
+## Шаг 4. Вставка `<iframe>`
 
 `_token` передаётся query-параметром на любую страницу приложения:
 
@@ -94,17 +94,17 @@ Content-Type: application/json
 
 Приложение при загрузке обменивает `_token` на пару access/refresh, вырезает его из URL и
 показывает запрошенную страницу. При невалидном/просроченном `_token` показывается 403-экран
-с кнопкой перезагрузки (перезагружает всё окно вне iframe).
+с кнопкой перезагрузки (перезагружает всё окно вне встроенного).
 
 ## Токены
 
 | Токен           | TTL      | Хранилище        | Таблица                   |
 |-----------------|----------|------------------|---------------------------|
-| `_token`        | 5 минут  | не хранится      | `sso_launch_tokens`       |
+| `_token`        | 5 минут  | не хранится      | `launch_tokens`       |
 | `access_token`  | 30 минут | `sessionStorage` | Sanctum PAT               |
 | `refresh_token` | 7 дней   | `sessionStorage` | `personal_refresh_tokens` |
 
-`sessionStorage` сбрасывается при закрытии вкладки/iframe — пользователь автоматически выходит.
+`sessionStorage` сбрасывается при закрытии вкладки — пользователь автоматически выходит.
 Sanctum не имеет встроенного refresh: короткий access + отдельный ротируемый refresh-токен —
 это наш слой поверх Sanctum. Обновление access:
 
@@ -117,7 +117,7 @@ Content-Type: application/json
 
 ## Dev-симуляция
 
-При `IFRAME_AUTH_DEV_ENABLED=true` доступна страница `/auth` — полностью повторяет прод-флоу:
+При `DEV_AUTH_ENABLED=true` доступна страница `/auth` — полностью повторяет прод-флоу:
 форма (проект + данные пользователя) создаёт/обновляет пользователя проекта, выпускает
 одноразовый `_token` и делает редирект на `/scenarios?_token=...`, где срабатывает тот же
 глобальный перехват. Dev-`_token` выпускается без Origin-ограничения (в локали Origin ≠ `project->host`).
@@ -125,7 +125,7 @@ Content-Type: application/json
 ## Структура файлов
 
 - `app/Http/Controllers/EmbedAuth/` — exchange / refresh / logout
-- `module/Users/Http/Controllers/IframeTokenController.php` — выпуск `_token`
+- `module/Users/Http/Controllers/LaunchTokenController.php` — выпуск `_token`
 - `module/Users/Services/SystemUserService.php` — системный пользователь проекта
 - `app/Services/EmbedAuth/EmbedAuthTokenService.php` — логика токенов
 - `app/Models/SSOLaunchToken.php`, `app/Models/PersonalRefreshToken.php` — модели токенов
