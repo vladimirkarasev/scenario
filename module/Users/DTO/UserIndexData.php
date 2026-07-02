@@ -41,14 +41,11 @@ final readonly class UserIndexData
     /** @return list<string> */
     private static function toStringList(mixed $input): array
     {
-        return array_values(
-            array_filter(
-                array_map(
-                    static fn(mixed $v): string => is_scalar($v) ? (string)$v : '',
-                    is_array($input) ? $input : [],
-                ),
-                static fn(string $v): bool => $v !== '',
+        return array_map(
+                static fn(mixed $v): string => is_scalar($v) ? (string)$v : '',
+                is_array($input) ? $input : [],
             )
-        );
+                |> (fn($x) => array_filter($x, static fn(string $v): bool => $v !== ''))
+                |> array_values(...);
     }
 }

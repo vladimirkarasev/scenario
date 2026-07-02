@@ -16,8 +16,6 @@ info:
     4. Дальше все запросы идут с `Authorization: Bearer {access_token}`; протухший access обновляется через `POST /api/embed/auth/refresh` (ротация).
     5. Выход — `POST /api/auth/logout` (отзывает access и связанный refresh).
 
-    **Dev-флоу.** `POST /api/auth/login` — вход по email/паролю, доступен только при `DEV_AUTH_ENABLED=true` для локальной отладки. В проде не используется.
-
     Подробнее — см. тег «Авторизация».
   version: 1.0.0
 servers:
@@ -962,9 +960,9 @@ paths:
                         items:
                           $ref: '#/components/schemas/RoleResource'
                       meta:
-                        $ref: '#/components/schemas/Pagination'
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
     post:
       tags:
         - Роли
@@ -983,11 +981,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleResource'
+                allOf:
+                  - $ref: '#/components/schemas/RoleResource'
+                  - type: object
+                    required:
+                      - meta
+                    properties:
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /roles/{role}:
     parameters:
       - name: role
@@ -1014,13 +1019,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RoleResource'
+                allOf:
+                  - $ref: '#/components/schemas/RoleResource'
+                  - type: object
+                    required:
+                      - meta
+                    properties:
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Роли
@@ -1032,61 +1044,15 @@ paths:
         '204':
           description: Роль удалена
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
           description: Роль назначена пользователям — удаление невозможно
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /auth/login:
-    post:
-      tags:
-        - Авторизация
-      summary: Вход по логину/паролю (dev)
-      description: |
-        Выдаёт Sanctum access-токен (TTL 8 часов) по email + паролю. Доступен **только** при включённом `DEV_AUTH_ENABLED` (иначе `404`). Ограничение частоты — 5 запросов в минуту. Если один email принадлежит нескольким проектам, нужно указать `project_id`, иначе вернётся `422`.
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Токен выдан
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - token
-                properties:
-                  token:
-                    type: string
-                    description: Sanctum access-токен (plain-text)
-                    example: 42|abcdef0123456789...
-        '401':
-          description: Неверные учётные данные
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Dev-вход отключён (`DEV_AUTH_ENABLED=false`)
-        '422':
-          description: Требуется `project_id` либо ошибка валидации тела запроса
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ErrorResponse'
-                  - $ref: '#/components/schemas/ValidationErrorResponse'
-        '429':
-          description: Превышен лимит попыток входа (5 в минуту)
+                $ref: '#/components/schemas/ApiErrorResponse'
   /auth/logout:
     post:
       tags:
@@ -1103,12 +1069,22 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - data
+                  - meta
                 properties:
-                  message:
-                    type: string
-                    example: Logged out.
+                  data:
+                    type: object
+                    required:
+                      - message
+                    properties:
+                      message:
+                        type: string
+                        example: Logged out.
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
   /user:
     get:
       tags:
@@ -1125,7 +1101,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CurrentUser'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
   /permissions:
     get:
       tags:
@@ -1144,13 +1120,16 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
                     items:
                       $ref: '#/components/schemas/Permission'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
   /users:
     get:
       tags:
@@ -1193,6 +1172,8 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/JsonApiCollection'
                   - type: object
+                    required:
+                      - meta
                     properties:
                       data:
                         type: array
@@ -1205,12 +1186,14 @@ paths:
                           oneOf:
                             - $ref: '#/components/schemas/IncludedRole'
                             - $ref: '#/components/schemas/IncludedGroup'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     post:
       tags:
         - Пользователи
@@ -1229,13 +1212,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResource'
+                allOf:
+                  - $ref: '#/components/schemas/UserResource'
+                  - type: object
+                    required:
+                      - meta
+                    properties:
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /users/launch-token:
     post:
       tags:
@@ -1257,23 +1247,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LaunchTokenResponse'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LaunchTokenResponse'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          description: Нет права `user_impersonate` или контекст проекта не определён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          description: Пользователь с таким `external_id` не найден в проекте
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /users/{user}:
     parameters:
       - name: user
@@ -1301,6 +1291,7 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     $ref: '#/components/schemas/UserResource'
@@ -1311,12 +1302,14 @@ paths:
                       oneOf:
                         - $ref: '#/components/schemas/IncludedRole'
                         - $ref: '#/components/schemas/IncludedGroup'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     put:
       tags:
         - Пользователи
@@ -1335,15 +1328,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResource'
+                allOf:
+                  - $ref: '#/components/schemas/UserResource'
+                  - type: object
+                    required:
+                      - meta
+                    properties:
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Пользователи
@@ -1355,11 +1355,11 @@ paths:
         '204':
           description: Пользователь удалён из проекта
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /users/{user}/tokens:
     parameters:
       - name: user
@@ -1383,17 +1383,20 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     type: array
                     items:
                       $ref: '#/components/schemas/UserToken'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     post:
       tags:
         - Пользователи
@@ -1416,17 +1419,20 @@ paths:
                 type: object
                 required:
                   - data
+                  - meta
                 properties:
                   data:
                     $ref: '#/components/schemas/UserTokenCreated'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /users/{user}/tokens/{tokenId}:
     parameters:
       - name: user
@@ -1449,11 +1455,11 @@ paths:
         '204':
           description: Токен отозван или уже отсутствовал
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /groups:
     get:
       tags:
@@ -2199,6 +2205,30 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ValidationErrorResponse'
+    UnauthorizedErrors:
+      description: Не аутентифицирован
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ValidationErrors:
+      description: Ошибки валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFoundErrors:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ForbiddenErrors:
+      description: Недостаточно прав / нарушение доступа
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
   schemas:
     Actor:
       type:
@@ -2291,6 +2321,74 @@ components:
           example:
             name:
               - Поле name обязательно для заполнения.
+    ApiMeta:
+      type: object
+      description: |
+        Сквозной блок meta, присутствует в каждом ответе модуля Users (и успешном, и ошибочном).
+      required:
+        - timestamp
+        - requestId
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Момент формирования ответа (ISO 8601).
+          example: '2026-07-02T10:00:00+00:00'
+        requestId:
+          type: string
+          description: Идентификатор запроса (echo заголовка `X-Request-Id`).
+          example: a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+    CollectionMeta:
+      description: |
+        meta для JSON:API коллекции: пагинация плюс сквозные timestamp и requestId.
+      allOf:
+        - $ref: '#/components/schemas/Pagination'
+        - $ref: '#/components/schemas/ApiMeta'
+    ApiError:
+      type: object
+      description: Одна ошибка в формате JSON:API.
+      required:
+        - status
+        - code
+        - title
+        - detail
+      properties:
+        status:
+          type: string
+          description: HTTP-статус строкой.
+          example: '404'
+        code:
+          type: string
+          description: Машиночитаемый код ошибки (см. UserErrorCode).
+          example: USER_NOT_FOUND
+        title:
+          type: string
+          description: Краткий заголовок.
+          example: Пользователь не найден
+        detail:
+          type: string
+          description: Человекочитаемое описание.
+          example: Пользователь не найден в проекте.
+        source:
+          type: object
+          description: Указатель на источник ошибки (для ошибок валидации).
+          properties:
+            pointer:
+              type: string
+              example: /data/attributes/login
+    ApiErrorResponse:
+      type: object
+      description: Единый конверт ошибки модуля Users.
+      required:
+        - errors
+        - meta
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiError'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     CatalogItem:
       type: object
       required:
@@ -3408,60 +3506,48 @@ components:
               format: date-time
             - type: 'null'
           description: Должно быть позже текущего времени
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-          example: ivan@example.com
-        password:
-          type: string
-          example: s3cr3tP@ss
-        project_id:
-          type:
-            - string
-            - 'null'
-          format: uuid
-          description: |
-            UUID активного проекта. Обязателен, только если один email принадлежит нескольким проектам.
     CurrentUser:
       type: object
       required:
-        - id
-        - name
-        - email
-        - project_id
-        - permissions
+        - data
+        - meta
       properties:
-        id:
-          type: integer
-          example: 42
-        name:
-          type: string
-          example: Иван Иванов
-        email:
-          type: string
-          format: email
-          example: ivan@example.com
-        project_id:
-          type:
-            - string
-            - 'null'
-          format: uuid
-          description: UUID текущего проекта
-        permissions:
-          type: array
-          description: Имена всех разрешений пользователя
-          items:
-            type: string
-          example:
-            - user_view
-            - user_create
-            - role_view
+        data:
+          type: object
+          required:
+            - id
+            - name
+            - email
+            - project_id
+            - permissions
+          properties:
+            id:
+              type: integer
+              example: 42
+            name:
+              type: string
+              example: Иван Иванов
+            email:
+              type: string
+              format: email
+              example: ivan@example.com
+            project_id:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: UUID текущего проекта
+            permissions:
+              type: array
+              description: Имена всех разрешений пользователя
+              items:
+                type: string
+              example:
+                - user_view
+                - user_create
+                - role_view
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     Permission:
       type: object
       required:

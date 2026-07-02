@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace Module\Users\Services;
 
+use App\Exceptions\ConflictException;
+use App\Exceptions\ForbiddenException;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Module\Users\DTO\RoleData;
+use Module\Users\Enums\UserErrorCode;
 use Module\Users\Models\Role;
 use Module\Users\Models\User;
 use Module\Users\Repositories\RoleRepository;
 use Module\Users\Events\SecurityEvent;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final readonly class RoleService
 {
@@ -61,7 +63,7 @@ final readonly class RoleService
             $role = $this->roles->findForUpdate($role);
 
             if ($role->is_system) {
-                throw new HttpException(403, 'Системную роль нельзя редактировать.');
+                throw ForbiddenException::make('Системную роль нельзя редактировать.', UserErrorCode::SystemRoleImmutable);
             }
 
             $this->authorization->assertMayManageRole($actor, $role);
@@ -97,13 +99,13 @@ final readonly class RoleService
             $role = $this->roles->findForUpdate($role);
 
             if ($role->is_system) {
-                throw new HttpException(403, 'Системную роль нельзя удалить.');
+                throw ForbiddenException::make('Системную роль нельзя удалить.', UserErrorCode::SystemRoleImmutable);
             }
 
             $this->authorization->assertMayManageRole($actor, $role);
 
             if ($role->users()->exists()) {
-                throw new HttpException(422, 'Нельзя удалить роль, которая назначена пользователям.');
+                throw ConflictException::make('Нельзя удалить роль, которая назначена пользователям.', UserErrorCode::RoleInUse);
             }
 
             $role->delete();

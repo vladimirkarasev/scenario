@@ -32,11 +32,6 @@ info:
     5. Выход — `POST /api/auth/logout` (отзывает access и связанный refresh).
 
 
-    **Dev-флоу.** `POST /api/auth/login` — вход по email/паролю, доступен
-    только при `DEV_AUTH_ENABLED=true` для локальной отладки. В проде не
-    используется.
-
-
     Подробнее — см. тег «Авторизация».
   version: 1.0.0
 
@@ -152,8 +147,6 @@ paths:
   /roles/{role}:
     $ref: './paths/roles.yaml#/item'
 
-  /auth/login:
-    $ref: './paths/auth.yaml#/login'
   /auth/logout:
     $ref: './paths/auth.yaml#/logout'
   /user:
@@ -246,6 +239,14 @@ components:
       $ref: './components/schemas/common.yaml#/ErrorResponse'
     ValidationErrorResponse:
       $ref: './components/schemas/common.yaml#/ValidationErrorResponse'
+    ApiMeta:
+      $ref: './components/schemas/common.yaml#/ApiMeta'
+    CollectionMeta:
+      $ref: './components/schemas/common.yaml#/CollectionMeta'
+    ApiError:
+      $ref: './components/schemas/common.yaml#/ApiError'
+    ApiErrorResponse:
+      $ref: './components/schemas/common.yaml#/ApiErrorResponse'
 
     CatalogItem:
       $ref: './components/schemas/catalog.yaml#/CatalogItem'
@@ -336,8 +337,6 @@ components:
       $ref: './components/schemas/users.yaml#/UserTokenCreated'
     UserTokenStoreRequest:
       $ref: './components/schemas/users.yaml#/UserTokenStoreRequest'
-    LoginRequest:
-      $ref: './components/schemas/users.yaml#/LoginRequest'
     CurrentUser:
       $ref: './components/schemas/users.yaml#/CurrentUser'
     Permission:

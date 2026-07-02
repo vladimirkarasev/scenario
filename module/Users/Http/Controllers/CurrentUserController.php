@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Users\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Module\Projects\CurrentProject;
@@ -22,7 +23,7 @@ final class CurrentUserController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return new JsonResponse([
+        return new ApiResponse([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,

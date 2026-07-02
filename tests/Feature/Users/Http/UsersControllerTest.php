@@ -44,7 +44,8 @@ final class UsersControllerTest extends TestCase
         $this->actingAs($actor)
             ->getJson('/api/users')
             ->assertOk()
-            ->assertJsonCount(3, 'data');
+            ->assertJsonCount(3, 'data')
+            ->assertJsonStructure(['meta' => ['timestamp', 'requestId']]);
     }
 
     /**
@@ -82,16 +83,26 @@ final class UsersControllerTest extends TestCase
 
         $this->actingAs($actor)
             ->getJson('/api/users')
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.code', 'FORBIDDEN')
+            ->assertJsonStructure([
+                'errors' => [['status', 'code', 'title', 'detail']],
+                'meta' => ['timestamp', 'requestId'],
+            ]);
     }
 
     /**
-     * Без авторизации — 401.
+     * Без авторизации — 401 в едином формате errors[] + meta.
      */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/users')
-            ->assertUnauthorized();
+            ->assertUnauthorized()
+            ->assertJsonPath('errors.0.code', 'UNAUTHENTICATED')
+            ->assertJsonStructure([
+                'errors' => [['status', 'code', 'title', 'detail']],
+                'meta' => ['timestamp', 'requestId'],
+            ]);
     }
 
     // -------------------------------------------------------------------------
@@ -367,7 +378,8 @@ final class UsersControllerTest extends TestCase
                 'group_ids' => [$foreignGroup->id],
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('group_ids.0');
+            ->assertJsonFragment(['code' => 'VALIDATION_ERROR'])
+            ->assertJsonFragment(['pointer' => '/data/attributes/group_ids.0']);
     }
 
     public function test_destroy_rejects_current_user(): void

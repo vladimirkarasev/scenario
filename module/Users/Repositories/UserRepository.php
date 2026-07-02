@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Users\Repositories;
 
+use App\Exceptions\NotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Users\DTO\UserIndexData;
 use Module\Users\Enums\SystemRole;
+use Module\Users\Enums\UserErrorCode;
 use Module\Users\Models\User;
 use Module\Users\QueryBuilders\UserBuilder;
 use Illuminate\Database\Eloquent\Collection;
@@ -36,7 +38,7 @@ final class UserRepository
         return $this->baseQuery()
             ->forProject($projectId)
             ->whereKey($user->getKey())
-            ->firstOrFail();
+            ->first() ?? throw $this->notFound();
     }
 
     public function findInProjectForUpdate(User $user, string $projectId): User
@@ -45,7 +47,12 @@ final class UserRepository
             ->forProject($projectId)
             ->whereKey($user->getKey())
             ->lockForUpdate()
-            ->firstOrFail();
+            ->first() ?? throw $this->notFound();
+    }
+
+    private function notFound(): NotFoundException
+    {
+        return NotFoundException::make('Пользователь не найден в проекте.', UserErrorCode::UserNotFound, 'Пользователь не найден');
     }
 
     public function findNonSystemByExternalId(string $projectId, string $externalId): ?User
@@ -55,18 +62,6 @@ final class UserRepository
             ->notSystem()
             ->withExternalId($externalId)
             ->first();
-    }
-
-    /** @return Collection<int, User> */
-    public function loginCandidates(string $email, ?string $projectId): Collection
-    {
-        $query = User::query()->withEmail($email)->withActiveProject();
-
-        if ($projectId !== null) {
-            $query->forProject($projectId);
-        }
-
-        return $query->get();
     }
 
     /** @param array<string, mixed> $attributes */

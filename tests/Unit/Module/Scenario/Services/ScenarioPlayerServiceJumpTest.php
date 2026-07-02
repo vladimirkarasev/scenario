@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Module\Scenario\Services;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Module\Scenario\DTO\ScenarioRunContinueData;
+use Module\Scenario\DTO\ScenarioRunData;
+use Module\Scenario\DTO\ScenarioRunJumpData;
+use Module\Scenario\Models\Scenario;
+use Module\Scenario\Models\ScenarioRun;
+use Module\Scenario\Models\ScenarioVersion;
+use Module\Scenario\Services\Nodes\NodeContextKeys;
+use Module\Scenario\Services\ScenarioPlayerService;
+use Tests\TestCase;
+
+/**
+ * Откат прогона (кнопка «Отмена» в таймлайне) должен сбрасывать сохранённое состояние
+ * pipeline action-нод. Иначе повторно дошедшая action-нода видит прежний статус Done
+ * и проскакивает мимо, не запустив экшены заново.
+ */
+final class ScenarioPlayerServiceJumpTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private ScenarioPlayerService $player;
+
+    private Scenario $scenario;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->player = app(ScenarioPlayerService::class);
+
+        $this->scenario = Scenario::query()->create(['name' => 'Test', 'is_active' => true]);
+        $version = ScenarioVersion::query()->create(['scenario_id' => $this->scenario->id, 'status' => 'active']);
+
+        $this->createRevision($version, [
+            'nodes_json' => [
+                ['id' => 'node_start', 'type' => 'start', 'data' => []],
+                ['id' => 'node_block', 'type' => 'block', 'data' => ['title' => 'Block']],
+                ['id' => 'node_action', 'type' => 'action', 'data' => ['wait_for_result' => true]],
+                ['id' => 'node_end', 'type' => 'end', 'data' => ['title' => 'Готово']],
+            ],
+            'edges_json' => [
+                ['id' => 'e1', 'source' => 'node_start', 'target' => 'node_block'],
+                ['id' => 'e2', 'source' => 'node_block', 'target' => 'node_action'],
+                ['id' => 'e3', 'source' => 'node_action', 'target' => 'node_end'],
+            ],
+        ]);
+    }
+
+    public function test_jump_clears_action_node_pipeline_state(): void
+    {
+        $run = $this->createRun();
+        $this->assertSame('node_block', $run->current_node_id);
+
+        // Прогон сидит на блоке: вручную сидируем «будущее» состояние action-ноды,
+        // как если бы она уже отработала, а юзер откатился назад на блок.
+        $context = $run->context ?? [];
+        $context[NodeContextKeys::ACTION_RUNS] = ['node_action' => 'done'];
+        $context[NodeContextKeys::ACTION_STAGES] = ['node_action' => ['send' => 'success']];
+        $run->forceFill(['context' => $context])->save();
+
+        $run = $this->player->jumpRun($run, new ScenarioRunJumpData('node_block'));
+
+        $this->assertSame('node_block', $run->current_node_id);
+        $this->assertSame('active', $run->status->value);
+
+        $freshContext = $this->context($run);
+        $this->assertArrayNotHasKey(NodeContextKeys::ACTION_RUNS, $freshContext);
+        $this->assertArrayNotHasKey(NodeContextKeys::ACTION_STAGES, $freshContext);
+    }
+
+    public function test_action_node_reruns_after_jump_instead_of_being_skipped(): void
+    {
+        $run = $this->createRun();
+
+        // Доводим прогон до action-ноды: без action_items нода помечается done и продвигается.
+        $run = $this->player->continueRun($run, new ScenarioRunContinueData([], null));
+        $actionRuns = $this->context($run)[NodeContextKeys::ACTION_RUNS] ?? [];
+        $this->assertIsArray($actionRuns);
+        $this->assertSame('done', $actionRuns['node_action'] ?? null);
+
+        // Откат на блок должен снять статус done, чтобы повторный заход на ноду запустил её заново.
+        $run = $this->player->jumpRun($run, new ScenarioRunJumpData('node_block'));
+
+        $this->assertSame('node_block', $run->current_node_id);
+        $afterJump = $this->context($run)[NodeContextKeys::ACTION_RUNS] ?? [];
+        $this->assertIsArray($afterJump);
+        $this->assertArrayNotHasKey('node_action', $afterJump);
+    }
+
+    /** @return array<string, mixed> */
+    private function context(ScenarioRun $run): array
+    {
+        return is_array($run->context) ? $run->context : [];
+    }
+
+    private function createRun(): ScenarioRun
+    {
+        return $this->player->createRun(new ScenarioRunData(
+            scenarioId: $this->scenario->id,
+            scenarioVersionId: null,
+            context: [],
+            userData: [],
+        ));
+    }
+}

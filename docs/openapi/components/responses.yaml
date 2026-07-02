@@ -25,3 +25,40 @@ ValidationError:
     application/json:
       schema:
         $ref: './schemas/common.yaml#/ValidationErrorResponse'
+
+# JSON:API-варианты для модуля Users (единый конверт errors[] + meta).
+
+UnauthorizedErrors:
+  description: Не аутентифицирован
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ApiErrorResponse'
+
+ForbiddenErrors:
+  description: Недостаточно прав / нарушение доступа
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ApiErrorResponse'
+
+NotFoundErrors:
+  description: Ресурс не найден
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ApiErrorResponse'
+
+ConflictErrors:
+  description: Нарушение бизнес-правила (422)
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ApiErrorResponse'
+
+ValidationErrors:
+  description: Ошибки валидации
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/common.yaml#/ApiErrorResponse'
