@@ -23,9 +23,9 @@ use Module\Users\Models\User;
  * @property-read User $user
  * @property-read Project $project
  */
-final class SSOLaunchToken extends Model
+final class LaunchToken extends Model
 {
-    protected $table = 'sso_launch_tokens';
+    protected $table = 'launch_tokens';
 
     protected $fillable = [
         'user_id',

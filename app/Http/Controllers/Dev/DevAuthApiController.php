@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Module\Projects\Models\Project;
 use Module\Users\Models\Role;
 
-final class IframeAuthApiController extends Controller
+final class DevAuthApiController extends Controller
 {
     public function __construct(
         private readonly EmbedAuthTokenService $tokenService,
@@ -61,7 +61,7 @@ final class IframeAuthApiController extends Controller
 
         $result = $this->tokenService->createLaunchToken($user, $project, '');
 
-        return response()->json(['_token' => $result['iframe_launch_token']]);
+        return response()->json(['_token' => $result['launch_token']]);
     }
 
     public function devLogin(Request $request): JsonResponse

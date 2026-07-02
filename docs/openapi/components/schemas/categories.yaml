@@ -14,21 +14,18 @@ CategoryResource:
       type: object
       properties:
         parent:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           description: Родительская категория (если есть)
           properties:
             data:
               $ref: '#/CategoryResource'
         created_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
         updated_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
@@ -37,9 +34,8 @@ CategoryAttributes:
   type: object
   properties:
     parent_id:
-      type: string
+      type: [ string, 'null' ]
       format: uuid
-      nullable: true
     name:
       type: string
       example: Онбординг
@@ -49,22 +45,19 @@ CategoryAttributes:
       type: integer
       description: Количество сценариев в категории
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 CategoryRequest:
   type: object
   required: [ name, is_active ]
   properties:
     parent_id:
-      type: string
+      type: [ string, 'null' ]
       format: uuid
-      nullable: true
       description: UUID родительской категории (не может быть самой категорией или её потомком)
     name:
       type: string

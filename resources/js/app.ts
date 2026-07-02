@@ -27,7 +27,7 @@ router.on('before', (event) => {
     }
 })
 
-// Глобальный вход по iframe-токену: ловим ?_token= на любой странице, меняем на пару
+// Глобальный вход по launch-токену: ловим ?_token= на любой странице, меняем на пару
 // access/refresh, вырезаем токен из URL (чтобы не оседал в истории/логах) и продолжаем.
 async function consumeLaunchToken(): Promise<void> {
     const params = new URLSearchParams(window.location.search)

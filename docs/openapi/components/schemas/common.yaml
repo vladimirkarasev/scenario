@@ -1,16 +1,13 @@
 Actor:
-  type: object
-  nullable: true
+  type: [ object, 'null' ]
   description: Пользователь (автор создания или изменения)
   properties:
     id:
       type: integer
     name:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     login:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
 
 JsonApiCollection:
   type: object

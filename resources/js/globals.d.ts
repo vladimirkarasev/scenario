@@ -7,7 +7,7 @@ declare global {
 
 interface ImportMetaEnv {
     readonly VITE_APP_NAME: string
-    readonly VITE_IFRAME_AUTH_REDIRECT_URL?: string
+    readonly VITE_EMBED_AUTH_REDIRECT_URL?: string
 }
 
 interface ImportMeta {

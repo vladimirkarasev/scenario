@@ -22,11 +22,9 @@ RoleAttributes:
       description: Уникальное имя роли
       example: project_admin
     title:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     is_system:
       type: boolean
       description: Системные роли нельзя изменять или удалять через API
@@ -35,13 +33,11 @@ RoleAttributes:
       description: Guard, к которому привязана роль (всегда `web`)
       example: web
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 RoleRelationships:
   type: object
@@ -67,12 +63,10 @@ RoleRequest:
       description: Уникальное имя роли
       example: project_admin
     title:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 1000
     permissions:
       type: array

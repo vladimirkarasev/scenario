@@ -16,14 +16,12 @@ CatalogItem:
         is_active:
           type: boolean
         active_version_id:
-          type: string
+          type: [ string, 'null' ]
           format: uuid
-          nullable: true
           description: Только для type=scenario
         parent_id:
-          type: string
+          type: [ string, 'null' ]
           format: uuid
-          nullable: true
           description: Только для type=category
         child_count:
           type: integer

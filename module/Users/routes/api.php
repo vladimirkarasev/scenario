@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Module\Users\Http\Controllers\IframeTokenController;
+use Module\Users\Http\Controllers\LaunchTokenController;
 use Module\Users\Http\Controllers\PermissionController;
 use Module\Users\Http\Controllers\RoleController;
 use Module\Users\Http\Controllers\UsersController;
@@ -19,7 +19,7 @@ Route::middleware('can:user_create')->group(static function (): void {
 });
 
 Route::middleware('can:user_impersonate')->group(static function (): void {
-    Route::post('users/iframe-token', IframeTokenController::class);
+    Route::post('users/launch-token', LaunchTokenController::class);
 });
 
 Route::middleware('can:user_update')->group(static function (): void {

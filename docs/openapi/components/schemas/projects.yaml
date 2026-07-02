@@ -35,13 +35,11 @@ ProjectAttributes:
     is_active:
       type: boolean
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 ProjectRequest:
   type: object

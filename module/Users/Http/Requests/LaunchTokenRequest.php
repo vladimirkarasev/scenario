@@ -6,7 +6,7 @@ namespace Module\Users\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class IframeTokenRequest extends FormRequest
+final class LaunchTokenRequest extends FormRequest
 {
     public function authorize(): bool
     {

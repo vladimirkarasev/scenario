@@ -14,14 +14,12 @@ UserGroup:
       type: object
       properties:
         created_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
         updated_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
@@ -37,26 +35,22 @@ UserGroupAttributes:
       example: sales_team
       description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
     ext_id:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
       example: crm_group_42
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     is_active:
       type: boolean
     members_count:
       type: integer
       description: Количество участников группы
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 UserGroupRequest:
   type: object
@@ -72,14 +66,12 @@ UserGroupRequest:
       description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
       example: sales_team
     ext_id:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       maxLength: 255
       description: Идентификатор группы во внешней системе
       example: crm_group_42
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     is_active:
       type: boolean
       example: true

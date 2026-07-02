@@ -30,7 +30,7 @@ abstract class TestCase extends BaseTestCase
             'cache.default' => 'array',
             'database.default' => 'sqlite',
             'database.connections.sqlite.database' => ':memory:',
-            'iframe_auth.dev_enabled' => false,
+            'dev_auth.enabled' => false,
             'mail.default' => 'array',
             'queue.default' => 'sync',
             'session.driver' => 'array',

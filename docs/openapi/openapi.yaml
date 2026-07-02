@@ -2,7 +2,42 @@ openapi: 3.1.0
 
 info:
   title: Platform API
-  description: API платформы сценариев
+  description: >
+    API платформы сценариев.
+
+
+    ## Как авторизоваться
+
+
+    Все запросы (кроме публичных) требуют заголовок
+    `Authorization: Bearer {access_token}`.
+
+
+    **Боевой флоу (встраивание во внешнюю систему).** Авторизация не по паролю,
+    а через обмен одноразового launch-токена:
+
+
+    1. Внешний бэкенд с токеном системного пользователя проекта вызывает
+    `POST /api/users/launch-token` → получает одноразовый `_token` (TTL 5 мин).
+
+    2. Внешний фронт открывает приложение в `<iframe>` с `?_token={_token}`.
+
+    3. Приложение вызывает `POST /api/embed/auth/exchange` с этим `_token`
+    → получает пару `access_token` + `refresh_token` (**здесь и происходит
+    авторизация**).
+
+    4. Дальше все запросы идут с `Authorization: Bearer {access_token}`;
+    протухший access обновляется через `POST /api/embed/auth/refresh` (ротация).
+
+    5. Выход — `POST /api/auth/logout` (отзывает access и связанный refresh).
+
+
+    **Dev-флоу.** `POST /api/auth/login` — вход по email/паролю, доступен
+    только при `DEV_AUTH_ENABLED=true` для локальной отладки. В проде не
+    используется.
+
+
+    Подробнее — см. тег «Авторизация».
   version: 1.0.0
 
 servers:
@@ -33,10 +68,9 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
-  - name: Embed Auth
+  - name: Авторизация
     tags:
-      - Регистрация
-      - Авторизация iframe
+      - Авторизация
 
 tags:
   - name: Каталог
@@ -53,6 +87,8 @@ tags:
     description: Административный журнал прогонов — просмотр, создание, управление
   - name: Опросы
     description: Список прогонов и просмотр состояния прогона
+  - name: Авторизация
+    description: Вход/выход, текущий пользователь, разрешения и обмен токенов. Полный флоу — во вступлении вверху страницы.
   - name: Пользователи
     description: CRUD-операции над пользователями системы
   - name: Проекты
@@ -63,10 +99,6 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
-  - name: Регистрация
-    description: Регистрация пользователя в проекте и выдача одноразового launch-токена
-  - name: Авторизация iframe
-    description: Обмен launch-токена на access/refresh токены, ротация и выход
 
 paths:
   /scenarios/catalog:
@@ -120,8 +152,19 @@ paths:
   /roles/{role}:
     $ref: './paths/roles.yaml#/item'
 
+  /auth/login:
+    $ref: './paths/auth.yaml#/login'
+  /auth/logout:
+    $ref: './paths/auth.yaml#/logout'
+  /user:
+    $ref: './paths/auth.yaml#/currentUser'
+  /permissions:
+    $ref: './paths/auth.yaml#/permissions'
+
   /users:
     $ref: './paths/users.yaml#/collection'
+  /users/launch-token:
+    $ref: './paths/users.yaml#/launchToken'
   /users/{user}:
     $ref: './paths/users.yaml#/item'
   /users/{user}/tokens:
@@ -156,14 +199,10 @@ paths:
   /action-runs/failed:
     $ref: './paths/action-runs.yaml#/failed'
 
-  /project/{projectUuid}/user-register:
-    $ref: './paths/embed-auth.yaml#/user-register'
   /embed/auth/exchange:
     $ref: './paths/embed-auth.yaml#/exchange'
   /embed/auth/refresh:
     $ref: './paths/embed-auth.yaml#/refresh'
-  /embed/auth/logout:
-    $ref: './paths/embed-auth.yaml#/logout'
 
 components:
   parameters:
@@ -297,6 +336,16 @@ components:
       $ref: './components/schemas/users.yaml#/UserTokenCreated'
     UserTokenStoreRequest:
       $ref: './components/schemas/users.yaml#/UserTokenStoreRequest'
+    LoginRequest:
+      $ref: './components/schemas/users.yaml#/LoginRequest'
+    CurrentUser:
+      $ref: './components/schemas/users.yaml#/CurrentUser'
+    Permission:
+      $ref: './components/schemas/users.yaml#/Permission'
+    LaunchTokenRequest:
+      $ref: './components/schemas/users.yaml#/LaunchTokenRequest'
+    LaunchTokenResponse:
+      $ref: './components/schemas/users.yaml#/LaunchTokenResponse'
 
     UserGroup:
       $ref: './components/schemas/groups.yaml#/UserGroup'
@@ -340,10 +389,6 @@ components:
     ActionRunListResponse:
       $ref: './components/schemas/actions.yaml#/ActionRunListResponse'
 
-    ProjectUserRegisterRequest:
-      $ref: './components/schemas/embed-auth.yaml#/ProjectUserRegisterRequest'
-    IframeLaunchTokenResponse:
-      $ref: './components/schemas/embed-auth.yaml#/IframeLaunchTokenResponse'
     EmbedAuthExchangeRequest:
       $ref: './components/schemas/embed-auth.yaml#/EmbedAuthExchangeRequest'
     EmbedAuthRefreshRequest:
@@ -354,5 +399,3 @@ components:
   securitySchemes:
     BearerAuth:
       $ref: './components/security-schemes.yaml#/BearerAuth'
-    SharedSecretAuth:
-      $ref: './components/security-schemes.yaml#/SharedSecretAuth'

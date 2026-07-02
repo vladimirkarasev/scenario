@@ -46,7 +46,7 @@ function onKeydown(e: KeyboardEvent) {
     <div class="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="border-b border-slate-100 px-6 py-5">
         <h1 class="text-sm font-semibold text-slate-900">Вход</h1>
-        <p class="mt-0.5 text-xs text-slate-500">Dev-режим. В проде авторизация через iframe.</p>
+        <p class="mt-0.5 text-xs text-slate-500">Dev-режим. В проде — авторизация через встраивание (embed).</p>
       </div>
 
       <div class="space-y-4 px-6 py-5">
@@ -83,7 +83,7 @@ function onKeydown(e: KeyboardEvent) {
         </Button>
 
         <p class="text-center text-xs text-slate-400">
-          Нужна симуляция iframe-авторизации?
+          Нужна симуляция embed-авторизации?
           <a href="/auth" class="text-slate-600 underline underline-offset-2 hover:text-slate-900">Открыть</a>
         </p>
       </div>

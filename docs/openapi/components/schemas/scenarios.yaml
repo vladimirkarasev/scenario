@@ -14,14 +14,12 @@ ScenarioResource:
       type: object
       properties:
         created_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
         updated_by:
-          type: object
-          nullable: true
+          type: [ object, 'null' ]
           properties:
             data:
               $ref: './common.yaml#/Actor'
@@ -33,32 +31,26 @@ ScenarioAttributes:
       type: string
       example: Опрос клиента
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     is_active:
       type: boolean
     alias:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
       description: Уникальный псевдоним для запуска сценария по alias
     tags:
-      type: array
+      type: [ array, 'null' ]
       items:
         type: string
-      nullable: true
       description: Теги категоризации
     active_version_id:
-      type: string
+      type: [ string, 'null' ]
       format: uuid
-      nullable: true
     created_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
     updated_at:
-      type: string
+      type: [ string, 'null' ]
       format: date-time
-      nullable: true
 
 ScenarioItem:
   type: object
@@ -81,29 +73,24 @@ ScenarioRequest:
       maxLength: 255
       example: Опрос клиента
     description:
-      type: string
-      nullable: true
+      type: [ string, 'null' ]
     alias:
-      type: string
+      type: [ string, 'null' ]
       maxLength: 255
-      nullable: true
       description: Уникальный alias для запуска сценария
     tags:
-      type: array
-      nullable: true
+      type: [ array, 'null' ]
       items:
         type: string
         maxLength: 255
       description: Теги категоризации
     category_ids:
-      type: array
-      nullable: true
+      type: [ array, 'null' ]
       items:
         type: string
         format: uuid
       description: UUID категорий, к которым относится сценарий
     active_version_id:
-      type: string
+      type: [ string, 'null' ]
       format: uuid
-      nullable: true
       description: UUID активной версии (должна принадлежать этому сценарию)

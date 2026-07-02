@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Dev\IframeAuthWebController;
+use App\Http\Controllers\Dev\DevAuthWebController;
 use App\Http\Controllers\Dev\LoginWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +19,7 @@ Route::get('/actions', static fn () => inertia('Actions/Index'))->name('actions'
 Route::get('/actions/runs', static fn () => inertia('Actions/Runs'))->name('actions.runs');
 Route::get('/actions/schedules', static fn () => inertia('Actions/Schedules'))->name('actions.schedules');
 
-if (config('iframe_auth.dev_enabled')) {
+if (config('dev_auth.enabled')) {
     Route::get('/login', LoginWebController::class)->name('login');
-    Route::get('/auth', IframeAuthWebController::class)->name('auth.page');
+    Route::get('/auth', DevAuthWebController::class)->name('auth.page');
 }

@@ -27,7 +27,7 @@ final class RoleSeeder extends Seeder
             ['name' => 'project-service', 'guard_name' => 'web'],
             [
                 'title' => 'Системная интеграция',
-                'description' => 'Сервисная роль проекта: управление пользователями и выпуск iframe-токенов.',
+                'description' => 'Сервисная роль проекта: управление пользователями и выпуск launch-токенов.',
                 'is_system' => true,
             ],
         );

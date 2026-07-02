@@ -25,7 +25,7 @@ enum UserPermission: string implements PermissionEnum
             self::Delete => 'Удаление',
             self::TokenView => 'Просмотр API-токенов',
             self::TokenManage => 'Управление API-токенами',
-            self::Impersonate => 'Выпуск iframe-токена авторизации',
+            self::Impersonate => 'Выпуск launch-токена авторизации',
         };
     }
 

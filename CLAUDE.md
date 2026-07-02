@@ -101,11 +101,7 @@ Models/ DTO/ Enums/ Http/{Controllers,Requests}/ Services/ Providers/ routes/api
 
 ### Auth
 
-Two modes controlled by `IFRAME_AUTH_DEV_ENABLED`:
-- Standard web auth (Sanctum-based)
-- JWT iframe auth for embedding in external systems
-
-Custom middleware `iframe-or-web` handles both paths. See `docs/iframe-embed.md`.
+Sanctum-based auth. Production flow for embedding in external systems: launch-token → exchange → access/refresh (`App\Services\EmbedAuth`, routes `embed/auth/*`). `DEV_AUTH_ENABLED` включает dev-хелперы: страницу `/auth` (симуляция входа, `DevAuthWebController`/`DevAuth.vue`), `dev/auth/*` API (`DevAuthApiController`) и `POST /auth/login` по паролю (`TokenAuthController`). См. `docs/embed-integration.md`.
 
 ### Proxy module (webhook gateway)
 

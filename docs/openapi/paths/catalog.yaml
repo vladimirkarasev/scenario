@@ -24,9 +24,8 @@ get:
               Регистронезависимый ILIKE-поиск.
             example: оформление
           parent_id:
-            type: string
+            type: [ string, 'null' ]
             format: uuid
-            nullable: true
             description: >
               UUID родительской категории. Если ключ передан с пустым значением —
               возвращаются элементы корневого уровня (без родителя).
