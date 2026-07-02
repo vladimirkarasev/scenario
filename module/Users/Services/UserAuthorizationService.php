@@ -22,14 +22,14 @@ final class UserAuthorizationService
         }
 
         if ($target->hasRole(SystemRole::Administrator->value)) {
-            throw ForbiddenException::make('Нельзя управлять администратором проекта.', UserErrorCode::ManageAdminForbidden);
+            throw ForbiddenException::from(UserErrorCode::ManageAdminForbidden);
         }
 
         $actorPermissions = collect($this->permissionNames($actor));
         $targetPermissions = collect($this->permissionNames($target));
 
         if ($targetPermissions->diff($actorPermissions)->isNotEmpty()) {
-            throw ForbiddenException::make('Нельзя управлять более привилегированным пользователем.', UserErrorCode::ManagePrivilegedForbidden);
+            throw ForbiddenException::from(UserErrorCode::ManagePrivilegedForbidden);
         }
     }
 
@@ -37,7 +37,7 @@ final class UserAuthorizationService
     public function assertMayAssignRoles(User $actor, Collection $roles): void
     {
         if (!$actor->can(RolePermission::Create->value)) {
-            throw ForbiddenException::make('Недостаточно прав для назначения ролей.', UserErrorCode::RoleAssignForbidden);
+            throw ForbiddenException::from(UserErrorCode::RoleAssignForbidden);
         }
 
         if ($actor->hasRole(SystemRole::Administrator->value)) {
@@ -51,7 +51,7 @@ final class UserAuthorizationService
                 $role->name === SystemRole::Administrator->value
                 || $role->permissions->pluck('name')->diff($actorPermissions)->isNotEmpty()
             ) {
-                throw ForbiddenException::make('Нельзя назначить роль выше собственных полномочий.', UserErrorCode::RoleEscalationForbidden);
+                throw ForbiddenException::from(UserErrorCode::RoleEscalationForbidden);
             }
         }
     }
@@ -66,7 +66,7 @@ final class UserAuthorizationService
         $actorPermissions = $this->permissionNames($actor);
 
         if (array_diff($permissions, $actorPermissions) !== []) {
-            throw ForbiddenException::make('Нельзя выдать разрешения выше собственных полномочий.', UserErrorCode::PermissionEscalationForbidden);
+            throw ForbiddenException::from(UserErrorCode::PermissionEscalationForbidden);
         }
     }
 
@@ -79,7 +79,7 @@ final class UserAuthorizationService
         $actorPermissions = collect($this->permissionNames($actor));
 
         if ($role->permissions->pluck('name')->diff($actorPermissions)->isNotEmpty()) {
-            throw ForbiddenException::make('Нельзя изменять роль выше собственных полномочий.', UserErrorCode::RoleManageForbidden);
+            throw ForbiddenException::from(UserErrorCode::RoleManageForbidden);
         }
     }
 

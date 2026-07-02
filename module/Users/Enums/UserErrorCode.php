@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Module\Users\Enums;
 
+use App\Contracts\ErrorText;
+
 /**
- * Машиночитаемые коды ошибок модуля Users, попадающие в поле
- * errors[].code JSON:API-ответа.
+ * Коды ошибок модуля Users и их текст (title/detail). Единственное место с
+ * текстом ошибок — сюда подключается локализация (`__()`), throw-сайты не трогаем.
  */
-enum UserErrorCode: string
+enum UserErrorCode: string implements ErrorText
 {
     case UserNotFound = 'USER_NOT_FOUND';
     case SystemUserImmutable = 'SYSTEM_USER_IMMUTABLE';
@@ -27,23 +29,21 @@ enum UserErrorCode: string
     case PermissionEscalationForbidden = 'PERMISSION_ESCALATION_FORBIDDEN';
     case RoleManageForbidden = 'ROLE_MANAGE_FORBIDDEN';
 
-    public function label(): string
+    #[\Override]
+    public function code(): string
     {
-        return match ($this) {
-            self::UserNotFound => 'Пользователь не найден',
-            self::SystemUserImmutable => 'Системного пользователя нельзя изменить',
-            self::SelfDeleteForbidden => 'Нельзя удалить текущего пользователя',
-            self::LastAdministrator => 'В проекте должен остаться администратор',
-            self::NoProjectContext => 'Контекст проекта не определён',
-            self::RoleNotFound => 'Роль не найдена',
-            self::SystemRoleImmutable => 'Системную роль нельзя изменить',
-            self::RoleInUse => 'Роль назначена пользователям',
-            self::ManageAdminForbidden => 'Нельзя управлять администратором',
-            self::ManagePrivilegedForbidden => 'Нельзя управлять более привилегированным пользователем',
-            self::RoleAssignForbidden => 'Недостаточно прав для назначения ролей',
-            self::RoleEscalationForbidden => 'Нельзя назначить роль выше полномочий',
-            self::PermissionEscalationForbidden => 'Нельзя выдать разрешения выше полномочий',
-            self::RoleManageForbidden => 'Нельзя изменять роль выше полномочий',
-        };
+        return $this->value;
+    }
+
+    #[\Override]
+    public function title(): string
+    {
+        return (string) trans("errors.users.{$this->value}.title");
+    }
+
+    #[\Override]
+    public function detail(): string
+    {
+        return (string) trans("errors.users.{$this->value}.detail");
     }
 }

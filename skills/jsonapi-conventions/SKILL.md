@@ -211,13 +211,13 @@ $include = explode(',', $request->input('include', ''));
 
 # Формат ответа
 
-Минимальный JSON:API ответ:
+> Конверт ответа, `meta` (timestamp + requestId) и формат ошибок вынесены в
+> отдельный skill — **[[api-response-contract]]**. Ниже — JSON:API-специфика с
+> уже применённым конвертом.
 
-```json
-{
-  "data": []
-}
-```
+Любой успешный ответ обёрнут в `data` + `meta` с `timestamp`/`requestId`
+(добавляет middleware `AddApiMeta`). Плоские нагрузки оборачивать через
+`App\Http\Responses\ApiResponse`.
 
 Коллекция:
 
@@ -225,12 +225,12 @@ $include = explode(',', $request->input('include', ''));
 {
   "data": [],
   "meta": {
+    "current_page": 1,
+    "last_page": 3,
+    "per_page": 15,
     "total": 42,
-    "page": {
-      "number": 1,
-      "size": 15,
-      "last": 3
-    }
+    "timestamp": "2026-07-02T10:00:00+00:00",
+    "requestId": "a1b2..."
   },
   "links": {
     "self": "...",
@@ -309,31 +309,19 @@ $include = explode(',', $request->input('include', ''));
 
 # Формат ошибок
 
-```json
-{
-  "errors": [
-    {
-      "status": "422",
-      "title": "Validation Error",
-      "detail": "The name field is required."
-    }
-  ]
-}
-```
-
-Для ошибок валидации:
+Единый конверт: `{ errors: [...], meta }`. Каждый элемент — `status`, `code`
+(машиночитаемый, из backed enum модуля), `title`, `detail`, опционально `source`.
+Бросать доменные исключения (`ForbiddenException`/`NotFoundException`/`ConflictException`),
+не `HttpException`/`abort()`. Подробно — **[[api-response-contract]]**.
 
 ```json
 {
   "errors": [
-    {
-      "status": "422",
-      "source": {
-        "pointer": "/data/attributes/name"
-      },
-      "detail": "The name field is required."
-    }
-  ]
+    { "status": "422", "code": "VALIDATION_ERROR", "title": "Ошибка валидации",
+      "detail": "The name field is required.",
+      "source": { "pointer": "/data/attributes/name" } }
+  ],
+  "meta": { "timestamp": "2026-07-02T10:00:00+00:00", "requestId": "a1b2..." }
 }
 ```
 
@@ -474,6 +462,7 @@ ScenarioRunController::index
 
 # Related Rules
 
+* [[api-response-contract]] — конверт `{data, meta}`, ошибки, доменные исключения
 * [[types-organization]]
 * [[form-validation]]
 * [[repository-pattern]]

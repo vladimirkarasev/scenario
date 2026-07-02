@@ -14,11 +14,12 @@ Request → FormRequest (validate) → Controller (delegate) → Service (orches
        → Repository (DB) → Model → JsonApiResource (shape) → JSON response
 ```
 
-Response shape (JSON:API):
-- **List**: `{ data: [...], meta: { current_page, last_page, per_page, total } }`
-- **Single**: `{ data: { id, type, attributes: {...} } }`
+Response shape (JSON:API) — конверт и ошибки см. [[api-response-contract]]:
+- **List**: `{ data: [...], meta: { current_page, last_page, per_page, total, timestamp, requestId } }`
+- **Single**: `{ data: { id, type, attributes: {...} }, meta: { timestamp, requestId } }`
 - **Create**: same as single, HTTP 201
 - **Delete**: HTTP 204, empty body
+- **Errors**: `{ errors: [ { status, code, title, detail, source? } ], meta }` — бросать доменные исключения (`ForbiddenException`/`NotFoundException`/`ConflictException`), не `abort()`/`HttpException`
 
 Key paths:
 - `module/<Module>/Http/Controllers/`

@@ -26,7 +26,7 @@ collection:
           items:
             type: integer
       - $ref: '../components/parameters.yaml#/PageNumber'
-      - $ref: '../components/parameters.yaml#/PerPage'
+      - $ref: '../components/parameters.yaml#/PageSize'
       - $ref: '../components/parameters.yaml#/IncludeUserRelations'
       - $ref: '../components/parameters.yaml#/FieldsGroups'
       - $ref: '../components/parameters.yaml#/FieldsRoles'

@@ -355,7 +355,7 @@ final class UsersControllerTest extends TestCase
         [$actor] = $this->makeUserWithProject('user_view');
 
         $this->actingAs($actor)
-            ->getJson('/api/users?per_page=101')
+            ->getJson('/api/users?page[size]=101')
             ->assertUnprocessable();
     }
 

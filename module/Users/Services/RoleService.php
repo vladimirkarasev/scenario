@@ -10,6 +10,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Module\Users\DTO\RoleData;
+use Module\Users\DTO\RoleIndexData;
 use Module\Users\Enums\UserErrorCode;
 use Module\Users\Models\Role;
 use Module\Users\Models\User;
@@ -26,9 +27,9 @@ final readonly class RoleService
     }
 
     /** @return LengthAwarePaginator<int, Role> */
-    public function paginate(int $perPage = 20, ?string $search = null): LengthAwarePaginator
+    public function paginate(RoleIndexData $filters): LengthAwarePaginator
     {
-        return $this->roles->paginate($perPage, $search);
+        return $this->roles->paginate($filters->pagination, $filters->search);
     }
 
     public function create(User $actor, RoleData $data): Role
@@ -63,7 +64,7 @@ final readonly class RoleService
             $role = $this->roles->findForUpdate($role);
 
             if ($role->is_system) {
-                throw ForbiddenException::make('Системную роль нельзя редактировать.', UserErrorCode::SystemRoleImmutable);
+                throw ForbiddenException::from(UserErrorCode::SystemRoleImmutable);
             }
 
             $this->authorization->assertMayManageRole($actor, $role);
@@ -99,13 +100,13 @@ final readonly class RoleService
             $role = $this->roles->findForUpdate($role);
 
             if ($role->is_system) {
-                throw ForbiddenException::make('Системную роль нельзя удалить.', UserErrorCode::SystemRoleImmutable);
+                throw ForbiddenException::from(UserErrorCode::SystemRoleImmutable);
             }
 
             $this->authorization->assertMayManageRole($actor, $role);
 
             if ($role->users()->exists()) {
-                throw ConflictException::make('Нельзя удалить роль, которая назначена пользователям.', UserErrorCode::RoleInUse);
+                throw ConflictException::from(UserErrorCode::RoleInUse);
             }
 
             $role->delete();

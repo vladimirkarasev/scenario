@@ -29,7 +29,7 @@ final class UserIndexRequest extends FormRequest
                 'integer',
                 Rule::exists('roles', 'id')->where('guard_name', 'web'),
             ],
-            'per_page' => ['sometimes', 'integer', 'between:1,100'],
+            'page.size' => ['sometimes', 'integer', 'between:1,100'],
             'page.number' => ['sometimes', 'integer', 'min:1'],
         ];
     }

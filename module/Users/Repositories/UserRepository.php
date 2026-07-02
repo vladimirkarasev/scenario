@@ -25,7 +25,7 @@ final class UserRepository
             ->forRoles($filters->roleIds)
             ->search($filters->search)
             ->ordered()
-            ->paginate($filters->perPage, ['*'], 'page[number]');
+            ->paginate($filters->pagination->size, ['*'], 'page[number]', $filters->pagination->number);
     }
 
     public function find(User $user): User
@@ -52,7 +52,7 @@ final class UserRepository
 
     private function notFound(): NotFoundException
     {
-        return NotFoundException::make('Пользователь не найден в проекте.', UserErrorCode::UserNotFound, 'Пользователь не найден');
+        return NotFoundException::from(UserErrorCode::UserNotFound);
     }
 
     public function findNonSystemByExternalId(string $projectId, string $externalId): ?User

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Users\DTO;
 
+use App\Support\Pagination;
 use Module\Users\Http\Requests\UserIndexRequest;
 
 final readonly class UserIndexData
@@ -16,7 +17,7 @@ final readonly class UserIndexData
         public ?string $search,
         public array $groupIds,
         public array $roleIds,
-        public int $perPage,
+        public Pagination $pagination,
     ) {
     }
 
@@ -34,7 +35,7 @@ final readonly class UserIndexData
             search: $search,
             groupIds: self::toStringList($filter['group_ids'] ?? []),
             roleIds: self::toStringList($filter['role_ids'] ?? []),
-            perPage: $request->integer('per_page', 15),
+            pagination: Pagination::fromRequest($request),
         );
     }
 
