@@ -943,7 +943,7 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/PageSize'
         - $ref: '#/components/parameters/PageNumber'
       responses:
         '200':
@@ -1159,7 +1159,7 @@ paths:
             items:
               type: integer
         - $ref: '#/components/parameters/PageNumber'
-        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/PageSize'
         - $ref: '#/components/parameters/IncludeUserRelations'
         - $ref: '#/components/parameters/FieldsGroups'
         - $ref: '#/components/parameters/FieldsRoles'
@@ -2145,12 +2145,12 @@ components:
     PageSize:
       name: page[size]
       in: query
-      description: Количество записей на страницу — JSON:API (1–100, по умолчанию 15)
+      description: Количество записей на страницу — JSON:API (1–100, по умолчанию 20)
       schema:
         type: integer
         minimum: 1
         maximum: 100
-        default: 15
+        default: 20
     PageNumber:
       name: page[number]
       in: query

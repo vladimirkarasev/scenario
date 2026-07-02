@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> Детальные правила и паттерны — в `skills/` (auto-trigger по frontmatter). Здесь —
+> карта проекта, команды и инварианты; за глубиной идём в указанный skill.
+
 ## Commands
 
 ```bash
@@ -105,16 +108,9 @@ Sanctum-based auth. Production flow for embedding in external systems: launch-to
 
 ### Proxy module (webhook gateway)
 
-Принимает входящие вебхуки, нормализует поля через handler, валидирует, ведёт лог, управляет retry. Handler-ы наследуют `Module\Proxy\WebhookHandler` и объявляют поля через `fields(): iterable`.
+Входящий вебхук → нормализация полей через handler (`Module\Proxy\WebhookHandler`, поля объявляются `fields(): iterable`) → валидация, лог, retry. Доступы к внешним сервисам — в БД (`proxy_integrations`, `credentials` шифруются), не в конфиге; `ProxyEndpoint` привязан к интеграции, из неё строится gateway. Реестры сидятся командами `php artisan webhooks:sync` и `proxies:sync` (после `migrate`). Безопасность: handler-класс — в namespace `Module\Proxy\Proxies\` (или в `proxy.allowed_handlers`).
 
-- Управление эндпоинтами: `WebhookRegistry` → `php artisan webhooks:sync` (вызывать после `migrate`)
-- Поля handler-а: `WebhookFieldString`, `WebhookFieldInteger`, `WebhookFieldBoolean`, `WebhookFieldList`, `WebhookFieldArray` и др. — builder API: `->label()->source()->required()->example()->filterable()`
-- Fields API: `GET /api/proxy/webhooks/{id}/fields` (auth) и `GET /api/webhooks/{uuid}/fields` (публичный, только активные)
-- Доступы к внешним сервисам — в БД (`proxy_integrations`), не в конфиге. `ProxyHandler::authFields()` объявляет поля доступов (тот же builder + `->secret()`), админ заполняет их в UI (`/proxy/integrations`), значения шифруются (`credentials` → `encrypted:array`). `ProxyEndpoint` привязан к интеграции (`integration_id`); handler строит gateway из неё через `AutoCrmGatewayFactory::forIntegration()` / `ApiGatewayConfig::fromIntegration()`. Интеграции/эндпоинты сидятся `IntegrationRegistry` + `ProxyRegistry` → `php artisan proxies:sync`
-- Исходящие gateway-вызовы: `BaseApiGateway` / `AutoCrmGateway` (конфиг приходит из интеграции, не из статического `config/proxy.php`)
-- Секреты маскируются в API (`secret_filled` флаг); пустое значение при update = «не менять»
-- Безопасность: handler-класс должен быть в namespace `Module\Proxy\Proxies\` или явно в `proxy.allowed_handlers`
-- См. `docs/proxy-webhook-gateway.md`
+Детали (builder полей, gateway, секреты, fields API) — `docs/proxy-webhook-gateway.md`; добавление — skills `add-new-proxy` / `add-new-proxy-gateway`.
 
 ### Actions module (orchestration)
 
@@ -131,26 +127,24 @@ Pages live in `resources/js/Pages/` (Inertia page components): `Users/`, `Projec
 
 ## Conventions
 
+Инварианты ниже; детали — в указанном skill (единый источник правды).
+
 **Backend**
-- Controllers validate only; delegate everything to Services
-- Services are pure: no `request()` access, accept DTOs
-- DTOs are `readonly` PHP classes
-- Enums are backed (`string`/`int`) with `label()`/`color()` methods
-- Tests instantiate services via `app(ServiceClass::class)` directly; HTTP tests only for HTTP-specific behavior
-- Models created in tests via `Model::query()->create([...])` — no Factories defined
+- Контроллеры только валидируют и делегируют; сервисы чистые (без `request()`), принимают DTO; DTO — `readonly`; Enum — backed с `label()`/`color()`. → `add-crud-jsonapi`, `laravel-refactor`
+- Конфиг моделей — через PHP-атрибуты (`#[Table]`/`#[Fillable]`/`#[UseEloquentBuilder]`/`#[\Override]`), не свойства/override-методы. → `prefer-php-attributes`
+- Комментарии — только докблоки у методов, без инлайна в теле. → `code-comments`
+- PHPStan level 10 на `app/` и `module/`. → `static-analysis`
+
+**API**
+- JSON:API query: `filter[...]`, `page[number]`/`page[size]`, `sort`, `include`; без плоских `search=`/`per_page=`. → `jsonapi-conventions`
+- Конверт ответа `{data, meta}` и ошибки `{errors:[...], meta}` через доменные исключения + enum-коды. → `api-response-contract`
 
 **Frontend**
-- `<script setup lang="ts">` only — no Options API
-- No `any` TypeScript types
-- shadcn-vue components over native HTML elements
-- Pinia only for cross-page shared state
-- Page logic goes into composables, not inline in the component. Pattern per page: `useXxxList` (data fetching + pagination), `useXxxModal` (create/edit/delete form state), `useXxxFilters` (filter state + dropdowns) — see `resources/js/composables/` for examples (Users, Groups, Roles, Projects pages)
+- `<script setup lang="ts">`, без `any`, shadcn-vue вместо нативных элементов, Pinia только для cross-page state.
+- Логика страницы — в composables: `useXxxList` / `useXxxModal` / `useXxxFilters`. Репозитории принимают `URLSearchParams` напрямую.
+- Формы — zod + `useZodForm`; toast на каждое CRUD-действие; типы в `types/`; чинить все tsc-ошибки. → `form-validation`, `crud-toast`, `types-organization`, `typescript-fix-policy`
 
-**API conventions (JSON:API)**
-- Filter params are namespaced: `filter[search]=foo`, `filter[group_ids][]=1`, `filter[role_ids][]=1`
-- Pagination params: `page[number]=2`, `page[size]=20`
-- Backend DTOs read filters via `$request->array('filter')`, pagination via `$request->input('page.number')` / `$request->input('page.size')`
-- No flat query params (`search=`, `group_ids[]=`, `per_page=`) on the API level
-- Frontend repositories accept `URLSearchParams` directly — no intermediate `XxxQuery` objects with renamed fields. The caller (composable) builds `URLSearchParams` from `window.location.search` and adds hardcoded defaults (e.g. `per_page`).
+**Tests**
+- Сервисы через `app(Service::class)`; модели `Model::query()->create([...])` (фабрик нет); HTTP-тесты только для HTTP-специфики. → `write-tests`
 
-**PHPStan** runs at level 10 across `app/` and `module/`.
+**PHPStan** — level 10 across `app/` and `module/`.

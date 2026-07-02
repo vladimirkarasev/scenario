@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Users\DTO\RoleData;
+use Module\Users\DTO\RoleIndexData;
 use Module\Users\Http\Requests\RoleRequest;
 use Module\Users\Http\Resources\JsonApi\RoleResource;
 use Module\Users\Models\Role;
@@ -23,16 +24,8 @@ final class RoleController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $filter = $request->array('filter');
-        $search = isset($filter['search']) && is_string($filter['search']) && $filter['search'] !== ''
-            ? $filter['search']
-            : null;
-
         return RoleResource::collection(
-            $this->roleService->paginate(
-                max(1, min(100, $request->integer('page.size', 20))),
-                $search,
-            ),
+            $this->roleService->paginate(RoleIndexData::fromRequest($request)),
         );
     }
 

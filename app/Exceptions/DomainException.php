@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exceptions;
 
+use App\Contracts\ErrorText;
 use RuntimeException;
 
 /**
@@ -21,6 +22,15 @@ abstract class DomainException extends RuntimeException
     }
 
     abstract public function status(): int;
+
+    /**
+     * Собрать исключение из источника текста (enum кода) — без строк на call-site.
+     * Основной способ броска; текст живёт в enum.
+     */
+    public static function from(ErrorText $code): static
+    {
+        return new static($code->code(), $code->title(), $code->detail());
+    }
 
     protected static function normalizeCode(string|\BackedEnum $code): string
     {

@@ -5,7 +5,7 @@ collection:
     security:
       - BearerAuth: [ ]
     parameters:
-      - $ref: '../components/parameters.yaml#/PerPage'
+      - $ref: '../components/parameters.yaml#/PageSize'
       - $ref: '../components/parameters.yaml#/PageNumber'
     responses:
       '200':

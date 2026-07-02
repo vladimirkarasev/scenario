@@ -20,7 +20,7 @@ export function useUserList() {
     const loading = ref(false)
     const error = ref<string | null>(null)
     const users = ref<User[]>([])
-    const meta = ref<UsersPage['meta']>({current_page: 1, last_page: 1, per_page: 15, total: 0})
+    const meta = ref<UsersPage['meta']>({current_page: 1, last_page: 1, per_page: 20, total: 0})
     let requestId = 0
 
     async function load(): Promise<void> {
@@ -28,8 +28,9 @@ export function useUserList() {
         loading.value = true
         error.value = null
         try {
+            // Размер страницы не хардкодим — дефолт задаёт backend (Pagination::DEFAULT_SIZE);
+            // переопределить можно в любой момент через ?page[size]= в URL.
             const qs = new URLSearchParams(window.location.search)
-            qs.set('per_page', '15')
             if (!qs.has('page[number]')) qs.set('page[number]', '1')
             const result = await userRepository.list(qs)
             if (currentRequestId === requestId) {

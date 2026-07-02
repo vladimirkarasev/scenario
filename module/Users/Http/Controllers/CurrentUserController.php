@@ -8,13 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Module\Projects\CurrentProject;
 use Module\Users\Models\User;
+use Module\Users\Services\CurrentUserService;
 
 final class CurrentUserController extends Controller
 {
     public function __construct(
-        private readonly CurrentProject $currentProject,
+        private readonly CurrentUserService $service,
     ) {
     }
 
@@ -23,12 +23,6 @@ final class CurrentUserController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return new ApiResponse([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'project_id' => $this->currentProject->id(),
-            'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
-        ]);
+        return new ApiResponse($this->service->profile($user));
     }
 }

@@ -109,7 +109,7 @@ final readonly class UserService
             $user = $this->users->findInProjectForUpdate($user, $projectId);
 
             if ($user->is_system) {
-                throw ForbiddenException::make('Системного пользователя нельзя редактировать.', UserErrorCode::SystemUserImmutable);
+                throw ForbiddenException::from(UserErrorCode::SystemUserImmutable);
             }
 
             $this->authorization->assertMayManage($actor, $user);
@@ -173,11 +173,11 @@ final readonly class UserService
             $user = $this->users->findInProjectForUpdate($user, $projectId);
 
             if ($user->is_system) {
-                throw ForbiddenException::make('Системного пользователя нельзя удалить.', UserErrorCode::SystemUserImmutable);
+                throw ForbiddenException::from(UserErrorCode::SystemUserImmutable);
             }
 
             if ($actor->id === $user->id) {
-                throw ConflictException::make('Нельзя удалить текущего пользователя.', UserErrorCode::SelfDeleteForbidden);
+                throw ConflictException::from(UserErrorCode::SelfDeleteForbidden);
             }
 
             $this->authorization->assertMayManage($actor, $user);
@@ -206,7 +206,7 @@ final readonly class UserService
             && !in_array(SystemRole::Administrator->value, $newRoleNames, true)
             && $this->users->administratorsInProjectForUpdate($projectId)->count() <= 1
         ) {
-            throw ConflictException::make('В проекте должен остаться хотя бы один администратор.', UserErrorCode::LastAdministrator);
+            throw ConflictException::from(UserErrorCode::LastAdministrator);
         }
     }
 

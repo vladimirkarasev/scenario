@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Users\Repositories;
 
 use App\Exceptions\NotFoundException;
+use App\Support\Pagination;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Users\Enums\UserErrorCode;
@@ -14,14 +15,14 @@ use Module\Users\QueryBuilders\RoleBuilder;
 final class RoleRepository
 {
     /** @return LengthAwarePaginator<int, Role> */
-    public function paginate(int $perPage, ?string $search): LengthAwarePaginator
+    public function paginate(Pagination $pagination, ?string $search): LengthAwarePaginator
     {
         return $this->query()
             ->withCount('users')
             ->with('permissions')
             ->search($search)
             ->ordered()
-            ->paginate($perPage, ['*'], 'page[number]');
+            ->paginate($pagination->size, ['*'], 'page[number]', $pagination->number);
     }
 
     /**
@@ -54,7 +55,7 @@ final class RoleRepository
     public function findForUpdate(Role $role): Role
     {
         return $this->query()->whereKey($role->getKey())->lockForUpdate()->first()
-            ?? throw NotFoundException::make('Роль не найдена.', UserErrorCode::RoleNotFound, 'Роль не найдена');
+            ?? throw NotFoundException::from(UserErrorCode::RoleNotFound);
     }
 
     /** @param array<string, mixed> $attributes */
