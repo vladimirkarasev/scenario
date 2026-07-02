@@ -170,6 +170,7 @@ final class GroupMembersControllerTest extends TestCase
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
             'host' => $project->host,
+            'project_id' => $project->id,
         ]);
 
         foreach ($permissions as $permission) {

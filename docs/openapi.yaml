@@ -1468,17 +1468,21 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - name: search
+        - name: filter[search]
           in: query
           description: Поиск по названию или slug
           schema:
             type: string
-        - name: is_active
+        - name: filter[is_active]
           in: query
           description: Фильтр по активности
           schema:
             type: boolean
-        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/IncludeGroupRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Список групп (JSON:API коллекция)
@@ -1488,13 +1492,24 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/JsonApiCollection'
                   - type: object
+                    required:
+                      - meta
                     properties:
                       data:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserGroup'
+                      included:
+                        type: array
+                        description: Авторы (users) при ?include=createdBy,updatedBy.
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
     post:
       tags:
         - Группы
@@ -1513,11 +1528,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /groups/{group}:
     parameters:
       - name: group
@@ -1533,17 +1558,36 @@ paths:
       summary: Получить группу
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeGroupRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Группа
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  included:
+                    type: array
+                    description: Авторы (users) при ?include=createdBy,updatedBy.
+                    items:
+                      $ref: '#/components/schemas/UserResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     patch:
       tags:
         - Группы
@@ -1562,13 +1606,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Группы
@@ -1579,9 +1633,11 @@ paths:
         '204':
           description: Группа удалена
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /groups/{group}/members:
     parameters:
       - name: group
@@ -1597,6 +1653,10 @@ paths:
       summary: Участники группы
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Список участников (JSON:API коллекция)
@@ -1606,15 +1666,21 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/JsonApiCollection'
                   - type: object
+                    required:
+                      - meta
                     properties:
                       data:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserResource'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     post:
       tags:
         - Группы
@@ -1638,11 +1704,13 @@ paths:
         '204':
           description: Пользователь добавлен
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /groups/{group}/members/{user}:
     parameters:
       - name: group
@@ -1666,9 +1734,11 @@ paths:
         '204':
           description: Пользователь удалён из группы
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /actions:
     get:
       tags:
@@ -2180,6 +2250,20 @@ components:
       schema:
         type: string
         example: name,title
+    IncludeGroupRelations:
+      name: include
+      in: query
+      description: JSON:API include связей через запятую. Поддерживаются `createdBy`, `updatedBy` (users). Включённые объекты возвращаются в top-level `included`.
+      schema:
+        type: string
+        example: createdBy,updatedBy
+    FieldsUsers:
+      name: fields[users]
+      in: query
+      description: Sparse fieldset для включённых пользователей (поля через запятую).
+      schema:
+        type: string
+        example: name,email
   responses:
     Unauthorized:
       description: Не аутентифицирован
@@ -3607,21 +3691,33 @@ components:
           $ref: '#/components/schemas/UserGroupAttributes'
         relationships:
           type: object
+          description: |
+            Авторы создания/изменения (users). Linkage (type+id); сами пользователи приходят в top-level `included` при запросе с `?include=createdBy,updatedBy`.
           properties:
-            created_by:
-              type:
-                - object
-                - 'null'
+            createdBy:
+              type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Actor'
-            updated_by:
-              type:
-                - object
-                - 'null'
+                  $ref: '#/components/schemas/ActorLinkage'
+            updatedBy:
+              type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Actor'
+                  $ref: '#/components/schemas/ActorLinkage'
+    ActorLinkage:
+      type:
+        - object
+        - 'null'
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          example: users
+        id:
+          type: string
+          example: '42'
     UserGroupAttributes:
       type: object
       properties:

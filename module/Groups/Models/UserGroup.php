@@ -7,6 +7,8 @@ namespace Module\Groups\Models;
 use App\Models\Category;
 use Module\Users\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -37,20 +39,11 @@ use Module\Scenario\Models\Scenario;
  *
  * @method static UserGroupBuilder query()
  */
+#[Fillable('site_id', 'name', 'slug', 'ext_id', 'description', 'is_active', 'created_by', 'updated_by')]
+#[UseEloquentBuilder(UserGroupBuilder::class)]
 final class UserGroup extends Model
 {
     use HasUuids;
-
-    protected $fillable = [
-        'site_id',
-        'name',
-        'slug',
-        'ext_id',
-        'description',
-        'is_active',
-        'created_by',
-        'updated_by',
-    ];
 
     /** @return BelongsToMany<User, UserGroup> */
     public function members(): BelongsToMany
@@ -83,12 +76,6 @@ final class UserGroup extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    #[\Override]
-    public function newEloquentBuilder($query): UserGroupBuilder
-    {
-        return new UserGroupBuilder($query);
     }
 
     #[\Override]

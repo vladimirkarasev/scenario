@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Groups\Http\Resources\JsonApi;
 
-use Module\Users\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 use Module\Groups\Models\UserGroup;
+use Module\Users\Http\Resources\JsonApi\UserResource;
 
 /**
  * @mixin UserGroup
@@ -44,29 +44,18 @@ final class UserGroupResource extends JsonApiResource
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Связи отдаются как JSON:API include (?include=createdBy,updatedBy);
+     * авторы (users) приходят в top-level `included`.
+     *
+     * @return array<string, mixed>
+     */
     #[\Override]
     public function toRelationships(Request $request): array
     {
         return [
-            'created_by' => fn() => $this->actorData($this->createdBy),
-            'updated_by' => fn() => $this->actorData($this->updatedBy),
-        ];
-    }
-
-    /** @return array{data: array{id: int, name: string|null, login: string|null}}|null */
-    private function actorData(?User $user): ?array
-    {
-        if ($user === null) {
-            return null;
-        }
-
-        return [
-            'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'login' => $user->login,
-            ],
+            'createdBy' => UserResource::class,
+            'updatedBy' => UserResource::class,
         ];
     }
 }

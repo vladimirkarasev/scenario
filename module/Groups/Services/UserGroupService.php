@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Module\Groups\Services;
 
+use App\Exceptions\NotFoundException;
+use App\Support\Pagination;
 use Module\Users\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Groups\DTO\GroupRegistrationData;
 use Module\Groups\DTO\UserGroupData;
 use Module\Groups\DTO\UserGroupIndexData;
+use Module\Groups\Enums\GroupErrorCode;
 use Module\Groups\Models\UserGroup;
 use Module\Groups\Repositories\UserGroupRepository;
 use Module\Projects\CurrentProject;
@@ -63,8 +66,20 @@ final readonly class UserGroupService
         $this->groups->delete($group);
     }
 
-    public function addMember(UserGroup $group, User $user): void
+    /** @return LengthAwarePaginator<int, User> */
+    public function listMembers(UserGroup $group, Pagination $pagination): LengthAwarePaginator
     {
+        return $group->members()
+            ->getQuery()
+            ->orderBy('name')
+            ->paginate($pagination->size, ['*'], 'page[number]', $pagination->number);
+    }
+
+    public function addMember(UserGroup $group, int $userId): void
+    {
+        $user = User::query()->find($userId)
+            ?? throw NotFoundException::from(GroupErrorCode::MemberUserNotFound);
+
         $group->members()->syncWithoutDetaching([$user->id]);
     }
 

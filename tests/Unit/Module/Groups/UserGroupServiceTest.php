@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Groups;
 
+use App\Exceptions\NotFoundException;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -102,7 +103,7 @@ final class UserGroupServiceTest extends TestCase
         $group = $this->makeGroup();
         $user = User::factory()->create();
 
-        $this->service->addMember($group, $user);
+        $this->service->addMember($group, $user->id);
 
         $this->assertTrue($group->members()->where('users.id', $user->id)->exists());
     }
@@ -115,10 +116,25 @@ final class UserGroupServiceTest extends TestCase
         $group = $this->makeGroup();
         $user = User::factory()->create();
 
-        $this->service->addMember($group, $user);
-        $this->service->addMember($group, $user);
+        $this->service->addMember($group, $user->id);
+        $this->service->addMember($group, $user->id);
 
         $this->assertSame(1, $group->members()->where('users.id', $user->id)->count());
+    }
+
+    /**
+     * addMember бросает доменный 404, если пользователь не найден.
+     */
+    public function test_add_member_throws_when_user_not_found(): void
+    {
+        $group = $this->makeGroup();
+
+        try {
+            $this->service->addMember($group, 999999);
+            self::fail('Expected NotFoundException.');
+        } catch (NotFoundException $e) {
+            self::assertSame('GROUP_MEMBER_USER_NOT_FOUND', $e->errorCode);
+        }
     }
 
     /**

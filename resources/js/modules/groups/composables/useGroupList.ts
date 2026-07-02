@@ -7,14 +7,15 @@ export function useGroupList() {
     const page = ref(1)
     const loading = ref(false)
     const groups = ref<Group[]>([])
-    const meta = ref<GroupsPage['meta']>({current_page: 1, last_page: 1, per_page: 15, total: 0})
+    const meta = ref<GroupsPage['meta']>({current_page: 1, last_page: 1, per_page: 20, total: 0})
 
     let searchTimer: ReturnType<typeof setTimeout> | null = null
 
     async function load(): Promise<void> {
         loading.value = true
         try {
-            const qs = new URLSearchParams({'page[number]': String(page.value), 'page[size]': '15'})
+            // Размер страницы не хардкодим — дефолт задаёт backend (Pagination::DEFAULT_SIZE).
+            const qs = new URLSearchParams({'page[number]': String(page.value)})
             if (search.value) qs.set('filter[search]', search.value)
             const result = await groupRepository.list(qs)
             groups.value = result.data

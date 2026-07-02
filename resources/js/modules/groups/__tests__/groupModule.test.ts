@@ -70,7 +70,7 @@ describe('groups module', () => {
         await groupRepository.removeMember('group-1', '10')
 
         expect(getJson).toHaveBeenCalledWith(
-            '/api/users?search=%D0%98%D0%B2%D0%B0%D0%BD%20%2B%20%D0%9F%D1%91%D1%82%D1%80&per_page=10',
+            '/api/users?filter[search]=%D0%98%D0%B2%D0%B0%D0%BD%20%2B%20%D0%9F%D1%91%D1%82%D1%80&page[size]=10',
             '',
         )
         expect(sendJson).toHaveBeenCalledWith('/api/groups/group-1/members', {

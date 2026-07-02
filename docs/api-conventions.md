@@ -25,28 +25,30 @@ $groupIds = $filter['group_ids'] ?? [];
 
 Параметры пагинации передаются в неймспейсе `page[...]`:
 
-| Параметр       | Описание               | По умолчанию         |
-|----------------|------------------------|----------------------|
-| `page[number]` | Номер текущей страницы | 1                    |
-| `page[size]`   | Элементов на странице  | зависит от эндпоинта |
+| Параметр       | Описание               | По умолчанию |
+|----------------|------------------------|--------------|
+| `page[number]` | Номер текущей страницы | 1            |
+| `page[size]`   | Элементов на странице  | 20 (единый)  |
 
 ```
 GET /api/users?page[number]=2&page[size]=20
 ```
 
-На бэкенде размер страницы читается через:
+На бэкенде пагинация читается через общий DTO `App\Support\Pagination` (единый дефолт
++ клампинг), который встраивается в `*IndexData`:
 
 ```php
-$perPage = (int) $request->input('page.size', 20);
+$pagination = Pagination::fromRequest($request);   // number/size
+->paginate($pagination->size, ['*'], 'page[number]', $pagination->number)
 ```
 
-Laravel paginator настраивается с именем страницы `page[number]`:
-
-```php
-->paginate($perPage, ['*'], 'page[number]')
-```
+Дефолт размера страницы — один на всё приложение (`Pagination::DEFAULT_SIZE`); фронт
+его не хардкодит, переопределяется через `?page[size]=`.
 
 ## Формат ответа
+
+Любой успешный ответ обёрнут в `data` + блок `meta` с `timestamp` и `requestId`
+(добавляет middleware `AddApiMeta`). Плоские нагрузки оборачивает `App\Http\Responses\ApiResponse`.
 
 Одиночный ресурс:
 
@@ -56,7 +58,8 @@ Laravel paginator настраивается с именем страницы `p
     "id": "1",
     "type": "users",
     "attributes": { "name": "Alice", "email": "alice@example.com" }
-  }
+  },
+  "meta": { "timestamp": "2026-07-02T10:00:00+00:00", "requestId": "a1b2…" }
 }
 ```
 
@@ -69,8 +72,26 @@ Laravel paginator настраивается с именем страницы `p
     "current_page": 1,
     "last_page": 5,
     "per_page": 20,
-    "total": 98
+    "total": 98,
+    "timestamp": "2026-07-02T10:00:00+00:00",
+    "requestId": "a1b2…"
   }
+}
+```
+
+## Формат ошибок
+
+Единый конверт `{ errors: [...], meta }`; каждый элемент — `status`, `code`
+(машиночитаемый, из enum кодов модуля), `title`, `detail`, опционально `source.pointer`.
+Подробности контракта, доменные исключения и локализация — skill `api-response-contract`.
+
+```json
+{
+  "errors": [
+    { "status": "422", "code": "VALIDATION_ERROR", "title": "Ошибка валидации",
+      "detail": "Поле name обязательно.", "source": { "pointer": "/data/attributes/name" } }
+  ],
+  "meta": { "timestamp": "2026-07-02T10:00:00+00:00", "requestId": "a1b2…" }
 }
 ```
 
@@ -135,10 +156,10 @@ async list(qs: URLSearchParams): Promise<UsersPage> {
   return { data: raw.data.map(normalize), meta: raw.meta }
 }
 
-// composable — строит qs из window.location.search, добавляет дефолты
+// composable — строит qs из window.location.search
 async function load() {
   const qs = new URLSearchParams(window.location.search)
-  qs.set('per_page', '15')
+  // размер страницы не хардкодим — дефолт задаёт backend; переопределяется через ?page[size]=
   if (!qs.has('page[number]')) qs.set('page[number]', '1')
   const result = await userRepository.list(qs)
 }

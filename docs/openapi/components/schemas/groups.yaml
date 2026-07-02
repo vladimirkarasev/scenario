@@ -12,17 +12,31 @@ UserGroup:
       $ref: '#/UserGroupAttributes'
     relationships:
       type: object
+      description: >
+        Авторы создания/изменения (users). Linkage (type+id); сами пользователи
+        приходят в top-level `included` при запросе с `?include=createdBy,updatedBy`.
       properties:
-        created_by:
-          type: [ object, 'null' ]
+        createdBy:
+          type: object
           properties:
             data:
-              $ref: './common.yaml#/Actor'
-        updated_by:
-          type: [ object, 'null' ]
+              $ref: '#/ActorLinkage'
+        updatedBy:
+          type: object
           properties:
             data:
-              $ref: './common.yaml#/Actor'
+              $ref: '#/ActorLinkage'
+
+ActorLinkage:
+  type: [ object, 'null' ]
+  required: [ type, id ]
+  properties:
+    type:
+      type: string
+      example: users
+    id:
+      type: string
+      example: '42'
 
 UserGroupAttributes:
   type: object

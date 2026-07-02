@@ -43,7 +43,8 @@ final class UserGroupsControllerTest extends TestCase
         $this->actingAs($user)
             ->getJson('/api/groups')
             ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(2, 'data')
+            ->assertJsonStructure(['meta' => ['timestamp', 'requestId']]);
     }
 
     /**
@@ -70,16 +71,20 @@ final class UserGroupsControllerTest extends TestCase
 
         $this->actingAs($user)
             ->getJson('/api/groups')
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.code', 'FORBIDDEN')
+            ->assertJsonStructure(['errors' => [['status', 'code', 'title', 'detail']], 'meta' => ['timestamp', 'requestId']]);
     }
 
     /**
-     * Без авторизации — 401.
+     * Без авторизации — 401 в едином формате errors[] + meta.
      */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/groups')
-            ->assertUnauthorized();
+            ->assertUnauthorized()
+            ->assertJsonPath('errors.0.code', 'UNAUTHENTICATED')
+            ->assertJsonStructure(['errors' => [['status', 'code', 'title', 'detail']], 'meta' => ['timestamp', 'requestId']]);
     }
 
     // -------------------------------------------------------------------------
@@ -102,6 +107,29 @@ final class UserGroupsControllerTest extends TestCase
     }
 
     /**
+     * Автор отдаётся как JSON:API-связь: linkage + top-level included при ?include=createdBy.
+     */
+    public function test_show_includes_creator_as_json_api_relationship(): void
+    {
+        [$user, $project] = $this->makeUserWithProject('group_view');
+        $group = UserGroup::query()->create([
+            'name' => 'С автором',
+            'slug' => 'with-actor-'.Str::random(4),
+            'site_id' => $project->id,
+            'is_active' => true,
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->getJson("/api/groups/{$group->id}?include=createdBy")
+            ->assertOk()
+            ->assertJsonPath('data.relationships.createdBy.data.type', 'users')
+            ->assertJsonPath('data.relationships.createdBy.data.id', (string) $user->id)
+            ->assertJsonPath('included.0.type', 'users')
+            ->assertJsonPath('included.0.id', (string) $user->id);
+    }
+
+    /**
      * Несуществующий UUID — 404.
      */
     public function test_show_returns_404_for_nonexistent(): void
@@ -110,6 +138,19 @@ final class UserGroupsControllerTest extends TestCase
 
         $this->actingAs($user)
             ->getJson('/api/groups/'.Str::uuid())
+            ->assertNotFound();
+    }
+
+    /**
+     * Группа чужого проекта недоступна — 404 (скоупинг по проекту).
+     */
+    public function test_show_returns_404_for_group_from_other_project(): void
+    {
+        [$user] = $this->makeUserWithProject('group_view');
+        $group = $this->makeGroup($this->makeProject());
+
+        $this->actingAs($user)
+            ->getJson("/api/groups/{$group->id}")
             ->assertNotFound();
     }
 
@@ -246,6 +287,7 @@ final class UserGroupsControllerTest extends TestCase
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
             'host' => $project->host,
+            'project_id' => $project->id,
         ]);
 
         foreach ($permissions as $permission) {

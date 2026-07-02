@@ -82,6 +82,16 @@ IncludeUserRelations:
     type: string
     example: roles,groups
 
+IncludeGroupRelations:
+  name: include
+  in: query
+  description: >-
+    JSON:API include связей через запятую. Поддерживаются `createdBy`, `updatedBy`
+    (users). Включённые объекты возвращаются в top-level `included`.
+  schema:
+    type: string
+    example: createdBy,updatedBy
+
 FieldsGroups:
   name: fields[groups]
   in: query
@@ -97,3 +107,11 @@ FieldsRoles:
   schema:
     type: string
     example: name,title
+
+FieldsUsers:
+  name: fields[users]
+  in: query
+  description: Sparse fieldset для включённых пользователей (поля через запятую).
+  schema:
+    type: string
+    example: name,email

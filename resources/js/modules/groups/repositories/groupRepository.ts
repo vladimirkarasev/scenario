@@ -91,7 +91,7 @@ export const groupRepository = {
     },
 
     async searchUsers(search: string): Promise<GroupMember[]> {
-        const raw = await getJson(`/api/users?search=${encodeURIComponent(search)}&per_page=10`, '') as {
+        const raw = await getJson(`/api/users?filter[search]=${encodeURIComponent(search)}&page[size]=10`, '') as {
             data: RawMember[]
         }
         return raw.data.map(normalizeMember)

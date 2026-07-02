@@ -170,9 +170,9 @@ paths:
   /groups/{group}:
     $ref: './paths/groups.yaml#/item'
   /groups/{group}/members:
-    $ref: './paths/users.yaml#/members'
+    $ref: './paths/groups.yaml#/members'
   /groups/{group}/members/{user}:
-    $ref: './paths/users.yaml#/memberItem'
+    $ref: './paths/groups.yaml#/memberItem'
 
   /actions:
     $ref: './paths/actions.yaml#/collection'
@@ -348,6 +348,8 @@ components:
 
     UserGroup:
       $ref: './components/schemas/groups.yaml#/UserGroup'
+    ActorLinkage:
+      $ref: './components/schemas/groups.yaml#/ActorLinkage'
     UserGroupAttributes:
       $ref: './components/schemas/groups.yaml#/UserGroupAttributes'
     UserGroupRequest:

@@ -20,7 +20,7 @@ final class UserGroupRepository
             ->search($filters->search)
             ->active($filters->isActive)
             ->orderBy('name')
-            ->paginate($filters->perPage, ['*'], 'page[number]');
+            ->paginate($filters->pagination->size, ['*'], 'page[number]', $filters->pagination->number);
     }
 
     /** @param  array<string, mixed>  $attributes */
