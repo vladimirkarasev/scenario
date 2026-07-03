@@ -7,10 +7,6 @@ namespace Module\Proxy\Support;
 use Module\Proxy\DTO\ProxyField;
 use Module\Proxy\DTO\ProxyFieldString;
 
-/**
- * Фиксированная схема доступов интеграции (base_uri + токен) и маскирование секретов.
- * Единое место: UI рендерит форму по fields(), контроллер сохраняет/мёржит, ресурс маскирует.
- */
 final class IntegrationCredentials
 {
     private function __construct() {}

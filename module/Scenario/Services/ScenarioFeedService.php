@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Module\Scenario\Services;
 
 use App\Models\Category;
+use App\Support\PaginationMeta;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Module\Scenario\DTO\ScenarioFeedData;
 use Module\Scenario\Models\Scenario;
 
@@ -15,8 +20,8 @@ final readonly class ScenarioFeedService
      * Возвращает смешанный поток "папки сверху + сценарии" с единой пагинацией.
      *
      * @return array{
-     *     data: array<int, array<string, mixed>>,
-     *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, folders_total: int, items_total: int},
+     *     rows: array<int, array<string, mixed>>,
+     *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, from: int|null, to: int|null, folders_total: int, items_total: int},
      *     counts_by_status: array{all: int, active: int, draft: int, archived: int}
      * }
      */
@@ -25,39 +30,121 @@ final readonly class ScenarioFeedService
         $map = $data->rootId !== null ? $this->categoryMap($projectId) : null;
         $subtreeIds = $map !== null ? $this->subtreeIds($map, $data->rootId) : null;
 
-        $foldersTotal = $this->foldersQuery($projectId, $data, $subtreeIds)->count();
-        $itemsTotal = $this->itemsQuery($projectId, $data, $subtreeIds)->count();
-        $countsByStatus = $this->countsByStatus($projectId, $data, $subtreeIds);
-
-        $total = $foldersTotal + $itemsTotal;
-        $lastPage = max(1, (int)ceil($total / $data->perPage));
-        $offset = ($data->page - 1) * $data->perPage;
-
-        $folderOffset = min($offset, $foldersTotal);
-        $folderTake = max(0, min($data->perPage, $foldersTotal - $folderOffset));
-        $itemOffset = max(0, $offset - $foldersTotal);
-        $itemTake = $data->perPage - $folderTake;
-
-        $folderRows = $folderTake > 0
-            ? $this->loadFolders($projectId, $data, $subtreeIds, $map, $folderOffset, $folderTake)
-            : [];
-
-        $itemRows = $itemTake > 0
-            ? $this->loadItems($projectId, $data, $subtreeIds, $map, $itemOffset, $itemTake)
-            : [];
+        $page = $this->paginate($projectId, $data, $subtreeIds);
 
         return [
-            'data' => [...$folderRows, ...$itemRows],
+            'rows' => $this->rows($page, $projectId, $map, $subtreeIds),
             'pagination' => [
-                'current_page' => $data->page,
-                'last_page' => $lastPage,
-                'per_page' => $data->perPage,
-                'total' => $total,
-                'folders_total' => $foldersTotal,
-                'items_total' => $itemsTotal,
+                ...PaginationMeta::fromPaginator($page),
+                'folders_total' => $this->foldersQuery($projectId, $data, $subtreeIds)->count(),
+                'items_total' => $this->itemsQuery($projectId, $data, $subtreeIds)->count(),
             ],
-            'counts_by_status' => $countsByStatus,
+            'counts_by_status' => $this->countsByStatus($projectId, $data, $subtreeIds),
         ];
+    }
+
+    /**
+     * Единая пагинация union-запроса «папки + сценарии»: папки первыми, внутри — по имени.
+     *
+     * @param  list<string>|null  $subtreeIds
+     * @return LengthAwarePaginator<int, \stdClass>
+     */
+    private function paginate(?string $projectId, ScenarioFeedData $data, ?array $subtreeIds): LengthAwarePaginator
+    {
+        $folders = $this->foldersQuery($projectId, $data, $subtreeIds)
+            ->toBase()
+            ->select(['categories.id', 'categories.name'])
+            ->selectRaw("'folder' as item_type");
+
+        $scenarios = $this->itemsQuery($projectId, $data, $subtreeIds)
+            ->toBase()
+            ->select(['scenarios.id', 'scenarios.name'])
+            ->selectRaw("'scenario' as item_type");
+
+        /** @var LengthAwarePaginator<int, \stdClass> */
+        return DB::query()
+            ->fromSub($folders->unionAll($scenarios), 'feed_items')
+            ->orderByRaw("case when item_type = 'folder' then 0 else 1 end")
+            ->orderBy('name')
+            ->paginate($data->perPage, ['*'], 'page', $data->page);
+    }
+
+    /**
+     * Гидрирует страницу union-запроса моделями и собирает строки в порядке страницы.
+     *
+     * @param  LengthAwarePaginator<int, \stdClass>  $page
+     * @param  array<string, array{name: string, parent_id: string|null}>|null  $map
+     * @param  list<string>|null  $subtreeIds
+     * @return array<int, array<string, mixed>>
+     */
+    private function rows(LengthAwarePaginator $page, ?string $projectId, ?array $map, ?array $subtreeIds): array
+    {
+        $ids = ['folder' => [], 'scenario' => []];
+        foreach ($page->items() as $item) {
+            $type = is_string($item->item_type ?? null) ? $item->item_type : '';
+            $id = is_string($item->id ?? null) ? $item->id : '';
+            if ($id !== '' && isset($ids[$type])) {
+                $ids[$type][] = $id;
+            }
+        }
+
+        $folders = $this->foldersByIds($ids['folder'], $projectId);
+        $scenarios = $this->scenariosByIds($ids['scenario']);
+
+        $rows = [];
+        foreach ($page->items() as $item) {
+            $type = is_string($item->item_type ?? null) ? $item->item_type : '';
+            $id = is_string($item->id ?? null) ? $item->id : '';
+
+            if ($type === 'folder' && isset($folders[$id])) {
+                $rows[] = $this->folderRow($folders[$id], $map);
+            } elseif ($type === 'scenario' && isset($scenarios[$id])) {
+                $rows[] = $this->scenarioRow($scenarios[$id], $map, $subtreeIds);
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return array<string, Category>
+     */
+    private function foldersByIds(array $ids, ?string $projectId): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        /** @var array<string, Category> */
+        return Category::query()
+            ->withCount([
+                'children' => fn(Builder $q) => $q->whereExists($this->boundToScenarios($projectId)),
+            ])
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id')
+            ->all();
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return array<string, Scenario>
+     */
+    private function scenariosByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        /** @var array<string, Scenario> */
+        return Scenario::query()
+            ->with(['createdBy', 'updatedBy', 'categories'])
+            ->withCount('versions')
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id')
+            ->all();
     }
 
     /**
@@ -112,14 +199,7 @@ final readonly class ScenarioFeedService
                 $descendantIds !== null,
                 static fn(Builder $q) => $q->whereIn('categories.id', $descendantIds ?? [])
             )
-            ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($projectId): void {
-                $q->from('model_has_categories')
-                    ->whereColumn('model_has_categories.category_id', 'categories.id')
-                    ->where('model_has_categories.model_type', Scenario::class);
-                if ($projectId !== null) {
-                    $q->where('model_has_categories.project_id', $projectId);
-                }
-            })
+            ->whereExists($this->boundToScenarios($projectId))
             ->when(
                 $data->search !== null,
                 static fn(Builder $q) => $q->whereRaw(
@@ -128,6 +208,19 @@ final readonly class ScenarioFeedService
                 ),
             )
             ->orderBy('name');
+    }
+
+    /** Условие: категория привязана к сценариям (в проекте, если он задан). */
+    private function boundToScenarios(?string $projectId): Closure
+    {
+        return static function (QueryBuilder $q) use ($projectId): void {
+            $q->from('model_has_categories')
+                ->whereColumn('model_has_categories.category_id', 'categories.id')
+                ->where('model_has_categories.model_type', Scenario::class);
+            if ($projectId !== null) {
+                $q->where('model_has_categories.project_id', $projectId);
+            }
+        };
     }
 
     /**
@@ -164,17 +257,7 @@ final readonly class ScenarioFeedService
                 $data->excludeScenarioId !== null,
                 static fn(Builder $q) => $q->where('scenarios.id', '!=', $data->excludeScenarioId),
             )
-            ->when(
-                $data->search !== null,
-                static function (Builder $q) use ($data): void {
-                    $like = '%'.mb_strtolower((string)$data->search).'%';
-                    $q->where(static function (Builder $w) use ($like): void {
-                        $w->whereRaw('LOWER(scenarios.name) like ?', [$like])
-                            ->orWhereRaw('LOWER(scenarios.description) like ?', [$like])
-                            ->orWhereRaw('LOWER(scenarios.alias) like ?', [$like]);
-                    });
-                },
-            )
+            ->search($data->search)
             ->orderBy('name');
     }
 
@@ -187,16 +270,7 @@ final readonly class ScenarioFeedService
     {
         $rows = $this->foldersQuery($projectId, $data, $subtreeIds)
             ->withCount([
-                'children' => static function (Builder $q) use ($projectId): void {
-                    $q->whereExists(static function (\Illuminate\Database\Query\Builder $sub) use ($projectId): void {
-                        $sub->from('model_has_categories')
-                            ->whereColumn('model_has_categories.category_id', 'categories.id')
-                            ->where('model_has_categories.model_type', Scenario::class);
-                        if ($projectId !== null) {
-                            $sub->where('model_has_categories.project_id', $projectId);
-                        }
-                    });
-                }
+                'children' => fn(Builder $q) => $q->whereExists($this->boundToScenarios($projectId))
             ])
             ->offset($offset)
             ->limit($take)
@@ -274,14 +348,7 @@ final readonly class ScenarioFeedService
     private function categoryMap(?string $projectId): array
     {
         return Category::query()
-            ->whereExists(static function (\Illuminate\Database\Query\Builder $q) use ($projectId): void {
-                $q->from('model_has_categories')
-                    ->whereColumn('model_has_categories.category_id', 'categories.id')
-                    ->where('model_has_categories.model_type', Scenario::class);
-                if ($projectId !== null) {
-                    $q->where('model_has_categories.project_id', $projectId);
-                }
-            })
+            ->whereExists($this->boundToScenarios($projectId))
             ->get(['id', 'name', 'parent_id'])
             ->mapWithKeys(static fn(Category $c): array => [
                 $c->id => ['name' => $c->name, 'parent_id' => $c->parent_id],

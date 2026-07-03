@@ -11,7 +11,7 @@ use Module\Groups\Models\UserGroup;
 final class UserGroupRepository
 {
     /** @return LengthAwarePaginator<int, UserGroup> */
-    public function paginate(UserGroupIndexData $filters, ?string $projectId = null): LengthAwarePaginator
+    public function paginate(UserGroupIndexData $filters, string $projectId): LengthAwarePaginator
     {
         return UserGroup::query()
             ->forProject($projectId)
@@ -42,8 +42,23 @@ final class UserGroupRepository
         $group->delete();
     }
 
-    public function findBySlug(string $slug): ?UserGroup
+    /** @param  array<string, mixed>  $attributes */
+    public function firstOrCreateBySlug(
+        string $projectId,
+        string $slug,
+        array $attributes,
+    ): UserGroup {
+        return UserGroup::query()->firstOrCreate(
+            ['site_id' => $projectId, 'slug' => $slug],
+            $attributes,
+        );
+    }
+
+    public function findByExternalId(string $projectId, string $externalId): ?UserGroup
     {
-        return UserGroup::query()->where('slug', $slug)->first();
+        return UserGroup::query()
+            ->forProject($projectId)
+            ->where('ext_id', $externalId)
+            ->first();
     }
 }

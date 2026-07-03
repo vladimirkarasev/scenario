@@ -20,13 +20,14 @@ use Tests\TestCase;
 final class ProxyFeedControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     public function test_requires_authentication(): void
@@ -42,11 +43,11 @@ final class ProxyFeedControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->getJson('/api/proxy/feed?filter[parent_id]=null')
             ->assertOk()
-            ->assertJsonPath('pagination.folders_total', 1)
-            ->assertJsonPath('pagination.items_total', 1);
+            ->assertJsonPath('meta.folders_total', 1)
+            ->assertJsonPath('meta.items_total', 1);
 
         $types = array_column($response->json('data'), 'type');
-        $this->assertSame(['folder', 'endpoint'], $types); // папки всегда сверху
+        $this->assertSame(['proxy-folders', 'proxy-endpoints'], $types); // папки всегда сверху
     }
 
     public function test_feed_inside_section_returns_only_its_endpoints(): void
@@ -59,11 +60,11 @@ final class ProxyFeedControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->getJson("/api/proxy/feed?filter[parent_id]={$section->id}")
             ->assertOk()
-            ->assertJsonPath('pagination.items_total', 1)
-            ->assertJsonPath('pagination.folders_total', 0);
+            ->assertJsonPath('meta.items_total', 1)
+            ->assertJsonPath('meta.folders_total', 0);
 
-        $this->assertSame('endpoint', $response->json('data.0.type'));
-        $this->assertSame($inside->id, $response->json('data.0.id'));
+        $this->assertSame('proxy-endpoints', $response->json('data.0.type'));
+        $this->assertSame((string) $inside->id, $response->json('data.0.id'));
     }
 
     public function test_feed_search_matches_endpoint_name_and_code(): void
@@ -74,9 +75,9 @@ final class ProxyFeedControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->getJson('/api/proxy/feed?filter[search]=autocrm')
             ->assertOk()
-            ->assertJsonPath('pagination.items_total', 1);
+            ->assertJsonPath('meta.items_total', 1);
 
-        $this->assertSame('autocrm-leads', $response->json('data.0.code'));
+        $this->assertSame('autocrm-leads', $response->json('data.0.attributes.code'));
     }
 
     public function test_feed_endpoint_row_contains_expected_fields(): void
@@ -88,10 +89,10 @@ final class ProxyFeedControllerTest extends TestCase
             ->assertOk()
             ->json('data.0');
 
-        foreach (['type', 'id', 'uuid', 'name', 'code', 'is_active', 'is_mocked', 'base_uri'] as $key) {
-            $this->assertArrayHasKey($key, $row);
+        foreach (['uuid', 'name', 'code', 'is_active', 'is_mocked', 'base_uri'] as $key) {
+            $this->assertArrayHasKey($key, $row['attributes']);
         }
-        $this->assertSame('endpoint', $row['type']);
+        $this->assertSame('proxy-endpoints', $row['type']);
     }
 
     // -------------------------------------------------------------------------
@@ -111,7 +112,7 @@ final class ProxyFeedControllerTest extends TestCase
             'category_id' => $category->id,
             'model_id' => $category->id,
             'model_type' => ProxyEndpoint::class,
-            'project_id' => null,
+            'project_id' => $this->proxyProject->id,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -122,6 +123,7 @@ final class ProxyFeedControllerTest extends TestCase
     private function makeEndpoint(string $name, ?string $code = null): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => $name,
             'code' => $code ?? 'code-'.Str::random(6),

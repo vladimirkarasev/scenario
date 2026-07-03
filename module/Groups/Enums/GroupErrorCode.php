@@ -11,6 +11,8 @@ use App\Contracts\ErrorText;
  */
 enum GroupErrorCode: string implements ErrorText
 {
+    case GroupNotFound = 'GROUP_NOT_FOUND';
+    case ExternalIdConflict = 'GROUP_EXTERNAL_ID_CONFLICT';
     case MemberUserNotFound = 'GROUP_MEMBER_USER_NOT_FOUND';
 
     #[\Override]

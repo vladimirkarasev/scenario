@@ -12,7 +12,7 @@ use Module\Proxy\Models\ProxyRequest;
  */
 final class ProxyRequestBuilder extends Builder
 {
-    public function forEndpoint(?int $endpointId): static
+    public function forEndpoint(?int $endpointId): ProxyRequestBuilder
     {
         if ($endpointId === null) {
             return $this;
@@ -21,7 +21,7 @@ final class ProxyRequestBuilder extends Builder
         return $this->where('proxy_endpoint_id', $endpointId);
     }
 
-    public function forStatus(?string $status): static
+    public function forStatus(?string $status): ProxyRequestBuilder
     {
         if ($status === null || $status === '') {
             return $this;
@@ -30,7 +30,7 @@ final class ProxyRequestBuilder extends Builder
         return $this->where('status', $status);
     }
 
-    public function search(?string $value): static
+    public function search(?string $value): ProxyRequestBuilder
     {
         if ($value === null || $value === '') {
             return $this;

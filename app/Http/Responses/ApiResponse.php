@@ -15,8 +15,14 @@ use Illuminate\Http\JsonResponse;
  */
 final class ApiResponse extends JsonResponse
 {
-    public function __construct(mixed $data, int $status = 200)
+    /** @param  array<string, mixed>  $meta */
+    public function __construct(mixed $data, int $status = 200, array $meta = [])
     {
-        parent::__construct(['data' => $data], $status);
+        $payload = ['data' => $data];
+        if ($meta !== []) {
+            $payload['meta'] = $meta;
+        }
+
+        parent::__construct($payload, $status);
     }
 }

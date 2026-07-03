@@ -56,7 +56,7 @@ export function useWebhookRequestFilters(params: WebhookRequestListParams) {
         }
         endpointTimer = setTimeout(async () => {
             try {
-                const res = await webhookRepository.search(q)
+                const res = await webhookRepository.list(new URLSearchParams({'filter[search]': q}))
                 endpointResults.value = res.map(e => ({id: e.id, name: e.name}))
             } catch { /* silent */
             }

@@ -10,7 +10,6 @@ use Module\Scenario\DTO\ScenarioRunJumpData;
 use Module\Scenario\DTO\ScenarioStartData;
 use Module\Scenario\Enums\ScenarioNodeType;
 use Module\Scenario\Enums\ScenarioRunStatus;
-use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioRunStep;
 use Module\Scenario\Models\ScenarioVersion;
@@ -64,15 +63,13 @@ final readonly class ScenarioPlayerService
     public function start(ScenarioStartData $data): string
     {
         $version = match (true) {
-            $data->versionId !== null => ScenarioVersion::query()->findOrFail($data->versionId),
+            $data->versionId !== null => $this->versions->getById($data->versionId),
             $data->scenarioId !== null => $this->versions->resolveForScenario(
-                $this->scenarios->findOrFail($data->scenarioId),
+                $this->scenarios->getById($data->scenarioId),
                 null,
             ),
             default => $this->versions->resolveForScenario(
-                Scenario::query()
-                    ->where('alias', (string) $data->alias)
-                    ->firstOrFail(),
+                $this->scenarios->getByAlias((string) $data->alias),
                 null,
             ),
         };
@@ -91,11 +88,11 @@ final readonly class ScenarioPlayerService
     public function createRun(ScenarioRunData $data): ScenarioRun
     {
         if ($data->scenarioId !== null) {
-            $scenario = $this->scenarios->findOrFail($data->scenarioId);
+            $scenario = $this->scenarios->getById($data->scenarioId);
             $version = $this->versions->resolveForScenario($scenario, $data->scenarioVersionId);
         } else {
-            $version = ScenarioVersion::query()->findOrFail($data->scenarioVersionId);
-            $scenario = $this->scenarios->findOrFail($version->scenario_id);
+            $version = $this->versions->getById((string) $data->scenarioVersionId);
+            $scenario = $this->scenarios->getById($version->scenario_id);
         }
 
         $revision = $this->revisions->getLastRevision($version);
@@ -217,7 +214,7 @@ final readonly class ScenarioPlayerService
             }
 
             $this->steps->trimAfter($run, (int) $targetStep->id);
-            $this->steps->update($targetStep, ['input' => null, 'output' => null, 'exited_at' => null]);
+            $this->steps->cancel($targetStep);
         } else {
             $this->stepManager->closeOpen($run, [], []);
         }

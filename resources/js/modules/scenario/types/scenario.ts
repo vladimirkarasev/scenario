@@ -105,15 +105,14 @@ export interface ScenarioRunStats {
 }
 
 export interface ScenarioRunsPage {
-    runs: ScenarioRunListItem[]
-    pagination: {
+    data: ScenarioRunListItem[]
+    meta: {
         current_page: number
         last_page: number
         per_page: number
         total: number
         from: number | null
         to: number | null
+        stats: ScenarioRunStats
     }
-    stats: ScenarioRunStats
-    total: number
 }

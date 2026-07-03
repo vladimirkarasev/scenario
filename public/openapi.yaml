@@ -50,6 +50,8 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
+  - name: Proxy
+    description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
 paths:
   /scenarios/catalog:
     get:
@@ -1711,6 +1713,47 @@ paths:
           $ref: '#/components/responses/NotFoundErrors'
         '422':
           $ref: '#/components/responses/ValidationErrors'
+  /groups/{group}/member-candidates:
+    parameters:
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Группы
+      summary: Найти пользователей для добавления в группу
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: Пользователи текущего проекта, ещё не состоящие в группе
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
   /groups/{group}/members/{user}:
     parameters:
       - name: group
@@ -2161,6 +2204,577 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/ErrorResponse'
                   - $ref: '#/components/schemas/ValidationErrorResponse'
+  /proxy/endpoints:
+    get:
+      tags:
+        - Proxy
+      summary: Список интеграций
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[type]
+          in: query
+          schema:
+            type: string
+        - name: filter[category_ids][]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: name, code, type, is_active, created_at, updated_at; префикс - задаёт DESC
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointCollection'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+    post:
+      tags:
+        - Proxy
+      summary: Создать интеграцию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyEndpointRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/EndpointItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/endpoints/{proxy}:
+    parameters:
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Proxy
+      summary: Получить интеграцию
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить интеграцию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyEndpointRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить интеграцию
+      responses:
+        '204':
+          description: Интеграция удалена
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/endpoints/{proxy}/fields:
+    get:
+      tags:
+        - Proxy
+      summary: Поля интеграции
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: JSON:API коллекция полей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/handlers:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/credential-fields:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/credential-types:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/connections:
+    get:
+      tags:
+        - Proxy
+      summary: Список доступов
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[credential_type]
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция доступов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyConnection'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
+    post:
+      tags:
+        - Proxy
+      summary: Создать доступ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyConnectionRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ConnectionItem'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/connections/{connection}:
+    parameters:
+      - name: connection
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Proxy
+      summary: Получить доступ
+      responses:
+        '200':
+          $ref: '#/components/responses/ConnectionItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить доступ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyConnectionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConnectionItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить доступ
+      responses:
+        '204':
+          description: Доступ удалён
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/feed:
+    get:
+      tags:
+        - Proxy
+      summary: Лента разделов и интеграций
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[type]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция разделов и интеграций
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyFeedResource'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/CollectionMeta'
+                          - type: object
+                            properties:
+                              folders_total:
+                                type: integer
+                              items_total:
+                                type: integer
+  /proxy/categories:
+    get:
+      tags:
+        - Proxy
+      summary: Список разделов интеграций
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API коллекция разделов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryResource'
+    post:
+      tags:
+        - Proxy
+      summary: Создать раздел интеграций
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Раздел создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CategoryResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/categories/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Proxy
+      summary: Получить раздел интеграций
+      responses:
+        '200':
+          description: JSON:API ресурс раздела
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CategoryResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить раздел интеграций
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Раздел обновлён
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить раздел интеграций
+      responses:
+        '204':
+          description: Раздел удалён
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/requests:
+    get:
+      tags:
+        - Proxy
+      summary: Журнал запросов
+      parameters:
+        - name: filter[endpoint_id]
+          in: query
+          schema:
+            type: integer
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция запросов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyRequest'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
+  /proxy/requests/{proxyRequest}:
+    get:
+      tags:
+        - Proxy
+      summary: Детали запроса
+      parameters:
+        - name: proxyRequest
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API ресурс запроса
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProxyRequest'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxies/{uuid}:
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Proxy
+      summary: Вызвать публичную GET-интеграцию
+      responses:
+        '200':
+          description: Ответ обработчика интеграции
+        '404':
+          description: Интеграция не найдена или неактивна
+        '405':
+          description: Метод не разрешён
+    post:
+      tags:
+        - Proxy
+      summary: Вызвать публичную POST-интеграцию
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Запрос принят
+        '404':
+          description: Интеграция не найдена или неактивна
+        '405':
+          description: Метод не разрешён
+        '422':
+          description: Payload не прошёл схему обработчика
+  /proxies/{uuid}/fields:
+    get:
+      tags:
+        - Proxy
+      summary: Поля публичной интеграции
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API коллекция полей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
 components:
   parameters:
     ScenarioId:
@@ -2313,6 +2927,48 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiErrorResponse'
+    EndpointCollection:
+      description: JSON:API коллекция интеграций
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/JsonApiCollection'
+              - properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProxyEndpoint'
+                  meta:
+                    $ref: '#/components/schemas/CollectionMeta'
+    EndpointItem:
+      description: JSON:API ресурс интеграции
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+              - meta
+            properties:
+              data:
+                $ref: '#/components/schemas/ProxyEndpoint'
+              meta:
+                $ref: '#/components/schemas/ApiMeta'
+    ConnectionItem:
+      description: JSON:API ресурс доступа
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+              - meta
+            properties:
+              data:
+                $ref: '#/components/schemas/ProxyConnection'
+              meta:
+                $ref: '#/components/schemas/ApiMeta'
   schemas:
     Actor:
       type:
@@ -3726,13 +4382,13 @@ components:
           example: Отдел продаж
         slug:
           type: string
-          example: sales_team
-          description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
+          example: sales-team
+          description: Уникальный в пределах проекта идентификатор группы
         ext_id:
           type:
             - string
             - 'null'
-          description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
+          description: Уникальный в пределах проекта идентификатор группы во внешней системе
           example: crm_group_42
         description:
           type:
@@ -3766,8 +4422,8 @@ components:
         slug:
           type: string
           maxLength: 255
-          description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
-          example: sales_team
+          description: Уникальный в пределах проекта идентификатор в формате latin-kebab-case
+          example: sales-team
         ext_id:
           type:
             - string
@@ -4517,6 +5173,273 @@ components:
             slug:
               type: string
               example: operators
+    ProxyEndpoint:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-endpoints
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - uuid
+            - name
+            - code
+            - type
+            - is_active
+            - is_mocked
+            - handler_class
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            uuid:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+            type:
+              type: string
+              enum:
+                - webhook
+                - suggest
+            method:
+              type:
+                - string
+                - 'null'
+            description:
+              type:
+                - string
+                - 'null'
+            is_active:
+              type: boolean
+            is_mocked:
+              type: boolean
+            handler_class:
+              type: string
+            connection_id:
+              type:
+                - integer
+                - 'null'
+            category_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            base_uri:
+              type:
+                - string
+                - 'null'
+              format: uri
+            credentials:
+              type: object
+            secret_filled:
+              type: object
+              additionalProperties:
+                type: boolean
+            config:
+              type: object
+            mock_responses:
+              type: array
+              items:
+                type: object
+            receive_url:
+              type: string
+            created_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updated_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+        relationships:
+          type: object
+    ProxyEndpointRequest:
+      type: object
+      required:
+        - name
+        - code
+        - handler_class
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 255
+        type:
+          type: string
+          enum:
+            - webhook
+            - suggest
+        method:
+          type:
+            - string
+            - 'null'
+          enum:
+            - GET
+            - POST
+            - null
+        description:
+          type:
+            - string
+            - 'null'
+        is_active:
+          type: boolean
+        is_mocked:
+          type: boolean
+        handler_class:
+          type: string
+        connection_id:
+          type:
+            - integer
+            - 'null'
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        credentials:
+          type:
+            - object
+            - 'null'
+        config:
+          type:
+            - object
+            - 'null'
+        mock_responses:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+    ProxyCatalogResource:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          enum:
+            - proxy-fields
+            - proxy-handlers
+            - proxy-credential-types
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    ProxyConnection:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-connections
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - name
+            - credential_type
+            - config
+            - secret_filled
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            credential_type:
+              type: string
+            credential_label:
+              type: string
+            config:
+              type: object
+            secret_filled:
+              type: object
+              additionalProperties:
+                type: boolean
+            created_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updated_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+    ProxyConnectionRequest:
+      type: object
+      required:
+        - name
+        - credential_type
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        credential_type:
+          type: string
+        values:
+          type: object
+          additionalProperties: true
+    ProxyFeedResource:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          enum:
+            - proxy-folders
+            - proxy-endpoints
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    ProxyRequest:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-requests
+        id:
+          type: string
+          format: uuid
+        attributes:
+          type: object
+          required:
+            - request_id
+            - status
+            - is_mocked
+          additionalProperties: true
+        relationships:
+          type: object
   securitySchemes:
     BearerAuth:
       type: http
@@ -4544,6 +5467,9 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
+  - name: Интеграции
+    tags:
+      - Proxy
   - name: Авторизация
     tags:
       - Авторизация

@@ -18,13 +18,14 @@ use Tests\TestCase;
 final class ProxyEndpointControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     // -------------------------------------------------------------------------
@@ -90,6 +91,22 @@ final class ProxyEndpointControllerTest extends TestCase
 
         $this->assertSame((string) $suggest->id, $response->json('data.0.id'));
         $this->assertSame('suggest', $response->json('data.0.attributes.type'));
+    }
+
+    public function test_index_uses_json_api_media_type_meta_and_sparse_fields(): void
+    {
+        $this->makeEndpoint();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/proxy/endpoints?fields[proxy-endpoints]=name,code')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/vnd.api+json')
+            ->assertJsonStructure(['meta' => ['timestamp', 'requestId']]);
+
+        $this->assertSame(
+            ['name', 'code'],
+            array_keys($response->json('data.0.attributes')),
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -365,6 +382,7 @@ final class ProxyEndpointControllerTest extends TestCase
     public function test_update_with_blank_secret_preserves_stored_token(): void
     {
         $endpoint = ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'AutoCRM', 'code' => 'autocrm-1',
             'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
@@ -440,6 +458,7 @@ final class ProxyEndpointControllerTest extends TestCase
     private function makeEndpoint(bool $isActive = true, string $type = 'webhook'): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'Endpoint '.Str::random(4),
             'code' => 'code-'.Str::random(6),

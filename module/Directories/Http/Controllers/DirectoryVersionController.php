@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Validation\Rule;
+use Module\Directories\Http\Requests\StoreDirectoryVersionRequest;
+use Module\Directories\Http\Requests\UpdateDirectoryVersionCodeRequest;
+use Module\Directories\Http\Requests\UpdateDirectoryVersionSettingsRequest;
 use Module\Directories\Http\Resources\JsonApi\DirectoryVersionResource;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
@@ -30,13 +32,9 @@ final class DirectoryVersionController extends Controller
         return DirectoryVersionResource::collection($this->versionService->list($directory));
     }
 
-    public function store(Request $request, Directory $directory): JsonResponse
+    public function store(StoreDirectoryVersionRequest $request, Directory $directory): JsonResponse
     {
         $this->ensureProjectAccess($request, $directory);
-
-        $request->validate([
-            'clone' => ['required', 'boolean'],
-        ]);
 
         $version = $this->versionService->create(
             directory: $directory,
@@ -113,22 +111,11 @@ final class DirectoryVersionController extends Controller
     }
 
     public function updateSettings(
-        Request $request,
+        UpdateDirectoryVersionSettingsRequest $request,
         Directory $directory,
         DirectoryVersion $version
     ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
-
-        $request->validate([
-            'source_type' => ['required', Rule::in(['manual', 'excel', 'api', 'external'])],
-            'sync_options' => ['sometimes', 'array'],
-            'sync_options.add_new' => ['sometimes', 'boolean'],
-            'sync_options.update_existing' => ['sometimes', 'boolean'],
-            'sync_options.delete_unused' => ['sometimes', 'boolean'],
-            'allow_other' => ['sometimes', 'boolean'],
-            'other_label' => ['nullable', 'string', 'max:100'],
-            'other_external_key' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_\-\.]+$/'],
-        ]);
 
         $syncOptions = null;
         if ($request->has('sync_options')) {
@@ -148,22 +135,17 @@ final class DirectoryVersionController extends Controller
                 syncOptions: $syncOptions,
                 allowOther: $request->has('allow_other') ? $request->boolean('allow_other') : null,
                 otherLabel: $request->has('other_label') ? $request->str('other_label')->toString() : null,
-                otherExternalKey: $request->has('other_external_key') ? $request->str('other_external_key')->toString(
-                ) : null,
+                otherExternalKey: $request->has('other_external_key') ? $request->str('other_external_key')->toString() : null,
             ),
         );
     }
 
     public function updateCode(
-        Request $request,
+        UpdateDirectoryVersionCodeRequest $request,
         Directory $directory,
         DirectoryVersion $version
     ): DirectoryVersionResource {
         $this->ensureProjectAccess($request, $directory);
-
-        $request->validate([
-            'code' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_\-\.\/]+$/'],
-        ]);
 
         return new DirectoryVersionResource(
             $this->versionService->updateCode(

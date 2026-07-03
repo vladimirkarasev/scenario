@@ -19,13 +19,14 @@ use Tests\TestCase;
 final class ProxyRequestLogControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     // -------------------------------------------------------------------------
@@ -247,6 +248,7 @@ final class ProxyRequestLogControllerTest extends TestCase
     private function makeEndpoint(): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'Endpoint '.Str::random(4),
             'code' => 'code-'.Str::random(6),

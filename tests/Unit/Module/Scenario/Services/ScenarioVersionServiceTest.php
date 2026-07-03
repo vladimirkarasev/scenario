@@ -39,9 +39,8 @@ final class ScenarioVersionServiceTest extends TestCase
 
         $result = $this->service->create($this->makeVersionData(name: 'v1'), $scenario);
 
-        $this->assertArrayHasKey('item', $result);
-        $this->assertSame($scenario->id, $result['scenario_id']);
-        $this->assertSame('v1', $result['item']['name']);
+        $this->assertArrayHasKey('id', $result);
+        $this->assertSame('v1', $result['name']);
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
             'name' => 'v1',
@@ -58,7 +57,7 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->service->create($this->makeVersionData(name: null), $scenario);
         $result = $this->service->create($this->makeVersionData(name: null), $scenario);
 
-        $this->assertSame('v2', $result['item']['name']);
+        $this->assertSame('v2', $result['name']);
     }
 
     /**
@@ -121,8 +120,8 @@ final class ScenarioVersionServiceTest extends TestCase
 
         $result = $this->service->duplicate(new ScenarioVersionActionData(), $version);
 
-        $this->assertSame('v1 (копия)', $result['item']['name']);
-        $this->assertSame('draft', $result['item']['status']);
+        $this->assertSame('v1 (копия)', $result['name']);
+        $this->assertSame('draft', $result['status']);
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
             'name' => 'v1 (копия)',
@@ -145,7 +144,7 @@ final class ScenarioVersionServiceTest extends TestCase
 
         $result = $this->service->duplicate(new ScenarioVersionActionData(), $version);
 
-        $this->assertSame('v1 (копия)', $result['item']['name']);
+        $this->assertSame('v1 (копия)', $result['name']);
     }
 
     // -------------------------------------------------------------------------
@@ -160,9 +159,8 @@ final class ScenarioVersionServiceTest extends TestCase
         $scenario = $this->makeScenario();
         $version = $this->makeVersion($scenario);
 
-        $result = $this->service->delete(new ScenarioVersionActionData(), $version);
+        $this->service->delete(new ScenarioVersionActionData(), $version);
 
-        $this->assertSame($scenario->id, $result['scenario_id']);
         $this->assertDatabaseMissing('scenario_versions', ['id' => $version->id]);
     }
 

@@ -130,8 +130,8 @@ final readonly class CatalogService
             'is_active' => $scenario->is_active,
             'status' => $scenario->status->value,
             'active_version_id' => $scenario->active_version_id,
-            'tag' => $scenario->tag,
-            'aliases' => array_values(array_filter($scenario->aliases ?? [])),
+            'alias' => $scenario->alias,
+            'tags' => $scenario->tags ?? [],
             'categories' => $scenario->categories
                 ->sortBy('name')
                 ->map(fn(Category $category): array => [

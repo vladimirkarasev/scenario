@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
+use App\Http\Responses\ApiResponse;
 use Module\Projects\CurrentProject;
 use Module\Scenario\DTO\ScenarioFeedData;
 use Module\Scenario\Http\Requests\ScenarioFeedRequest;
@@ -19,10 +19,13 @@ final class ScenarioFeedController extends Controller
     ) {
     }
 
-    public function __invoke(ScenarioFeedRequest $request): JsonResponse
+    public function __invoke(ScenarioFeedRequest $request): ApiResponse
     {
-        return new JsonResponse(
-            $this->feed->feed($this->resolveProjectId($request), ScenarioFeedData::fromRequest($request)),
+        $feed = $this->feed->feed($this->resolveProjectId($request), ScenarioFeedData::fromRequest($request));
+
+        return new ApiResponse(
+            $feed['rows'],
+            meta: [...$feed['pagination'], 'counts_by_status' => $feed['counts_by_status']],
         );
     }
 

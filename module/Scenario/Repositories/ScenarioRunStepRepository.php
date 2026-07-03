@@ -39,7 +39,13 @@ final class ScenarioRunStepRepository
     {
         $run->steps()
             ->where('id', '>', $stepId)
-            ->delete();
+            ->update(['cancelled_at' => now()]);
+    }
+
+    public function cancel(ScenarioRunStep $step): void
+    {
+        $step->fill(['cancelled_at' => now()]);
+        $step->save();
     }
 
     /** @param  array<string, mixed>  $attributes */

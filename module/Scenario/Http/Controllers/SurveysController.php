@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Module\Scenario\DTO\SurveyIndexData;
 use Module\Scenario\Services\SurveysService;
@@ -17,13 +17,15 @@ final class SurveysController extends Controller
     ) {
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): ApiResponse
     {
-        return new JsonResponse($this->surveys->list(SurveyIndexData::fromRequest($request)));
+        $result = $this->surveys->list(SurveyIndexData::fromRequest($request));
+
+        return new ApiResponse($result['surveys'], meta: $result['pagination']);
     }
 
-    public function show(string $runId): JsonResponse
+    public function show(string $runId): ApiResponse
     {
-        return new JsonResponse($this->surveys->get($runId));
+        return new ApiResponse($this->surveys->get($runId));
     }
 }

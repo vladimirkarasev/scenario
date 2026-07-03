@@ -21,13 +21,14 @@ use Tests\TestCase;
 final class ProxyFieldsControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     // -------------------------------------------------------------------------
@@ -45,7 +46,7 @@ final class ProxyFieldsControllerTest extends TestCase
             ->getJson("/api/proxies/{$endpoint->uuid}/fields")
             ->assertOk();
 
-        $items = $response->json('items');
+        $items = $response->json('data');
         $this->assertIsArray($items);
         $this->assertNotEmpty($items);
     }
@@ -61,7 +62,7 @@ final class ProxyFieldsControllerTest extends TestCase
             ->getJson("/api/proxies/{$endpoint->uuid}/fields")
             ->assertOk();
 
-        $field = $response->json('items.0');
+        $field = $response->json('data.0.attributes');
         $this->assertArrayHasKey('key', $field);
         $this->assertArrayHasKey('label', $field);
         $this->assertArrayHasKey('type', $field);
@@ -80,7 +81,8 @@ final class ProxyFieldsControllerTest extends TestCase
             ->getJson("/api/proxies/{$endpoint->uuid}/fields")
             ->assertOk();
 
-        $phoneField = collect($response->json('items'))
+        $phoneField = collect($response->json('data'))
+            ->pluck('attributes')
             ->firstWhere('key', 'phone');
 
         $this->assertNotNull($phoneField, 'Поле phone должно присутствовать в списке');
@@ -131,6 +133,7 @@ final class ProxyFieldsControllerTest extends TestCase
     private function makeEndpoint(bool $isActive = true): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'Lead '.Str::random(4),
             'code' => 'lead-'.Str::random(6),

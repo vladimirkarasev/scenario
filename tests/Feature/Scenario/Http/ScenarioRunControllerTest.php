@@ -16,9 +16,11 @@ use Tests\TestCase;
 
 /**
  * HTTP-тесты для ScenarioRunController.
- * Роуты: POST /api/scenarios/runner         (store)
- *        GET  /api/scenarios/runner/{id}    (show)
- *        POST /api/scenarios/runner/{id}/continue (continue)
+ * Роуты: POST /api/scenarios/runner                    (store)
+ *        GET  /api/scenarios/runner/{id}               (show)
+ *        POST /api/scenarios/runner/{id}/continue      (continue)
+ *        POST /api/scenarios/runner/{id}/jump          (jump)
+ *        GET  /api/scenarios/runner/{id}/history       (history)
  */
 final class ScenarioRunControllerTest extends TestCase
 {
@@ -85,7 +87,7 @@ final class ScenarioRunControllerTest extends TestCase
             ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
             ->assertCreated();
 
-        return ScenarioRun::query()->findOrFail($response->json('run.id'));
+        return ScenarioRun::query()->findOrFail($response->json('data.run.id'));
     }
 
     // ------------------------------------------------------------------ POST /api/scenarios/runner
@@ -98,7 +100,7 @@ final class ScenarioRunControllerTest extends TestCase
         $this->actingAs($user)
             ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
             ->assertCreated()
-            ->assertJsonPath('run.status', 'active');
+            ->assertJsonPath('data.run.status', 'active');
     }
 
     public function test_store_requires_existing_scenario(): void
@@ -129,7 +131,7 @@ final class ScenarioRunControllerTest extends TestCase
         $this->actingAs($user)
             ->getJson("/api/scenarios/runner/{$run->id}")
             ->assertOk()
-            ->assertJsonPath('run.id', $run->id);
+            ->assertJsonPath('data.run.id', $run->id);
     }
 
     public function test_show_returns_404_for_unknown_run(): void
@@ -158,7 +160,7 @@ final class ScenarioRunControllerTest extends TestCase
                 'input' => ['full_name' => 'Alice'],
             ])
             ->assertOk()
-            ->assertJsonPath('run.status', 'completed');
+            ->assertJsonPath('data.run.status', 'completed');
     }
 
     public function test_continue_passes_when_nullable_field_is_absent(): void
@@ -198,11 +200,11 @@ final class ScenarioRunControllerTest extends TestCase
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson("/api/scenarios/runner/{$run->id}/continue", ['input' => []])
-            ->assertUnprocessable();
-
-        $this->assertArrayHasKey('full_name', $response->json('errors'));
+            ->assertUnprocessable()
+            ->assertJsonFragment(['code' => 'VALIDATION_ERROR'])
+            ->assertJsonFragment(['pointer' => '/data/attributes/full_name']);
     }
 
     public function test_continue_returns_422_when_required_checkbox_not_accepted(): void
@@ -214,13 +216,12 @@ final class ScenarioRunControllerTest extends TestCase
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson("/api/scenarios/runner/{$run->id}/continue", [
                 'input' => ['agree' => false],
             ])
-            ->assertUnprocessable();
-
-        $this->assertArrayHasKey('agree', $response->json('errors'));
+            ->assertUnprocessable()
+            ->assertJsonFragment(['pointer' => '/data/attributes/agree']);
     }
 
     // ------------------------------------------------------------------ email
@@ -234,13 +235,12 @@ final class ScenarioRunControllerTest extends TestCase
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson("/api/scenarios/runner/{$run->id}/continue", [
                 'input' => ['email' => 'not-an-email'],
             ])
-            ->assertUnprocessable();
-
-        $this->assertArrayHasKey('email', $response->json('errors'));
+            ->assertUnprocessable()
+            ->assertJsonFragment(['pointer' => '/data/attributes/email']);
     }
 
     public function test_continue_passes_for_valid_email(): void
@@ -270,13 +270,12 @@ final class ScenarioRunControllerTest extends TestCase
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson("/api/scenarios/runner/{$run->id}/continue", [
                 'input' => ['age' => 'twenty'],
             ])
-            ->assertUnprocessable();
-
-        $this->assertArrayHasKey('age', $response->json('errors'));
+            ->assertUnprocessable()
+            ->assertJsonFragment(['pointer' => '/data/attributes/age']);
     }
 
     // ------------------------------------------------------------------ textarea maxLength
@@ -290,13 +289,12 @@ final class ScenarioRunControllerTest extends TestCase
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        $response = $this->actingAs($user)
+        $this->actingAs($user)
             ->postJson("/api/scenarios/runner/{$run->id}/continue", [
                 'input' => ['bio' => str_repeat('x', 51)],
             ])
-            ->assertUnprocessable();
-
-        $this->assertArrayHasKey('bio', $response->json('errors'));
+            ->assertUnprocessable()
+            ->assertJsonFragment(['pointer' => '/data/attributes/bio']);
     }
 
     public function test_continue_passes_when_textarea_within_max_length(): void
@@ -330,8 +328,115 @@ final class ScenarioRunControllerTest extends TestCase
             ->postJson("/api/scenarios/runner/{$run->id}/continue", ['input' => []])
             ->assertUnprocessable();
 
-        $message = $response->json('errors.name.0');
-        $this->assertNotNull($message);
+        $message = $response->json('errors.0.detail');
+        $this->assertIsString($message);
         $this->assertStringContainsString('обязательно', $message);
+    }
+
+    // ------------------------------------------------------------------ POST /api/scenarios/runner/{id}/jump
+
+    public function test_jump_moves_run_to_specified_node(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $run = $this->createRun($scenario);
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->postJson("/api/scenarios/runner/{$run->id}/jump", ['node_id' => 'node_block'])
+            ->assertOk()
+            ->assertJsonPath('data.run.current_node_id', 'node_block');
+    }
+
+    public function test_jump_returns_422_without_node_id(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $run = $this->createRun($scenario);
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->postJson("/api/scenarios/runner/{$run->id}/jump", [])
+            ->assertUnprocessable();
+    }
+
+    public function test_jump_returns_404_for_unknown_run(): void
+    {
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->postJson('/api/scenarios/runner/00000000-0000-0000-0000-000000000000/jump', [
+                'node_id' => 'node_block',
+            ])
+            ->assertNotFound();
+    }
+
+    // ------------------------------------------------------------------ GET /api/scenarios/runner/{id}/history
+
+    public function test_history_returns_transition_for_new_run(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $run = $this->createRun($scenario);
+        $user = $this->makeUser();
+
+        // После создания плеер уже продвинулся до первого блока — одна transition-запись.
+        $this->actingAs($user)
+            ->getJson("/api/scenarios/runner/{$run->id}/history")
+            ->assertOk()
+            ->assertJsonStructure(['data'])
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.type', 'transition')
+            ->assertJsonPath('data.0.cancelled', false);
+    }
+
+    public function test_history_contains_transition_after_continue(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block', [
+            ['name' => 'note', 'type' => 'input', 'required' => false],
+        ]);
+        $run = $this->createRun($scenario);
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->postJson("/api/scenarios/runner/{$run->id}/continue", ['input' => ['note' => 'hi']])
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->getJson("/api/scenarios/runner/{$run->id}/history")
+            ->assertOk()
+            ->assertJsonStructure(['data' => [['type', 'at', 'node_type', 'node_title', 'cancelled']]]);
+    }
+
+    public function test_history_includes_field_filled_event_after_continue_with_input(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block', [
+            ['name' => 'email', 'type' => 'email', 'label' => 'Email', 'required' => true],
+        ]);
+        $run = $this->createRun($scenario);
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->postJson("/api/scenarios/runner/{$run->id}/continue", [
+                'input' => ['email' => 'test@example.com'],
+            ])
+            ->assertOk();
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/scenarios/runner/{$run->id}/history")
+            ->assertOk();
+
+        $history = $response->json('data');
+        $types = array_column($history, 'type');
+        $this->assertContains('field_filled', $types);
+
+        $filled = array_values(array_filter($history, fn(array $e) => $e['type'] === 'field_filled'))[0];
+        $this->assertSame('test@example.com', $filled['new_value']);
+    }
+
+    public function test_history_returns_404_for_unknown_run(): void
+    {
+        $user = $this->makeUser();
+
+        $this->actingAs($user)
+            ->getJson('/api/scenarios/runner/00000000-0000-0000-0000-000000000000/history')
+            ->assertNotFound();
     }
 }

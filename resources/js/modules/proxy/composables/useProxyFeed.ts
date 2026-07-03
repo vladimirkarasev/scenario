@@ -1,11 +1,8 @@
 import {useUrlSearchParams} from '@vueuse/core'
 import {computed, ref, watch} from 'vue'
 import type {Ref} from 'vue'
-import {
-    proxyFeedRepository,
-    type ProxyFeedResponse,
-    type ProxyFeedRow,
-} from '@/modules/proxy/repositories/proxyFeedRepository'
+import {proxyFeedRepository} from '@/modules/proxy/repositories/proxyFeedRepository'
+import type {ProxyFeedMeta, ProxyFeedRow} from '@/modules/proxy/types/feed'
 
 const PAGE_SIZE = 20
 
@@ -26,7 +23,7 @@ export function useProxyFeed(activeSection: Ref<string | 'all'>) {
     const params = useUrlSearchParams<FeedParams>('history', {removeNullishValues: true})
     const loading = ref(false)
     const rows = ref<ProxyFeedRow[]>([])
-    const meta = ref<ProxyFeedResponse['pagination']>({
+    const meta = ref<ProxyFeedMeta>({
         current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0, folders_total: 0, items_total: 0,
     })
 
@@ -61,7 +58,7 @@ export function useProxyFeed(activeSection: Ref<string | 'all'>) {
             }
             const res = await proxyFeedRepository.fetch(qs)
             rows.value = res.data
-            meta.value = res.pagination
+            meta.value = res.meta
         } catch { /* silent */
         } finally {
             loading.value = false

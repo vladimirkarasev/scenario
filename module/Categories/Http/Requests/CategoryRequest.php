@@ -7,6 +7,7 @@ namespace Module\Categories\Http\Requests;
 use App\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Module\Projects\CurrentProject;
 
 final class CategoryRequest extends FormRequest
 {
@@ -20,6 +21,7 @@ final class CategoryRequest extends FormRequest
     {
         /** @var Category|null $category */
         $category = $this->route('category');
+        $projectId = $this->container->make(CurrentProject::class)->id();
 
         return [
             'parent_id' => [
@@ -31,7 +33,11 @@ final class CategoryRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'is_active' => ['required', 'boolean'],
             'group_ids' => ['nullable', 'array'],
-            'group_ids.*' => ['required', 'uuid', 'exists:user_groups,id'],
+            'group_ids.*' => [
+                'required',
+                'uuid',
+                Rule::exists('user_groups', 'id')->where('site_id', $projectId),
+            ],
             'inherit_to_descendants' => ['nullable', 'boolean'],
             'is_workspace' => ['nullable', 'boolean'],
         ];

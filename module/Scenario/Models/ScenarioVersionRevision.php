@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,21 +21,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $created_at
  * @property-read ScenarioVersion|null $version
  */
+#[Fillable('scenario_version_id', 'schema_json', 'nodes_json', 'edges_json', 'input_fields', 'schema_version', 'created_at')]
 final class ScenarioVersionRevision extends Model
 {
     use HasUuids;
 
     public $timestamps = false;
-
-    protected $fillable = [
-        'scenario_version_id',
-        'schema_json',
-        'nodes_json',
-        'edges_json',
-        'input_fields',
-        'schema_version',
-        'created_at',
-    ];
 
     /** @return BelongsTo<ScenarioVersion, ScenarioVersionRevision> */
     public function version(): BelongsTo

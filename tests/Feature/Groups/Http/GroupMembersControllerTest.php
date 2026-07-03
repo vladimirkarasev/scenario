@@ -39,8 +39,8 @@ final class GroupMembersControllerTest extends TestCase
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
         $group = $this->makeGroup($project);
-        $member1 = User::factory()->create();
-        $member2 = User::factory()->create();
+        $member1 = $this->makeMember($project);
+        $member2 = $this->makeMember($project);
         $group->members()->syncWithoutDetaching([$member1->id, $member2->id]);
 
         $this->actingAs($actor)
@@ -61,6 +61,26 @@ final class GroupMembersControllerTest extends TestCase
             ->getJson("/api/groups/{$group->id}/members")
             ->assertOk()
             ->assertJsonCount(0, 'data');
+    }
+
+    public function test_candidates_returns_only_non_members_from_current_project(): void
+    {
+        [$actor, $project] = $this->makeUserWithProject('group_create');
+        $group = $this->makeGroup($project);
+        $member = $this->makeMember($project);
+        $candidate = $this->makeMember($project);
+        $otherProjectUser = $this->makeMember($this->makeProject());
+        $group->members()->attach($member);
+
+        $response = $this->actingAs($actor)
+            ->getJson("/api/groups/{$group->id}/member-candidates?filter[search]=".urlencode($candidate->email))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', (string) $candidate->id);
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertNotContains((string) $member->id, $ids);
+        $this->assertNotContains((string) $otherProjectUser->id, $ids);
     }
 
     /**
@@ -87,7 +107,7 @@ final class GroupMembersControllerTest extends TestCase
     {
         [$actor, $project] = $this->makeUserWithProject('group_create');
         $group = $this->makeGroup($project);
-        $member = User::factory()->create();
+        $member = $this->makeMember($project);
 
         $this->actingAs($actor)
             ->postJson("/api/groups/{$group->id}/members", ['user_id' => $member->id])
@@ -109,6 +129,19 @@ final class GroupMembersControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
+    public function test_store_rejects_member_from_other_project(): void
+    {
+        [$actor, $project] = $this->makeUserWithProject('group_create');
+        $group = $this->makeGroup($project);
+        $member = $this->makeMember($this->makeProject());
+
+        $this->actingAs($actor)
+            ->postJson("/api/groups/{$group->id}/members", ['user_id' => $member->id])
+            ->assertUnprocessable();
+
+        $this->assertFalse($group->members()->where('users.id', $member->id)->exists());
+    }
+
     /**
      * Без пермишена group_create — 403.
      */
@@ -116,7 +149,7 @@ final class GroupMembersControllerTest extends TestCase
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
         $group = $this->makeGroup($project);
-        $member = User::factory()->create();
+        $member = $this->makeMember($project);
 
         $this->actingAs($actor)
             ->postJson("/api/groups/{$group->id}/members", ['user_id' => $member->id])
@@ -132,9 +165,9 @@ final class GroupMembersControllerTest extends TestCase
      */
     public function test_destroy_removes_member_from_group(): void
     {
-        [$actor, $project] = $this->makeUserWithProject('group_delete');
+        [$actor, $project] = $this->makeUserWithProject('group_create');
         $group = $this->makeGroup($project);
-        $member = User::factory()->create();
+        $member = $this->makeMember($project);
         $group->members()->syncWithoutDetaching([$member->id]);
 
         $this->actingAs($actor)
@@ -145,13 +178,13 @@ final class GroupMembersControllerTest extends TestCase
     }
 
     /**
-     * Без пермишена group_delete — 403.
+     * Без пермишена group_create — 403.
      */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
         $group = $this->makeGroup($project);
-        $member = User::factory()->create();
+        $member = $this->makeMember($project);
         $group->members()->syncWithoutDetaching([$member->id]);
 
         $this->actingAs($actor)
@@ -200,5 +233,10 @@ final class GroupMembersControllerTest extends TestCase
             'site_id' => $project->id,
             'is_active' => true,
         ]);
+    }
+
+    private function makeMember(Project $project): User
+    {
+        return User::factory()->create(['project_id' => $project->id]);
     }
 }

@@ -7,6 +7,7 @@ namespace Module\Groups\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Module\Groups\Models\UserGroup;
+use Module\Projects\CurrentProject;
 
 final class UserGroupRequest extends FormRequest
 {
@@ -20,21 +21,27 @@ final class UserGroupRequest extends FormRequest
     {
         /** @var UserGroup|null $group */
         $group = $this->route('group');
+        $projectId = $this->container->make(CurrentProject::class)->id();
+        $presence = $this->isMethod('PATCH') ? 'sometimes' : 'required';
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [$presence, 'string', 'max:255'],
             'slug' => [
-                'required',
+                $presence,
                 'string',
                 'max:255',
-                'alpha_dash',
-                Rule::unique('user_groups', 'slug')->ignore($group?->id),
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('user_groups', 'slug')
+                    ->where('site_id', $projectId)
+                    ->ignore($group?->id),
             ],
             'ext_id' => [
                 'nullable',
                 'string',
                 'max:255',
-                Rule::unique('user_groups', 'ext_id')->ignore($group?->id),
+                Rule::unique('user_groups', 'ext_id')
+                    ->where('site_id', $projectId)
+                    ->ignore($group?->id),
             ],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],

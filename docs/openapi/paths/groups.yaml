@@ -270,3 +270,45 @@ memberItem:
         $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
         $ref: '../components/responses.yaml#/NotFoundErrors'
+
+memberCandidates:
+  parameters:
+    - name: group
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    tags: [ Группы ]
+    summary: Найти пользователей для добавления в группу
+    security:
+      - BearerAuth: [ ]
+    parameters:
+      - name: filter[search]
+        in: query
+        schema:
+          type: string
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: Пользователи текущего проекта, ещё не состоящие в группе
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/users.yaml#/UserResource'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'

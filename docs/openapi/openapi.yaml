@@ -63,6 +63,9 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
+  - name: Интеграции
+    tags:
+      - Proxy
   - name: Авторизация
     tags:
       - Авторизация
@@ -94,6 +97,8 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
+  - name: Proxy
+    description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
 
 paths:
   /scenarios/catalog:
@@ -171,6 +176,8 @@ paths:
     $ref: './paths/groups.yaml#/item'
   /groups/{group}/members:
     $ref: './paths/groups.yaml#/members'
+  /groups/{group}/member-candidates:
+    $ref: './paths/groups.yaml#/memberCandidates'
   /groups/{group}/members/{user}:
     $ref: './paths/groups.yaml#/memberItem'
 
@@ -196,6 +203,37 @@ paths:
     $ref: './paths/embed-auth.yaml#/exchange'
   /embed/auth/refresh:
     $ref: './paths/embed-auth.yaml#/refresh'
+
+  /proxy/endpoints:
+    $ref: './paths/proxy.yaml#/endpointCollection'
+  /proxy/endpoints/{proxy}:
+    $ref: './paths/proxy.yaml#/endpointItem'
+  /proxy/endpoints/{proxy}/fields:
+    $ref: './paths/proxy.yaml#/endpointFields'
+  /proxy/handlers:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/credential-fields:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/credential-types:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/connections:
+    $ref: './paths/proxy.yaml#/connectionCollection'
+  /proxy/connections/{connection}:
+    $ref: './paths/proxy.yaml#/connectionItem'
+  /proxy/feed:
+    $ref: './paths/proxy.yaml#/feed'
+  /proxy/categories:
+    $ref: './paths/proxy.yaml#/categoryCollection'
+  /proxy/categories/{category}:
+    $ref: './paths/proxy.yaml#/categoryItem'
+  /proxy/requests:
+    $ref: './paths/proxy.yaml#/requestCollection'
+  /proxy/requests/{proxyRequest}:
+    $ref: './paths/proxy.yaml#/requestItem'
+  /proxies/{uuid}:
+    $ref: './paths/proxy.yaml#/receive'
+  /proxies/{uuid}/fields:
+    $ref: './paths/proxy.yaml#/publicFields'
 
 components:
   parameters:

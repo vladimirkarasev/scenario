@@ -78,17 +78,17 @@ async function loadRuns() {
   runsLoading.value = true
   try {
     const qs = new URLSearchParams()
-    qs.set('page', String(runsPage.value))
-    if (search.value.trim()) qs.set('search', search.value.trim())
-    if (runsStatusFilter.value === 'active') qs.set('status', 'active')
-    if (runsStatusFilter.value === 'completed') qs.set('finished', '1')
+    qs.set('page[number]', String(runsPage.value))
+    if (search.value.trim()) qs.set('filter[search]', search.value.trim())
+    if (runsStatusFilter.value === 'active') qs.set('filter[status]', 'active')
+    if (runsStatusFilter.value === 'completed') qs.set('filter[finished]', '1')
 
     const page = await scenarioRunRepository.list(qs)
-    runs.value = page.runs
-    runsTotal.value = page.pagination.total
-    runsLastPage.value = page.pagination.last_page
-    runsFrom.value = page.pagination.from
-    runsTo.value = page.pagination.to
+    runs.value = page.data
+    runsTotal.value = page.meta.total
+    runsLastPage.value = page.meta.last_page
+    runsFrom.value = page.meta.from
+    runsTo.value = page.meta.to
   } finally {
     runsLoading.value = false
   }

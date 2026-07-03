@@ -24,10 +24,7 @@ final readonly class ScenarioVersionService
     {
         $version = $this->versions->create($scenario, $data->toAttributes(), $data->toRevisionAttributes());
 
-        return [
-            'item' => $this->catalogService->versionPayload($version),
-            'scenario_id' => $scenario->id,
-        ];
+        return $this->catalogService->versionPayload($version);
     }
 
     /** @return array<string, mixed> */
@@ -35,10 +32,7 @@ final readonly class ScenarioVersionService
     {
         $version = $this->versions->update($version, $data->toAttributes(), $data->toRevisionAttributes());
 
-        return [
-            'item' => $this->catalogService->versionPayload($version),
-            'scenario_id' => $version->scenario_id,
-        ];
+        return $this->catalogService->versionPayload($version);
     }
 
     /** @return array<string, mixed> */
@@ -46,20 +40,11 @@ final readonly class ScenarioVersionService
     {
         $copy = $this->versions->duplicate($version);
 
-        return [
-            'item' => $this->catalogService->versionPayload($copy),
-            'scenario_id' => $copy->scenario_id,
-        ];
+        return $this->catalogService->versionPayload($copy);
     }
 
-    /** @return array<string, mixed> */
-    public function delete(ScenarioVersionActionData $data, ScenarioVersion $version): array
+    public function delete(ScenarioVersionActionData $data, ScenarioVersion $version): void
     {
-        $scenarioId = $version->scenario_id;
         $this->versions->delete($version);
-
-        return [
-            'scenario_id' => $scenarioId,
-        ];
     }
 }

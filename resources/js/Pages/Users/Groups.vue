@@ -40,12 +40,13 @@ const canDelete = computed(() => auth.hasPermission('group_delete'))
 
 const copiedId = ref<string | null>(null)
 
-const {search, page, loading, groups, meta, load} = useGroupList()
+const {search, page, loading, error, groups, meta, load} = useGroupList()
 
 const {
   showModal, editing, form, errors, formError, submitting,
-  members, loadingMembers, memberSearch, memberResults, memberSearchOpen,
-  onMemberSearchInput, addMember, removeMember,
+  members, membersMeta, loadingMembers, memberLoadError,
+  memberSearch, memberResults, memberSearchOpen, memberSearchError,
+  onMemberSearchInput, loadMoreMembers, addMember, removeMember,
   openCreate, openEdit, close: closeModal, save,
   toggleActive: toggleGroup,
   confirmDelete, deleting, deleteError,
@@ -145,6 +146,16 @@ function closeMemberSearchSoon(): void {
           </div>
 
           <div v-if="loading" class="flex items-center justify-center py-12 text-[13px] text-slate-400">Загрузка…</div>
+
+          <div v-else-if="error" class="flex flex-col items-center gap-3 px-5 py-10 text-center">
+            <div class="text-[13px] text-red-600">{{ error }}</div>
+            <button
+                class="h-8 rounded-lg border border-slate-200 px-3 text-[12px] font-medium text-slate-600 hover:bg-slate-50"
+                @click="load"
+            >
+              Повторить
+            </button>
+          </div>
 
           <EmptyState v-else-if="!groups.length" title="Нет групп" subtitle="Создайте первую группу">
             <template #icon>
@@ -256,7 +267,7 @@ function closeMemberSearchSoon(): void {
     <div
         v-if="showModal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-        @click.self="showModal = false; editing = null"
+        @click.self="closeModal"
     >
       <div
           class="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_64px_-12px_rgba(15,23,42,0.2)]"
@@ -267,7 +278,7 @@ function closeMemberSearchSoon(): void {
               editing ? 'Редактировать группу' : 'Новая группа'
             }}
           </div>
-          <button class="text-slate-400 transition hover:text-slate-700" @click="showModal = false; editing = null">
+          <button class="text-slate-400 transition hover:text-slate-700" @click="closeModal">
             <X :size="18"/>
           </button>
         </div>
@@ -297,6 +308,13 @@ function closeMemberSearchSoon(): void {
                       :auto-lock-on-edit="!!editing"
                       :error="errors.slug"
                   />
+                  <FormInput
+                      name="ext_id"
+                      v-model="form.ext_id"
+                      label="Внешний ID"
+                      placeholder="crm_group_42"
+                      :error="errors.ext_id"
+                  />
                   <FormTextarea
                       name="description"
                       v-model="form.description"
@@ -315,7 +333,7 @@ function closeMemberSearchSoon(): void {
                 <div class="text-[12px] font-semibold text-slate-700">
                   Участники
                   <span class="ml-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">{{
-                      members.length
+                      editing.members_count
                     }}</span>
                 </div>
               </div>
@@ -356,14 +374,23 @@ function closeMemberSearchSoon(): void {
                     </div>
                   </button>
                 </div>
+                <div v-if="memberSearchError" class="mt-1.5 text-[11px] text-red-600">
+                  {{ memberSearchError }}
+                </div>
               </div>
 
               <!-- Members list -->
               <div class="flex-1 overflow-y-auto" style="max-height: 260px">
-                <div v-if="loadingMembers" class="flex items-center justify-center py-8 text-[12px] text-slate-400">
+                <div v-if="memberLoadError" class="px-4 py-2 text-[11px] text-red-600">
+                  {{ memberLoadError }}
+                </div>
+                <div v-if="loadingMembers && !members.length" class="flex items-center justify-center py-8 text-[12px] text-slate-400">
                   Загрузка…
                 </div>
-                <div v-else-if="!members.length" class="flex flex-col items-center justify-center py-8 text-center">
+                <div
+                    v-else-if="!members.length && !memberLoadError"
+                    class="flex flex-col items-center justify-center py-8 text-center"
+                >
                   <Users :size="20" class="mb-2 text-slate-300"/>
                   <div class="text-[12px] text-slate-400">Нет участников</div>
                 </div>
@@ -381,6 +408,7 @@ function closeMemberSearchSoon(): void {
                     <div class="truncate text-[11px] text-slate-400">{{ m.login ?? m.email }}</div>
                   </div>
                   <button
+                      v-if="canManage"
                       type="button"
                       class="flex-none text-slate-300 opacity-0 transition group-hover/m:opacity-100 hover:text-red-500"
                       @click="removeMember(m)"
@@ -388,6 +416,15 @@ function closeMemberSearchSoon(): void {
                     <X :size="13"/>
                   </button>
                 </div>
+                <button
+                    v-if="membersMeta.current_page < membersMeta.last_page"
+                    type="button"
+                    class="flex w-full items-center justify-center border-t border-slate-100 px-4 py-2.5 text-[11px] font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50"
+                    :disabled="loadingMembers"
+                    @click="loadMoreMembers"
+                >
+                  {{ loadingMembers ? 'Загрузка…' : 'Показать ещё' }}
+                </button>
               </div>
             </div>
           </div>

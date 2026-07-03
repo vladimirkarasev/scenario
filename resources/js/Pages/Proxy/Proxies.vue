@@ -19,7 +19,7 @@ import {useProxySectionTree} from '@/modules/proxy/composables/useProxySectionTr
 import {useProxySectionModal} from '@/modules/proxy/composables/useProxySectionModal'
 import {proxyCategoryRepository} from '@/modules/proxy/repositories/proxyCategoryRepository'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
-import type {FeedEndpointRow, FeedFolderRow} from '@/modules/proxy/repositories/proxyFeedRepository'
+import type {FeedEndpointRow, FeedFolderRow} from '@/modules/proxy/types/feed'
 import type {ProxyCategory, WebhookEndpoint} from '@/modules/proxy/types/webhook'
 import {Head, router} from '@inertiajs/vue3'
 import {

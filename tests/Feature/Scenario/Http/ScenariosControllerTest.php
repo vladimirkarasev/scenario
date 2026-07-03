@@ -284,7 +284,7 @@ final class ScenariosControllerTest extends TestCase
                 'is_active' => true,
             ])
             ->assertStatus(201)
-            ->assertJsonPath('item.name', 'Новый сценарий');
+            ->assertJsonPath('data.name', 'Новый сценарий');
 
         $this->assertDatabaseHas('scenarios', ['name' => 'Новый сценарий']);
     }
@@ -331,7 +331,7 @@ final class ScenariosControllerTest extends TestCase
                 'is_active' => true,
             ])
             ->assertOk()
-            ->assertJsonPath('item.name', 'Новое');
+            ->assertJsonPath('data.name', 'Новое');
 
         $this->assertDatabaseHas('scenarios', ['id' => $scenario->id, 'name' => 'Новое']);
     }
@@ -396,7 +396,7 @@ final class ScenariosControllerTest extends TestCase
         $this->actingAs($user)
             ->postJson("/api/scenarios/{$scenario->id}/duplicate")
             ->assertStatus(201)
-            ->assertJsonPath('item.name', 'Оригинал (копия)');
+            ->assertJsonPath('data.name', 'Оригинал (копия)');
 
         $this->assertDatabaseHas('scenarios', ['name' => 'Оригинал (копия)']);
     }

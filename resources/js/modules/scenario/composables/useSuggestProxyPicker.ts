@@ -4,7 +4,7 @@ import type {WebhookEndpoint} from '@/modules/proxy/types/webhook'
 
 /**
  * Загрузка и выбор proxy-эндпоинтов типа `suggest` для настройки block-поля «Подсказки».
- * Источник списка — webhookRepository.listByType('suggest').
+ * Источник списка — webhookRepository.list() с JSON:API-фильтром type.
  */
 export function useSuggestProxyPicker(getProxyUuid: () => string) {
     const proxies = ref<WebhookEndpoint[]>([])
@@ -15,7 +15,9 @@ export function useSuggestProxyPicker(getProxyUuid: () => string) {
         if (loaded.value || loading.value) return
         loading.value = true
         try {
-            proxies.value = await webhookRepository.listByType('suggest')
+            proxies.value = await webhookRepository.list(
+                new URLSearchParams({'filter[type]': 'suggest'}),
+            )
             loaded.value = true
         } finally {
             loading.value = false

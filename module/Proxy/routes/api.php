@@ -9,10 +9,6 @@ use Module\Proxy\Http\Controllers\ProxyEndpointController;
 use Module\Proxy\Http\Controllers\ProxyFeedController;
 use Module\Proxy\Http\Controllers\ProxyFieldsController;
 use Module\Proxy\Http\Controllers\ProxyRequestLogController;
-use Module\Proxy\Http\Controllers\PublicProxyController;
-
-Route::match(['GET', 'POST'], '/proxies/{uuid}', PublicProxyController::class)
-    ->name('proxy.proxies.receive');
 Route::get('/proxies/{uuid}/fields', ProxyFieldsController::class)
     ->name('proxy.proxies.fields');
 

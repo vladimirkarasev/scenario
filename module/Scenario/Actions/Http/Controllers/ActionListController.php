@@ -10,7 +10,7 @@ final class ActionListController
 {
     public function __invoke(): JsonResponse
     {
-        return response()->json([
+        return new JsonResponse([
             'section' => 'actions',
             'items' => [],
         ]);

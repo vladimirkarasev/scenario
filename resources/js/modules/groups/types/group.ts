@@ -23,6 +23,11 @@ export interface GroupsPage {
     meta: PaginationMeta
 }
 
+export interface GroupMembersPage {
+    data: GroupMember[]
+    meta: PaginationMeta
+}
+
 export interface GroupPayload {
     name: string
     slug: string

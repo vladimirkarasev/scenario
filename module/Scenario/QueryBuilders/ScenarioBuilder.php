@@ -8,6 +8,7 @@ use Module\Users\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Module\Scenario\Enums\ScenarioStatus;
 use Module\Scenario\Models\Scenario;
+use Module\Scenario\Support\UserGroupVisibility;
 
 /**
  * @extends Builder<Scenario>
@@ -106,6 +107,16 @@ final class ScenarioBuilder extends Builder
         return $this->where('scenarios.project_id', $projectId);
     }
 
+    public function forAlias(string $alias): self
+    {
+        return $this->where('scenarios.alias', $alias);
+    }
+
+    public function hasActiveVersion(): self
+    {
+        return $this->whereNotNull('scenarios.active_version_id');
+    }
+
     /** @param  string[]|null  $ids */
     public function categoryIds(?array $ids): self
     {
@@ -151,20 +162,8 @@ final class ScenarioBuilder extends Builder
      */
     public function visibleForUser(?User $user): self
     {
-        if ($user === null) {
-            return $this->whereRaw('1 = 0');
-        }
-        if ($user->can('scenario_view_all')) {
-            return $this;
-        }
+        $groupIds = UserGroupVisibility::groupIds($user);
 
-        /** @var list<string> $groupIds */
-        $groupIds = $user->groups->pluck('id')
-            ->map(static fn(mixed $v): string => is_string($v) ? $v : '')
-            ->filter(static fn(string $v): bool => $v !== '')
-            ->values()
-            ->all();
-
-        return $this->visibleByGroups($groupIds);
+        return $groupIds === null ? $this : $this->visibleByGroups($groupIds);
     }
 }

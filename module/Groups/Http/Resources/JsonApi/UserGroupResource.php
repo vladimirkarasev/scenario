@@ -38,7 +38,7 @@ final class UserGroupResource extends JsonApiResource
             'ext_id' => $this->ext_id,
             'description' => $this->description,
             'is_active' => $this->is_active,
-            'members_count' => $this->members_count,
+            'members_count' => $this->members_count ?? 0,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

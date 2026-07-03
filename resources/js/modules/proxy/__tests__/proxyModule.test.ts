@@ -36,8 +36,8 @@ describe('proxy module', () => {
     it('кодирует type и search фильтры', async () => {
         vi.mocked(getJson).mockResolvedValue({data: []})
 
-        await webhookRepository.listByType('suggest value')
-        await webhookRepository.search('Иван + Пётр')
+        await webhookRepository.list(new URLSearchParams({'filter[type]': 'suggest value'}))
+        await webhookRepository.list(new URLSearchParams({'filter[search]': 'Иван + Пётр'}))
 
         expect(getJson).toHaveBeenNthCalledWith(
             1,

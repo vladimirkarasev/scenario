@@ -21,13 +21,14 @@ use Tests\TestCase;
 final class ProxyCategoryControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     // -------------------------------------------------------------------------
@@ -188,7 +189,7 @@ final class ProxyCategoryControllerTest extends TestCase
             'category_id' => $category->id,
             'model_id' => $category->id,
             'model_type' => ProxyEndpoint::class,
-            'project_id' => null,
+            'project_id' => $this->proxyProject->id,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -199,6 +200,7 @@ final class ProxyCategoryControllerTest extends TestCase
     private function makeEndpoint(): ProxyEndpoint
     {
         return ProxyEndpoint::query()->create([
+            'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'Endpoint '.Str::random(4),
             'code' => 'code-'.Str::random(6),

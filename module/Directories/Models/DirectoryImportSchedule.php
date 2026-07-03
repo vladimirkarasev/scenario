@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Directories\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -15,23 +16,23 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_run_at
  * @property Carbon|null $next_run_at
  */
+#[Fillable(
+    'directory_id',
+    'enabled',
+    'frequency',
+    'run_at',
+    'timezone',
+    'mode',
+    'match_by',
+    'chunk_size',
+    'mapping_json',
+    'fields_json',
+    'remote_config_json',
+    'last_run_at',
+    'next_run_at',
+)]
 final class DirectoryImportSchedule extends Model
 {
-    protected $fillable = [
-        'directory_id',
-        'enabled',
-        'frequency',
-        'run_at',
-        'timezone',
-        'mode',
-        'match_by',
-        'chunk_size',
-        'mapping_json',
-        'fields_json',
-        'remote_config_json',
-        'last_run_at',
-        'next_run_at',
-    ];
 
     /** @return BelongsTo<Directory, $this> */
     public function directory(): BelongsTo

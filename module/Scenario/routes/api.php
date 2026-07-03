@@ -31,6 +31,7 @@ Route::prefix('scenarios/runner')->group(static function (): void {
     Route::post('start', [ScenarioRunnerController::class, 'start']);
 
     Route::get('{runId}', [ScenarioRunController::class, 'show']);
+    Route::get('{runId}/history', [ScenarioRunController::class, 'history']);
     Route::post('{runId}/continue', [ScenarioRunController::class, 'continue']);
     Route::post('{runId}/jump', [ScenarioRunController::class, 'jump']);
     Route::post('{runId}/retry-action', [ScenarioRunController::class, 'retryAction']);

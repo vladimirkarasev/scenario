@@ -29,6 +29,19 @@ final class GroupMembersController extends Controller
         );
     }
 
+    public function candidates(Request $request, UserGroup $group): AnonymousResourceCollection
+    {
+        $search = $request->string('filter.search')->trim()->toString();
+
+        return UserResource::collection(
+            $this->service->searchMemberCandidates(
+                $group,
+                $search !== '' ? $search : null,
+                Pagination::fromRequest($request),
+            ),
+        );
+    }
+
     public function store(GroupMemberStoreRequest $request, UserGroup $group): JsonResponse
     {
         $this->service->addMember($group, $request->integer('user_id'));
