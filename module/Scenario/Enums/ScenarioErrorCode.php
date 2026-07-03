@@ -17,6 +17,7 @@ enum ScenarioErrorCode: string implements ErrorText
     case DispatchNoProjectContext = 'DISPATCH_NO_PROJECT_CONTEXT';
     case DispatchTargetUserNotFound = 'DISPATCH_TARGET_USER_NOT_FOUND';
     case DispatchScenarioNotFound = 'DISPATCH_SCENARIO_NOT_FOUND';
+    case ServiceAccountRequired = 'SCENARIO_SERVICE_ACCOUNT_REQUIRED';
     case SystemCategoryDeleteForbidden = 'SCENARIO_SYSTEM_CATEGORY_DELETE_FORBIDDEN';
 
     #[\Override]

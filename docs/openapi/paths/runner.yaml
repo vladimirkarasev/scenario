@@ -1,3 +1,41 @@
+dispatch:
+  post:
+    tags: [ Запуск ]
+    summary: Диспатч сценария пользователю
+    security:
+      - BearerAuth: [ ]
+    description: >
+      Запускает сценарий для конкретного пользователя системы (по `login` или `external_id`).
+      Сценарий определяется по тегу `tag`. Требует разрешение `scenario_dispatch`.
+      Возвращает `202 Accepted` — прогон создаётся асинхронно.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/runs.yaml#/DispatchRequest'
+    responses:
+      '202':
+        description: Диспатч принят
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    run_id:
+                      type: string
+                      format: uuid
+                      description: UUID созданного прогона
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationError'
+
 start:
   post:
     tags: [ Запуск ]

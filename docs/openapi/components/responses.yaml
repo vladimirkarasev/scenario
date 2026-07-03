@@ -26,7 +26,7 @@ ValidationError:
       schema:
         $ref: './schemas/common.yaml#/ValidationErrorResponse'
 
-# JSON:API-варианты для модуля Users (единый конверт errors[] + meta).
+# Единый контракт ошибок: errors[] + meta.
 
 UnauthorizedErrors:
   description: Не аутентифицирован

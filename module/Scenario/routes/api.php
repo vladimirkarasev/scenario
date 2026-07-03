@@ -12,6 +12,8 @@ use Module\Scenario\Http\Controllers\ScenarioRunnerController;
 use Module\Scenario\Http\Controllers\ScenariosController;
 use Module\Scenario\Http\Controllers\ScenariosVersionController;
 use Module\Scenario\Http\Controllers\SurveysController;
+use Module\Projects\Http\Middleware\RequireCurrentProject;
+use Module\Scenario\Http\Middleware\RequireScenarioServiceAccount;
 
 Route::prefix('scenarios/catalog')->group(static function (): void {
     Route::get('', [CatalogController::class, 'index']);
@@ -21,20 +23,24 @@ Route::middleware('permission:scenario_dispatch')->group(static function (): voi
     Route::post('scenarios/dispatch', ScenarioDispatchController::class);
 });
 
-Route::get('scenarios/surveys', [SurveysController::class, 'index']);
-Route::get('scenarios/survey/{runId}', [SurveysController::class, 'show']);
+Route::middleware(RequireCurrentProject::class)->group(static function (): void {
+    Route::get('scenarios/surveys', [SurveysController::class, 'index']);
+    Route::get('scenarios/survey/{runId}', [SurveysController::class, 'show']);
 
-Route::prefix('scenarios/runner')->group(static function (): void {
-    Route::get('', [ScenarioRunController::class, 'index']);
-    Route::get('users', [ScenarioRunController::class, 'users']);
-    Route::post('', [ScenarioRunController::class, 'store']);
-    Route::post('start', [ScenarioRunnerController::class, 'start']);
+    Route::prefix('scenarios/runner')->group(static function (): void {
+        Route::get('', [ScenarioRunController::class, 'index']);
+        Route::get('users', [ScenarioRunController::class, 'users']);
+        Route::post('', [ScenarioRunController::class, 'store'])
+            ->middleware(RequireScenarioServiceAccount::class);
+        Route::post('start', [ScenarioRunnerController::class, 'start'])
+            ->middleware(RequireScenarioServiceAccount::class);
 
-    Route::get('{runId}', [ScenarioRunController::class, 'show']);
-    Route::get('{runId}/history', [ScenarioRunController::class, 'history']);
-    Route::post('{runId}/continue', [ScenarioRunController::class, 'continue']);
-    Route::post('{runId}/jump', [ScenarioRunController::class, 'jump']);
-    Route::post('{runId}/retry-action', [ScenarioRunController::class, 'retryAction']);
+        Route::get('{runId}', [ScenarioRunController::class, 'show']);
+        Route::get('{runId}/history', [ScenarioRunController::class, 'history']);
+        Route::post('{runId}/continue', [ScenarioRunController::class, 'continue']);
+        Route::post('{runId}/jump', [ScenarioRunController::class, 'jump']);
+        Route::post('{runId}/retry-action', [ScenarioRunController::class, 'retryAction']);
+    });
 });
 
 Route::middleware('permission:scenario_view')->group(static function (): void {

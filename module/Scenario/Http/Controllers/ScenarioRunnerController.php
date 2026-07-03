@@ -10,31 +10,28 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioStartData;
 use Module\Scenario\Http\Requests\ContinueScenarioRunRequest;
 use Module\Scenario\Http\Requests\StartScenarioRunnerRequest;
-use Module\Scenario\Repositories\ScenarioRunRepository;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\ScenarioRunsService;
 
 final class ScenarioRunnerController extends Controller
 {
     public function __construct(
-        private readonly ScenarioPlayerService $scenarioPlayerService,
-        private readonly ScenarioRunRepository $runs,
+        private readonly ScenarioRunsService $runs,
     ) {
     }
 
     public function start(StartScenarioRunnerRequest $request): ApiResponse
     {
         return new ApiResponse([
-            'id' => $this->scenarioPlayerService->start(ScenarioStartData::fromRequest($request)),
+            'id' => $this->runs->start(ScenarioStartData::fromRequest($request)),
         ], 201);
     }
 
     public function jump(ContinueScenarioRunRequest $request, string $runId): ApiResponse
     {
-        $run = $this->scenarioPlayerService->continueRun(
-            $this->runs->getById($runId),
+        return new ApiResponse($this->runs->continue(
+            $runId,
             ScenarioRunContinueData::fromRequest($request),
-        );
-
-        return new ApiResponse($this->scenarioPlayerService->payload($run));
+            $request->user()?->id,
+        ));
     }
 }

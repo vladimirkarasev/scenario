@@ -262,82 +262,64 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * @param  list<string>|null  $subtreeIds
      * @param  array<string, array{name: string, parent_id: string|null}>|null  $map
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed>
      */
-    private function loadFolders(?string $projectId, ScenarioFeedData $data, ?array $subtreeIds, ?array $map, int $offset, int $take): array
+    private function folderRow(Category $folder, ?array $map): array
     {
-        $rows = $this->foldersQuery($projectId, $data, $subtreeIds)
-            ->withCount([
-                'children' => fn(Builder $q) => $q->whereExists($this->boundToScenarios($projectId))
-            ])
-            ->offset($offset)
-            ->limit($take)
-            ->get();
-
-        return $rows->map(fn(Category $c): array => [
+        return [
             'type' => 'folder',
-            'id' => $c->id,
-            'name' => $c->name,
-            'parent_id' => $c->parent_id,
-            'parent_path' => $map !== null ? $this->pathFor($map, $c->parent_id) : null,
-            'path_ids' => $map !== null ? $this->pathIdsFor($map, $c->id) : null,
-            'children_count' => $c->children_count ?? 0,
-            'created_at' => $c->created_at?->toIso8601String(),
-            'updated_at' => $c->updated_at?->toIso8601String(),
-        ])->values()->all();
+            'id' => $folder->id,
+            'name' => $folder->name,
+            'parent_id' => $folder->parent_id,
+            'parent_path' => $map !== null ? $this->pathFor($map, $folder->parent_id) : null,
+            'path_ids' => $map !== null ? $this->pathIdsFor($map, $folder->id) : null,
+            'children_count' => $folder->children_count ?? 0,
+            'created_at' => $folder->created_at?->toIso8601String(),
+            'updated_at' => $folder->updated_at?->toIso8601String(),
+        ];
     }
 
     /**
-     * @param  list<string>|null  $subtreeIds
      * @param  array<string, array{name: string, parent_id: string|null}>|null  $map
-     * @return array<int, array<string, mixed>>
+     * @param  list<string>|null  $subtreeIds
+     * @return array<string, mixed>
      */
-    private function loadItems(?string $projectId, ScenarioFeedData $data, ?array $subtreeIds, ?array $map, int $offset, int $take): array
+    private function scenarioRow(Scenario $scenario, ?array $map, ?array $subtreeIds): array
     {
-        $rows = $this->itemsQuery($projectId, $data, $subtreeIds)
-            ->with(['createdBy', 'updatedBy', 'categories'])
-            ->withCount('versions')
-            ->offset($offset)
-            ->limit($take)
-            ->get();
+        $inSubtree = $subtreeIds !== null
+            ? $scenario->categories->first(static fn(Category $c): bool => in_array($c->id, $subtreeIds, true))
+            : null;
+        $folder = $inSubtree ?? $scenario->categories->first();
+        $folderId = $folder?->id;
 
-        return $rows->map(function (Scenario $s) use ($map, $subtreeIds): array {
-            $inSubtree = $subtreeIds !== null
-                ? $s->categories->first(static fn(Category $c): bool => in_array($c->id, $subtreeIds, true))
-                : null;
-            $folder = $inSubtree ?? $s->categories->first();
-            $folderId = $folder?->id;
-
-            return [
-                'type' => 'scenario',
-                'id' => $s->id,
-                'name' => $s->name,
-                'alias' => $s->alias,
-                'description' => $s->description,
-                'status' => $s->status->value,
-                'folder_id' => $folderId,
-                'folder_path' => $map !== null ? $this->pathFor($map, $folderId) : null,
-                'tags' => $s->tags ?? [],
-                'versions_count' => $s->versions_count ?? 0,
-                'active_version_id' => $s->active_version_id,
-                'created_at' => $s->created_at?->toIso8601String(),
-                'updated_at' => $s->updated_at?->toIso8601String(),
-                'created_by' => $s->createdBy !== null ? [
-                    'id' => $s->createdBy->id,
-                    'name' => $s->createdBy->name,
-                    'fio' => $s->createdBy->fio,
-                    'login' => $s->createdBy->login,
-                ] : null,
-                'updated_by' => $s->updatedBy !== null ? [
-                    'id' => $s->updatedBy->id,
-                    'name' => $s->updatedBy->name,
-                    'fio' => $s->updatedBy->fio,
-                    'login' => $s->updatedBy->login,
-                ] : null,
-            ];
-        })->values()->all();
+        return [
+            'type' => 'scenario',
+            'id' => $scenario->id,
+            'name' => $scenario->name,
+            'alias' => $scenario->alias,
+            'description' => $scenario->description,
+            'status' => $scenario->status->value,
+            'folder_id' => $folderId,
+            'folder_path' => $map !== null ? $this->pathFor($map, $folderId) : null,
+            'tags' => $scenario->tags ?? [],
+            'versions_count' => $scenario->versions_count ?? 0,
+            'active_version_id' => $scenario->active_version_id,
+            'created_at' => $scenario->created_at?->toIso8601String(),
+            'updated_at' => $scenario->updated_at?->toIso8601String(),
+            'created_by' => $scenario->createdBy !== null ? [
+                'id' => $scenario->createdBy->id,
+                'name' => $scenario->createdBy->name,
+                'fio' => $scenario->createdBy->fio,
+                'login' => $scenario->createdBy->login,
+            ] : null,
+            'updated_by' => $scenario->updatedBy !== null ? [
+                'id' => $scenario->updatedBy->id,
+                'name' => $scenario->updatedBy->name,
+                'fio' => $scenario->updatedBy->fio,
+                'login' => $scenario->updatedBy->login,
+            ] : null,
+        ];
     }
 
     /**

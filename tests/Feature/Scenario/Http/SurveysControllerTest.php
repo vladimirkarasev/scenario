@@ -6,6 +6,7 @@ namespace Tests\Feature\Scenario\Http;
 
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Module\Projects\Models\Project;
 use Module\Scenario\Enums\ScenarioRunStatus;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
@@ -23,10 +24,18 @@ final class SurveysControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Project $project;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->instance(Centrifugo::class, $this->createMock(Centrifugo::class));
+        $this->project = Project::query()->create([
+            'name' => 'Survey test project',
+            'sitekey' => 'survey-test',
+            'host' => 'survey.test',
+            'is_active' => true,
+        ]);
     }
 
     // ------------------------------------------------------------------ GET /api/scenarios/surveys
@@ -37,7 +46,7 @@ final class SurveysControllerTest extends TestCase
         $this->seedRun($scenario);
         $this->seedRun($scenario);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($this->projectUser())
             ->getJson('/api/scenarios/surveys')
             ->assertOk()
             ->assertJsonStructure([
@@ -59,7 +68,7 @@ final class SurveysControllerTest extends TestCase
         $active = $this->seedRun($scenario, ScenarioRunStatus::Active);
         $this->seedRun($scenario, ScenarioRunStatus::Completed);
 
-        $response = $this->actingAs(User::factory()->create())
+        $response = $this->actingAs($this->projectUser())
             ->getJson('/api/scenarios/surveys?filter[status]=active')
             ->assertOk();
 
@@ -75,7 +84,7 @@ final class SurveysControllerTest extends TestCase
         $runA = $this->seedRun($scenarioA);
         $this->seedRun($scenarioB);
 
-        $response = $this->actingAs(User::factory()->create())
+        $response = $this->actingAs($this->projectUser())
             ->getJson("/api/scenarios/surveys?filter[scenario_id]={$scenarioA->id}")
             ->assertOk();
 
@@ -91,7 +100,7 @@ final class SurveysControllerTest extends TestCase
             $this->seedRun($scenario);
         }
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($this->projectUser())
             ->getJson('/api/scenarios/surveys?page[size]=2')
             ->assertOk()
             ->assertJsonPath('meta.per_page', 2)
@@ -106,7 +115,7 @@ final class SurveysControllerTest extends TestCase
         [$scenario] = $this->makeScenarioWithBlock('node_block');
         $run = $this->seedRun($scenario);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($this->projectUser())
             ->getJson("/api/scenarios/survey/{$run->id}")
             ->assertOk()
             ->assertJsonPath('data.run.id', $run->id)
@@ -116,7 +125,7 @@ final class SurveysControllerTest extends TestCase
 
     public function test_show_returns_404_for_unknown_run(): void
     {
-        $this->actingAs(User::factory()->create())
+        $this->actingAs($this->projectUser())
             ->getJson('/api/scenarios/survey/00000000-0000-0000-0000-000000000000')
             ->assertNotFound();
     }
@@ -130,13 +139,62 @@ final class SurveysControllerTest extends TestCase
             ->assertUnauthorized();
     }
 
+    public function test_index_and_show_hide_runs_from_another_project(): void
+    {
+        [$ownScenario] = $this->makeScenarioWithBlock('own_block');
+        $ownRun = $this->seedRun($ownScenario);
+
+        $foreignProject = Project::query()->create([
+            'name' => 'Foreign',
+            'sitekey' => 'foreign',
+            'host' => 'foreign.test',
+            'is_active' => true,
+        ]);
+        $foreignScenario = Scenario::query()->create([
+            'project_id' => $foreignProject->id,
+            'name' => 'Foreign scenario',
+            'is_active' => true,
+        ]);
+        $foreignVersion = ScenarioVersion::query()->create([
+            'scenario_id' => $foreignScenario->id,
+            'project_id' => $foreignProject->id,
+            'status' => 'active',
+        ]);
+        $foreignRevision = $this->createRevision($foreignVersion);
+        $foreignRun = ScenarioRun::query()->create([
+            'scenario_id' => $foreignScenario->id,
+            'scenario_version_id' => $foreignVersion->id,
+            'scenario_version_revision_id' => $foreignRevision->id,
+            'status' => ScenarioRunStatus::Active,
+        ]);
+
+        $this->actingAs($this->projectUser())
+            ->getJson('/api/scenarios/surveys')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.id', $ownRun->id);
+
+        $this->actingAs($this->projectUser())
+            ->getJson("/api/scenarios/survey/{$foreignRun->id}")
+            ->assertNotFound()
+            ->assertJsonPath('errors.0.code', 'SCENARIO_RUN_NOT_FOUND');
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /** @return array{Scenario, ScenarioVersion, ScenarioVersionRevision} */
     private function makeScenarioWithBlock(string $blockNodeId): array
     {
-        $scenario = Scenario::query()->create(['name' => 'Test', 'is_active' => true]);
-        $version = ScenarioVersion::query()->create(['scenario_id' => $scenario->id, 'status' => 'active']);
+        $scenario = Scenario::query()->create([
+            'project_id' => $this->project->id,
+            'name' => 'Test',
+            'is_active' => true,
+        ]);
+        $version = ScenarioVersion::query()->create([
+            'scenario_id' => $scenario->id,
+            'project_id' => $this->project->id,
+            'status' => 'active',
+        ]);
 
         $revision = $this->createRevision($version, [
             'nodes_json' => [
@@ -168,5 +226,10 @@ final class SurveysControllerTest extends TestCase
             'status' => $status,
             'context_json' => [],
         ]);
+    }
+
+    private function projectUser(): User
+    {
+        return User::factory()->create(['project_id' => $this->project->id]);
     }
 }

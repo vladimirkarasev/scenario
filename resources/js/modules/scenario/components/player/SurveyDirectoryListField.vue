@@ -27,6 +27,8 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   error?: boolean
   context?: Record<string, unknown>
+  filterKey?: string
+  filterValue?: string | null
 }>(), {
   versionId: '',
   labelTemplate: '',
@@ -36,6 +38,8 @@ const props = withDefaults(defineProps<{
   disabled: false,
   error: false,
   context: () => ({}),
+  filterKey: '',
+  filterValue: null,
 })
 
 const emit = defineEmits<{
@@ -231,8 +235,16 @@ function clearAll(e: MouseEvent): void {
 
 // ── Backend search ────────────────────────────────────────────────────────────
 
+const isFilteredAndEmpty = computed(
+    () => Boolean(props.filterKey) && (props.filterValue === null || props.filterValue === ''),
+)
+
 async function loadItems(q?: string): Promise<void> {
   if (!props.directoryId) return
+  if (isFilteredAndEmpty.value) {
+    items.value = []
+    return
+  }
   loading.value = true
   try {
     const qs = new URLSearchParams({'page[size]': '200'})
@@ -240,6 +252,7 @@ async function loadItems(q?: string): Promise<void> {
     const effectiveQ = q !== undefined ? q : props.defaultSearch
     if (effectiveQ) qs.set('filter[search]', effectiveQ)
     if (props.versionId) qs.set('filter[version_id]', props.versionId)
+    if (props.filterKey && props.filterValue) qs.set(`filter[${props.filterKey}]`, props.filterValue)
 
     const dataFields = extractTemplateKeys(props.labelTemplate)
     if (dataFields.length > 0) qs.set('fields[items]', dataFields.join(','))
@@ -281,6 +294,13 @@ onMounted(() => {
 watch(() => props.directoryId, () => {
   if (open.value) loadItems()
 })
+
+watch(() => props.filterValue, (next, prev) => {
+  if (next === prev) return
+  emit('update:modelValue', props.multiple ? [] : null)
+  items.value = []
+  if (open.value) loadItems()
+})
 </script>
 
 <template>
@@ -289,7 +309,7 @@ watch(() => props.directoryId, () => {
       <PopoverTrigger as-child>
         <button
             type="button"
-            :disabled="disabled"
+            :disabled="disabled || isFilteredAndEmpty"
             class="flex min-h-9 w-full items-center gap-2 rounded-xl border px-3 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
             :class="[
                     error

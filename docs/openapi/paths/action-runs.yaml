@@ -1,70 +1,74 @@
 collection:
   get:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: listActionRuns
     summary: Список выполнений actions
-    security:
-      - BearerAuth: [ ]
     parameters:
       - name: filter[status]
         in: query
         schema:
           type: string
-          enum: [ running, success, failed, skipped ]
-      - name: filter[action_id]
+          enum: [pending, running, success, failed, skipped]
+      - name: page[size]
         in: query
+        description: Максимальное число записей, от 1 до 500.
         schema:
           type: integer
-      - $ref: '../components/parameters.yaml#/PageSize'
+          minimum: 1
+          maximum: 500
+          default: 100
     responses:
       '200':
-        description: Последние выполнения actions
+        description: Последние выполнения actions.
         content:
           application/json:
             schema:
               $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
 
 completed:
   get:
-    tags: [ Actions ]
-    summary: Список успешно выполненных задач
-    security:
-      - BearerAuth: [ ]
+    tags: [Actions]
+    operationId: listCompletedActionRuns
+    summary: Список успешно выполненных actions
     parameters:
-      - name: filter[action_id]
+      - name: page[size]
         in: query
         schema:
           type: integer
-      - $ref: '../components/parameters.yaml#/PageSize'
+          minimum: 1
+          maximum: 500
+          default: 100
     responses:
       '200':
-        description: Успешно выполненные задачи
+        description: Успешные выполнения.
         content:
           application/json:
             schema:
               $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
 
 failed:
   get:
-    tags: [ Actions ]
-    summary: Список задач с ошибкой
-    security:
-      - BearerAuth: [ ]
+    tags: [Actions]
+    operationId: listFailedActionRuns
+    summary: Список завершившихся ошибкой actions
     parameters:
-      - name: filter[action_id]
+      - name: page[size]
         in: query
         schema:
           type: integer
-      - $ref: '../components/parameters.yaml#/PageSize'
+          minimum: 1
+          maximum: 500
+          default: 100
     responses:
       '200':
-        description: Задачи с ошибкой. Причина ошибки находится в `reason` и `error`.
+        description: Выполнения с ошибкой; причина находится в `reason` и `error`.
         content:
           application/json:
             schema:
               $ref: '../components/schemas/actions.yaml#/ActionRunListResponse'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'

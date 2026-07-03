@@ -8,6 +8,7 @@ use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Module\Projects\Models\Project;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
@@ -26,18 +27,29 @@ final class ScenarioRunControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Project $project;
+
     protected function setUp(): void
     {
         parent::setUp();
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->instance(Centrifugo::class, $this->createMock(Centrifugo::class));
+        $this->project = Project::query()->create([
+            'name' => 'Scenario test project',
+            'sitekey' => 'scenario-test',
+            'host' => 'scenario.test',
+            'is_active' => true,
+        ]);
     }
 
     // ------------------------------------------------------------------ helpers
 
     private function makeUser(string ...$permissions): User
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'project_id' => $this->project->id,
+            'is_system' => true,
+        ]);
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
@@ -49,8 +61,16 @@ final class ScenarioRunControllerTest extends TestCase
 
     private function makeScenarioWithBlock(string $blockNodeId, array $fields = []): array
     {
-        $scenario = Scenario::query()->create(['name' => 'Test', 'is_active' => true]);
-        $version = ScenarioVersion::query()->create(['scenario_id' => $scenario->id, 'status' => 'active']);
+        $scenario = Scenario::query()->create([
+            'project_id' => $this->project->id,
+            'name' => 'Test',
+            'is_active' => true,
+        ]);
+        $version = ScenarioVersion::query()->create([
+            'scenario_id' => $scenario->id,
+            'project_id' => $this->project->id,
+            'status' => 'active',
+        ]);
 
         $this->createRevision($version, [
             'nodes_json' => [
@@ -82,8 +102,9 @@ final class ScenarioRunControllerTest extends TestCase
     private function createRun(Scenario $scenario): ScenarioRun
     {
         $user = $this->makeUser();
+        $token = $user->createToken('scenario-test')->plainTextToken;
 
-        $response = $this->actingAs($user)
+        $response = $this->withToken($token)
             ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
             ->assertCreated();
 
@@ -96,18 +117,105 @@ final class ScenarioRunControllerTest extends TestCase
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block');
         $user = $this->makeUser();
+        $token = $user->createToken('scenario-test')->plainTextToken;
 
-        $this->actingAs($user)
+        $this->withToken($token)
             ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
             ->assertCreated()
             ->assertJsonPath('data.run.status', 'active');
     }
 
+    public function test_store_uses_service_account_bearer_to_resolve_project_and_actor(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $serviceAccount = $this->makeUser();
+        $token = $serviceAccount->createToken('scenario-api')->plainTextToken;
+
+        $response = $this->withToken($token)
+            ->postJson('/api/scenarios/runner', [
+                'scenario_id' => $scenario->id,
+                'user_data' => ['fio' => 'Клиент'],
+            ])
+            ->assertCreated();
+
+        $runId = $response->json('data.run.id');
+        $this->assertDatabaseHas('scenario_runs', [
+            'id' => $runId,
+            'scenario_id' => $scenario->id,
+            'created_by' => $serviceAccount->id,
+            'updated_by' => $serviceAccount->id,
+        ]);
+    }
+
+    public function test_start_resolves_scenario_alias_inside_bearer_project(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $scenario->forceFill(['alias' => 'project-survey'])->save();
+        $serviceAccount = $this->makeUser();
+        $token = $serviceAccount->createToken('scenario-api')->plainTextToken;
+
+        $response = $this->withToken($token)
+            ->postJson('/api/scenarios/runner/start', ['alias' => 'project-survey'])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('scenario_runs', [
+            'id' => $response->json('data.id'),
+            'scenario_id' => $scenario->id,
+            'created_by' => $serviceAccount->id,
+        ]);
+    }
+
+    public function test_store_rejects_non_service_account(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+        $user = User::factory()->create(['project_id' => $this->project->id]);
+        $token = $user->createToken('scenario-test')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.code', 'SCENARIO_SERVICE_ACCOUNT_REQUIRED');
+    }
+
+    public function test_store_rejects_service_account_without_bearer(): void
+    {
+        [$scenario] = $this->makeScenarioWithBlock('node_block');
+
+        $this->actingAs($this->makeUser())
+            ->postJson('/api/scenarios/runner', ['scenario_id' => $scenario->id])
+            ->assertForbidden()
+            ->assertJsonPath('errors.0.code', 'SCENARIO_SERVICE_ACCOUNT_REQUIRED');
+    }
+
+    public function test_store_cannot_create_run_for_scenario_from_another_project(): void
+    {
+        $foreignProject = Project::query()->create([
+            'name' => 'Foreign',
+            'sitekey' => 'foreign',
+            'host' => 'foreign.test',
+            'is_active' => true,
+        ]);
+        $foreignScenario = Scenario::query()->create([
+            'project_id' => $foreignProject->id,
+            'name' => 'Foreign scenario',
+            'is_active' => true,
+        ]);
+        $this->makeScenarioWithBlock('node_block');
+        $serviceAccount = $this->makeUser();
+        $token = $serviceAccount->createToken('scenario-test')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/scenarios/runner', ['scenario_id' => $foreignScenario->id])
+            ->assertNotFound()
+            ->assertJsonPath('errors.0.code', 'SCENARIO_NOT_FOUND');
+    }
+
     public function test_store_requires_existing_scenario(): void
     {
         $user = $this->makeUser();
+        $token = $user->createToken('scenario-test')->plainTextToken;
 
-        $this->actingAs($user)
+        $this->withToken($token)
             ->postJson('/api/scenarios/runner', ['scenario_id' => 'non-existent-uuid'])
             ->assertUnprocessable();
     }
@@ -141,6 +249,38 @@ final class ScenarioRunControllerTest extends TestCase
         $this->actingAs($user)
             ->getJson('/api/scenarios/runner/00000000-0000-0000-0000-000000000000')
             ->assertNotFound();
+    }
+
+    public function test_show_returns_404_for_run_from_another_project(): void
+    {
+        $foreignProject = Project::query()->create([
+            'name' => 'Foreign',
+            'sitekey' => 'foreign',
+            'host' => 'foreign.test',
+            'is_active' => true,
+        ]);
+        $foreignScenario = Scenario::query()->create([
+            'project_id' => $foreignProject->id,
+            'name' => 'Foreign scenario',
+            'is_active' => true,
+        ]);
+        $foreignVersion = ScenarioVersion::query()->create([
+            'scenario_id' => $foreignScenario->id,
+            'project_id' => $foreignProject->id,
+            'status' => 'active',
+        ]);
+        $revision = $this->createRevision($foreignVersion);
+        $foreignRun = ScenarioRun::query()->create([
+            'scenario_id' => $foreignScenario->id,
+            'scenario_version_id' => $foreignVersion->id,
+            'scenario_version_revision_id' => $revision->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($this->makeUser())
+            ->getJson("/api/scenarios/runner/{$foreignRun->id}")
+            ->assertNotFound()
+            ->assertJsonPath('errors.0.code', 'SCENARIO_RUN_NOT_FOUND');
     }
 
     // ------------------------------------------------------------------ POST /api/scenarios/runner/{id}/continue

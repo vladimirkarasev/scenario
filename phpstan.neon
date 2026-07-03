@@ -7,9 +7,5 @@ parameters:
         - module
     level: 10
     ignoreErrors:
-        - '#Unsafe usage of new static#'
-        # Known Larastan limitation: BelongsTo/HasMany/HasOne TDeclaringModel is not covariant
-        - '#Template type TDeclaringModel on class .* is not covariant#'
+        # Known Larastan limitation: relation return type covariance
         - '#but returns Illuminate\\Database\\Eloquent\\Relations\\(BelongsTo|BelongsToMany|HasMany|HasOne|MorphToMany)<.*\$this.*>#'
-        # Known Larastan limitation: HasOne TDeclaringModel covariance
-        - '#Template type TChildModel on class .* is not covariant#'

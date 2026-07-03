@@ -69,7 +69,7 @@ final readonly class ScenarioFeedRow
             status: $scenario->status->value,
             folderId: $folderId,
             folderPath: $folderPath,
-            tags: $scenario->tags ?? [],
+            tags: array_values($scenario->tags ?? []),
             versionsCount: $scenario->versions_count ?? 0,
             activeVersionId: $scenario->active_version_id,
             createdBy: self::actor($scenario->createdBy),

@@ -168,10 +168,10 @@ Content-Type: application/json
 ###
 
 ### List credentials
-GET {{baseUrl}}/action-credentials
+GET {{baseUrl}}/actions/credentials
 
 ### Create credential
-POST {{baseUrl}}/action-credentials
+POST {{baseUrl}}/actions/credentials
 Content-Type: application/json
 
 {
@@ -184,7 +184,7 @@ Content-Type: application/json
 }
 
 ### Update credential
-PUT {{baseUrl}}/action-credentials/{{credentialId}}
+PUT {{baseUrl}}/actions/credentials/{{credentialId}}
 Content-Type: application/json
 
 {
@@ -196,11 +196,11 @@ Content-Type: application/json
 }
 
 ### Delete credential
-DELETE {{baseUrl}}/action-credentials/{{credentialId}}
+DELETE {{baseUrl}}/actions/credentials/{{credentialId}}
 
 ###
 ### Action runs (history)
 ###
 
 ### List action runs
-GET {{baseUrl}}/action-runs
+GET {{baseUrl}}/actions/runs

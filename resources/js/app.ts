@@ -22,6 +22,8 @@ import {makeFetchTransport} from '@sentry/browser';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+const publicPaths = ['/auth'];
+
 router.on('before', (event) => {
     const token = sessionStorage.getItem('access_token')
     if (token) {
@@ -54,6 +56,12 @@ async function consumeLaunchToken(): Promise<void> {
             window.location.pathname + (query ? `?${query}` : '') + window.location.hash,
         )
     }
+}
+
+// Выполняем обмен _token ДО монтирования Vue: гарантирует что access_token
+// уже в sessionStorage когда компоненты начнут делать API-запросы.
+if (!publicPaths.includes(window.location.pathname)) {
+    await consumeLaunchToken()
 }
 
 createInertiaApp({
@@ -109,14 +117,8 @@ createInertiaApp({
 
         vueApp.mount(el);
 
-        // Публичная dev-страница входа (/auth) не требует токена — иначе глобальная
-        // авторизация покажет 403 поверх формы.
-        const publicPaths = ['/auth'];
         if (!publicPaths.includes(window.location.pathname)) {
-            void (async () => {
-                await consumeLaunchToken();
-                await useAuthStore(pinia).initialize();
-            })();
+            void useAuthStore(pinia).initialize();
         }
 
         return vueApp;

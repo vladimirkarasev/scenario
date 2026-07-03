@@ -107,6 +107,10 @@ return [
             'title' => 'Сценарий не найден',
             'detail' => 'Активный сценарий с указанным тегом не найден.',
         ],
+        'SCENARIO_SERVICE_ACCOUNT_REQUIRED' => [
+            'title' => 'Требуется сервисный аккаунт',
+            'detail' => 'Создавать опросы можно только по Bearer-токену сервисного аккаунта текущего проекта.',
+        ],
         'SCENARIO_SYSTEM_CATEGORY_DELETE_FORBIDDEN' => [
             'title' => 'Удаление запрещено',
             'detail' => 'Системную папку нельзя удалить.',
@@ -133,6 +137,17 @@ return [
         'PROXY_SYSTEM_CATEGORY_DELETE_FORBIDDEN' => [
             'title' => 'Удаление запрещено',
             'detail' => 'Системный раздел интеграций нельзя удалить.',
+        ],
+    ],
+
+    'actions' => [
+        'ACTION_CATEGORY_NOT_FOUND' => [
+            'title' => 'Раздел не найден',
+            'detail' => 'Раздел действий не найден в текущем проекте.',
+        ],
+        'ACTION_SYSTEM_CATEGORY_DELETE_FORBIDDEN' => [
+            'title' => 'Удаление запрещено',
+            'detail' => 'Системный раздел действий нельзя удалить.',
         ],
     ],
 ];

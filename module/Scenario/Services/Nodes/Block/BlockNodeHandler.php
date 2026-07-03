@@ -317,12 +317,24 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
      */
     private function directoryProps(array $field, string $name): array
     {
+        $raw = $field['depDrop'] ?? null;
+        $depDrop = is_array($raw) && isset($raw['fieldVarName'], $raw['filterKey'])
+            ? [
+                'fieldVarName' => is_string($raw['fieldVarName']) ? $raw['fieldVarName'] : '',
+                'filterKey'    => is_string($raw['filterKey']) ? $raw['filterKey'] : '',
+                'valueKey'     => is_string($raw['valueKey'] ?? null) ? $raw['valueKey'] : 'external_key',
+            ]
+            : null;
+
         return [
             ...$this->baseProps($field, $name),
-            'directoryId' => $this->strField($field, 'directoryId'),
-            'versionId' => $this->strField($field, 'versionId'),
-            'labelTemplate' => $this->strField($field, 'labelTemplate'),
-            'multiple' => $this->boolField($field, 'multiple'),
+            'directoryId'       => $this->strField($field, 'directoryId'),
+            'versionId'         => $this->strField($field, 'versionId'),
+            'labelTemplate'     => $this->strField($field, 'labelTemplate'),
+            'multiple'          => $this->boolField($field, 'multiple'),
+            'allowRootSelection' => $this->boolField($field, 'allowRootSelection', true),
+            'defaultSearch'     => $this->strField($field, 'defaultSearch'),
+            'depDrop'           => $depDrop,
         ];
     }
 

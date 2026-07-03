@@ -60,8 +60,7 @@ Pagination:
 ApiMeta:
   type: object
   description: >
-    Сквозной блок meta, присутствует в каждом ответе модуля Users
-    (и успешном, и ошибочном).
+    Сквозной блок meta для API-модулей с единым контрактом ответов.
   required: [ timestamp, requestId ]
   properties:
     timestamp:
@@ -92,16 +91,16 @@ ApiError:
       example: '404'
     code:
       type: string
-      description: Машиночитаемый код ошибки (см. UserErrorCode).
-      example: USER_NOT_FOUND
+      description: Машиночитаемый код ошибки из enum соответствующего модуля.
+      example: ACTION_CATEGORY_NOT_FOUND
     title:
       type: string
       description: Краткий заголовок.
-      example: Пользователь не найден
+      example: Раздел не найден
     detail:
       type: string
       description: Человекочитаемое описание.
-      example: Пользователь не найден в проекте.
+      example: Запрошенный ресурс не найден в текущем проекте.
     source:
       type: object
       description: Указатель на источник ошибки (для ошибок валидации).
@@ -112,7 +111,7 @@ ApiError:
 
 ApiErrorResponse:
   type: object
-  description: Единый конверт ошибки модуля Users.
+  description: Единый конверт API-ошибки.
   required: [ errors, meta ]
   properties:
     errors:

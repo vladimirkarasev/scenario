@@ -46,7 +46,7 @@ function normalize(item: JsonApiItem): ActionSchedule {
 export const actionScheduleRepository = {
     async list(): Promise<ScheduleListItem[]> {
         const payload = await getJson<{ items: ScheduleListItem[] }>(
-            '/api/action-schedules',
+            '/api/actions/schedules',
             'Не удалось загрузить расписания.',
         )
         return payload.items ?? []

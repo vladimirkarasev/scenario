@@ -10,12 +10,14 @@ use Module\Scenario\DTO\SurveyIndexData;
 use Module\Scenario\Enums\ScenarioRunStatus;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Repositories\ScenarioRunRepository;
+use Module\Projects\CurrentProject;
 
 final readonly class SurveysService
 {
     public function __construct(
         private ScenarioPlayerService $player,
         private ScenarioRunRepository $runs,
+        private CurrentProject $currentProject,
     ) {
     }
 
@@ -31,6 +33,7 @@ final readonly class SurveysService
     {
         /** @var LengthAwarePaginator<int, ScenarioRun> $runs */
         $runs = ScenarioRun::query()
+            ->forProject($this->projectId())
             ->with(['scenario'])
             ->latest()
             ->status($data->status !== null ? ScenarioRunStatus::from($data->status) : null)
@@ -50,7 +53,9 @@ final readonly class SurveysService
      */
     public function get(string $runId): array
     {
-        $run = $this->player->getRun($this->runs->getById($runId));
+        $run = $this->player->getRun(
+            $this->runs->getByIdInProject($runId, $this->projectId()),
+        );
 
         return $this->player->payload($run);
     }
@@ -69,5 +74,11 @@ final readonly class SurveysService
             'created_at' => $run->created_at?->toIso8601String(),
             'updated_at' => $run->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function projectId(): string
+    {
+        return $this->currentProject->id()
+            ?? throw new \LogicException('Survey operations require a current project.');
     }
 }

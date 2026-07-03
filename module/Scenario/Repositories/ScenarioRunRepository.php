@@ -22,6 +22,15 @@ final class ScenarioRunRepository
             ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioRunNotFound);
     }
 
+    public function getByIdInProject(string $id, string $projectId): ScenarioRun
+    {
+        return ScenarioRun::query()
+            ->forProject($projectId)
+            ->whereKey($id)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioRunNotFound);
+    }
+
     public function hydrate(ScenarioRun $run): ScenarioRun
     {
         return ScenarioRun::query()

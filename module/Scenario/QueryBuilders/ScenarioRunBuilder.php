@@ -22,6 +22,14 @@ final class ScenarioRunBuilder extends Builder
         return $this->where('scenario_id', $scenarioId);
     }
 
+    public function forProject(string $projectId): self
+    {
+        return $this->whereHas(
+            'scenario',
+            static fn(Builder $scenario): Builder => $scenario->where('project_id', $projectId),
+        );
+    }
+
     public function status(?ScenarioRunStatus $status): self
     {
         if ($status === null) {

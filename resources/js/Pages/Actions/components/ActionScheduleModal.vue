@@ -6,10 +6,13 @@ import {
 } from '@/components/form'
 import {Loader2, X} from 'lucide-vue-next'
 import type {useActionScheduleModal} from '@/modules/actions/composables/useActionScheduleModal'
+import {toRef} from 'vue'
 
-defineProps<{
+const props = defineProps<{
   scheduleModal: ReturnType<typeof useActionScheduleModal>
 }>()
+
+const scheduleModal = toRef(props, 'scheduleModal')
 </script>
 
 <template>
@@ -22,19 +25,19 @@ defineProps<{
         <div class="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <div class="text-[15px] font-bold text-slate-900">Расписание: {{ scheduleModal.action.value?.name }}</div>
           <button class="text-slate-400 transition hover:text-slate-700" @click="scheduleModal.close">
-            <X :size="18"/>
+            <X :size="18" />
           </button>
         </div>
         <form class="contents" novalidate @submit.prevent="scheduleModal.save">
           <FormBody>
             <div v-if="scheduleModal.loading.value"
                  class="flex items-center justify-center gap-2 py-10 text-sm text-slate-500">
-              <Loader2 :size="18" class="animate-spin"/>
+              <Loader2 :size="18" class="animate-spin" />
               Загрузка расписания...
             </div>
             <template v-else>
-              <FormError :message="scheduleModal.error.value"/>
-              <FormToggle v-model="scheduleModal.form.enabled" label="Расписание активно"/>
+              <FormError :message="scheduleModal.error.value" />
+              <FormToggle v-model="scheduleModal.form.enabled" label="Расписание активно" />
               <div class="grid gap-4 md:grid-cols-[1fr_180px]">
                 <FormCronInput
                     v-model="scheduleModal.form.cron"
@@ -52,9 +55,9 @@ defineProps<{
               </div>
               <FormRow>
                 <FormJsonInput v-model="scheduleModal.form.input" label="Input JSON" :rows="7"
-                               :error="scheduleModal.errors.input"/>
+                               :error="scheduleModal.errors.input" />
                 <FormJsonInput v-model="scheduleModal.form.options" label="Options JSON" :rows="7"
-                               :error="scheduleModal.errors.options"/>
+                               :error="scheduleModal.errors.options" />
               </FormRow>
               <FormJsonInput
                   v-model="scheduleModal.form.settings"

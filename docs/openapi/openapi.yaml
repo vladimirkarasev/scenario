@@ -104,6 +104,8 @@ paths:
   /scenarios/catalog:
     $ref: './paths/catalog.yaml'
 
+  /scenarios/feed:
+    $ref: './paths/scenarios.yaml#/feed'
   /scenarios:
     $ref: './paths/scenarios.yaml#/collection'
   /scenarios/{scenario}:
@@ -121,21 +123,25 @@ paths:
   /scenarios/categories/{category}:
     $ref: './paths/categories.yaml#/item'
 
+  /scenarios/dispatch:
+    $ref: './paths/runner.yaml#/dispatch'
   /scenarios/runner/start:
     $ref: './paths/runner.yaml#/start'
-  /scenarios/runner/{runId}/jump:
-    $ref: './paths/runner.yaml#/jump'
 
-  /scenario-runs:
+  /scenarios/runner:
     $ref: './paths/runs.yaml#/collection'
-  /scenario-runs/users:
+  /scenarios/runner/users:
     $ref: './paths/runs.yaml#/users'
-  /scenario-runs/{runId}:
+  /scenarios/runner/{runId}:
     $ref: './paths/runs.yaml#/item'
-  /scenario-runs/{runId}/continue:
+  /scenarios/runner/{runId}/continue:
     $ref: './paths/runs.yaml#/continue'
-  /scenario-runs/{runId}/jump:
+  /scenarios/runner/{runId}/jump:
     $ref: './paths/runs.yaml#/jump'
+  /scenarios/runner/{runId}/retry-action:
+    $ref: './paths/runs.yaml#/retryAction'
+  /scenarios/runner/{runId}/history:
+    $ref: './paths/runs.yaml#/history'
 
   /scenarios/surveys:
     $ref: './paths/surveys.yaml#/list'
@@ -183,21 +189,35 @@ paths:
 
   /actions:
     $ref: './paths/actions.yaml#/collection'
+  /actions/types:
+    $ref: './paths/actions.yaml#/types'
+  /actions/feed:
+    $ref: './paths/actions.yaml#/feed'
+  /actions/run:
+    $ref: './paths/actions.yaml#/run'
+  /actions/categories:
+    $ref: './paths/actions.yaml#/categoryCollection'
+  /actions/categories/{category}:
+    $ref: './paths/actions.yaml#/categoryItem'
   /actions/{action}:
     $ref: './paths/actions.yaml#/item'
-  /actions/{action}/execute:
-    $ref: './paths/actions.yaml#/execute'
-  /actions/{action}/run:
-    $ref: './paths/actions.yaml#/run'
   /actions/{action}/schedule:
     $ref: './paths/actions.yaml#/schedule'
 
-  /action-runs:
+  /actions/credentials:
+    $ref: './paths/action-credentials.yaml#/collection'
+  /actions/credentials/{credential}:
+    $ref: './paths/action-credentials.yaml#/item'
+  /actions/runs:
     $ref: './paths/action-runs.yaml#/collection'
-  /action-runs/completed:
+  /actions/runs/completed:
     $ref: './paths/action-runs.yaml#/completed'
-  /action-runs/failed:
+  /actions/runs/failed:
     $ref: './paths/action-runs.yaml#/failed'
+  /actions/schedules:
+    $ref: './paths/action-schedules.yaml#/collection'
+  /actions/directories/{directory}/sync-schedule:
+    $ref: './paths/directory-sync-schedules.yaml#/item'
 
   /embed/auth/exchange:
     $ref: './paths/embed-auth.yaml#/exchange'
@@ -409,14 +429,20 @@ components:
       $ref: './components/schemas/actions.yaml#/ExcelReportActionConfig'
     DirectoryImportActionConfig:
       $ref: './components/schemas/actions.yaml#/DirectoryImportActionConfig'
-    ActionExecutionRequest:
-      $ref: './components/schemas/actions.yaml#/ActionExecutionRequest'
-    ActionExecutionResponse:
-      $ref: './components/schemas/actions.yaml#/ActionExecutionResponse'
+    ActionEnvelope:
+      $ref: './components/schemas/actions.yaml#/ActionEnvelope'
+    ActionInputField:
+      $ref: './components/schemas/actions.yaml#/ActionInputField'
+    ActionTypeMeta:
+      $ref: './components/schemas/actions.yaml#/ActionTypeMeta'
+    ActionTypeListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionTypeListResponse'
     ActionRunRequest:
       $ref: './components/schemas/actions.yaml#/ActionRunRequest'
     ActionRunResponse:
       $ref: './components/schemas/actions.yaml#/ActionRunResponse'
+    ActionRunRejectedResponse:
+      $ref: './components/schemas/actions.yaml#/ActionRunRejectedResponse'
     ActionScheduleRequest:
       $ref: './components/schemas/actions.yaml#/ActionScheduleRequest'
     ActionSchedule:
@@ -427,6 +453,20 @@ components:
       $ref: './components/schemas/actions.yaml#/ActionRun'
     ActionRunListResponse:
       $ref: './components/schemas/actions.yaml#/ActionRunListResponse'
+    ActionFeedResponse:
+      $ref: './components/schemas/actions.yaml#/ActionFeedResponse'
+    ActionCredential:
+      $ref: './components/schemas/actions.yaml#/ActionCredential'
+    ActionCredentialRequest:
+      $ref: './components/schemas/actions.yaml#/ActionCredentialRequest'
+    ActionCredentialListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionCredentialListResponse'
+    ActionScheduleListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionScheduleListResponse'
+    DirectorySyncScheduleRequest:
+      $ref: './components/schemas/actions.yaml#/DirectorySyncScheduleRequest'
+    DirectorySyncScheduleResponse:
+      $ref: './components/schemas/actions.yaml#/DirectorySyncScheduleResponse'
 
     EmbedAuthExchangeRequest:
       $ref: './components/schemas/embed-auth.yaml#/EmbedAuthExchangeRequest'

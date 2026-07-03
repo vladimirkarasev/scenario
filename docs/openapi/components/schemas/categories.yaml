@@ -41,6 +41,15 @@ CategoryAttributes:
       example: Онбординг
     is_active:
       type: boolean
+    is_system:
+      type: boolean
+    is_workspace:
+      type: boolean
+    group_ids:
+      type: array
+      items:
+        type: string
+        format: uuid
     scenarios_count:
       type: integer
       description: Количество сценариев в категории
@@ -67,3 +76,12 @@ CategoryRequest:
     is_active:
       type: boolean
       example: true
+    group_ids:
+      type: [array, 'null']
+      items:
+        type: string
+        format: uuid
+    inherit_to_descendants:
+      type: [boolean, 'null']
+    is_workspace:
+      type: [boolean, 'null']

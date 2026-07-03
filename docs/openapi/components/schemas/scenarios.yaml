@@ -94,3 +94,126 @@ ScenarioRequest:
       type: [ string, 'null' ]
       format: uuid
       description: UUID активной версии (должна принадлежать этому сценарию)
+
+ScenarioFeedFolder:
+  type: object
+  description: Строка ленты типа «папка» (категория со сценариями)
+  properties:
+    type:
+      type: string
+      enum: [ folder ]
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    parent_id:
+      type: [ string, 'null' ]
+      format: uuid
+    parent_path:
+      type: [ string, 'null' ]
+      description: Путь к папке «А / Б / В»
+    path_ids:
+      type: [ array, 'null' ]
+      items:
+        type: string
+        format: uuid
+      description: Цепочка UUID от корня до папки (для раскрытия дерева)
+    children_count:
+      type: integer
+      description: Количество дочерних папок (только с привязанными сценариями)
+    created_at:
+      type: [ string, 'null' ]
+      format: date-time
+    updated_at:
+      type: [ string, 'null' ]
+      format: date-time
+
+ScenarioFeedScenario:
+  type: object
+  description: Строка ленты типа «сценарий»
+  properties:
+    type:
+      type: string
+      enum: [ scenario ]
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    alias:
+      type: [ string, 'null' ]
+    description:
+      type: [ string, 'null' ]
+    status:
+      type: string
+      enum: [ draft, active, archived ]
+    folder_id:
+      type: [ string, 'null' ]
+      format: uuid
+    folder_path:
+      type: [ string, 'null' ]
+      description: Путь папки «А / Б / В»
+    tags:
+      type: array
+      items:
+        type: string
+    versions_count:
+      type: integer
+    active_version_id:
+      type: [ string, 'null' ]
+      format: uuid
+    created_by:
+      $ref: './common.yaml#/Actor'
+    updated_by:
+      $ref: './common.yaml#/Actor'
+    created_at:
+      type: [ string, 'null' ]
+      format: date-time
+    updated_at:
+      type: [ string, 'null' ]
+      format: date-time
+
+ScenarioFeedItem:
+  oneOf:
+    - $ref: '#/ScenarioFeedFolder'
+    - $ref: '#/ScenarioFeedScenario'
+  discriminator:
+    propertyName: type
+    mapping:
+      folder: '#/ScenarioFeedFolder'
+      scenario: '#/ScenarioFeedScenario'
+
+ScenarioFeedMeta:
+  type: object
+  properties:
+    current_page:
+      type: integer
+    last_page:
+      type: integer
+    per_page:
+      type: integer
+    total:
+      type: integer
+    from:
+      type: [ integer, 'null' ]
+    to:
+      type: [ integer, 'null' ]
+    folders_total:
+      type: integer
+      description: Общее число папок в текущем фильтре
+    items_total:
+      type: integer
+      description: Общее число сценариев в текущем фильтре
+    counts_by_status:
+      type: object
+      description: Количество сценариев по статусам (игнорирует фильтр status)
+      properties:
+        all:
+          type: integer
+        active:
+          type: integer
+        draft:
+          type: integer
+        archived:
+          type: integer

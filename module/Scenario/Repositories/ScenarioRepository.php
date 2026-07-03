@@ -37,9 +37,27 @@ final class ScenarioRepository
             ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
     }
 
+    public function getByIdInProject(string $id, string $projectId): Scenario
+    {
+        return Scenario::query()
+            ->forProject($projectId)
+            ->whereKey($id)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+    }
+
     public function getByAlias(string $alias): Scenario
     {
         return Scenario::query()->forAlias($alias)->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+    }
+
+    public function getByAliasInProject(string $alias, string $projectId): Scenario
+    {
+        return Scenario::query()
+            ->forProject($projectId)
+            ->forAlias($alias)
+            ->first()
             ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
     }
 

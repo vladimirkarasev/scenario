@@ -16,15 +16,17 @@ use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Repositories\ScenarioRepository;
 use Module\Scenario\Repositories\ScenarioRunRepository;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
-use Module\Scenario\Repositories\ScenarioRunUserRepository;
 use Module\Scenario\Repositories\ScenarioVersionRepository;
 use Module\Scenario\Repositories\ScenarioVersionRevisionRepository;
 use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\Nodes\NodeHandlerRegistry;
+use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\Nodes\RetryableNodeHandler;
 
 final readonly class ScenarioPlayerService
 {
+    use NodeHelpers;
+
     private const int MAX_STEPS = 100;
 
     private const int MAX_VISITS_PER_NODE = 10;
@@ -37,7 +39,6 @@ final readonly class ScenarioPlayerService
         private ScenarioVersionRepository $versions,
         private ScenarioRunRepository $runs,
         private ScenarioRunStepRepository $steps,
-        private ScenarioRunUserRepository $users,
         private ScenarioVersionRevisionRepository $revisions,
         private VariableResolver $variableResolver,
         private ScenarioVariableMapBuilder $variableMapBuilder,
@@ -60,16 +61,22 @@ final readonly class ScenarioPlayerService
     }
 
     /** Запустить опрос по scenario_id / version_id / alias; вернуть id созданного прогона. */
-    public function start(ScenarioStartData $data): string
+    public function start(ScenarioStartData $data, ?string $projectId = null): string
     {
         $version = match (true) {
-            $data->versionId !== null => $this->versions->getById($data->versionId),
+            $data->versionId !== null => $projectId !== null
+                ? $this->versions->getByIdInProject($data->versionId, $projectId)
+                : $this->versions->getById($data->versionId),
             $data->scenarioId !== null => $this->versions->resolveForScenario(
-                $this->scenarios->getById($data->scenarioId),
+                $projectId !== null
+                    ? $this->scenarios->getByIdInProject($data->scenarioId, $projectId)
+                    : $this->scenarios->getById($data->scenarioId),
                 null,
             ),
             default => $this->versions->resolveForScenario(
-                $this->scenarios->getByAlias((string) $data->alias),
+                $projectId !== null
+                    ? $this->scenarios->getByAliasInProject((string) $data->alias, $projectId)
+                    : $this->scenarios->getByAlias((string) $data->alias),
                 null,
             ),
         };
@@ -81,18 +88,26 @@ final readonly class ScenarioPlayerService
                 context: $data->context,
                 userData: $data->userData,
             ),
+            $projectId,
         )->id;
     }
 
     /** Создать прогон по явным ID сценария и/или версии, автопродвинуть до первого интерактивного узла. */
-    public function createRun(ScenarioRunData $data): ScenarioRun
+    public function createRun(ScenarioRunData $data, ?string $projectId = null): ScenarioRun
     {
         if ($data->scenarioId !== null) {
-            $scenario = $this->scenarios->getById($data->scenarioId);
+            $scenario = $projectId !== null
+                ? $this->scenarios->getByIdInProject($data->scenarioId, $projectId)
+                : $this->scenarios->getById($data->scenarioId);
             $version = $this->versions->resolveForScenario($scenario, $data->scenarioVersionId);
         } else {
-            $version = $this->versions->getById((string) $data->scenarioVersionId);
-            $scenario = $this->scenarios->getById($version->scenario_id);
+            $versionId = (string) $data->scenarioVersionId;
+            $version = $projectId !== null
+                ? $this->versions->getByIdInProject($versionId, $projectId)
+                : $this->versions->getById($versionId);
+            $scenario = $projectId !== null
+                ? $this->scenarios->getByIdInProject($version->scenario_id, $projectId)
+                : $this->scenarios->getById($version->scenario_id);
         }
 
         $revision = $this->revisions->getLastRevision($version);
@@ -112,12 +127,6 @@ final readonly class ScenarioPlayerService
             ),
             'status' => ScenarioRunStatus::Active->value,
         ];
-
-        if ($data->userData !== []) {
-            $user = $this->users->firstOrCreateFromRunData($data->userData);
-            $attributes['created_by'] = $user->id;
-            $attributes['updated_by'] = $user->id;
-        }
 
         if ($data->operatorId !== null) {
             $attributes['operator_id'] = $data->operatorId;
@@ -583,11 +592,6 @@ final readonly class ScenarioPlayerService
         return $run;
     }
 
-    private function runVersion(ScenarioRun $run): ScenarioVersion
-    {
-        return $run->version ?? throw new \RuntimeException('Run version is not loaded.');
-    }
-
     /**
      * Данные клиента из context.user (передаются опционально при создании опроса):
      * ФИО и телефон. null — если клиент не передан.
@@ -637,19 +641,4 @@ final readonly class ScenarioPlayerService
         return $cache[$versionId] = $version ?? $fallback;
     }
 
-    /** @param  array<string, mixed>  $node */
-    private function nodeId(array $node): string
-    {
-        $id = $node['id'] ?? null;
-
-        return is_string($id) ? $id : throw new \RuntimeException('Node has no id.');
-    }
-
-    /** @param  array<string, mixed>  $node */
-    private function nodeType(array $node): string
-    {
-        $type = $node['type'] ?? null;
-
-        return is_string($type) ? $type : throw new \RuntimeException('Node has no type.');
-    }
 }

@@ -158,6 +158,61 @@ continue:
       '404':
         $ref: '../components/responses.yaml#/NotFound'
 
+retryAction:
+  post:
+    tags: [ Прогоны ]
+    summary: Повторить action-ноду
+    security:
+      - BearerAuth: [ ]
+    description: >
+      Перезапускает pipeline action-ноды начиная с первой упавшей стадии.
+      Успешно завершённые стадии не перезапускаются. Возвращает обновлённый payload прогона.
+      Применимо только к нодам с `wait_for_result = true`.
+    parameters:
+      - $ref: '../components/parameters.yaml#/RunId'
+    responses:
+      '200':
+        description: Обновлённое состояние прогона
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/runs.yaml#/RunPayload'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
+history:
+  get:
+    tags: [ Прогоны ]
+    summary: История шагов
+    security:
+      - BearerAuth: [ ]
+    description: >
+      Возвращает список событий истории для прогона: только шаги с узлами типа
+      `block` и `condition`. Каждый элемент содержит название вопроса, ответ
+      оператора и временные метки.
+    parameters:
+      - $ref: '../components/parameters.yaml#/RunId'
+    responses:
+      '200':
+        description: История шагов прогона
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    description: Событие истории (вопрос + ответ)
+                    additionalProperties: true
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'
+      '404':
+        $ref: '../components/responses.yaml#/NotFound'
+
 jump:
   post:
     tags: [ Прогоны ]

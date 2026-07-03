@@ -13,12 +13,12 @@ final class ScenarioFeedResource extends JsonApiResource
 {
     protected bool $usesRequestQueryString = false;
 
-    public function toId(Request $request): ?string
+    public function toId(Request $request): string
     {
         return $this->resource->id;
     }
 
-    public function toType(Request $request): ?string
+    public function toType(Request $request): string
     {
         return $this->resource->itemType;
     }

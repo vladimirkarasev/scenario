@@ -56,6 +56,15 @@ final class ScenarioVersionRepository
             ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioVersionNotFound);
     }
 
+    public function getByIdInProject(string $id, string $projectId): ScenarioVersion
+    {
+        return ScenarioVersion::query()
+            ->whereKey($id)
+            ->where('project_id', $projectId)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioVersionNotFound);
+    }
+
     public function duplicate(ScenarioVersion $version): ScenarioVersion
     {
         $scenario = $version->scenario()->first()

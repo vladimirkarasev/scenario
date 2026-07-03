@@ -167,3 +167,67 @@ duplicate:
         $ref: '../components/responses.yaml#/Unauthorized'
       '404':
         $ref: '../components/responses.yaml#/NotFound'
+
+feed:
+  get:
+    tags: [ Сценарии ]
+    summary: Лента сценариев
+    security:
+      - BearerAuth: [ ]
+    description: >
+      Возвращает смешанный поток «папки сверху + сценарии» с единой пагинацией.
+      Папки всегда идут перед сценариями; внутри каждой группы — сортировка по имени.
+      Если передан `filter[parent_id]`, возвращаются только прямые потомки указанной папки.
+      Если `filter[parent_id]` передан с пустым значением — возвращаются элементы без категории.
+    parameters:
+      - name: filter
+        in: query
+        style: deepObject
+        explode: true
+        schema:
+          type: object
+          properties:
+            parent_id:
+              type: [ string, 'null' ]
+              format: uuid
+              description: >
+                UUID родительской папки. Наличие ключа с пустым значением означает
+                «показать элементы без категории» (корень).
+            search:
+              type: string
+              maxLength: 255
+              description: Поиск по названию папки / сценария
+            status:
+              type: string
+              enum: [ active, draft, archived ]
+              description: Фильтр сценариев по статусу (папки не фильтруются)
+            exclude_scenario_id:
+              type: string
+              format: uuid
+              description: Исключить сценарий из выборки
+            root_id:
+              type: string
+              format: uuid
+              description: Ограничить выдачу поддеревом этой папки (для Workspace-изоляции)
+            project_id:
+              type: string
+              format: uuid
+              description: Проект для фильтрации. Если не передан — берётся из токена авторизации.
+      - $ref: '../components/parameters.yaml#/PageNumber'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Лента с пагинацией и счётчиками
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '../components/schemas/scenarios.yaml#/ScenarioFeedItem'
+                meta:
+                  $ref: '../components/schemas/scenarios.yaml#/ScenarioFeedMeta'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'

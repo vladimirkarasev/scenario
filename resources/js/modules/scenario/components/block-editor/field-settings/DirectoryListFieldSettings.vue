@@ -14,9 +14,13 @@ import DirectoryPickerDialog from '@/modules/scenario/components/pickers/Directo
 import DirectoryLabelTemplateField from './DirectoryLabelTemplateField.vue'
 import {useDirectorySchemaLoader} from '@/modules/directories/composables/useDirectorySchemaLoader'
 import type {Directory} from '@/modules/directories/types/directory'
-import type {DirectoryListBlockField} from '../../../lib/scenario-block-fields'
+import type {DirectoryListBlockField, DirectoryListDepDrop} from '../../../lib/scenario-block-fields'
 
-const props = defineProps<{ field: DirectoryListBlockField; disabled?: boolean }>()
+const props = defineProps<{
+  field: DirectoryListBlockField
+  disabled?: boolean
+  blockFields?: DirectoryListBlockField[]
+}>()
 const emit = defineEmits<{ update: [patch: Partial<DirectoryListBlockField>] }>()
 defineOptions({inheritAttrs: false})
 const pickerOpen = ref(false)
@@ -39,6 +43,31 @@ function onDirectorySelect(directory: Directory): void {
 
 function clearDirectory(): void {
   emit('update', {directoryId: '', versionId: '', labelTemplate: ''})
+}
+
+// ── DepDrop ────────────────────────────────────────────────────────────────────
+
+const depDropEnabled = computed(() => Boolean(props.field.depDrop))
+
+const candidateFields = computed(() =>
+    (props.blockFields ?? []).filter(
+        (f) => f.id !== props.field.id && f.type === 'directory_list' && f.varName,
+    ),
+)
+
+function enableDepDrop(): void {
+  emit('update', {
+    depDrop: {fieldVarName: '', filterKey: '', valueKey: 'external_key'},
+  })
+}
+
+function disableDepDrop(): void {
+  emit('update', {depDrop: null})
+}
+
+function patchDepDrop(patch: Partial<DirectoryListDepDrop>): void {
+  if (!props.field.depDrop) return
+  emit('update', {depDrop: {...props.field.depDrop, ...patch}})
 }
 </script>
 
@@ -130,6 +159,92 @@ function clearDirectory(): void {
           class="h-8 text-sm"
           @update:model-value="emit('update', { defaultSearch: String($event) })"
       />
+    </div>
+
+    <!-- DepDrop section -->
+    <div class="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Зависимость от поля</span>
+        <label class="flex cursor-pointer items-center gap-2">
+          <input
+              :checked="depDropEnabled"
+              type="checkbox"
+              class="size-3.5 rounded border-slate-300"
+              :disabled="disabled"
+              @change="depDropEnabled ? disableDepDrop() : enableDepDrop()"
+          />
+          <span class="text-[11px] text-slate-600">Включить</span>
+        </label>
+      </div>
+
+      <template v-if="depDropEnabled && field.depDrop">
+        <!-- Source field picker -->
+        <div class="space-y-1">
+          <label class="block text-[10px] font-medium text-slate-500">Зависит от поля</label>
+          <Select
+              :model-value="field.depDrop.fieldVarName"
+              :disabled="disabled || candidateFields.length === 0"
+              @update:model-value="patchDepDrop({ fieldVarName: $event })"
+          >
+            <SelectTrigger class="w-full rounded-lg border-slate-200 text-xs" size="sm">
+              <SelectValue :placeholder="candidateFields.length ? 'Выберите поле...' : 'Нет доступных полей'"/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                  v-for="f in candidateFields"
+                  :key="f.id"
+                  :value="f.varName"
+              >
+                {{ f.label || f.varName }}
+                <span class="ml-1 text-slate-400">{{ f.varName }}</span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p v-if="candidateFields.length === 0" class="text-[10px] text-slate-400">
+            Добавьте другое поле «Справочник» в блок, чтобы использовать зависимость.
+          </p>
+        </div>
+
+        <!-- Filter key (column in child directory) -->
+        <div class="space-y-1">
+          <label class="block text-[10px] font-medium text-slate-500">Колонка фильтра (в этом справочнике)</label>
+          <Input
+              :model-value="field.depDrop.filterKey"
+              :disabled="disabled"
+              placeholder="например: city_id или region"
+              class="h-8 text-xs"
+              @update:model-value="patchDepDrop({ filterKey: String($event) })"
+          />
+        </div>
+
+        <!-- Value key (what to extract from parent selection) -->
+        <div class="space-y-1">
+          <label class="block text-[10px] font-medium text-slate-500">Брать значение из</label>
+          <Select
+              :model-value="field.depDrop.valueKey"
+              :disabled="disabled"
+              @update:model-value="patchDepDrop({ valueKey: $event })"
+          >
+            <SelectTrigger class="w-full rounded-lg border-slate-200 text-xs" size="sm">
+              <SelectValue/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="external_key">external_key — внешний ключ</SelectItem>
+              <SelectItem value="id">id — идентификатор</SelectItem>
+            </SelectContent>
+          </Select>
+          <p class="text-[10px] text-slate-400">
+            Или введите ключ колонки из родительского справочника вручную:
+          </p>
+          <Input
+              :model-value="!['external_key', 'id'].includes(field.depDrop.valueKey) ? field.depDrop.valueKey : ''"
+              :disabled="disabled"
+              placeholder="например: code или name"
+              class="h-8 text-xs"
+              @update:model-value="$event ? patchDepDrop({ valueKey: String($event) }) : patchDepDrop({ valueKey: 'external_key' })"
+          />
+        </div>
+      </template>
     </div>
   </div>
 

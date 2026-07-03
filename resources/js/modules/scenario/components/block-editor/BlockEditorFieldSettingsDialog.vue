@@ -12,6 +12,8 @@ import ScenarioVariableList from '@/modules/scenario/components/ScenarioVariable
 import {AVAILABLE_VALIDATION_RULES} from '@/modules/scenario/lib/scenario-block-fields'
 import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 
+type AnyRecord = Record<string, unknown>
+
 interface Variable {
   fieldId: string
   blockId: string
@@ -43,6 +45,7 @@ const props = defineProps<{
   blocks: BlockEntry[]
   currentBlockId: string
   userVariables: { id: string; name: string; label: string }[]
+  blockFields?: BlockField[]
 }>()
 
 const emit = defineEmits<{
@@ -139,6 +142,7 @@ const requiredToggleVisible = computed(() =>
               :is="settingsComponent"
               :field="field"
               :disabled="!canEdit"
+              :block-fields="(blockFields as AnyRecord[] | undefined)"
               @update="emit('update', $event)"
               @add-option="emit('addOption')"
               @update-option="emit('updateOption', $event)"

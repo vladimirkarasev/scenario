@@ -16,6 +16,8 @@ use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\QueryBuilders\ScenarioRunBuilder;
 use Module\Scenario\Repositories\ScenarioRunRepository;
 use Module\Scenario\Repositories\ScenarioRunUserRepository;
+use Module\Projects\CurrentProject;
+use Module\Scenario\DTO\ScenarioStartData;
 
 final readonly class ScenarioRunsService
 {
@@ -25,6 +27,7 @@ final readonly class ScenarioRunsService
         private ScenarioRunRepository $runs,
         private ScenarioRunUserRepository $users,
         private Centrifugo $centrifugo,
+        private CurrentProject $currentProject,
     ) {
     }
 
@@ -61,7 +64,7 @@ final readonly class ScenarioRunsService
      */
     public function lookupUsers(array $ids, string $search): array
     {
-        return array_values($this->users->lookup($ids, $search)
+        return array_values($this->users->lookup($ids, $search, $this->projectId())
             ->map(static fn(User $user): array => [
                 'id' => $user->id,
                 'name' => $user->name ?? $user->login ?? "User #{$user->id}",
@@ -77,19 +80,24 @@ final readonly class ScenarioRunsService
      */
     public function store(ScenarioRunData $data): array
     {
-        return $this->publish($this->player->payload($this->player->createRun($data)));
+        return $this->publish($this->player->payload($this->player->createRun($data, $this->projectId())));
+    }
+
+    public function start(ScenarioStartData $data): string
+    {
+        return $this->player->start($data, $this->projectId());
     }
 
     /** @return array<string, mixed> */
     public function show(string $runId): array
     {
-        return $this->player->payload($this->player->getRun($this->runs->getById($runId)));
+        return $this->player->payload($this->player->getRun($this->run($runId)));
     }
 
     /** @return array<string, mixed> */
     public function continue(string $runId, ScenarioRunContinueData $data, ?int $actorId): array
     {
-        $run = $this->player->continueRun($this->runs->getById($runId), $data);
+        $run = $this->player->continueRun($this->run($runId), $data);
         $this->markUpdatedBy($run, $actorId);
 
         return $this->publish($this->player->payload($run));
@@ -98,7 +106,7 @@ final readonly class ScenarioRunsService
     /** @return array<string, mixed> */
     public function retryAction(string $runId): array
     {
-        $run = $this->player->retryActionNode($this->runs->getById($runId));
+        $run = $this->player->retryActionNode($this->run($runId));
 
         return $this->publish($this->player->payload($run));
     }
@@ -106,7 +114,7 @@ final readonly class ScenarioRunsService
     /** @return array<string, mixed> */
     public function jump(string $runId, ScenarioRunJumpData $data, ?int $actorId): array
     {
-        $run = $this->player->jumpRun($this->runs->getById($runId), $data);
+        $run = $this->player->jumpRun($this->run($runId), $data);
         $this->markUpdatedBy($run, $actorId);
 
         return $this->publish($this->player->payload($run));
@@ -115,12 +123,13 @@ final readonly class ScenarioRunsService
     /** @return list<array<string, mixed>> */
     public function historyFor(string $runId): array
     {
-        return $this->history->buildHistory($this->runs->getById($runId));
+        return $this->history->buildHistory($this->run($runId));
     }
 
     private function filtered(ScenarioRunIndexData $data): ScenarioRunBuilder
     {
         return ScenarioRun::query()
+            ->forProject($this->projectId())
             ->forScenario($data->scenarioId)
             ->createdByAny($data->createdBy)
             ->search($data->search)
@@ -186,6 +195,17 @@ final readonly class ScenarioRunsService
         if ($actorId !== null) {
             $this->runs->markUpdatedBy($run, $actorId);
         }
+    }
+
+    private function run(string $runId): ScenarioRun
+    {
+        return $this->runs->getByIdInProject($runId, $this->projectId());
+    }
+
+    private function projectId(): string
+    {
+        return $this->currentProject->id()
+            ?? throw new \LogicException('Scenario run operations require a current project.');
     }
 
     /**

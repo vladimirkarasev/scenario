@@ -64,7 +64,8 @@ final readonly class ScenarioDispatchService
                 context: $data->context,
                 userData: $data->userData,
                 operatorId: $target->id,
-            )
+            ),
+            $projectId,
         );
 
         $this->runs->assignActor($run, $target->id);
