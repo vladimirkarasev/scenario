@@ -129,15 +129,15 @@ async function loadRuns() {
   statsLoading.value = true
   try {
     const page = await scenarioRunRepository.list(buildQs())
-    runs.value = page.runs
-    runsTotal.value = page.pagination.total
-    runsLastPage.value = page.pagination.last_page
+    runs.value = page.data
+    runsTotal.value = page.meta.total
+    runsLastPage.value = page.meta.last_page
 
     // Статистика приходит в том же ответе — один запрос вместо четырёх
-    statsTotal.value = page.stats?.total ?? 0
-    statsActive.value = page.stats?.active ?? 0
-    statsCompleted.value = page.stats?.completed ?? 0
-    statsFailed.value = page.stats?.failed ?? 0
+    statsTotal.value = page.meta.stats?.total ?? 0
+    statsActive.value = page.meta.stats?.active ?? 0
+    statsCompleted.value = page.meta.stats?.completed ?? 0
+    statsFailed.value = page.meta.stats?.failed ?? 0
 
     syncUrl()
   } catch (e) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -37,24 +38,24 @@ final class ScenariosVersionController extends Controller
         return new ScenariosVersionResource($version);
     }
 
-    public function store(ScenarioVersionRequest $request, Scenario $scenario): JsonResponse
+    public function store(ScenarioVersionRequest $request, Scenario $scenario): ApiResponse
     {
-        return new JsonResponse(
+        return new ApiResponse(
             $this->scenarioVersionService->create(ScenarioVersionData::fromRequest($request), $scenario),
             201,
         );
     }
 
-    public function update(ScenarioVersionRequest $request, Scenario $scenario, ScenarioVersion $version): JsonResponse
+    public function update(ScenarioVersionRequest $request, Scenario $scenario, ScenarioVersion $version): ApiResponse
     {
-        return new JsonResponse(
+        return new ApiResponse(
             $this->scenarioVersionService->update(ScenarioVersionData::fromRequest($request), $version),
         );
     }
 
-    public function duplicate(Request $request, Scenario $scenario, ScenarioVersion $version): JsonResponse
+    public function duplicate(Request $request, Scenario $scenario, ScenarioVersion $version): ApiResponse
     {
-        return new JsonResponse(
+        return new ApiResponse(
             $this->scenarioVersionService->duplicate(ScenarioVersionActionData::fromRequest($request), $version),
             201,
         );
@@ -62,8 +63,8 @@ final class ScenariosVersionController extends Controller
 
     public function destroy(Request $request, Scenario $scenario, ScenarioVersion $version): JsonResponse
     {
-        return new JsonResponse(
-            $this->scenarioVersionService->delete(ScenarioVersionActionData::fromRequest($request), $version),
-        );
+        $this->scenarioVersionService->delete(ScenarioVersionActionData::fromRequest($request), $version);
+
+        return new JsonResponse(status: 204);
     }
 }

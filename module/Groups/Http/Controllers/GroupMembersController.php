@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Module\Groups\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Pagination;
 use Module\Users\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Groups\Http\Requests\GroupMemberStoreRequest;
 use Module\Groups\Models\UserGroup;
@@ -20,19 +22,29 @@ final class GroupMembersController extends Controller
     ) {
     }
 
-    public function index(UserGroup $group): AnonymousResourceCollection
+    public function index(Request $request, UserGroup $group): AnonymousResourceCollection
     {
-        $members = $group->members()->orderBy('name')->paginate(50, ['*'], 'page[number]');
+        return UserResource::collection(
+            $this->service->listMembers($group, Pagination::fromRequest($request)),
+        );
+    }
 
-        return UserResource::collection($members);
+    public function candidates(Request $request, UserGroup $group): AnonymousResourceCollection
+    {
+        $search = $request->string('filter.search')->trim()->toString();
+
+        return UserResource::collection(
+            $this->service->searchMemberCandidates(
+                $group,
+                $search !== '' ? $search : null,
+                Pagination::fromRequest($request),
+            ),
+        );
     }
 
     public function store(GroupMemberStoreRequest $request, UserGroup $group): JsonResponse
     {
-        /** @var User $user */
-        $user = User::query()->findOrFail($request->integer('user_id'));
-
-        $this->service->addMember($group, $user);
+        $this->service->addMember($group, $request->integer('user_id'));
 
         return new JsonResponse(status: 204);
     }

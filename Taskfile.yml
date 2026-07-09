@@ -45,20 +45,19 @@ tasks:
       - "{{.COMPOSE}} exec {{.APP_SERVICE}} bash"
 
   rr:
-    desc: Show RoadRunner process status
+    desc: Show RoadRunner worker pools status
     cmds:
-      - "{{.COMPOSE}} exec {{.APP_SERVICE}} supervisorctl status roadrunner"
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} rr workers"
 
-  queue:
-    desc: Show Laravel queue worker status
+  jobs:
+    desc: Show RoadRunner Jobs pipelines status
     cmds:
-      - "{{.COMPOSE}} exec {{.APP_SERVICE}} supervisorctl status laravel-queue"
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} rr jobs --list"
 
   reload:
-    desc: Reload application code (Octane workers + queue workers) after PHP changes
+    desc: Reload application code (RoadRunner HTTP + Jobs workers) after PHP changes — not needed locally, RR_DEBUG=true (compose.yaml) already gives a fresh worker per request/job
     cmds:
-      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan octane:reload"
-      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan queue:restart"
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} rr reset"
 
   composer:
     desc: Run Composer inside Laravel container

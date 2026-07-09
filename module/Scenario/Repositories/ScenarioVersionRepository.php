@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Repositories;
 
+use App\Exceptions\NotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Module\Scenario\Enums\ScenarioErrorCode;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
@@ -48,9 +50,25 @@ final class ScenarioVersionRepository
         return $version;
     }
 
+    public function getById(string $id): ScenarioVersion
+    {
+        return ScenarioVersion::query()->find($id)
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioVersionNotFound);
+    }
+
+    public function getByIdInProject(string $id, string $projectId): ScenarioVersion
+    {
+        return ScenarioVersion::query()
+            ->whereKey($id)
+            ->where('project_id', $projectId)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioVersionNotFound);
+    }
+
     public function duplicate(ScenarioVersion $version): ScenarioVersion
     {
-        $scenario = $version->scenario()->firstOrFail();
+        $scenario = $version->scenario()->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
         $baseName = $version->name ?? ('v'.($scenario->versions()->count() + 1));
 
         $copy = ScenarioVersion::query()->create([
@@ -108,26 +126,35 @@ final class ScenarioVersionRepository
             $active = $scenario->active_version_id !== null
                 ? $scenario->activeVersion()->first()
                 : null;
-            return $active ?? $scenario->versions()->firstOrFail();
+
+            return $active
+                ?? $scenario->versions()->first()
+                ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioVersionNotFound);
         }
 
-        return ScenarioVersion::query()
-            ->whereKey($scenarioVersionId)
-            ->where('scenario_id', $scenario->id)
-            ->firstOr(fn() => throw ValidationException::withMessages([
+        return $this->findForScenario($scenarioVersionId, $scenario->id)
+            ?? throw ValidationException::withMessages([
                 'scenario_version_id' => ['Scenario version does not belong to the selected scenario.'],
-            ]));
+            ]);
+    }
+
+    public function findForScenario(string $versionId, string $scenarioId): ?ScenarioVersion
+    {
+        return ScenarioVersion::query()
+            ->whereKey($versionId)
+            ->forScenario($scenarioId)
+            ->first();
     }
 
     public function activeOrLatestForScenario(string $scenarioId): ?ScenarioVersion
     {
         return ScenarioVersion::query()
-            ->where('scenario_id', $scenarioId)
-            ->where('status', 'active')
+            ->forScenario($scenarioId)
+            ->active()
             ->latest('created_at')
             ->first()
             ?? ScenarioVersion::query()
-                ->where('scenario_id', $scenarioId)
+                ->forScenario($scenarioId)
                 ->latest('created_at')
                 ->first();
     }

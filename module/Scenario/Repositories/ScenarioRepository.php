@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Repositories;
 
+use App\Exceptions\NotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Module\Scenario\Enums\ScenarioErrorCode;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
@@ -29,9 +31,34 @@ final class ScenarioRepository
             ->get();
     }
 
-    public function findOrFail(string $id): Scenario
+    public function getById(string $id): Scenario
     {
-        return Scenario::query()->findOrFail($id);
+        return Scenario::query()->find($id)
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+    }
+
+    public function getByIdInProject(string $id, string $projectId): Scenario
+    {
+        return Scenario::query()
+            ->forProject($projectId)
+            ->whereKey($id)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+    }
+
+    public function getByAlias(string $alias): Scenario
+    {
+        return Scenario::query()->forAlias($alias)->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+    }
+
+    public function getByAliasInProject(string $alias, string $projectId): Scenario
+    {
+        return Scenario::query()
+            ->forProject($projectId)
+            ->forAlias($alias)
+            ->first()
+            ?? throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
     }
 
     /**

@@ -184,8 +184,8 @@ final class ScenarioVersionControllerTest extends TestCase
                 'schema_json' => ['blocks' => [], 'connections' => [], 'version' => 1],
             ])
             ->assertStatus(201)
-            ->assertJsonPath('item.name', 'Beta')
-            ->assertJsonPath('item.status', 'draft');
+            ->assertJsonPath('data.name', 'Beta')
+            ->assertJsonPath('data.status', 'draft');
 
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
@@ -207,7 +207,7 @@ final class ScenarioVersionControllerTest extends TestCase
             ])
             ->assertStatus(201);
 
-        $this->assertNotNull($response->json('item.name'));
+        $this->assertNotNull($response->json('data.name'));
     }
 
     /**
@@ -276,8 +276,8 @@ final class ScenarioVersionControllerTest extends TestCase
                 'schema_json' => ['blocks' => [], 'connections' => [], 'version' => 1],
             ])
             ->assertOk()
-            ->assertJsonPath('item.name', 'v1 — исправлена')
-            ->assertJsonPath('item.status', 'active');
+            ->assertJsonPath('data.name', 'v1 — исправлена')
+            ->assertJsonPath('data.status', 'active');
 
         $this->assertDatabaseHas('scenario_versions', [
             'id' => $version->id,
@@ -332,8 +332,8 @@ final class ScenarioVersionControllerTest extends TestCase
         $this->actingAs($user)
             ->postJson("/api/scenarios/{$scenario->id}/versions/{$version->id}/duplicate")
             ->assertStatus(201)
-            ->assertJsonPath('item.name', 'v1 (копия)')
-            ->assertJsonPath('item.status', 'draft');
+            ->assertJsonPath('data.name', 'v1 (копия)')
+            ->assertJsonPath('data.status', 'draft');
 
         $this->assertDatabaseHas('scenario_versions', [
             'scenario_id' => $scenario->id,
@@ -371,8 +371,7 @@ final class ScenarioVersionControllerTest extends TestCase
 
         $this->actingAs($user)
             ->deleteJson("/api/scenarios/{$scenario->id}/versions/{$version->id}")
-            ->assertOk()
-            ->assertJsonPath('scenario_id', $scenario->id);
+            ->assertNoContent();
 
         $this->assertDatabaseMissing('scenario_versions', ['id' => $version->id]);
     }

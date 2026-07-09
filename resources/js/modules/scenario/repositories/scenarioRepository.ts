@@ -236,7 +236,7 @@ export const scenarioRepository = {
             body: payload,
             fallbackMessage: 'Не удалось создать сценарий.'
         })
-        return raw.item as Scenario
+        return raw.data as Scenario
     },
 
     async update(id: string, payload: ScenarioPayload): Promise<Scenario> {
@@ -245,7 +245,7 @@ export const scenarioRepository = {
             body: payload,
             fallbackMessage: 'Не удалось сохранить сценарий.'
         })
-        return raw.item as Scenario
+        return raw.data as Scenario
     },
 
     async duplicate(id: string): Promise<Scenario> {
@@ -254,7 +254,7 @@ export const scenarioRepository = {
             body: {},
             fallbackMessage: 'Не удалось дублировать сценарий.'
         })
-        return raw.item as Scenario
+        return raw.data as Scenario
     },
 
     async remove(id: string): Promise<void> {

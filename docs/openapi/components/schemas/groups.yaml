@@ -12,17 +12,31 @@ UserGroup:
       $ref: '#/UserGroupAttributes'
     relationships:
       type: object
+      description: >
+        Авторы создания/изменения (users). Linkage (type+id); сами пользователи
+        приходят в top-level `included` при запросе с `?include=createdBy,updatedBy`.
       properties:
-        created_by:
-          type: [ object, 'null' ]
+        createdBy:
+          type: object
           properties:
             data:
-              $ref: './common.yaml#/Actor'
-        updated_by:
-          type: [ object, 'null' ]
+              $ref: '#/ActorLinkage'
+        updatedBy:
+          type: object
           properties:
             data:
-              $ref: './common.yaml#/Actor'
+              $ref: '#/ActorLinkage'
+
+ActorLinkage:
+  type: [ object, 'null' ]
+  required: [ type, id ]
+  properties:
+    type:
+      type: string
+      example: users
+    id:
+      type: string
+      example: '42'
 
 UserGroupAttributes:
   type: object
@@ -32,11 +46,11 @@ UserGroupAttributes:
       example: Отдел продаж
     slug:
       type: string
-      example: sales_team
-      description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
+      example: sales-team
+      description: Уникальный в пределах проекта идентификатор группы
     ext_id:
       type: [ string, 'null' ]
-      description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
+      description: Уникальный в пределах проекта идентификатор группы во внешней системе
       example: crm_group_42
     description:
       type: [ string, 'null' ]
@@ -63,8 +77,8 @@ UserGroupRequest:
     slug:
       type: string
       maxLength: 255
-      description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
-      example: sales_team
+      description: Уникальный в пределах проекта идентификатор в формате latin-kebab-case
+      example: sales-team
     ext_id:
       type: [ string, 'null' ]
       maxLength: 255

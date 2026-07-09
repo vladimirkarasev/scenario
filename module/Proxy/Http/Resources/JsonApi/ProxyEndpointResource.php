@@ -6,6 +6,7 @@ namespace Module\Proxy\Http\Resources\JsonApi;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
+use Module\Categories\Http\Resources\JsonApi\CategoryResource;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Support\IntegrationCredentials;
 
@@ -14,8 +15,6 @@ use Module\Proxy\Support\IntegrationCredentials;
  */
 final class ProxyEndpointResource extends JsonApiResource
 {
-    protected bool $usesRequestQueryString = false;
-
     public function toId(Request $request): string
     {
         return (string) $this->id;
@@ -55,7 +54,18 @@ final class ProxyEndpointResource extends JsonApiResource
             'config' => $this->config ?? [],
             'mock_responses' => $this->mock_responses ?? [],
             'receive_url' => route('proxy.proxies.receive', $this->uuid),
+            'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    #[\Override]
+    public function toRelationships(Request $request): array
+    {
+        return [
+            'connection' => ProxyConnectionResource::class,
+            'categories' => CategoryResource::class,
         ];
     }
 }

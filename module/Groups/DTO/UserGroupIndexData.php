@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Groups\DTO;
 
+use App\Support\Pagination;
 use Illuminate\Http\Request;
 
 final readonly class UserGroupIndexData
@@ -11,7 +12,7 @@ final readonly class UserGroupIndexData
     public function __construct(
         public ?string $search,
         public ?bool $isActive,
-        public int $perPage,
+        public Pagination $pagination,
     ) {
     }
 
@@ -30,7 +31,7 @@ final readonly class UserGroupIndexData
         return new self(
             search: $search,
             isActive: $isActive,
-            perPage: max(1, min(100, $request->integer('page.size', 20))),
+            pagination: Pagination::fromRequest($request),
         );
     }
 }

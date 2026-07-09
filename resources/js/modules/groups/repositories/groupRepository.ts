@@ -1,5 +1,11 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-import type {Group, GroupMember, GroupsPage, GroupPayload} from '@/modules/groups/types/group'
+import type {
+    Group,
+    GroupMember,
+    GroupMembersPage,
+    GroupsPage,
+    GroupPayload,
+} from '@/modules/groups/types/group'
 
 interface RawGroup {
     id: string
@@ -71,11 +77,16 @@ export const groupRepository = {
         await destroyJson(`/api/groups/${id}`, 'Не удалось удалить группу.')
     },
 
-    async listMembers(groupId: string): Promise<GroupMember[]> {
-        const raw = await getJson(`/api/groups/${groupId}/members`, 'Не удалось загрузить участников.') as {
+    async listMembers(groupId: string, page = 1): Promise<GroupMembersPage> {
+        const raw = await getJson(
+            `/api/groups/${groupId}/members?page[size]=20&page[number]=${page}`,
+            'Не удалось загрузить участников.',
+        ) as {
             data: RawMember[]
+            meta: GroupMembersPage['meta']
         }
-        return raw.data.map(normalizeMember)
+
+        return {data: raw.data.map(normalizeMember), meta: raw.meta}
     },
 
     async addMember(groupId: string, userId: number): Promise<void> {
@@ -90,8 +101,11 @@ export const groupRepository = {
         await destroyJson(`/api/groups/${groupId}/members/${userId}`, 'Не удалось удалить участника.')
     },
 
-    async searchUsers(search: string): Promise<GroupMember[]> {
-        const raw = await getJson(`/api/users?search=${encodeURIComponent(search)}&per_page=10`, '') as {
+    async searchUsers(groupId: string, search: string): Promise<GroupMember[]> {
+        const raw = await getJson(
+            `/api/groups/${groupId}/member-candidates?filter[search]=${encodeURIComponent(search)}&page[size]=10`,
+            'Не удалось найти пользователей.',
+        ) as {
             data: RawMember[]
         }
         return raw.data.map(normalizeMember)

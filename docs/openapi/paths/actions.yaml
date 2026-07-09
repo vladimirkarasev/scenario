@@ -1,13 +1,12 @@
 collection:
   get:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: listActions
     summary: Список actions
-    security:
-      - BearerAuth: [ ]
     parameters:
       - name: filter[search]
         in: query
-        description: Поиск по name/slug
+        description: Поиск по названию или slug.
         schema:
           type: string
       - name: filter[type]
@@ -18,11 +17,18 @@ collection:
         in: query
         schema:
           type: boolean
-      - $ref: '../components/parameters.yaml#/PageNumber'
+      - name: filter[category_ids][]
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
       - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
     responses:
       '200':
-        description: JSON:API коллекция actions
+        description: JSON:API коллекция actions.
         content:
           application/json:
             schema:
@@ -34,14 +40,15 @@ collection:
                       type: array
                       items:
                         $ref: '../components/schemas/actions.yaml#/ActionResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/CollectionMeta'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
 
   post:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: createAction
     summary: Создать action
-    security:
-      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -50,47 +57,46 @@ collection:
             $ref: '../components/schemas/actions.yaml#/ActionRequest'
     responses:
       '201':
-        description: Action создан
+        description: Action создан.
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/actions.yaml#/ActionResource'
+              $ref: '../components/schemas/actions.yaml#/ActionEnvelope'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 item:
   parameters:
     - name: action
       in: path
       required: true
-      description: ID action
+      description: UUID action.
       schema:
-        type: integer
+        type: string
+        format: uuid
 
   get:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: getAction
     summary: Получить action
-    security:
-      - BearerAuth: [ ]
     responses:
       '200':
-        description: Action
+        description: JSON:API ресурс action.
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/actions.yaml#/ActionResource'
+              $ref: '../components/schemas/actions.yaml#/ActionEnvelope'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
   put:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: updateAction
     summary: Обновить action
-    security:
-      - BearerAuth: [ ]
     requestBody:
       required: true
       content:
@@ -99,147 +105,149 @@ item:
             $ref: '../components/schemas/actions.yaml#/ActionRequest'
     responses:
       '200':
-        description: Action обновлён
+        description: Action обновлён.
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/actions.yaml#/ActionResource'
+              $ref: '../components/schemas/actions.yaml#/ActionEnvelope'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
   delete:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: deleteAction
     summary: Удалить action
-    security:
-      - BearerAuth: [ ]
     responses:
       '204':
-        description: Action удалён
+        description: Action удалён.
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
-execute:
-  parameters:
-    - name: action
-      in: path
-      required: true
-      description: ID action
-      schema:
-        type: integer
-
-  post:
-    tags: [ Actions ]
-    summary: Выполнить action синхронно
-    security:
-      - BearerAuth: [ ]
-    requestBody:
-      required: false
-      content:
-        application/json:
-          schema:
-            $ref: '../components/schemas/actions.yaml#/ActionExecutionRequest'
+types:
+  get:
+    tags: [Actions]
+    operationId: listActionTypes
+    summary: Каталог типов actions
+    description: Возвращает типы, значения code по умолчанию и поля конфигурации handler-а.
     responses:
       '200':
-        description: Результат синхронного выполнения
+        description: Каталог типов.
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/actions.yaml#/ActionExecutionResponse'
+              $ref: '../components/schemas/actions.yaml#/ActionTypeListResponse'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
-      '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+
+feed:
+  get:
+    tags: [Actions]
+    operationId: getActionFeed
+    summary: Лента разделов и actions
+    parameters:
+      - name: filter[parent_id]
+        in: query
+        description: UUID родительского раздела; `null` или пустая строка выбирает корневой уровень.
+        schema:
+          type: [string, 'null']
+          format: uuid
+      - name: filter[search]
+        in: query
+        schema:
+          type: string
+          maxLength: 255
+      - $ref: '../components/parameters.yaml#/PageNumber'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Смешанная пагинированная лента разделов и actions.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionFeedResponse'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
 run:
-  parameters:
-    - name: action
-      in: path
-      required: true
-      description: ID action-оркестратора или action для запуска
-      schema:
-        type: integer
-
   post:
-    tags: [ Actions ]
-    summary: Запустить action через оркестратор
+    tags: [Actions]
+    operationId: runActions
+    summary: Запустить или запланировать набор actions
     description: >
-      Режим, основной список actions и lifecycle hooks передаются в теле запроса:
-      `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`,
-      `failed_action_ids`. Если параметры не переданы, используется текущий action
-      и fallback из `action.config` для старых записей.
-    security:
-      - BearerAuth: [ ]
+      Объекты `actions`, `before`, `after` и `on_error` имеют формат
+      `code => UUID action`. В sequential-режиме задачи выполняются цепочкой,
+      в parallel-режиме основные actions запускаются batch-ом.
     requestBody:
-      required: false
+      required: true
       content:
         application/json:
           schema:
             $ref: '../components/schemas/actions.yaml#/ActionRunRequest'
     responses:
       '200':
-        description: Выполнено синхронно
+        description: Расписание создано.
         content:
           application/json:
             schema:
               $ref: '../components/schemas/actions.yaml#/ActionRunResponse'
       '202':
-        description: Поставлено в очередь
+        description: Actions поставлены в очередь.
         content:
           application/json:
             schema:
               $ref: '../components/schemas/actions.yaml#/ActionRunResponse'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
-      '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
+      '422':
+        description: Ошибка обязательных input-полей или валидации запроса.
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/actions.yaml#/ActionRunRejectedResponse'
+                - $ref: '../components/schemas/common.yaml#/ApiErrorResponse'
 
 schedule:
   parameters:
     - name: action
       in: path
       required: true
-      description: ID action
+      description: UUID action.
       schema:
-        type: integer
+        type: string
+        format: uuid
 
   get:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: getActionSchedule
     summary: Получить расписание action
-    security:
-      - BearerAuth: [ ]
     responses:
       '200':
-        description: 'Расписание action или `data: null`, если расписание не задано.'
+        description: 'Расписание или `data: null`.'
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '../components/schemas/actions.yaml#/ActionScheduleResource'
-                - type: object
-                  properties:
-                    data:
-                      type: 'null'
+              $ref: '../components/schemas/actions.yaml#/ActionScheduleEnvelope'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
 
   put:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: upsertActionSchedule
     summary: Создать или обновить расписание action
-    description: >
-      Scheduler раз в минуту запускает due-расписания командой
-      `actions:run-scheduled`. В `options` можно передать тот же payload, что и
-      в `POST /actions/{action}/run`: `execution_mode`, `action_ids`,
-      `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
-    security:
-      - BearerAuth: [ ]
+    description: Cron проверяется сервером; timezone должна быть валидным IANA-идентификатором.
     requestBody:
       required: true
       content:
@@ -248,27 +256,196 @@ schedule:
             $ref: '../components/schemas/actions.yaml#/ActionScheduleRequest'
     responses:
       '200':
-        description: Расписание сохранено
+        description: Расписание сохранено.
         content:
           application/json:
             schema:
-              $ref: '../components/schemas/actions.yaml#/ActionScheduleResource'
+              $ref: '../components/schemas/actions.yaml#/ActionScheduleEnvelope'
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
       '422':
-        $ref: '../components/responses.yaml#/ValidationError'
+        $ref: '../components/responses.yaml#/ValidationErrors'
 
   delete:
-    tags: [ Actions ]
+    tags: [Actions]
+    operationId: deleteActionSchedule
     summary: Удалить расписание action
-    security:
-      - BearerAuth: [ ]
     responses:
       '204':
-        description: Расписание удалено
+        description: Расписание удалено.
       '401':
-        $ref: '../components/responses.yaml#/Unauthorized'
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
       '404':
-        $ref: '../components/responses.yaml#/NotFound'
+        $ref: '../components/responses.yaml#/NotFoundErrors'
+
+categoryCollection:
+  get:
+    tags: [Actions]
+    operationId: listActionCategories
+    summary: Список разделов actions
+    parameters:
+      - name: filter[parent_id]
+        in: query
+        description: UUID родителя; `null` или пустая строка выбирает корневые разделы.
+        schema:
+          type: [string, 'null']
+          format: uuid
+    responses:
+      '200':
+        description: JSON:API коллекция разделов.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '../components/schemas/categories.yaml#/CategoryResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationErrors'
+
+  post:
+    tags: [Actions]
+    operationId: createActionCategory
+    summary: Создать раздел actions
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/categories.yaml#/CategoryRequest'
+    responses:
+      '201':
+        description: Раздел создан.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiResourceEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../components/schemas/categories.yaml#/CategoryResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '403':
+        $ref: '../components/responses.yaml#/ForbiddenErrors'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationErrors'
+
+categoryItem:
+  parameters:
+    - name: category
+      in: path
+      required: true
+      description: UUID раздела actions.
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    tags: [Actions]
+    operationId: getActionCategory
+    summary: Получить раздел actions
+    responses:
+      '200':
+        description: JSON:API ресурс раздела.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiResourceEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../components/schemas/categories.yaml#/CategoryResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'
+
+  put:
+    tags: [Actions]
+    operationId: updateActionCategory
+    summary: Обновить раздел actions
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/categories.yaml#/CategoryRequest'
+    responses:
+      '200':
+        description: Раздел обновлён.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiResourceEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '../components/schemas/categories.yaml#/CategoryResource'
+                    meta:
+                      $ref: '../components/schemas/common.yaml#/ApiMeta'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationErrors'
+
+  delete:
+    tags: [Actions]
+    operationId: deleteActionCategory
+    summary: Удалить раздел actions
+    responses:
+      '204':
+        description: Раздел удалён.
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '403':
+        description: Системный раздел нельзя удалить.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ApiErrorResponse'
+            example:
+              errors:
+                - status: '403'
+                  code: ACTION_SYSTEM_CATEGORY_DELETE_FORBIDDEN
+                  title: Удаление запрещено
+                  detail: Системный раздел действий нельзя удалить.
+              meta:
+                timestamp: '2026-07-03T12:00:00+00:00'
+                requestId: 04c23d10-ef7e-40a2-a36e-963560a81d40
+      '404':
+        description: Раздел не относится к текущему проекту.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ApiErrorResponse'
+            example:
+              errors:
+                - status: '404'
+                  code: ACTION_CATEGORY_NOT_FOUND
+                  title: Раздел не найден
+                  detail: Раздел действий не найден в текущем проекте.
+              meta:
+                timestamp: '2026-07-03T12:00:00+00:00'
+                requestId: 04c23d10-ef7e-40a2-a36e-963560a81d40

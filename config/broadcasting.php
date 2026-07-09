@@ -30,16 +30,6 @@ return [
 
     'connections' => [
 
-        'centrifugo' => [
-            'driver' => 'centrifugo',
-            'token_hmac_secret_key' => env('CENTRIFUGO_TOKEN_HMAC_SECRET_KEY'),
-            'api_key' => env('CENTRIFUGO_API_KEY'),
-            'url' => env('CENTRIFUGO_URL', 'http://localhost:8000'),
-            'ws_url' => env('CENTRIFUGO_WS_URL', 'ws://localhost:8002/connection/websocket'),
-            'verify' => env('CENTRIFUGO_VERIFY', false),
-            'ssl_key' => env('CENTRIFUGO_SSL_KEY', null),
-        ],
-
         'reverb' => [
             'driver' => 'reverb',
             'key' => env('REVERB_APP_KEY'),

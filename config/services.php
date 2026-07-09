@@ -41,4 +41,9 @@ return [
         'url' => env('ACTION_SYNC_WEBHOOK_URL'),
     ],
 
+    'centrifugo' => [
+        'ws_url' => env('CENTRIFUGO_WS_URL', 'ws://localhost:8002/connection/websocket'),
+        'token_hmac_secret_key' => env('CENTRIFUGO_TOKEN_HMAC_SECRET_KEY'),
+    ],
+
 ];

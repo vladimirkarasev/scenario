@@ -19,6 +19,8 @@ final class ApiErrorResponse
         return new JsonResponse([
             'errors' => $errors,
             'meta' => ApiMeta::for($request),
-        ], $status);
+        ], $status, [
+            'Content-Type' => 'application/vnd.api+json',
+        ]);
     }
 }

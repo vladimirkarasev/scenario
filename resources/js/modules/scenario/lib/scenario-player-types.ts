@@ -74,6 +74,22 @@ export interface ScenarioRunStep {
     exited_at: string | null
 }
 
+export type RunHistoryEventType = 'transition' | 'field_filled' | 'field_changed'
+
+export interface RunHistoryEvent {
+    at: string | null
+    actor: string | null
+    type: RunHistoryEventType
+    node_type: string
+    node_title: string | null
+    cancelled: boolean
+    // только для field_filled / field_changed
+    field_label?: string
+    field_id?: string
+    old_value?: unknown
+    new_value?: unknown
+}
+
 export interface ScenarioRunPayload {
     id: string
     number?: number | null

@@ -4,46 +4,45 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
+use App\Support\PaginationMeta;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Scenario\DTO\SurveyIndexData;
 use Module\Scenario\Enums\ScenarioRunStatus;
 use Module\Scenario\Models\ScenarioRun;
+use Module\Scenario\Repositories\ScenarioRunRepository;
+use Module\Projects\CurrentProject;
 
 final readonly class SurveysService
 {
     public function __construct(
         private ScenarioPlayerService $player,
+        private ScenarioRunRepository $runs,
+        private CurrentProject $currentProject,
     ) {
     }
 
     /**
      * Список прогонов опроса с пагинацией.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     surveys: list<array<string, mixed>>,
+     *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, from: int|null, to: int|null}
+     * }
      */
     public function list(SurveyIndexData $data): array
     {
-        $query = ScenarioRun::query()->with(['scenario'])->latest();
-
-        if ($data->status !== null) {
-            $query->where('status', ScenarioRunStatus::from($data->status));
-        }
-
-        if ($data->scenarioId !== null) {
-            $query->where('scenario_id', $data->scenarioId);
-        }
-
         /** @var LengthAwarePaginator<int, ScenarioRun> $runs */
-        $runs = $query->paginate($data->perPage);
+        $runs = ScenarioRun::query()
+            ->forProject($this->projectId())
+            ->with(['scenario'])
+            ->latest()
+            ->status($data->status !== null ? ScenarioRunStatus::from($data->status) : null)
+            ->forScenario($data->scenarioId)
+            ->paginate($data->perPage);
 
         return [
-            'surveys' => $runs->map(fn(ScenarioRun $run) => $this->summarize($run))->values()->all(),
-            'pagination' => [
-                'current_page' => $runs->currentPage(),
-                'last_page' => $runs->lastPage(),
-                'per_page' => $runs->perPage(),
-                'total' => $runs->total(),
-            ],
+            'surveys' => array_values($runs->map(fn(ScenarioRun $run): array => $this->summarize($run))->all()),
+            'pagination' => PaginationMeta::fromPaginator($runs),
         ];
     }
 
@@ -54,7 +53,9 @@ final readonly class SurveysService
      */
     public function get(string $runId): array
     {
-        $run = $this->player->getRun(ScenarioRun::query()->findOrFail($runId));
+        $run = $this->player->getRun(
+            $this->runs->getByIdInProject($runId, $this->projectId()),
+        );
 
         return $this->player->payload($run);
     }
@@ -73,5 +74,11 @@ final readonly class SurveysService
             'created_at' => $run->created_at?->toIso8601String(),
             'updated_at' => $run->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function projectId(): string
+    {
+        return $this->currentProject->id()
+            ?? throw new \LogicException('Survey operations require a current project.');
     }
 }

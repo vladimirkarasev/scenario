@@ -12,33 +12,19 @@ interface JsonApiResource {
     attributes: Record<string, unknown>
 }
 
+interface RawField {
+    attributes: WebhookField
+}
+
 /** Разворачивает JSON:API-ресурс ({id, attributes}) в плоский WebhookEndpoint. */
 function flatten(resource: JsonApiResource): WebhookEndpoint {
     return {id: Number(resource.id), ...resource.attributes} as unknown as WebhookEndpoint
 }
 
 export const webhookRepository = {
-    async list(categoryIds: string[] = []): Promise<WebhookEndpoint[]> {
-        const qs = new URLSearchParams()
-        for (const id of categoryIds) qs.append('filter[category_ids][]', id)
+    async list(qs: URLSearchParams = new URLSearchParams()): Promise<WebhookEndpoint[]> {
         const suffix = qs.toString() ? `?${qs}` : ''
         const raw = await getJson(`/api/proxy/endpoints${suffix}`, 'Не удалось загрузить эндпоинты.') as {
-            data: JsonApiResource[]
-        }
-        return raw.data.map(flatten)
-    },
-
-    async listByType(type: string): Promise<WebhookEndpoint[]> {
-        const qs = new URLSearchParams({'filter[type]': type})
-        const raw = await getJson(`/api/proxy/endpoints?${qs}`, 'Не удалось загрузить эндпоинты.') as {
-            data: JsonApiResource[]
-        }
-        return raw.data.map(flatten)
-    },
-
-    async search(query: string): Promise<WebhookEndpoint[]> {
-        const qs = new URLSearchParams({'filter[search]': query})
-        const raw = await getJson(`/api/proxy/endpoints?${qs}`, 'Не удалось загрузить эндпоинты.') as {
             data: JsonApiResource[]
         }
         return raw.data.map(flatten)
@@ -94,7 +80,10 @@ export const webhookRepository = {
     },
 
     async fields(webhookUuid: string): Promise<WebhookField[]> {
-        const raw = await getJson(`/api/proxies/${webhookUuid}/fields`, '') as { items: WebhookField[] }
-        return raw.items
+        const raw = await getJson(
+            `/api/proxies/${webhookUuid}/fields`,
+            'Не удалось загрузить поля интеграции.',
+        ) as { data: RawField[] }
+        return raw.data.map(item => item.attributes)
     },
 }

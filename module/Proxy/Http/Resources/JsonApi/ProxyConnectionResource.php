@@ -14,8 +14,6 @@ use Module\Proxy\Services\CredentialCatalog;
  */
 final class ProxyConnectionResource extends JsonApiResource
 {
-    protected bool $usesRequestQueryString = false;
-
     public function toId(Request $request): string
     {
         return (string) $this->id;
@@ -47,6 +45,7 @@ final class ProxyConnectionResource extends JsonApiResource
             'credential_label' => $driver?->label() ?? $this->credential_type,
             'config' => $this->config ?? [], // несекретное
             'secret_filled' => $secretFilled, // секреты не отдаём, только флаг «заполнено»
+            'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }

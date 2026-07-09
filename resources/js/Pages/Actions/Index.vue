@@ -149,7 +149,7 @@ function formatDate(value: string | null | undefined): string {
 </script>
 
 <template>
-  <Head title="Действия"/>
+  <Head title="Действия" />
 
   <AppShell title="Действия" :navigation-items="navigationItems" flush>
     <div class="flex h-full min-h-0 w-full overflow-hidden">
@@ -170,20 +170,20 @@ function formatDate(value: string | null | undefined): string {
               @click="router.visit('/actions/schedules')"
           >
             <span class="text-slate-400 transition-colors group-hover:text-slate-700">
-              <CalendarClock :size="14"/>
+              <CalendarClock :size="14" />
             </span>
             <span class="min-w-0 flex-1 truncate text-left">Расписания</span>
-            <ChevronRight :size="12" class="flex-none text-slate-300"/>
+            <ChevronRight :size="12" class="flex-none text-slate-300" />
           </button>
           <button
               class="group flex h-8 w-full items-center gap-2 rounded-lg px-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50"
               @click="router.visit('/actions/runs')"
           >
             <span class="text-slate-400 transition-colors group-hover:text-slate-700">
-              <Clock3 :size="14"/>
+              <Clock3 :size="14" />
             </span>
             <span class="min-w-0 flex-1 truncate text-left">История запусков</span>
-            <ChevronRight :size="12" class="flex-none text-slate-300"/>
+            <ChevronRight :size="12" class="flex-none text-slate-300" />
           </button>
         </template>
       </SectionSidebar>
@@ -194,12 +194,13 @@ function formatDate(value: string | null | undefined): string {
             <!-- Breadcrumb -->
             <nav class="mb-3 flex items-center gap-1.5 text-[13px]">
               <template v-for="(crumb, i) in breadcrumb" :key="crumb.id">
-                <ChevronRight v-if="i > 0" :size="12" class="text-slate-300"/>
+                <ChevronRight v-if="i > 0" :size="12" class="text-slate-300" />
                 <button
                     class="transition-colors"
                     :class="i === breadcrumb.length - 1 ? 'font-medium text-slate-900' : 'text-slate-500 hover:text-slate-900'"
                     @click="tree.selectSection(crumb.id)"
-                >{{ crumb.name }}
+                >
+{{ crumb.name }}
                 </button>
               </template>
             </nav>
@@ -212,13 +213,13 @@ function formatDate(value: string | null | undefined): string {
                 <button
                     class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-700 transition hover:bg-slate-50"
                     @click="sectionModal.openModal(tree.activeSection.value !== 'all' ? tree.activeSection.value : null)">
-                  <FolderPlus :size="15"/>
+                  <FolderPlus :size="15" />
                   Создать раздел
                 </button>
                 <button
                     class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-700"
                     @click="createInActiveSection">
-                  <Plus :size="15"/>
+                  <Plus :size="15" />
                   Новый action
                 </button>
               </template>
@@ -226,12 +227,12 @@ function formatDate(value: string | null | undefined): string {
 
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div class="max-w-sm flex-1">
-                <SearchInput v-model="feed.search.value" placeholder="Поиск по действиям..."/>
+                <SearchInput v-model="feed.search.value" placeholder="Поиск по действиям..." />
               </div>
               <button
                   class="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-medium text-slate-600 transition hover:bg-slate-50"
                   :disabled="feed.loading.value" @click="feed.load()">
-                <RefreshCw :size="14" :class="feed.loading.value ? 'animate-spin' : ''"/>
+                <RefreshCw :size="14" :class="feed.loading.value ? 'animate-spin' : ''" />
                 Обновить
               </button>
             </div>
@@ -251,7 +252,7 @@ function formatDate(value: string | null | undefined): string {
                     : 'Создайте действие в этом разделе'"
             >
               <template #icon>
-                <Zap :size="22"/>
+                <Zap :size="22" />
               </template>
             </EmptyState>
 
@@ -262,7 +263,7 @@ function formatDate(value: string | null | undefined): string {
                 <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Тип</div>
                 <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Расписание</div>
                 <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Статус</div>
-                <div/>
+                <div />
               </div>
 
                 <div
@@ -276,30 +277,30 @@ function formatDate(value: string | null | undefined): string {
                   <template v-if="row.type === 'folder'">
                     <button class="flex min-w-0 items-center gap-2 pr-4 text-left" @click="openFolder(row)">
                       <div class="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-                        <Folder :size="14"/>
+                        <Folder :size="14" />
                       </div>
                       <span class="truncate text-[13px] font-semibold text-slate-900">{{ row.name }}</span>
                     </button>
                     <div class="text-[12px] text-slate-400">Раздел</div>
-                    <div/>
+                    <div />
                     <div class="text-[11px] text-slate-400">{{ row.children_count }} внутри</div>
                     <div class="flex justify-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                           <button class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-slate-100 hover:text-slate-700">
-                            <MoreHorizontal :size="15"/>
+                            <MoreHorizontal :size="15" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-48">
                           <DropdownMenuItem @click="sectionModal.openEdit(toCategory(row))">
-                            <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
+                            <Pencil class="mr-2 h-4 w-4 text-slate-400" />
                             Переименовать
                           </DropdownMenuItem>
                           <template v-if="!row.is_system">
-                            <DropdownMenuSeparator/>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem class="text-red-600 focus:bg-red-50 focus:text-red-600"
                                               @click="deleteSection(toCategory(row))">
-                              <Trash2 class="mr-2 h-4 w-4"/>
+                              <Trash2 class="mr-2 h-4 w-4" />
                               Удалить
                             </DropdownMenuItem>
                           </template>
@@ -314,7 +315,7 @@ function formatDate(value: string | null | undefined): string {
                       <div class="flex items-center gap-2">
                         <div class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-[11px] font-bold text-white"
                              :class="row.is_active ? 'bg-blue-600' : 'bg-slate-300'">
-                          <Zap :size="13"/>
+                          <Zap :size="13" />
                         </div>
                         <span class="truncate text-[13px] font-semibold text-slate-900">{{ row.name }}</span>
                       </div>
@@ -332,7 +333,7 @@ function formatDate(value: string | null | undefined): string {
 
                     <button class="min-w-0 text-left" @click="scheduleAction(row)">
                       <div v-if="row.schedule?.enabled" class="flex items-center gap-1.5 text-[12px] font-medium text-blue-700">
-                        <CalendarClock :size="13"/>
+                        <CalendarClock :size="13" />
                         <span class="font-mono">{{ row.schedule.cron ?? '—' }}</span>
                       </div>
                       <div v-else class="text-[12px] text-slate-300">—</div>
@@ -352,29 +353,29 @@ function formatDate(value: string | null | undefined): string {
                       <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                           <button class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-slate-100 hover:text-slate-700">
-                            <MoreHorizontal :size="15"/>
+                            <MoreHorizontal :size="15" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-48">
                           <DropdownMenuItem @click="runAction(row)">
-                            <Play class="mr-2 h-4 w-4 text-slate-400"/>
+                            <Play class="mr-2 h-4 w-4 text-slate-400" />
                             Запустить
                           </DropdownMenuItem>
                           <DropdownMenuItem @click="scheduleAction(row)">
-                            <Clock3 class="mr-2 h-4 w-4 text-slate-400"/>
+                            <Clock3 class="mr-2 h-4 w-4 text-slate-400" />
                             Расписание
                           </DropdownMenuItem>
                           <DropdownMenuItem @click="editAction(row)">
-                            <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
+                            <Pencil class="mr-2 h-4 w-4 text-slate-400" />
                             Редактировать
                           </DropdownMenuItem>
                           <DropdownMenuItem @click="toggleAction(row)">
-                            <component :is="row.is_active ? ShieldOff : Shield" class="mr-2 h-4 w-4 text-slate-400"/>
+                            <component :is="row.is_active ? ShieldOff : Shield" class="mr-2 h-4 w-4 text-slate-400" />
                             {{ row.is_active ? 'Отключить' : 'Активировать' }}
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator/>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem class="text-red-600 focus:bg-red-50 focus:text-red-600" @click="deleteAction(row)">
-                            <Trash2 class="mr-2 h-4 w-4"/>
+                            <Trash2 class="mr-2 h-4 w-4" />
                             Удалить
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -397,10 +398,10 @@ function formatDate(value: string | null | undefined): string {
     </div>
   </AppShell>
 
-  <ActionEditorDrawer :modal="modal" :action-types="actionTypes"/>
-  <ActionFieldModal :modal="modal"/>
-  <ActionRunModal :run-modal="runModal"/>
-  <ActionScheduleModal :schedule-modal="scheduleModal"/>
+  <ActionEditorDrawer :modal="modal" :action-types="actionTypes" />
+  <ActionFieldModal :modal="modal" />
+  <ActionRunModal :run-modal="runModal" />
+  <ActionScheduleModal :schedule-modal="scheduleModal" />
   <SectionFormDialog
       :modal="sectionModal"
       :parent-options="tree.allSectionsFlat.value"

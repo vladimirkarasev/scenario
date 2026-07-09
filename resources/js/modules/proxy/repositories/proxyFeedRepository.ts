@@ -1,51 +1,43 @@
 import {getJson} from '@/lib/http'
+import type {
+    FeedEndpointRow,
+    FeedFolderRow,
+    ProxyFeedPage,
+    ProxyFeedRow,
+} from '@/modules/proxy/types/feed'
 
-export interface FeedFolderRow {
-    type: 'folder'
+interface RawFeedResource {
+    type: 'proxy-folders' | 'proxy-endpoints'
     id: string
-    name: string
-    parent_id: string | null
-    is_system: boolean
-    children_count: number
-    created_at: string | null
-    updated_at: string | null
+    attributes: Record<string, unknown>
 }
 
-export interface FeedEndpointRow {
-    type: 'endpoint'
-    id: number
-    uuid: string
-    name: string
-    code: string
-    endpoint_type: string
-    method: string | null
-    is_active: boolean
-    is_mocked: boolean
-    base_uri: string | null
-    description: string | null
-    created_at: string | null
-    updated_at: string | null
-}
-
-export type ProxyFeedRow = FeedFolderRow | FeedEndpointRow
-
-export interface ProxyFeedResponse {
-    data: ProxyFeedRow[]
-    pagination: {
-        current_page: number
-        last_page: number
-        per_page: number
-        total: number
-        folders_total: number
-        items_total: number
+function normalize(resource: RawFeedResource): ProxyFeedRow {
+    if (resource.type === 'proxy-folders') {
+        return {
+            type: 'folder',
+            id: resource.id,
+            ...resource.attributes,
+        } as FeedFolderRow
     }
+
+    return {
+        type: 'endpoint',
+        id: Number(resource.id),
+        ...resource.attributes,
+    } as FeedEndpointRow
 }
 
 export const proxyFeedRepository = {
-    async fetch(qs: URLSearchParams): Promise<ProxyFeedResponse> {
-        return getJson<ProxyFeedResponse>(
+    async fetch(qs: URLSearchParams): Promise<ProxyFeedPage> {
+        const raw = await getJson<{
+            data: RawFeedResource[]
+            meta: ProxyFeedPage['meta']
+        }>(
             `/api/proxy/feed?${qs.toString()}`,
             'Не удалось загрузить интеграции.',
         )
+
+        return {data: raw.data.map(normalize), meta: raw.meta}
     },
 }

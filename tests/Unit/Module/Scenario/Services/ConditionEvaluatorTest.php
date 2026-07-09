@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Scenario\Services;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Module\Scenario\Services\ConditionEvaluator;
 use Tests\TestCase;
 
@@ -199,7 +200,7 @@ final class ConditionEvaluatorTest extends TestCase
         $this->assertSame('node_five', $result);
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('numericComparisonCases')]
+    #[DataProvider('numericComparisonCases')]
     public function test_numeric_comparison_operators(
         string $operator,
         int|float|string $actual,

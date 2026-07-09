@@ -63,15 +63,7 @@ export async function subscribeTo<T = unknown>(
     let sub = centrifuge.getSubscription(channel)
 
     if (sub === null) {
-        sub = centrifuge.newSubscription(channel, {
-            getToken: async (ctx) => {
-                const data = await getJson<{ token: string }>(
-                    `/api/centrifugo/subscribe-token?channel=${encodeURIComponent(ctx.channel)}`,
-                    'Failed to get channel subscribe token.',
-                )
-                return data.token
-            },
-        })
+        sub = centrifuge.newSubscription(channel)
         sub.subscribe()
     }
 

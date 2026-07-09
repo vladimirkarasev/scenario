@@ -3,7 +3,8 @@ import {computed, reactive, ref, watch} from 'vue'
 import type {Ref} from 'vue'
 import {
     scenarioFeedRepository,
-    type ScenarioFeedResponse,
+    type ScenarioFeedCounts,
+    type ScenarioFeedPagination,
     type ScenarioFeedRow,
 } from '@/modules/scenario/repositories/scenarioFeedRepository'
 
@@ -35,10 +36,11 @@ export function useScenarioFeed(
         : reactive<FeedParams>({})
     const loading = ref(false)
     const rows = ref<ScenarioFeedRow[]>([])
-    const meta = ref<ScenarioFeedResponse['pagination']>({
-        current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0, folders_total: 0, items_total: 0,
+    const meta = ref<ScenarioFeedPagination>({
+        current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0, from: null, to: null,
+        folders_total: 0, items_total: 0,
     })
-    const countsByStatus = ref<ScenarioFeedResponse['counts_by_status']>({
+    const countsByStatus = ref<ScenarioFeedCounts>({
         all: 0, active: 0, draft: 0, archived: 0,
     })
 
@@ -89,8 +91,17 @@ export function useScenarioFeed(
             if (exclude) qs.set('filter[exclude_scenario_id]', exclude)
             const res = await scenarioFeedRepository.fetch(qs)
             rows.value = res.data
-            meta.value = res.pagination
-            countsByStatus.value = res.counts_by_status
+            meta.value = {
+                current_page: res.meta.current_page,
+                last_page: res.meta.last_page,
+                per_page: res.meta.per_page,
+                total: res.meta.total,
+                from: res.meta.from,
+                to: res.meta.to,
+                folders_total: res.meta.folders_total,
+                items_total: res.meta.items_total,
+            }
+            countsByStatus.value = res.meta.counts_by_status
         } catch { /* silent */
         } finally {
             loading.value = false

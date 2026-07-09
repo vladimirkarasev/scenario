@@ -72,7 +72,8 @@ function buildSurveyBlock(field: BlockField): SurveyBlock {
                     labelTemplate: field.labelTemplate,
                     multiple: field.multiple,
                     allowRootSelection: field.allowRootSelection,
-                    defaultSearch: field.defaultSearch
+                    defaultSearch: field.defaultSearch,
+                    depDrop: field.depDrop ?? null,
                 }
             }
 

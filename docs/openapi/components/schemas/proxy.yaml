@@ -1,0 +1,112 @@
+ProxyEndpoint:
+  type: object
+  required: [ type, id, attributes ]
+  properties:
+    type: { type: string, const: proxy-endpoints }
+    id: { type: string }
+    attributes:
+      type: object
+      required: [ uuid, name, code, type, is_active, is_mocked, handler_class ]
+      properties:
+        project_id: { type: string, format: uuid }
+        uuid: { type: string, format: uuid }
+        name: { type: string }
+        code: { type: string }
+        type: { type: string, enum: [ webhook, suggest ] }
+        method: { type: [ string, 'null' ] }
+        description: { type: [ string, 'null' ] }
+        is_active: { type: boolean }
+        is_mocked: { type: boolean }
+        handler_class: { type: string }
+        connection_id: { type: [ integer, 'null' ] }
+        category_ids:
+          type: array
+          items: { type: string, format: uuid }
+        base_uri: { type: [ string, 'null' ], format: uri }
+        credentials: { type: object }
+        secret_filled: { type: object, additionalProperties: { type: boolean } }
+        config: { type: object }
+        mock_responses: { type: array, items: { type: object } }
+        receive_url: { type: string }
+        created_at: { type: [ string, 'null' ], format: date-time }
+        updated_at: { type: [ string, 'null' ], format: date-time }
+    relationships: { type: object }
+
+ProxyConnection:
+  type: object
+  required: [ type, id, attributes ]
+  properties:
+    type: { type: string, const: proxy-connections }
+    id: { type: string }
+    attributes:
+      type: object
+      required: [ name, credential_type, config, secret_filled ]
+      properties:
+        project_id: { type: string, format: uuid }
+        name: { type: string }
+        credential_type: { type: string }
+        credential_label: { type: string }
+        config: { type: object }
+        secret_filled: { type: object, additionalProperties: { type: boolean } }
+        created_at: { type: [ string, 'null' ], format: date-time }
+        updated_at: { type: [ string, 'null' ], format: date-time }
+
+ProxyRequest:
+  type: object
+  required: [ type, id, attributes ]
+  properties:
+    type: { type: string, const: proxy-requests }
+    id: { type: string, format: uuid }
+    attributes:
+      type: object
+      required: [ request_id, status, is_mocked ]
+      additionalProperties: true
+    relationships: { type: object }
+
+ProxyCatalogResource:
+  type: object
+  required: [ type, id, attributes ]
+  properties:
+    type:
+      type: string
+      enum: [ proxy-fields, proxy-handlers, proxy-credential-types ]
+    id: { type: string }
+    attributes: { type: object, additionalProperties: true }
+
+ProxyFeedResource:
+  type: object
+  required: [ type, id, attributes ]
+  properties:
+    type: { type: string, enum: [ proxy-folders, proxy-endpoints ] }
+    id: { type: string }
+    attributes: { type: object, additionalProperties: true }
+
+ProxyEndpointRequest:
+  type: object
+  required: [ name, code, handler_class ]
+  properties:
+    name: { type: string, maxLength: 255 }
+    code: { type: string, maxLength: 255 }
+    type: { type: string, enum: [ webhook, suggest ] }
+    method: { type: [ string, 'null' ], enum: [ GET, POST, null ] }
+    description: { type: [ string, 'null' ] }
+    is_active: { type: boolean }
+    is_mocked: { type: boolean }
+    handler_class: { type: string }
+    connection_id: { type: [ integer, 'null' ] }
+    category_ids:
+      type: array
+      items: { type: string, format: uuid }
+    credentials: { type: [ object, 'null' ] }
+    config: { type: [ object, 'null' ] }
+    mock_responses:
+      type: [ array, 'null' ]
+      items: { type: object }
+
+ProxyConnectionRequest:
+  type: object
+  required: [ name, credential_type ]
+  properties:
+    name: { type: string, maxLength: 255 }
+    credential_type: { type: string }
+    values: { type: object, additionalProperties: true }

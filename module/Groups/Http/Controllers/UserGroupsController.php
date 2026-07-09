@@ -47,7 +47,7 @@ final class UserGroupsController extends Controller
     public function update(UserGroupRequest $request, UserGroup $group): JsonResponse
     {
         $group = $this->service->update(
-            UserGroupData::fromRequest($request),
+            UserGroupData::fromRequest($request, $group),
             $group,
             $request->user(),
         );

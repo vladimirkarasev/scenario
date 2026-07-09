@@ -161,6 +161,12 @@ export interface ActionListBlockField extends BaseBlockField {
     actions: ActionListItem[]
 }
 
+export interface DirectoryListDepDrop {
+    fieldVarName: string
+    filterKey: string
+    valueKey: string
+}
+
 export interface DirectoryListBlockField extends BaseBlockField {
     type: 'directory_list'
     directoryId: string
@@ -169,6 +175,7 @@ export interface DirectoryListBlockField extends BaseBlockField {
     multiple: boolean
     allowRootSelection: boolean
     defaultSearch: string
+    depDrop: DirectoryListDepDrop | null
 }
 
 export interface DirectoryTableFieldConfig {
@@ -412,6 +419,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             multiple: false,
             allowRootSelection: true,
             defaultSearch: '',
+            depDrop: null,
             varName: labelToVarName('Справочник')
         },
         directory_table: {
@@ -619,6 +627,15 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
             const rawTpl = f.labelTemplate ?? f.label_template
             const labelTemplate = rawTpl ? String(rawTpl) : (f.label_field ? `{{ ${f.label_field} }}` : '')
             const rawAllow = f.allowRootSelection ?? f.allow_root_selection
+            const rawDepDrop = f.depDrop ?? f.dep_drop
+            const depDrop: DirectoryListDepDrop | null =
+                rawDepDrop && typeof rawDepDrop === 'object' && !Array.isArray(rawDepDrop)
+                    ? {
+                        fieldVarName: String((rawDepDrop as Record<string, unknown>).fieldVarName ?? ''),
+                        filterKey: String((rawDepDrop as Record<string, unknown>).filterKey ?? ''),
+                        valueKey: String((rawDepDrop as Record<string, unknown>).valueKey ?? 'external_key'),
+                    }
+                    : null
             return {
                 ...nb,
                 directoryId: String(f.directoryId ?? f.directory_id ?? ''),
@@ -626,7 +643,8 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
                 labelTemplate,
                 multiple: Boolean(f.multiple ?? false),
                 allowRootSelection: rawAllow !== undefined ? Boolean(rawAllow) : true,
-                defaultSearch: String(f.defaultSearch ?? f.default_search ?? '')
+                defaultSearch: String(f.defaultSearch ?? f.default_search ?? ''),
+                depDrop,
             } as DirectoryListBlockField
         }
 

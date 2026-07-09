@@ -13,14 +13,14 @@ import type {
   FeedScenarioItem,
   FeedFolderItem,
   ScenarioFeedRow,
-  ScenarioFeedResponse
+  ScenarioFeedPagination
 } from '@/modules/scenario/repositories/scenarioFeedRepository'
 import {formatDateTime} from '@/lib/formatters'
 import {pluralRu} from '@/lib/pluralize'
 
 defineProps<{
   rows: ScenarioFeedRow[]
-  meta: ScenarioFeedResponse['pagination']
+  meta: ScenarioFeedPagination
   loading: boolean
   isSearchMode: boolean
   canManage: boolean

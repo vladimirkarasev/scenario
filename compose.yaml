@@ -3,10 +3,12 @@ services:
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
+      secrets:
+        - rt_token
     container_name: scenario-laravel
     restart: unless-stopped
     user: "1000:1000"
-    command: ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+    command: ["run-roadrunner"]
     working_dir: /var/www/html
     ports:
       - "8000:8080"
@@ -28,18 +30,17 @@ services:
       DB_DATABASE: scenario
       DB_USERNAME: scenario
       DB_PASSWORD: scenario
-      OCTANE_SERVER: roadrunner
       RR_HTTP_HOST: 0.0.0.0
       RR_HTTP_PORT: 8080
       RR_RPC_PORT: 6001
-      ENABLE_QUEUE_WORKER: "1"
-      ENABLE_SCHEDULER: "1"
-      BROADCAST_CONNECTION: centrifugo
-      BROADCAST_DRIVER: centrifugo
-      CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: scenario-centrifugo-secret
-      CENTRIFUGO_API_KEY: scenario-centrifugo-api-key
-      CENTRIFUGO_URL: http://centrifugo:8000
+      RR_JOBS_DRIVER: boltdb
+      RR_DEBUG: "true"
+      BROADCAST_CONNECTION: null
       CENTRIFUGO_WS_URL: ws://localhost:8002/connection/websocket
+      CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: cd261ef813b617080f4dadde374cef46f35fbc5fbf09fcd501891d91ab645c18
+      RR_CENTRIFUGE_PROXY_PORT: "30001"
+      CENTRIFUGO_GRPC_API_HOST: centrifugo
+      CENTRIFUGO_GRPC_API_PORT: "10000"
       CACHE_STORE: redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -179,3 +180,9 @@ volumes:
 networks:
   scenario:
     driver: bridge
+
+secrets:
+  # GitHub token for the Velox custom-RoadRunner build step (docker/app/Dockerfile) — needs no
+  # scopes beyond public-repo read. Export RT_TOKEN in the shell before `task build`.
+  rt_token:
+    environment: RT_TOKEN

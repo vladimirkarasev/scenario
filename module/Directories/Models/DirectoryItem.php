@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Directories\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,15 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $search_text
  * @property array<string, mixed>|null $data_json
  */
+#[Fillable('directory_version_id', 'parent_id', 'external_key', 'search_text', 'data_json')]
 final class DirectoryItem extends Model
 {
-    protected $fillable = [
-        'directory_version_id',
-        'parent_id',
-        'external_key',
-        'search_text',
-        'data_json',
-    ];
 
     /** @return BelongsTo<DirectoryVersion, $this> */
     public function version(): BelongsTo

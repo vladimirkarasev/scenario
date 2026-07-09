@@ -35,7 +35,7 @@ function relativeUntil(iso: string | null | undefined): string {
 </script>
 
 <template>
-  <Head title="Расписания action"/>
+  <Head title="Расписания action" />
 
   <AppShell title="Расписания action" :navigation-items="navigationItems">
     <div class="min-h-full bg-slate-50">
@@ -44,12 +44,12 @@ function relativeUntil(iso: string | null | undefined): string {
           <template #actions>
             <a href="/actions"
                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-              <Zap :size="15"/>
+              <Zap :size="15" />
               Действия
             </a>
             <a href="/actions/runs"
                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-              <Clock3 :size="15"/>
+              <Clock3 :size="15" />
               История запусков
             </a>
           </template>
@@ -77,16 +77,16 @@ function relativeUntil(iso: string | null | undefined): string {
 
         <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div class="max-w-sm flex-1">
-            <SearchInput v-model="search" placeholder="Поиск по action или cron..."/>
+            <SearchInput v-model="search" placeholder="Поиск по action или cron..." />
           </div>
           <div class="flex items-center gap-3">
             <label class="flex cursor-pointer items-center gap-2 text-[12px] text-slate-600">
-              <input type="checkbox" v-model="showDisabled" class="size-3.5 rounded"/>
+              <input v-model="showDisabled" type="checkbox" class="size-3.5 rounded" />
               Показывать отключённые
             </label>
             <Button variant="outline" class="gap-2" :disabled="loading" @click="load">
-              <Loader2 v-if="loading" :size="14" class="animate-spin"/>
-              <RefreshCw v-else :size="14"/>
+              <Loader2 v-if="loading" :size="14" class="animate-spin" />
+              <RefreshCw v-else :size="14" />
               Обновить
             </Button>
           </div>
@@ -111,7 +111,7 @@ function relativeUntil(iso: string | null | undefined): string {
                   <div class="flex items-center gap-2">
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white"
                          :class="s.action?.is_active ? 'bg-blue-600' : 'bg-slate-300'">
-                      <Zap :size="13"/>
+                      <Zap :size="13" />
                     </div>
                     <div class="min-w-0">
                       <div class="truncate text-[13px] font-semibold text-slate-900">{{ s.action?.name ?? '—' }}</div>
@@ -123,14 +123,14 @@ function relativeUntil(iso: string | null | undefined): string {
                 <TableCell class="text-[12px] text-slate-500">{{ s.timezone }}</TableCell>
                 <TableCell>
                   <div class="flex items-center gap-1.5 text-[12px] text-slate-700">
-                    <CalendarClock :size="13" class="text-slate-400"/>
+                    <CalendarClock :size="13" class="text-slate-400" />
                     {{ fmt(s.next_run_at) }}
                   </div>
                   <div class="text-[11px] text-slate-400">{{ relativeUntil(s.next_run_at) }}</div>
                 </TableCell>
                 <TableCell>
                   <div class="flex items-center gap-1.5 text-[12px] text-slate-500">
-                    <Calendar :size="13" class="text-slate-400"/>
+                    <Calendar :size="13" class="text-slate-400" />
                     {{ fmt(s.last_run_at) }}
                   </div>
                 </TableCell>
@@ -146,11 +146,11 @@ function relativeUntil(iso: string | null | undefined): string {
           <EmptyState v-if="!filtered.length && !loading" title="Расписаний нет"
                       subtitle="Добавьте расписание action на странице действий">
             <template #icon>
-              <CalendarClock :size="20"/>
+              <CalendarClock :size="20" />
             </template>
           </EmptyState>
           <div v-if="loading && !items.length" class="px-5 py-8 text-center text-[13px] text-slate-400">
-            <Play class="mx-auto mb-2 h-5 w-5 text-slate-300"/>
+            <Play class="mx-auto mb-2 h-5 w-5 text-slate-300" />
             Загрузка…
           </div>
         </div>

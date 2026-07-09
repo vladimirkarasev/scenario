@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Actions\Providers;
 
+use App\Http\Middleware\AddApiMeta;
 use App\Support\PermissionRegistry;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Module\Actions\Enums\ActionPermission;
 use Module\Actions\Events\ActionSaved;
@@ -28,7 +30,8 @@ final class ActionsServiceProvider extends ServiceProvider
     {
         PermissionRegistry::register(ActionPermission::class);
 
-        $this->loadRoutesFrom(dirname(__DIR__).'/routes/api.php');
+        Route::middleware(AddApiMeta::class)
+            ->group(dirname(__DIR__).'/routes/api.php');
 
         Action::observe(ActionObserver::class);
 

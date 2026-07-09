@@ -19,7 +19,7 @@ final readonly class ProxyFeedService
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, folders_total: int, items_total: int}
      * }
      */
-    public function feed(?string $projectId, ProxyFeedData $data): array
+    public function feed(string $projectId, ProxyFeedData $data): array
     {
         $foldersTotal = $this->foldersQuery($projectId, $data)->count();
         $itemsTotal = $this->itemsQuery($projectId, $data)->count();
@@ -50,7 +50,7 @@ final readonly class ProxyFeedService
     }
 
     /** @return Builder<Category> */
-    private function foldersQuery(?string $projectId, ProxyFeedData $data): Builder
+    private function foldersQuery(string $projectId, ProxyFeedData $data): Builder
     {
         return Category::query()
             ->when($data->parentSet && $data->parentId === null, static fn (Builder $q) => $q->whereNull('parent_id'))
@@ -62,9 +62,7 @@ final readonly class ProxyFeedService
                 $q->from('model_has_categories')
                     ->whereColumn('model_has_categories.category_id', 'categories.id')
                     ->where('model_has_categories.model_type', ProxyEndpoint::class);
-                if ($projectId !== null) {
-                    $q->where('model_has_categories.project_id', $projectId);
-                }
+                $q->where('model_has_categories.project_id', $projectId);
             })
             ->when(
                 $data->search !== null,
@@ -77,13 +75,10 @@ final readonly class ProxyFeedService
     }
 
     /** @return Builder<ProxyEndpoint> */
-    private function itemsQuery(?string $projectId, ProxyFeedData $data): Builder
+    private function itemsQuery(string $projectId, ProxyFeedData $data): Builder
     {
         return ProxyEndpoint::query()
-            ->when(
-                $projectId !== null,
-                static fn (Builder $q) => $q->where('project_id', $projectId),
-            )
+            ->where('project_id', $projectId)
             ->when(
                 $data->type !== null,
                 static fn (Builder $q) => $q->where('type', $data->type),
@@ -113,7 +108,7 @@ final readonly class ProxyFeedService
     }
 
     /** @return array<int, array<string, mixed>> */
-    private function loadFolders(?string $projectId, ProxyFeedData $data, int $offset, int $take): array
+    private function loadFolders(string $projectId, ProxyFeedData $data, int $offset, int $take): array
     {
         $rows = $this->foldersQuery($projectId, $data)
             ->withCount([
@@ -122,9 +117,7 @@ final readonly class ProxyFeedService
                         $sub->from('model_has_categories')
                             ->whereColumn('model_has_categories.category_id', 'categories.id')
                             ->where('model_has_categories.model_type', ProxyEndpoint::class);
-                        if ($projectId !== null) {
-                            $sub->where('model_has_categories.project_id', $projectId);
-                        }
+                        $sub->where('model_has_categories.project_id', $projectId);
                     });
                 },
             ])
@@ -145,7 +138,7 @@ final readonly class ProxyFeedService
     }
 
     /** @return array<int, array<string, mixed>> */
-    private function loadItems(?string $projectId, ProxyFeedData $data, int $offset, int $take): array
+    private function loadItems(string $projectId, ProxyFeedData $data, int $offset, int $take): array
     {
         $rows = $this->itemsQuery($projectId, $data)
             ->offset($offset)

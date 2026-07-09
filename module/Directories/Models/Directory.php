@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Directories\Models;
 
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,25 +34,24 @@ use Module\Projects\Models\Project;
  * @property Carbon|null $updated_at
  * @property-read int|null $versions_count
  */
+#[Fillable(
+    'project_id',
+    'name',
+    'slug',
+    'description',
+    'source_type',
+    'match_by',
+    'default_sort',
+    'api_config_json',
+    'import_settings_json',
+    'last_sync_at',
+    'next_sync_at',
+    'sync_status',
+    'sync_error',
+)]
 final class Directory extends Model
 {
     use HasUuids;
-
-    protected $fillable = [
-        'project_id',
-        'name',
-        'slug',
-        'description',
-        'source_type',
-        'match_by',
-        'default_sort',
-        'api_config_json',
-        'import_settings_json',
-        'last_sync_at',
-        'next_sync_at',
-        'sync_status',
-        'sync_error',
-    ];
 
     /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo

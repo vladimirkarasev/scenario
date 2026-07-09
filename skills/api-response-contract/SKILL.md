@@ -132,45 +132,36 @@ return ['users' => [
 остаётся `en` (встроенные сообщения валидации Laravel). Английский = добавить
 `lang/en/errors.php` с той же структурой; enum и throw-сайты не трогаем.
 
-### Регистрация рендеринга в ServiceProvider модуля
+### Подключение модуля: один middleware
 
-Доменные исключения рендерим всегда; стандартные исключения фреймворка —
-**только на роутах своего модуля** (guard по namespace контроллера), чтобы не менять
-поведение остальных модулей. И навешиваем `AddApiMeta` на группу роутов.
+Рендер ошибок — **app-уровня**, `App\Exceptions\ApiExceptionRenderer` (регистрируется в
+`bootstrap/app.php` → `withExceptions`). Модулю **ничего регистрировать не нужно** —
+достаточно навесить `AddApiMeta` на группу роутов:
 
 ```php
 // <Module>ServiceProvider::boot()
-Route::middleware(['api', 'auth:sanctum', /* ... */, AddApiMeta::class])
+Route::middleware(['api', 'auth:sanctum', /* ...scope middleware... */, AddApiMeta::class])
     ->prefix('api')->group(dirname(__DIR__).'/routes/api.php');
-
-$this->registerExceptionHandlers();
 ```
 
-```php
-private function registerExceptionHandlers(): void
-{
-    $handler = $this->app->make(ExceptionHandler::class);
+Как это работает:
+- **Доменные исключения** (`DomainException`) рендерятся на любом `api/*`.
+- **Стандартные исключения фреймворка** (Validation 422 + `source.pointer`, ModelNotFound 404,
+  Authorization/AccessDenied 403, Authentication 401, общий HttpException 405/429/…) —
+  **только на роутах с middleware `AddApiMeta`** (тот же opt-in, что даёт `meta`).
+  Гард — `in_array(AddApiMeta::class, $request->route()->gatherMiddleware())`, без namespace-копипаста.
 
-    // Доменные — всегда (для api/*).
-    $handler->renderable(fn(DomainException $e, Request $r): ?JsonResponse =>
-        $r->is('api/*') ? ApiErrorResponse::make([$e->toError()], $e->status(), $r) : null);
-
-    // Фреймворковые — только на роутах модуля (guard по $r->route()->getActionName()):
-    //   ValidationException(422, VALIDATION_ERROR + source.pointer),
-    //   ModelNotFoundException(404), AuthorizationException|AccessDeniedHttpException(403),
-    //   AuthenticationException(401), общий HttpExceptionInterface fallback (405/429/…).
-}
-```
-
-Строить ответ ошибки — через `App\Http\Responses\ApiErrorResponse::make($errors, $status, $request)`.
+Строить ответ ошибки (если руками) — через `App\Http\Responses\ApiErrorResponse::make($errors, $status, $request)`.
 
 ## Инфраструктура (уже есть, переиспользовать)
 
 - `App\Http\Responses\ApiResponse` — success-конверт `{ data }`.
 - `App\Http\Responses\ApiErrorResponse` — error-конверт `{ errors, meta }`.
 - `App\Support\ApiMeta::for($request)` — `{ timestamp, requestId }`.
-- `App\Http\Middleware\AddApiMeta` — вливает `meta` в 2xx JSON-ответы (навесить на группу роутов).
+- `App\Http\Middleware\AddApiMeta` — вливает `meta` в 2xx JSON-ответы; он же opt-in для единого формата ошибок (навесить на группу роутов).
+- `App\Exceptions\ApiExceptionRenderer` — app-уровневый рендер ошибок (подключён в `bootstrap/app.php`); модулю трогать не нужно.
 - `App\Http\Middleware\SetRequestId` — кладёт `request_id` в атрибуты запроса и заголовок `X-Request-Id`.
+- `App\Support\Pagination::fromRequest($request)` — JSON:API `page[number]`/`page[size]` с единым дефолтом (встраивать в `*IndexData`).
 - `App\Exceptions\{DomainException, ForbiddenException, NotFoundException, ConflictException}` (+ `::from(ErrorText)`).
 - `App\Contracts\ErrorText` — контракт enum-а кодов (`code`/`title`/`detail`); текст в `lang/<locale>/errors.php`.
 

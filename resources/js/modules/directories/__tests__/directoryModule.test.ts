@@ -120,7 +120,7 @@ describe('directories module', () => {
             'Не удалось загрузить справочники.',
         )
         expect(destroyJson).toHaveBeenCalledWith(
-            '/api/directories/dir-1/sync-schedule',
+            '/api/actions/directories/dir-1/sync-schedule',
             'Не удалось удалить расписание синхронизации.',
         )
     })

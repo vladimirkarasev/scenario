@@ -21,7 +21,6 @@ Route::prefix('embed/auth')->group(function (): void {
 
 Route::middleware(['auth:sanctum'])->group(function (): void {
     Route::get('centrifugo/connection-token', [CentrifugoTokenController::class, 'connectionToken']);
-    Route::get('centrifugo/subscribe-token', [CentrifugoTokenController::class, 'subscribeToken']);
 });
 
 if (config('dev_auth.enabled')) {

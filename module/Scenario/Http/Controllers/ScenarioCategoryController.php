@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Http\Controllers;
 
+use App\Exceptions\ForbiddenException;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 use Module\Categories\DTO\CategoryData;
 use Module\Categories\Http\Controllers\CategoryController;
 use Module\Categories\Http\Requests\CategoryRequest;
 use Module\Categories\Http\Resources\JsonApi\CategoryResource;
+use Module\Categories\Services\CategoryService;
+use Module\Projects\CurrentProject;
+use Module\Scenario\Enums\ScenarioErrorCode;
 use Module\Scenario\Models\Scenario;
+use Module\Scenario\Repositories\CategoryRepository;
 
 final class ScenarioCategoryController extends CategoryController
 {
+    public function __construct(
+        CategoryService $categories,
+        CurrentProject $currentProject,
+        private readonly CategoryRepository $scenarioCategories,
+    ) {
+        parent::__construct($categories, $currentProject);
+    }
+
     protected function modelClass(): string
     {
         return Scenario::class;
@@ -28,7 +40,9 @@ final class ScenarioCategoryController extends CategoryController
     #[\Override]
     public function destroy(Request $request, Category $category): JsonResponse
     {
-        abort_if($category->is_system, 403, 'Системную папку нельзя удалить.');
+        if ($category->is_system) {
+            throw ForbiddenException::from(ScenarioErrorCode::SystemCategoryDeleteForbidden);
+        }
 
         return parent::destroy($request, $category);
     }
@@ -39,22 +53,9 @@ final class ScenarioCategoryController extends CategoryController
         $request = request();
 
         if ($request->boolean('filter.is_workspace')) {
-            $projectId = $this->currentProjectId();
-
-            $workspace = Category::query()
-                ->where('is_workspace', true)
-                ->whereExists(function (\Illuminate\Database\Query\Builder $q) use ($projectId): void {
-                    $q->from('model_has_categories')
-                        ->whereColumn('model_has_categories.category_id', 'categories.id')
-                        ->where('model_has_categories.model_type', $this->modelClass());
-                    if ($projectId !== null) {
-                        $q->where('model_has_categories.project_id', $projectId);
-                    }
-                })
-                ->orderBy('name')
-                ->get();
-
-            return CategoryResource::collection($workspace);
+            return CategoryResource::collection(
+                $this->scenarioCategories->workspaceForModel($this->modelClass(), $this->currentProjectId()),
+            );
         }
 
         if ($request->has('filter.parent_id')) {
@@ -78,15 +79,7 @@ final class ScenarioCategoryController extends CategoryController
     {
         $category = $this->categories->create(CategoryData::fromRequest($request));
 
-        DB::table('model_has_categories')->insertOrIgnore([
-            'category_id' => $category->id,
-            'model_id' => $category->id,
-            'model_type' => $this->modelClass(),
-            'project_id' => $this->currentProjectId(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
+        $this->scenarioCategories->attachToModelType($category, $this->modelClass(), $this->currentProjectId());
         $this->ensureSingleWorkspace($category);
 
         return new CategoryResource($category);
@@ -112,20 +105,6 @@ final class ScenarioCategoryController extends CategoryController
             return;
         }
 
-        $projectId = $this->currentProjectId();
-
-        Category::query()
-            ->where('categories.id', '!=', $category->id)
-            ->where('is_workspace', true)
-            ->whereExists(function (\Illuminate\Database\Query\Builder $q) use ($projectId): void {
-                $q->from('model_has_categories')
-                    ->whereColumn('model_has_categories.category_id', 'categories.id')
-                    ->where('model_has_categories.model_type', $this->modelClass());
-
-                $projectId === null
-                    ? $q->whereNull('model_has_categories.project_id')
-                    : $q->where('model_has_categories.project_id', $projectId);
-            })
-            ->update(['is_workspace' => false]);
+        $this->scenarioCategories->demoteOtherWorkspaces($category, $this->modelClass(), $this->currentProjectId());
     }
 }

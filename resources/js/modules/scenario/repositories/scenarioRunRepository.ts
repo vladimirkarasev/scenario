@@ -1,9 +1,9 @@
 import {getJson, sendJson} from '@/lib/http'
-import type {ScenarioRunPayload} from '@/modules/scenario/lib/scenario-player-types'
+import type {RunHistoryEvent, ScenarioRunPayload} from '@/modules/scenario/lib/scenario-player-types'
 import type {ScenarioActor, ScenarioRunsPage} from '@/modules/scenario/types/scenario'
 
 function extractRun(raw: unknown): ScenarioRunPayload {
-    return (raw as { run: ScenarioRunPayload }).run
+    return (raw as { data: { run: ScenarioRunPayload } }).data.run
 }
 
 export const scenarioRunRepository = {
@@ -15,9 +15,9 @@ export const scenarioRunRepository = {
         const qs = new URLSearchParams()
         if (search) qs.set('filter[search]', search)
         const raw = await getJson(`/api/scenarios/runner/users?${qs}`, 'Не удалось загрузить пользователей.') as {
-            users: ScenarioActor[]
+            data: ScenarioActor[]
         }
-        return raw.users
+        return raw.data
     },
 
     async usersByIds(ids: (string | number)[]): Promise<ScenarioActor[]> {
@@ -25,9 +25,9 @@ export const scenarioRunRepository = {
         const qs = new URLSearchParams()
         ids.forEach((id) => qs.append('filter[ids][]', String(id)))
         const raw = await getJson(`/api/scenarios/runner/users?${qs}`, 'Не удалось загрузить пользователей.') as {
-            users: ScenarioActor[]
+            data: ScenarioActor[]
         }
-        return raw.users
+        return raw.data
     },
 
     async create(payload: {
@@ -75,5 +75,12 @@ export const scenarioRunRepository = {
             fallbackMessage: 'Не удалось повторить действие.',
         })
         return extractRun(raw)
+    },
+
+    async history(runId: string): Promise<RunHistoryEvent[]> {
+        const raw = await getJson(`/api/scenarios/runner/${runId}/history`, 'Не удалось загрузить историю.') as {
+            data: RunHistoryEvent[]
+        }
+        return raw.data
     },
 }

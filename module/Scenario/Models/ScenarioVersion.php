@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Module\Scenario\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Module\Projects\Models\Project;
+use Module\Scenario\Observers\ScenarioVersionObserver;
+use Module\Scenario\QueryBuilders\ScenarioVersionBuilder;
 
 /**
  * @property string $id
@@ -26,21 +31,17 @@ use Module\Projects\Models\Project;
  * @property-read Collection<int, ScenarioRun> $runs
  * @property-read Collection<int, ScenarioVersionRevision> $revisions
  * @property-read ScenarioVersionRevision|null $latestRevision
+ *
+ * @method static ScenarioVersionBuilder query()
  */
+#[Fillable('id', 'scenario_id', 'project_id', 'name', 'status', 'created_at')]
+#[ObservedBy(ScenarioVersionObserver::class)]
+#[UseEloquentBuilder(ScenarioVersionBuilder::class)]
 final class ScenarioVersion extends Model
 {
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    protected $fillable = [
-        'id',
-        'scenario_id',
-        'project_id',
-        'name',
-        'status',
-        'created_at',
-    ];
 
     /** @return BelongsTo<Project, ScenarioVersion> */
     public function project(): BelongsTo

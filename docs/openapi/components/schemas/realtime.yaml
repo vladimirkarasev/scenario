@@ -1,0 +1,161 @@
+CentrifugoConnectionToken:
+  type: object
+  required: [token, ws_url]
+  properties:
+    token:
+      type: string
+      description: >-
+        Короткоживущий JWT (HS256, TTL 1 час), которым Centrifugo сама валидирует
+        подключение — `sub` содержит id текущего пользователя. Отдельного
+        subscribe-токена не нужно: авторизация на канал проверяется через
+        RoadRunner subscribe-proxy на бэкенде.
+      example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc123
+    ws_url:
+      type: string
+      format: uri
+      description: Адрес WebSocket-эндпоинта Centrifugo, к которому подключается фронт.
+      example: ws://localhost:8002/connection/websocket
+
+RunUpdatedMessage:
+  type: object
+  required: [type, run]
+  description: >-
+    Канал `scenario-run:{runId}`. Полный снимок состояния прогона — та же форма,
+    что и `RunPayload` в REST-ответах (`POST /scenarios/runner`,
+    `POST /scenarios/runner/{runId}/continue` и т.д.), с добавленным `type`.
+  properties:
+    type:
+      type: string
+      enum: [run_updated]
+    run:
+      $ref: './runs.yaml#/RunState'
+  additionalProperties: true
+
+ActionStartedMessage:
+  type: object
+  required: [type, action_id]
+  description: Канал `scenario-run:{runId}`. Экшен в chain-пайплайне начал выполняться.
+  properties:
+    type:
+      type: string
+      enum: [action_started]
+    action_id:
+      type: string
+      format: uuid
+    code:
+      type: [ string, 'null' ]
+      description: Код стадии пайплайна (для `wait_for_result`-нод с несколькими шагами).
+
+ActionCompletedMessage:
+  type: object
+  required: [type, action_id, status]
+  description: Канал `scenario-run:{runId}`. Экшен (одиночный или шаг chain/batch) завершился успешно.
+  properties:
+    type:
+      type: string
+      enum: [action_completed]
+    action_id:
+      type: string
+      format: uuid
+    code:
+      type: [ string, 'null' ]
+    status:
+      type: string
+      example: success
+    output:
+      type: [ object, 'null' ]
+      additionalProperties: true
+
+ActionFailedMessage:
+  type: object
+  required: [type, action_id]
+  description: Канал `scenario-run:{runId}`. Экшен исчерпал попытки и завершился ошибкой.
+  properties:
+    type:
+      type: string
+      enum: [action_failed]
+    action_id:
+      type: string
+      format: uuid
+    code:
+      type: [ string, 'null' ]
+    error:
+      type: [ string, 'null' ]
+
+ChainCompletedMessage:
+  type: object
+  required: [type, context]
+  description: Канал `scenario-run:{runId}`. Вся цепочка chain-экшенов отработала.
+  properties:
+    type:
+      type: string
+      enum: [chain_completed]
+    context:
+      type: object
+      additionalProperties: true
+      description: Накопленный контекст (output всех шагов цепочки по scope-ключам).
+
+BatchCompletedMessage:
+  type: object
+  required: [type, batch_id]
+  description: Канал `scenario-run:{runId}`. Все экшены batch-группы завершились успешно.
+  properties:
+    type:
+      type: string
+      enum: [batch_completed]
+    batch_id:
+      type: string
+
+BatchFailedMessage:
+  type: object
+  required: [type, batch_id, error]
+  description: Канал `scenario-run:{runId}`. Хотя бы один экшен batch-группы завершился ошибкой.
+  properties:
+    type:
+      type: string
+      enum: [batch_failed]
+    batch_id:
+      type: string
+    error:
+      type: string
+
+StartScenarioMessage:
+  type: object
+  required: [type, run_id, url]
+  description: >-
+    Персональный канал `#user:{userId}` (встроенный механизм Centrifugo,
+    подписка на него неявная — по факту аутентифицированного подключения).
+    Публикуется, когда сценарий диспатчится на пользователя удалённо
+    (`POST /scenarios/dispatch`).
+  properties:
+    type:
+      type: string
+      enum: [start_scenario]
+    run_id:
+      type: string
+      format: uuid
+    url:
+      type: string
+      description: Относительный путь на страницу прогона во фронтенде.
+
+DirectoryImportStatusMessage:
+  type: object
+  required: [type, import_id, status]
+  description: Канал `directory-import:{importId}`. Прогресс импорта директории (CSV/Excel).
+  properties:
+    type:
+      type: string
+      enum: [status_update]
+    import_id:
+      type: integer
+    status:
+      type: string
+      example: processing
+    processed_rows:
+      type: integer
+    imported_rows:
+      type: integer
+    failed_rows:
+      type: integer
+    error_message:
+      type: [ string, 'null' ]

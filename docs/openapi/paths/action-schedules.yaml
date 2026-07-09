@@ -1,0 +1,14 @@
+collection:
+  get:
+    tags: [Actions]
+    operationId: listActionSchedules
+    summary: Список расписаний actions
+    responses:
+      '200':
+        description: Все расписания с краткими данными action.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/ActionScheduleListResponse'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'

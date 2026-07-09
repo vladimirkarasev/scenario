@@ -6,6 +6,7 @@ namespace Module\Scenario\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Module\Projects\CurrentProject;
 use Module\Scenario\Models\Scenario;
 
 final class ScenarioRequest extends FormRequest
@@ -20,6 +21,7 @@ final class ScenarioRequest extends FormRequest
     {
         $scenario = $this->route('scenario');
         $scenarioId = $scenario instanceof Scenario ? $scenario->id : null;
+        $projectId = $this->container->make(CurrentProject::class)->id();
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -36,7 +38,11 @@ final class ScenarioRequest extends FormRequest
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['required', 'uuid', 'exists:categories,id'],
             'group_ids' => ['nullable', 'array'],
-            'group_ids.*' => ['required', 'uuid', 'exists:user_groups,id'],
+            'group_ids.*' => [
+                'required',
+                'uuid',
+                Rule::exists('user_groups', 'id')->where('site_id', $projectId),
+            ],
             'active_version_id' => [
                 'nullable',
                 'string',

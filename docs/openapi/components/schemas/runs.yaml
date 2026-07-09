@@ -255,3 +255,31 @@ SurveySummary:
     updated_at:
       type: [ string, 'null' ]
       format: date-time
+
+
+DispatchRequest:
+  type: object
+  required: [ tag ]
+  description: >
+    Необходимо передать хотя бы один из параметров идентификации: `login` или `external_id`.
+  properties:
+    login:
+      type: [ string, 'null' ]
+      maxLength: 255
+      description: Логин пользователя в системе
+    external_id:
+      type: [ string, 'null' ]
+      maxLength: 255
+      description: Внешний идентификатор пользователя
+    tag:
+      type: string
+      maxLength: 255
+      description: Тег сценария для запуска
+    context:
+      type: [ object, 'null' ]
+      description: Начальные переменные контекста прогона
+      additionalProperties: true
+    user_data:
+      type: [ object, 'null' ]
+      description: Произвольные данные пользователя (сохраняются в прогоне)
+      additionalProperties: true

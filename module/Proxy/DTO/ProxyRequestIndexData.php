@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Proxy\DTO;
 
+use App\Support\Pagination;
 use Illuminate\Http\Request;
 
 final readonly class ProxyRequestIndexData
@@ -12,7 +13,9 @@ final readonly class ProxyRequestIndexData
         public ?int $endpointId,
         public ?string $status,
         public ?string $search,
-        public int $perPage,
+        /** @var list<string> */
+        public array $sort,
+        public Pagination $pagination,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -31,13 +34,17 @@ final readonly class ProxyRequestIndexData
             ? trim($filter['search'])
             : null;
 
-        $perPage = max(1, min(100, (int) $request->integer('page.size', 20)));
+        $sort = array_values(array_filter(
+            explode(',', $request->string('sort', '-received_at')->toString()),
+            static fn (string $value): bool => $value !== '',
+        ));
 
         return new self(
             endpointId: $endpointId,
             status: $status,
             search: $search,
-            perPage: $perPage,
+            sort: $sort,
+            pagination: Pagination::fromRequest($request),
         );
     }
 }

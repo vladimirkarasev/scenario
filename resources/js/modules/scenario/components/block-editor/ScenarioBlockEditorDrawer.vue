@@ -554,6 +554,7 @@ function cancelChanges() {
       :current-block-id="blockId"
       :user-variables="USER_VARIABLES"
       :block-title="blockDraft?.data.title || ''"
+      :block-fields="blockDraft?.data.fields ?? []"
       @update="settingsField && updateFieldSettings(settingsField, $event)"
       @add-option="settingsField && addSelectOption(settingsField)"
       @update-option="settingsField && updateSelectOption(settingsField, $event.id, $event.changes)"

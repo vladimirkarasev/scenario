@@ -1,0 +1,61 @@
+item:
+  parameters:
+    - name: directory
+      in: path
+      required: true
+      description: UUID справочника.
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    tags: [Actions]
+    operationId: getDirectorySyncSchedule
+    summary: Получить cron-расписание синхронизации справочника
+    responses:
+      '200':
+        description: 'Расписание или `data: null`.'
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/DirectorySyncScheduleResponse'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'
+
+  put:
+    tags: [Actions]
+    operationId: upsertDirectorySyncSchedule
+    summary: Создать или обновить cron-расписание синхронизации справочника
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/actions.yaml#/DirectorySyncScheduleRequest'
+    responses:
+      '200':
+        description: Расписание сохранено.
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/actions.yaml#/DirectorySyncScheduleResponse'
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'
+      '422':
+        $ref: '../components/responses.yaml#/ValidationErrors'
+
+  delete:
+    tags: [Actions]
+    operationId: deleteDirectorySyncSchedule
+    summary: Отключить cron-синхронизацию справочника
+    responses:
+      '204':
+        description: Cron-расписание удалено, справочник возвращён в интервальный режим.
+      '401':
+        $ref: '../components/responses.yaml#/UnauthorizedErrors'
+      '404':
+        $ref: '../components/responses.yaml#/NotFoundErrors'

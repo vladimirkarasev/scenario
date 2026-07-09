@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Http\Requests;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Module\Scenario\Models\Scenario;
+use Module\Scenario\Models\ScenarioVersion;
 
 final class ScenarioVersionRequest extends FormRequest
 {
@@ -18,9 +21,17 @@ final class ScenarioVersionRequest extends FormRequest
     public function rules(): array
     {
         $scenario = $this->route('scenario');
-        $scenarioId = is_object($scenario) && isset($scenario->id) ? (string)$scenario->id : (string)$scenario;
+        $scenarioId = match (true) {
+            $scenario instanceof Scenario => $scenario->id,
+            is_string($scenario) => $scenario,
+            default => '',
+        };
         $version = $this->route('version');
-        $versionId = is_object($version) && isset($version->id) ? (string)$version->id : null;
+        $versionId = match (true) {
+            $version instanceof ScenarioVersion => $version->id,
+            is_string($version) => $version,
+            default => null,
+        };
 
         return [
             // Имя опционально: если не передано — репозиторий генерирует «vN».
@@ -29,7 +40,7 @@ final class ScenarioVersionRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('scenario_versions', 'name')
-                    ->where(fn($q) => $q->where('scenario_id', $scenarioId))
+                    ->where(fn(Builder $q) => $q->where('scenario_id', $scenarioId))
                     ->ignore($versionId),
             ],
             'status' => ['nullable', 'string', Rule::in(['draft', 'active', 'archived'])],

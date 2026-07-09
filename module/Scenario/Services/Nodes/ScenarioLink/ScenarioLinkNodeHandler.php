@@ -59,10 +59,7 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
                 throw new RuntimeException('Scenario link target version id must be a valid UUID.');
             }
 
-            $targetVersion = ScenarioVersion::query()
-                ->where('id', $targetVersionId)
-                ->where('scenario_id', $targetScenarioId)
-                ->first();
+            $targetVersion = $this->versions->findForScenario($targetVersionId, $targetScenarioId);
         }
 
         if ($targetVersion === null) {

@@ -37,7 +37,7 @@ interface RawVersion {
     attributes: RawVersionAttributes
 }
 
-// Flat shape — возвращают create/update/duplicate через CatalogService.versionPayload()
+// Flat shape (под конвертом data) — возвращают create/update/duplicate через CatalogService.versionPayload()
 interface RawVersionFlat {
     id: string
     name: string | null
@@ -98,8 +98,8 @@ export const scenarioVersionRepository = {
             method: 'POST',
             body: payload,
             fallbackMessage: 'Не удалось создать версию.'
-        }) as { item: RawVersionFlat; scenario_id: string }
-        return normalizeVersionFlat(raw.item, raw.scenario_id)
+        }) as { data: RawVersionFlat }
+        return normalizeVersionFlat(raw.data, scenarioId)
     },
 
     async update(scenarioId: string, versionId: string, payload: ScenarioVersionPayload): Promise<ScenarioVersion> {
@@ -107,8 +107,8 @@ export const scenarioVersionRepository = {
             method: 'PUT',
             body: payload,
             fallbackMessage: 'Не удалось сохранить версию.'
-        }) as { item: RawVersionFlat; scenario_id: string }
-        return normalizeVersionFlat(raw.item, raw.scenario_id)
+        }) as { data: RawVersionFlat }
+        return normalizeVersionFlat(raw.data, scenarioId)
     },
 
     async duplicate(scenarioId: string, versionId: string): Promise<ScenarioVersion> {
@@ -116,8 +116,8 @@ export const scenarioVersionRepository = {
             method: 'POST',
             body: {},
             fallbackMessage: 'Не удалось дублировать версию.'
-        }) as { item: RawVersionFlat; scenario_id: string }
-        return normalizeVersionFlat(raw.item, raw.scenario_id)
+        }) as { data: RawVersionFlat }
+        return normalizeVersionFlat(raw.data, scenarioId)
     },
 
     async remove(scenarioId: string, versionId: string): Promise<void> {

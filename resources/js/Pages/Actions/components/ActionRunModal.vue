@@ -2,10 +2,13 @@
 import {FormActions, FormBody, FormError, FormJsonInput} from '@/components/form'
 import {X} from 'lucide-vue-next'
 import type {useActionRunModal} from '@/modules/actions/composables/useActionRunModal'
+import {toRef} from 'vue'
 
-defineProps<{
+const props = defineProps<{
   runModal: ReturnType<typeof useActionRunModal>
 }>()
+
+const runModal = toRef(props, 'runModal')
 </script>
 
 <template>
@@ -18,12 +21,12 @@ defineProps<{
         <div class="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <div class="text-[15px] font-bold text-slate-900">Запуск: {{ runModal.action.value?.name }}</div>
           <button class="text-slate-400 transition hover:text-slate-700" @click="runModal.close">
-            <X :size="18"/>
+            <X :size="18" />
           </button>
         </div>
         <form class="contents" novalidate @submit.prevent="runModal.run">
           <FormBody>
-            <FormError :message="runModal.error.value"/>
+            <FormError :message="runModal.error.value" />
             <FormJsonInput
                 v-model="runModal.form.input"
                 label="Input JSON"

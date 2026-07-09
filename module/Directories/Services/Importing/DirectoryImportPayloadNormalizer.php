@@ -12,7 +12,7 @@ use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 final class DirectoryImportPayloadNormalizer
 {
     /**
-     * @param  array<string, string>  $mapping
+     * @param  array<string, mixed>  $mapping
      * @return array<string, string>
      */
     public function normalizeMapping(array $mapping): array

@@ -10,7 +10,7 @@ final class DirectoryListController
 {
     public function __invoke(): JsonResponse
     {
-        return response()->json([
+        return new JsonResponse([
             'section' => 'directories',
             'items' => [],
         ]);

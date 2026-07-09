@@ -23,13 +23,14 @@ use Tests\TestCase;
 final class ProxyConnectionControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use InteractsWithProxyProject;
 
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $this->user = $this->createProxyUser();
     }
 
     // -------------------------------------------------------------------------
@@ -42,12 +43,12 @@ final class ProxyConnectionControllerTest extends TestCase
             ->getJson('/api/proxy/credential-types')
             ->assertOk();
 
-        $types = array_column($response->json('data'), 'type');
+        $types = array_column($response->json('data'), 'id');
         $this->assertContains(AutoCrmCredential::class, $types);
         $this->assertContains(BearerCredential::class, $types);
 
-        $bearer = collect($response->json('data'))->firstWhere('type', BearerCredential::class);
-        $keys = array_column($bearer['fields'], 'key');
+        $bearer = collect($response->json('data'))->firstWhere('id', BearerCredential::class);
+        $keys = array_column($bearer['attributes']['fields'], 'key');
         $this->assertEqualsCanonicalizing(['base_uri', 'bearer_token'], $keys);
     }
 
@@ -83,6 +84,7 @@ final class ProxyConnectionControllerTest extends TestCase
     public function test_update_with_blank_secret_keeps_existing(): void
     {
         $connection = ProxyConnection::query()->create([
+            'project_id' => $this->proxyProject->id,
             'name' => 'CRM',
             'credential_type' => BearerCredential::class,
             'config' => ['base_uri' => 'https://a.example.com'],
@@ -104,8 +106,8 @@ final class ProxyConnectionControllerTest extends TestCase
 
     public function test_index_is_scoped_and_filterable_by_type(): void
     {
-        ProxyConnection::query()->create(['name' => 'A', 'credential_type' => AutoCrmCredential::class]);
-        ProxyConnection::query()->create(['name' => 'B', 'credential_type' => BearerCredential::class]);
+        ProxyConnection::query()->create(['project_id' => $this->proxyProject->id, 'name' => 'A', 'credential_type' => AutoCrmCredential::class]);
+        ProxyConnection::query()->create(['project_id' => $this->proxyProject->id, 'name' => 'B', 'credential_type' => BearerCredential::class]);
 
         $type = AutoCrmCredential::class;
         $this->actingAs($this->user)
@@ -129,6 +131,7 @@ final class ProxyConnectionControllerTest extends TestCase
     public function test_endpoint_accepts_matching_connection(): void
     {
         $connection = ProxyConnection::query()->create([
+            'project_id' => $this->proxyProject->id,
             'name' => 'AutoCRM',
             'credential_type' => AutoCrmCredential::class,
             'config' => ['base_uri' => 'https://crm.example.com'],
@@ -149,6 +152,7 @@ final class ProxyConnectionControllerTest extends TestCase
     public function test_endpoint_rejects_mismatched_connection_type(): void
     {
         $connection = ProxyConnection::query()->create([
+            'project_id' => $this->proxyProject->id,
             'name' => 'Bearer',
             'credential_type' => BearerCredential::class,
         ]);
@@ -161,12 +165,13 @@ final class ProxyConnectionControllerTest extends TestCase
                 'connection_id' => $connection->id,
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('connection_id');
+            ->assertJsonPath('errors.0.source.pointer', '/data/attributes/connection_id');
     }
 
     public function test_endpoint_without_credential_handler_rejects_connection(): void
     {
         $connection = ProxyConnection::query()->create([
+            'project_id' => $this->proxyProject->id,
             'name' => 'Bearer',
             'credential_type' => BearerCredential::class,
         ]);
@@ -179,12 +184,13 @@ final class ProxyConnectionControllerTest extends TestCase
                 'connection_id' => $connection->id,
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('connection_id');
+            ->assertJsonPath('errors.0.source.pointer', '/data/attributes/connection_id');
     }
 
     public function test_endpoint_gateway_config_uses_connection(): void
     {
         $connection = ProxyConnection::query()->create([
+            'project_id' => $this->proxyProject->id,
             'name' => 'AutoCRM',
             'credential_type' => AutoCrmCredential::class,
             'config' => ['base_uri' => 'https://crm.example.com'],

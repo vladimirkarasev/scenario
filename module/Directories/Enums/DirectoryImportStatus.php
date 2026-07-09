@@ -10,4 +10,14 @@ enum DirectoryImportStatus: string
     case Processing = 'processing';
     case Completed = 'completed';
     case Failed = 'failed';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Pending    => 'Ожидание',
+            self::Processing => 'Обработка',
+            self::Completed  => 'Завершён',
+            self::Failed     => 'Ошибка',
+        };
+    }
 }

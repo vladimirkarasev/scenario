@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Http\Controllers;
 
+use App\Exceptions\NotFoundException;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Module\Scenario\DTO\ScenarioActionData;
 use Module\Scenario\DTO\ScenarioData;
 use Module\Scenario\DTO\ScenarioIndexData;
+use Module\Scenario\Enums\ScenarioErrorCode;
 use Module\Scenario\Http\Requests\ScenarioRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Scenario\Http\Resources\JsonApi\ScenariosResource;
@@ -38,29 +41,31 @@ final class ScenariosController extends Controller
         return new ScenariosResource($scenario);
     }
 
-    public function store(ScenarioRequest $request): JsonResponse
+    public function store(ScenarioRequest $request): ApiResponse
     {
-        return new JsonResponse([
-            'item' => $this->scenarioService->create(ScenarioData::fromRequest($request)),
-        ], 201);
+        return new ApiResponse(
+            $this->scenarioService->create(ScenarioData::fromRequest($request)),
+            201,
+        );
     }
 
-    public function update(ScenarioRequest $request, Scenario $scenario): JsonResponse
+    public function update(ScenarioRequest $request, Scenario $scenario): ApiResponse
     {
         $this->authorizeProject($scenario);
 
-        return new JsonResponse([
-            'item' => $this->scenarioService->update(ScenarioData::fromRequest($request), $scenario),
-        ]);
+        return new ApiResponse(
+            $this->scenarioService->update(ScenarioData::fromRequest($request), $scenario),
+        );
     }
 
-    public function duplicate(Request $request, Scenario $scenario): JsonResponse
+    public function duplicate(Request $request, Scenario $scenario): ApiResponse
     {
         $this->authorizeProject($scenario);
 
-        return new JsonResponse([
-            'item' => $this->scenarioService->duplicate(ScenarioActionData::fromRequest($request), $scenario),
-        ], 201);
+        return new ApiResponse(
+            $this->scenarioService->duplicate(ScenarioActionData::fromRequest($request), $scenario),
+            201,
+        );
     }
 
     public function destroy(Request $request, Scenario $scenario): JsonResponse
@@ -74,6 +79,8 @@ final class ScenariosController extends Controller
 
     private function authorizeProject(Scenario $scenario): void
     {
-        abort_unless($scenario->project_id === $this->currentProject->id(), 404);
+        if ($scenario->project_id !== $this->currentProject->id()) {
+            throw NotFoundException::from(ScenarioErrorCode::ScenarioNotFound);
+        }
     }
 }

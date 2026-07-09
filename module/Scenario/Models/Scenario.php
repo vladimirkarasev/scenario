@@ -7,6 +7,8 @@ namespace Module\Scenario\Models;
 use App\Models\Category;
 use Module\Users\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -42,25 +44,14 @@ use Module\Scenario\QueryBuilders\ScenarioBuilder;
  *
  * @method static ScenarioBuilder query()
  */
+#[Fillable('project_id', 'name', 'description', 'is_active', 'status', 'alias', 'tags', 'created_by', 'updated_by', 'active_version_id')]
+#[UseEloquentBuilder(ScenarioBuilder::class)]
 final class Scenario extends Model
 {
     use HasUuids;
 
     protected $attributes = [
         'status' => 'draft',
-    ];
-
-    protected $fillable = [
-        'project_id',
-        'name',
-        'description',
-        'is_active',
-        'status',
-        'alias',
-        'tags',
-        'created_by',
-        'updated_by',
-        'active_version_id',
     ];
 
     /** @return BelongsTo<Project, Scenario> */
@@ -124,12 +115,6 @@ final class Scenario extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    #[\Override]
-    public function newEloquentBuilder($query): ScenarioBuilder
-    {
-        return new ScenarioBuilder($query);
     }
 
     #[\Override]

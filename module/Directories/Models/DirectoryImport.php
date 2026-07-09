@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Directories\Models;
 
-use Module\Users\Models\User;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Module\Users\Models\User;
 
 /**
  * @property int $id
@@ -19,31 +20,31 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $started_at
  * @property Carbon|null $finished_at
  */
+#[Fillable(
+    'directory_id',
+    'directory_version_id',
+    'uploaded_by',
+    'mode',
+    'status',
+    'source_type',
+    'file_disk',
+    'file_path',
+    'match_by',
+    'parent_key_field',
+    'chunk_size',
+    'mapping_json',
+    'fields_json',
+    'remote_config_json',
+    'processed_keys_json',
+    'processed_rows',
+    'imported_rows',
+    'failed_rows',
+    'error_message',
+    'started_at',
+    'finished_at',
+)]
 final class DirectoryImport extends Model
 {
-    protected $fillable = [
-        'directory_id',
-        'directory_version_id',
-        'uploaded_by',
-        'mode',
-        'status',
-        'source_type',
-        'file_disk',
-        'file_path',
-        'match_by',
-        'parent_key_field',
-        'chunk_size',
-        'mapping_json',
-        'fields_json',
-        'remote_config_json',
-        'processed_keys_json',
-        'processed_rows',
-        'imported_rows',
-        'failed_rows',
-        'error_message',
-        'started_at',
-        'finished_at',
-    ];
 
     /** @return BelongsTo<Directory, $this> */
     public function directory(): BelongsTo

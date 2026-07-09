@@ -18,7 +18,7 @@ import TabsContent from '@/components/ui/tabs/TabsContent.vue'
 import TabsList from '@/components/ui/tabs/TabsList.vue'
 import TabsTrigger from '@/components/ui/tabs/TabsTrigger.vue'
 import {ArrowDown, ArrowUp, Check, Pencil, Plus, Trash2, Zap} from 'lucide-vue-next'
-import {ref} from 'vue'
+import {ref, toRef} from 'vue'
 import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {actionCategoryRepository} from '@/modules/actions/repositories/actionCategoryRepository'
 import type {useActionModal} from '@/modules/actions/composables/useActionModal'
@@ -29,9 +29,9 @@ const props = defineProps<{
   actionTypes: ActionTypeMeta[]
 }>()
 
+const modal = toRef(props, 'modal')
 const inputFieldPlaceholderHint = '{{ key }}'
 
-// Последнее сфокусированное поле параметров — туда вставляем input-переменную.
 const focusedConfigKey = ref<string | null>(null)
 
 function varToken(key: string): string {
@@ -41,10 +41,10 @@ function varToken(key: string): string {
 function insertInputVar(key: string): void {
   const target = focusedConfigKey.value
   if (!target || !key) return
-  const current = typeof props.modal.form.config[target] === 'string'
-      ? props.modal.form.config[target] as string
-      : ''
-  props.modal.form.config[target] = `${current}${varToken(key)}`
+  const current = typeof modal.value.form.config[target] === 'string'
+    ? modal.value.form.config[target] as string
+    : ''
+  modal.value.form.config[target] = `${current}${varToken(key)}`
 }
 </script>
 
@@ -62,7 +62,7 @@ function insertInputVar(key: string): void {
       @save="modal.save"
   >
     <template #icon>
-      <Zap class="size-3.5 text-blue-600"/>
+      <Zap class="size-3.5 text-blue-600" />
     </template>
 
     <Tabs default-value="general" class="flex flex-1 flex-col overflow-hidden">
@@ -79,17 +79,17 @@ function insertInputVar(key: string): void {
       </TabsList>
 
       <div class="mx-6 mt-3">
-        <FormError :message="modal.error.value"/>
+        <FormError :message="modal.error.value" />
       </div>
 
       <TabsContent value="general" class="flex flex-1 overflow-hidden">
         <FormBody>
           <FormRow>
             <FormInput :model-value="modal.form.name" label="Название" placeholder="Отправка email клиенту" required
-                       :error="modal.errors.name" @update:model-value="modal.onNameInput"/>
+                       :error="modal.errors.name" @update:model-value="modal.onNameInput" />
             <FormInput :model-value="modal.form.slug" label="Slug" placeholder="send-email-to-client" required
                        hint="Внутренний идентификатор (URL-friendly)." :error="modal.errors.slug"
-                       @update:model-value="modal.onSlugInput"/>
+                       @update:model-value="modal.onSlugInput" />
           </FormRow>
           <FormSelect
               v-model="modal.form.type"
@@ -98,13 +98,14 @@ function insertInputVar(key: string): void {
               :error="modal.errors.type"
               @update:model-value="modal.onTypeChange"
           >
-            <option v-for="meta in actionTypes" :key="meta.value" :value="meta.value">{{
+            <option v-for="meta in actionTypes" :key="meta.value" :value="meta.value">
+{{
                 meta.label
               }}
             </option>
           </FormSelect>
           <FormTextarea v-model="modal.form.description" label="Описание" placeholder="Краткое описание для коллег"
-                        :rows="3" :error="modal.errors.description"/>
+                        :rows="3" :error="modal.errors.description" />
 
           <FormField v-if="modal.editingId.value" label="Разделы">
             <SectionTreeSelect
@@ -136,7 +137,8 @@ function insertInputVar(key: string): void {
                 class="rounded-md border border-blue-200 bg-white px-1.5 py-0.5 font-mono text-[11px] text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                 :title="focusedConfigKey ? `Вставить в поле «${focusedConfigKey}»` : 'Сначала кликните в поле параметра'"
                 @click="insertInputVar(f.key)"
-            >{{ varToken(f.key) }}
+            >
+{{ varToken(f.key) }}
             </button>
           </div>
 
@@ -214,7 +216,7 @@ function insertInputVar(key: string): void {
               </div>
               <Button type="button" variant="outline" size="sm" class="gap-2 shrink-0"
                       @click="modal.openFieldModal(null)">
-                <Plus class="size-4"/>
+                <Plus class="size-4" />
                 Добавить поле
               </Button>
             </CardHeader>
@@ -227,7 +229,7 @@ function insertInputVar(key: string): void {
                       <TableHead>Название</TableHead>
                       <TableHead>Тип</TableHead>
                       <TableHead class="text-center">Обяз.</TableHead>
-                      <TableHead class="w-28"/>
+                      <TableHead class="w-28" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -240,29 +242,29 @@ function insertInputVar(key: string): void {
                         </Badge>
                       </TableCell>
                       <TableCell class="text-center">
-                        <Check v-if="field.required" class="mx-auto size-4 text-primary"/>
+                        <Check v-if="field.required" class="mx-auto size-4 text-primary" />
                       </TableCell>
                       <TableCell>
                         <div class="flex justify-end gap-1">
                           <Button type="button" variant="ghost" size="icon"
                                   class="size-8 text-muted-foreground hover:text-foreground" :disabled="idx === 0"
                                   @click="modal.moveInputField(idx, -1)">
-                            <ArrowUp class="size-3.5"/>
+                            <ArrowUp class="size-3.5" />
                           </Button>
                           <Button type="button" variant="ghost" size="icon"
                                   class="size-8 text-muted-foreground hover:text-foreground"
                                   :disabled="idx === modal.form.input_fields.length - 1"
                                   @click="modal.moveInputField(idx, 1)">
-                            <ArrowDown class="size-3.5"/>
+                            <ArrowDown class="size-3.5" />
                           </Button>
                           <Button type="button" variant="ghost" size="icon" class="size-8"
                                   @click="modal.openFieldModal(idx)">
-                            <Pencil class="size-3.5"/>
+                            <Pencil class="size-3.5" />
                           </Button>
                           <Button type="button" variant="ghost" size="icon"
                                   class="size-8 text-muted-foreground hover:text-destructive"
                                   @click="modal.removeInputField(idx)">
-                            <Trash2 class="size-3.5"/>
+                            <Trash2 class="size-3.5" />
                           </Button>
                         </div>
                       </TableCell>

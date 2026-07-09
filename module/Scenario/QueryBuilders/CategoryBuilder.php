@@ -161,7 +161,7 @@ final class CategoryBuilder
             ->selectRaw('catalog_categories.is_active')
             ->selectRaw('null as active_version_id')
             ->selectRaw('catalog_categories.parent_id')
-            ->addSelect(DB::raw($this->categoryPathSql('catalog_categories.parent_id').' as path'))
+            ->selectRaw($this->categoryPathSql('catalog_categories.parent_id').' as path')
             ->selectRaw('0 as child_count')
             ->selectRaw('0 as scenario_count')
             ->selectRaw('0 as version_count');
@@ -191,10 +191,6 @@ final class CategoryBuilder
             ->selectRaw('scenarios.name')
             ->selectRaw('scenarios.is_active')
             ->selectRaw('scenarios.active_version_id');
-
-        //        if ($this->activeOnly) {
-        //            $query->activeOnly();
-        //        }
 
         $this->applyScenarioParentFilter($query);
         $this->applySearch($query, 'scenarios.name', 'scenarios.description');
@@ -304,7 +300,7 @@ final class CategoryBuilder
     {
         $query
             ->selectRaw('model_has_categories.category_id as parent_id')
-            ->addSelect(DB::raw($this->scenarioPathSql().' as path'))
+            ->selectRaw($this->scenarioPathSql().' as path')
             ->leftJoin('model_has_categories', static function (JoinClause $join): void {
                 $join
                     ->on('model_has_categories.model_id', '=', 'scenarios.id')
@@ -340,14 +336,15 @@ final class CategoryBuilder
     }
 
     /**
-     * @param  EloquentBuilder<Model>  $query
+     * @template T of Model
+     * @param  EloquentBuilder<T>  $query
      * @param  Collection<int, string>  $parentCategoryIds
      */
     private function onlyScenariosInCategories(EloquentBuilder $query, Collection $parentCategoryIds): void
     {
         $query
             ->selectRaw('model_has_categories.category_id as parent_id')
-            ->addSelect(DB::raw($this->scenarioPathSql().' as path'))
+            ->selectRaw($this->scenarioPathSql().' as path')
             ->join('model_has_categories', static function (JoinClause $join): void {
                 $join
                     ->on('model_has_categories.model_id', '=', 'scenarios.id')
@@ -371,7 +368,7 @@ final class CategoryBuilder
     {
         $query
             ->selectRaw('model_has_categories.category_id as parent_id')
-            ->addSelect(DB::raw($this->scenarioPathSql().' as path'))
+            ->selectRaw($this->scenarioPathSql().' as path')
             ->join('model_has_categories', static function (JoinClause $join): void {
                 $join
                     ->on('model_has_categories.model_id', '=', 'scenarios.id')
@@ -384,12 +381,12 @@ final class CategoryBuilder
     /**
      * @template T of Model
      * @param  EloquentBuilder<T>  $query
+     * @param  literal-string  $column
      */
     private function whereInParentTree(EloquentBuilder $query, string $column, string $parentId): void
     {
         $query->whereRaw(
-            DB::raw(
-                "{$column} in (
+            "{$column} in (
                 with recursive category_tree(id) as (
                     select id from categories where id = ?
                     union all
@@ -398,12 +395,15 @@ final class CategoryBuilder
                     inner join category_tree on categories.parent_id = category_tree.id
                 )
                 select id from category_tree
-            )"
-            ),
+            )",
             [$parentId],
         );
     }
 
+    /**
+     * @param  literal-string  $categoryIdColumn
+     * @return literal-string
+     */
     private function categoryPathSql(string $categoryIdColumn): string
     {
         return "coalesce((
@@ -438,6 +438,7 @@ final class CategoryBuilder
         ), '[]'::jsonb)";
     }
 
+    /** @return literal-string */
     private function scenarioPathSql(): string
     {
         return "case
@@ -449,6 +450,8 @@ final class CategoryBuilder
     /**
      * @template T of Model
      * @param  EloquentBuilder<T>  $query
+     * @param  literal-string  $nameColumn
+     * @param  literal-string|null  $descriptionColumn
      */
     private function applySearch(EloquentBuilder $query, string $nameColumn, ?string $descriptionColumn): void
     {
@@ -459,10 +462,10 @@ final class CategoryBuilder
         $like = '%'.mb_strtolower($this->search).'%';
 
         $query->where(static function (EloquentBuilder $builder) use ($like, $nameColumn, $descriptionColumn): void {
-            $builder->whereRaw(DB::raw("LOWER({$nameColumn}) like ?"), [$like]);
+            $builder->whereRaw("LOWER({$nameColumn}) like ?", [$like]);
 
             if ($descriptionColumn !== null) {
-                $builder->orWhereRaw(DB::raw("LOWER({$descriptionColumn}) like ?"), [$like]);
+                $builder->orWhereRaw("LOWER({$descriptionColumn}) like ?", [$like]);
             }
         });
     }

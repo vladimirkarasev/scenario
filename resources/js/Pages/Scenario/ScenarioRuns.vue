@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppShell from '@/layouts/AppShell.vue'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
@@ -19,8 +19,9 @@ import {
 } from '@/components/ui/table'
 import PageContent from '@/components/PageContent.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
-import {getJson} from '@/lib/http'
 import {formatDateTime} from '@/lib/formatters'
+import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
+import type {ScenarioActor, ScenarioRunListItem} from '@/modules/scenario/types/scenario'
 import {Head, Link} from '@inertiajs/vue3'
 import {ChevronDown, Search, X} from 'lucide-vue-next'
 import {computed, onMounted, ref, watch} from 'vue'
@@ -29,26 +30,26 @@ const {navigationItems} = useDashboardNavigation()
 
 const loading = ref(false)
 const loadError = ref('')
-const runs = ref([])
+const runs = ref<ScenarioRunListItem[]>([])
 const total = ref(0)
 const searchInput = ref('')
 const activeSearch = ref('')
 const statusFilter = ref('active')
-const selectedUsers = ref([])
+const selectedUsers = ref<ScenarioActor[]>([])
 
 const userPopoverOpen = ref(false)
 const userSearchQuery = ref('')
-const userSearchResults = ref([])
+const userSearchResults = ref<ScenarioActor[]>([])
 const userSearchLoading = ref(false)
-let userSearchTimer = null
+let userSearchTimer: ReturnType<typeof setTimeout> | null = null
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
   completed: 'Завершён',
   failed: 'Ошибка',
   active: 'В процессе',
 }
 
-const STATUS_VARIANTS = {
+const STATUS_VARIANTS: Record<string, 'default' | 'destructive' | 'secondary'> = {
   completed: 'default',
   failed: 'destructive',
   active: 'secondary',
@@ -69,76 +70,75 @@ const filteredUserResults = computed(() =>
 
 const userTriggerLabel = computed(() => {
   if (!selectedUsers.value.length) return 'Пользователь'
-  if (selectedUsers.value.length === 1) return selectedUsers.value[0].name
-  return `${selectedUsers.value[0].name} +${selectedUsers.value.length - 1}`
+  const first = selectedUsers.value[0].name ?? ''
+  if (selectedUsers.value.length === 1) return first
+  return `${first} +${selectedUsers.value.length - 1}`
 })
 
-async function loadRuns() {
+async function loadRuns(): Promise<void> {
   loading.value = true
   loadError.value = ''
   try {
-    const params = new URLSearchParams()
-    if (statusFilter.value) params.set('status', statusFilter.value)
-    if (activeSearch.value) params.set('search', activeSearch.value)
-    selectedUsers.value.forEach((u) => params.append('created_by[]', u.id))
-    const url = `/api/scenarios/runner${params.toString() ? '?' + params.toString() : ''}`
-    const payload = await getJson(url, 'Не удалось загрузить список сессий.')
-    runs.value = payload.runs ?? []
-    total.value = payload.total ?? 0
+    const qs = new URLSearchParams()
+    if (statusFilter.value) qs.set('filter[status]', statusFilter.value)
+    if (activeSearch.value) qs.set('filter[search]', activeSearch.value)
+    selectedUsers.value.forEach((u) => qs.append('filter[created_by][]', String(u.id)))
+    const page = await scenarioRunRepository.list(qs)
+    runs.value = page.data
+    total.value = page.meta.total
   } catch (error) {
-    loadError.value = error.message
+    loadError.value = error instanceof Error ? error.message : String(error)
   } finally {
     loading.value = false
   }
 }
 
-function setStatus(value) {
-  statusFilter.value = value;
-  loadRuns()
+function setStatus(value: string): void {
+  statusFilter.value = value
+  void loadRuns()
 }
 
-function applySearch() {
-  activeSearch.value = searchInput.value.trim();
-  loadRuns()
+function applySearch(): void {
+  activeSearch.value = searchInput.value.trim()
+  void loadRuns()
 }
 
-function clearSearch() {
-  searchInput.value = '';
-  activeSearch.value = '';
-  loadRuns()
+function clearSearch(): void {
+  searchInput.value = ''
+  activeSearch.value = ''
+  void loadRuns()
 }
 
-function resetAllFilters() {
+function resetAllFilters(): void {
   statusFilter.value = ''
   selectedUsers.value = []
   searchInput.value = ''
   activeSearch.value = ''
-  loadRuns()
+  void loadRuns()
 }
 
-function addUser(user) {
+function addUser(user: ScenarioActor): void {
   if (!selectedUsers.value.some((u) => u.id === user.id)) {
     selectedUsers.value.push(user)
-    loadRuns()
+    void loadRuns()
   }
   userSearchQuery.value = ''
   userSearchResults.value = []
 }
 
-function removeUser(userId) {
+function removeUser(userId: ScenarioActor['id']): void {
   selectedUsers.value = selectedUsers.value.filter((u) => u.id !== userId)
-  loadRuns()
+  void loadRuns()
 }
 
-async function searchUsers(query) {
+async function searchUsers(query: string): Promise<void> {
   if (!query.trim()) {
-    userSearchResults.value = [];
+    userSearchResults.value = []
     return
   }
   userSearchLoading.value = true
   try {
-    const payload = await getJson(`/api/scenarios/runner/users?search=${encodeURIComponent(query)}`, '')
-    userSearchResults.value = payload.users ?? []
+    userSearchResults.value = await scenarioRunRepository.users(query)
   } catch {
     userSearchResults.value = []
   } finally {
@@ -147,9 +147,9 @@ async function searchUsers(query) {
 }
 
 watch(userSearchQuery, (val) => {
-  clearTimeout(userSearchTimer)
+  if (userSearchTimer) clearTimeout(userSearchTimer)
   if (!val.trim()) {
-    userSearchResults.value = [];
+    userSearchResults.value = []
     return
   }
   userSearchTimer = setTimeout(() => searchUsers(val), 300)
@@ -157,12 +157,12 @@ watch(userSearchQuery, (val) => {
 
 watch(userPopoverOpen, (open) => {
   if (!open) {
-    userSearchQuery.value = '';
+    userSearchQuery.value = ''
     userSearchResults.value = []
   }
 })
 
-function completedAt(run) {
+function completedAt(run: ScenarioRunListItem): string {
   return (run.status === 'completed' || run.status === 'failed')
       ? formatDateTime(run.updated_at)
       : '—'
@@ -262,7 +262,7 @@ onMounted(loadRuns)
                   >
                                     <span
                                         class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
-                                        {{ user.name.charAt(0).toUpperCase() }}
+                                        {{ (user.name ?? '?').charAt(0).toUpperCase() }}
                                     </span>
                     <span class="flex min-w-0 flex-col text-left">
                                         <span class="truncate text-slate-800">{{ user.name }}</span>

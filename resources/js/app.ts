@@ -17,8 +17,12 @@ import {useAuthStore} from '@/stores/auth';
 import {authForbidden, markForbidden} from '@/lib/auth-state';
 import AuthForbidden from '@/components/AuthForbidden.vue';
 import PrimeVue from 'primevue/config';
+import * as Sentry from '@sentry/vue';
+import {makeFetchTransport} from '@sentry/browser';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+const publicPaths = ['/auth'];
 
 router.on('before', (event) => {
     const token = sessionStorage.getItem('access_token')
@@ -54,6 +58,12 @@ async function consumeLaunchToken(): Promise<void> {
     }
 }
 
+// Выполняем обмен _token ДО монтирования Vue: гарантирует что access_token
+// уже в sessionStorage когда компоненты начнут делать API-запросы.
+if (!publicPaths.includes(window.location.pathname)) {
+    await consumeLaunchToken()
+}
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,7 +77,7 @@ createInertiaApp({
                 : [h(App, props), h(Toaster, {position: 'bottom-right', richColors: true})],
         });
 
-        const app = createApp(Root)
+        const vueApp = createApp(Root)
             .use(plugin)
             .use(pinia)
             .use(ZiggyVue)
@@ -84,20 +94,34 @@ createInertiaApp({
                     clear: 'Очистить',
                     weekHeader: 'Нед',
                 },
-            })
-            .mount(el);
+            });
 
-        // Публичная dev-страница входа (/auth) не требует токена — иначе глобальная
-        // авторизация покажет 403 поверх формы.
-        const publicPaths = ['/auth'];
-        if (!publicPaths.includes(window.location.pathname)) {
-            void (async () => {
-                await consumeLaunchToken();
-                await useAuthStore(pinia).initialize();
-            })();
+        // Sentry инициализируется до mount(), чтобы перехватить errorHandler.
+        if (import.meta.env.VITE_SENTRY_DSN) {
+            // Извлекаем ключ из DSN (часть до @), чтобы X-Sentry-Auth работал
+            // и с Buggregator (ключ "sentry"), и с реальным Sentry (свой ключ).
+            const sentryKey = new URL(import.meta.env.VITE_SENTRY_DSN).username || 'sentry'
+
+            Sentry.init({
+                app: vueApp,
+                dsn: import.meta.env.VITE_SENTRY_DSN,
+                transport: (opts) => makeFetchTransport({
+                    ...opts,
+                    headers: {
+                        ...opts.headers,
+                        'X-Sentry-Auth': `Sentry sentry_version=7, sentry_key=${sentryKey}`,
+                    },
+                }),
+            });
         }
 
-        return app;
+        vueApp.mount(el);
+
+        if (!publicPaths.includes(window.location.pathname)) {
+            void useAuthStore(pinia).initialize();
+        }
+
+        return vueApp;
     },
     progress: {
         color: '#4B5563',

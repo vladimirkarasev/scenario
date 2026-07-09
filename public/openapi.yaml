@@ -50,6 +50,24 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
+  - name: Proxy
+    description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
+  - name: Real-time
+    description: |
+      Live-обновления идут через Centrifugo (WebSocket), не через REST-поллинг. RoadRunner участвует как proxy: авторизует подписку на канал (subscribe-proxy) и форвардит исходящие публикации в Centrifugo (gRPC API) — сам WebSocket браузер держит напрямую с Centrifugo.
+
+      **Подключение:**
+
+      1. `GET /centrifugo/connection-token` → `{token, ws_url}`.
+      2. WS-клиентом (`centrifuge-js` и т.п.) подключиться к `ws_url`, передав `token`. Centrifugo валидирует его сама — короткоживущий JWT (TTL 1 час, `sub` = id пользователя), без обращения к бэкенду на каждый коннект.
+      3. Подписаться на нужный канал. Доступ к каналу проверяет бэкенд через RoadRunner subscribe-proxy.
+      4. По истечении токена — запросить `connection-token` заново и переподключиться (Centrifugo не продлевает токен сама).
+
+      **Каналы:**
+
+      | Канал | Кто слушает | Типы сообщений (`type`) | |---|---|---| | `scenario-run:{runId}` | Открытая страница прогона | `run_updated`, `action_started`, `action_completed`, `action_failed`, `chain_completed`, `batch_completed`, `batch_failed` | | `directory-import:{importId}` | Открытая страница импорта директории | `status_update` | | `#user:{userId}` | Персональный канал текущего пользователя (встроенный в Centrifugo, отдельной подписки не требует) | `start_scenario` |
+
+      Форма каждого сообщения — в разделе Webhooks (использован как способ описать shape асинхронных push-сообщений средствами OpenAPI 3.1; по транспорту это не HTTP callback, а публикация в WebSocket-канал).
 paths:
   /scenarios/catalog:
     get:
@@ -99,6 +117,71 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/CatalogItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /scenarios/feed:
+    get:
+      tags:
+        - Сценарии
+      summary: Лента сценариев
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает смешанный поток «папки сверху + сценарии» с единой пагинацией. Папки всегда идут перед сценариями; внутри каждой группы — сортировка по имени. Если передан `filter[parent_id]`, возвращаются только прямые потомки указанной папки. Если `filter[parent_id]` передан с пустым значением — возвращаются элементы без категории.
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              parent_id:
+                type:
+                  - string
+                  - 'null'
+                format: uuid
+                description: |
+                  UUID родительской папки. Наличие ключа с пустым значением означает «показать элементы без категории» (корень).
+              search:
+                type: string
+                maxLength: 255
+                description: Поиск по названию папки / сценария
+              status:
+                type: string
+                enum:
+                  - active
+                  - draft
+                  - archived
+                description: Фильтр сценариев по статусу (папки не фильтруются)
+              exclude_scenario_id:
+                type: string
+                format: uuid
+                description: Исключить сценарий из выборки
+              root_id:
+                type: string
+                format: uuid
+                description: Ограничить выдачу поддеревом этой папки (для Workspace-изоляции)
+              project_id:
+                type: string
+                format: uuid
+                description: Проект для фильтрации. Если не передан — берётся из токена авторизации.
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Лента с пагинацией и счётчиками
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScenarioFeedItem'
+                  meta:
+                    $ref: '#/components/schemas/ScenarioFeedMeta'
         '401':
           $ref: '#/components/responses/Unauthorized'
   /scenarios:
@@ -492,6 +575,42 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /scenarios/dispatch:
+    post:
+      tags:
+        - Запуск
+      summary: Диспатч сценария пользователю
+      security:
+        - BearerAuth: []
+      description: |
+        Запускает сценарий для конкретного пользователя системы (по `login` или `external_id`). Сценарий определяется по тегу `tag`. Требует разрешение `scenario_dispatch`. Возвращает `202 Accepted` — прогон создаётся асинхронно.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DispatchRequest'
+      responses:
+        '202':
+          description: Диспатч принят
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      run_id:
+                        type: string
+                        format: uuid
+                        description: UUID созданного прогона
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /scenarios/runner/start:
     post:
       tags:
@@ -528,43 +647,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /scenarios/runner/{runId}/jump:
-    post:
-      tags:
-        - Запуск
-      summary: Перейти к следующему узлу
-      security:
-        - BearerAuth: []
-      description: |
-        Принимает пользовательский ввод для текущего узла и продвигает прогон вперёд до следующего интерактивного узла. Возвращает полный payload прогона с отрендеренным состоянием текущего узла и историей шагов.
-      parameters:
-        - name: runId
-          in: path
-          required: true
-          description: UUID прогона
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RunnerJumpRequest'
-      responses:
-        '200':
-          description: Обновлённое состояние прогона
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RunPayload'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /scenario-runs:
+  /scenarios/runner:
     get:
       tags:
         - Прогоны
@@ -633,7 +716,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /scenario-runs/users:
+  /scenarios/runner/users:
     get:
       tags:
         - Прогоны
@@ -666,7 +749,7 @@ paths:
                       $ref: '#/components/schemas/ScenarioRunUser'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /scenario-runs/{runId}:
+  /scenarios/runner/{runId}:
     parameters:
       - $ref: '#/components/parameters/RunId'
     get:
@@ -688,7 +771,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-  /scenario-runs/{runId}/continue:
+  /scenarios/runner/{runId}/continue:
     post:
       tags:
         - Прогоны
@@ -716,7 +799,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-  /scenario-runs/{runId}/jump:
+  /scenarios/runner/{runId}/jump:
     post:
       tags:
         - Прогоны
@@ -746,6 +829,57 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
+  /scenarios/runner/{runId}/retry-action:
+    post:
+      tags:
+        - Прогоны
+      summary: Повторить action-ноду
+      security:
+        - BearerAuth: []
+      description: |
+        Перезапускает pipeline action-ноды начиная с первой упавшей стадии. Успешно завершённые стадии не перезапускаются. Возвращает обновлённый payload прогона. Применимо только к нодам с `wait_for_result = true`.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Обновлённое состояние прогона
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPayload'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /scenarios/runner/{runId}/history:
+    get:
+      tags:
+        - Прогоны
+      summary: История шагов
+      security:
+        - BearerAuth: []
+      description: |
+        Возвращает список событий истории для прогона: только шаги с узлами типа `block` и `condition`. Каждый элемент содержит название вопроса, ответ оператора и временные метки.
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: История шагов прогона
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      description: Событие истории (вопрос + ответ)
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /scenarios/surveys:
     get:
       tags:
@@ -1468,17 +1602,21 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - name: search
+        - name: filter[search]
           in: query
           description: Поиск по названию или slug
           schema:
             type: string
-        - name: is_active
+        - name: filter[is_active]
           in: query
           description: Фильтр по активности
           schema:
             type: boolean
-        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/IncludeGroupRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Список групп (JSON:API коллекция)
@@ -1488,13 +1626,24 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/JsonApiCollection'
                   - type: object
+                    required:
+                      - meta
                     properties:
                       data:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserGroup'
+                      included:
+                        type: array
+                        description: Авторы (users) при ?include=createdBy,updatedBy.
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
     post:
       tags:
         - Группы
@@ -1513,11 +1662,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
   /groups/{group}:
     parameters:
       - name: group
@@ -1533,17 +1692,36 @@ paths:
       summary: Получить группу
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeGroupRelations'
+        - $ref: '#/components/parameters/FieldsGroups'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Группа
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  included:
+                    type: array
+                    description: Авторы (users) при ?include=createdBy,updatedBy.
+                    items:
+                      $ref: '#/components/schemas/UserResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     patch:
       tags:
         - Группы
@@ -1562,13 +1740,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserGroup'
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserGroup'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Группы
@@ -1579,9 +1767,11 @@ paths:
         '204':
           description: Группа удалена
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /groups/{group}/members:
     parameters:
       - name: group
@@ -1597,6 +1787,10 @@ paths:
       summary: Участники группы
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/FieldsUsers'
       responses:
         '200':
           description: Список участников (JSON:API коллекция)
@@ -1606,15 +1800,21 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/JsonApiCollection'
                   - type: object
+                    required:
+                      - meta
                     properties:
                       data:
                         type: array
                         items:
                           $ref: '#/components/schemas/UserResource'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     post:
       tags:
         - Группы
@@ -1638,11 +1838,54 @@ paths:
         '204':
           description: Пользователь добавлен
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
+  /groups/{group}/member-candidates:
+    parameters:
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Группы
+      summary: Найти пользователей для добавления в группу
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: Пользователи текущего проекта, ещё не состоящие в группе
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserResource'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
   /groups/{group}/members/{user}:
     parameters:
       - name: group
@@ -1666,20 +1909,21 @@ paths:
         '204':
           description: Пользователь удалён из группы
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /actions:
     get:
       tags:
         - Actions
+      operationId: listActions
       summary: Список actions
-      security:
-        - BearerAuth: []
       parameters:
         - name: filter[search]
           in: query
-          description: Поиск по name/slug
+          description: Поиск по названию или slug.
           schema:
             type: string
         - name: filter[type]
@@ -1690,11 +1934,18 @@ paths:
           in: query
           schema:
             type: boolean
-        - $ref: '#/components/parameters/PageNumber'
+        - name: filter[category_ids][]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
         - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
       responses:
         '200':
-          description: JSON:API коллекция actions
+          description: JSON:API коллекция actions.
           content:
             application/json:
               schema:
@@ -1706,14 +1957,15 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/ActionResource'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
     post:
       tags:
         - Actions
+      operationId: createAction
       summary: Создать action
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1722,46 +1974,302 @@ paths:
               $ref: '#/components/schemas/ActionRequest'
       responses:
         '201':
-          description: Action создан
+          description: Action создан.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ActionResource'
+                $ref: '#/components/schemas/ActionEnvelope'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
+  /actions/types:
+    get:
+      tags:
+        - Actions
+      operationId: listActionTypes
+      summary: Каталог типов actions
+      description: Возвращает типы, значения code по умолчанию и поля конфигурации handler-а.
+      responses:
+        '200':
+          description: Каталог типов.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionTypeListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+  /actions/feed:
+    get:
+      tags:
+        - Actions
+      operationId: getActionFeed
+      summary: Лента разделов и actions
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          description: UUID родительского раздела; `null` или пустая строка выбирает корневой уровень.
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Смешанная пагинированная лента разделов и actions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionFeedResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /actions/run:
+    post:
+      tags:
+        - Actions
+      operationId: runActions
+      summary: Запустить или запланировать набор actions
+      description: |
+        Объекты `actions`, `before`, `after` и `on_error` имеют формат `code => UUID action`. В sequential-режиме задачи выполняются цепочкой, в parallel-режиме основные actions запускаются batch-ом.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRunRequest'
+      responses:
+        '200':
+          description: Расписание создано.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunResponse'
+        '202':
+          description: Actions поставлены в очередь.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionRunResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '422':
+          description: Ошибка обязательных input-полей или валидации запроса.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ActionRunRejectedResponse'
+                  - $ref: '#/components/schemas/ApiErrorResponse'
+  /actions/categories:
+    get:
+      tags:
+        - Actions
+      operationId: listActionCategories
+      summary: Список разделов actions
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          description: UUID родителя; `null` или пустая строка выбирает корневые разделы.
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API коллекция разделов.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryResource'
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    post:
+      tags:
+        - Actions
+      operationId: createActionCategory
+      summary: Создать раздел actions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Раздел создан.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiResourceEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CategoryResource'
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /actions/categories/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        description: UUID раздела actions.
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Actions
+      operationId: getActionCategory
+      summary: Получить раздел actions
+      responses:
+        '200':
+          description: JSON:API ресурс раздела.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiResourceEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CategoryResource'
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Actions
+      operationId: updateActionCategory
+      summary: Обновить раздел actions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Раздел обновлён.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiResourceEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CategoryResource'
+                      meta:
+                        $ref: '#/components/schemas/ApiMeta'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Actions
+      operationId: deleteActionCategory
+      summary: Удалить раздел actions
+      responses:
+        '204':
+          description: Раздел удалён.
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          description: Системный раздел нельзя удалить.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                errors:
+                  - status: '403'
+                    code: ACTION_SYSTEM_CATEGORY_DELETE_FORBIDDEN
+                    title: Удаление запрещено
+                    detail: Системный раздел действий нельзя удалить.
+                meta:
+                  timestamp: '2026-07-03T12:00:00+00:00'
+                  requestId: 04c23d10-ef7e-40a2-a36e-963560a81d40
+        '404':
+          description: Раздел не относится к текущему проекту.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                errors:
+                  - status: '404'
+                    code: ACTION_CATEGORY_NOT_FOUND
+                    title: Раздел не найден
+                    detail: Раздел действий не найден в текущем проекте.
+                meta:
+                  timestamp: '2026-07-03T12:00:00+00:00'
+                  requestId: 04c23d10-ef7e-40a2-a36e-963560a81d40
   /actions/{action}:
     parameters:
       - name: action
         in: path
         required: true
-        description: ID action
+        description: UUID action.
         schema:
-          type: integer
+          type: string
+          format: uuid
     get:
       tags:
         - Actions
+      operationId: getAction
       summary: Получить action
-      security:
-        - BearerAuth: []
       responses:
         '200':
-          description: Action
+          description: JSON:API ресурс action.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ActionResource'
+                $ref: '#/components/schemas/ActionEnvelope'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     put:
       tags:
         - Actions
+      operationId: updateAction
       summary: Обновить action
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1770,138 +2278,60 @@ paths:
               $ref: '#/components/schemas/ActionRequest'
       responses:
         '200':
-          description: Action обновлён
+          description: Action обновлён.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ActionResource'
+                $ref: '#/components/schemas/ActionEnvelope'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Actions
+      operationId: deleteAction
       summary: Удалить action
-      security:
-        - BearerAuth: []
       responses:
         '204':
-          description: Action удалён
+          description: Action удалён.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
-  /actions/{action}/execute:
-    parameters:
-      - name: action
-        in: path
-        required: true
-        description: ID action
-        schema:
-          type: integer
-    post:
-      tags:
-        - Actions
-      summary: Выполнить action синхронно
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionExecutionRequest'
-      responses:
-        '200':
-          description: Результат синхронного выполнения
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionExecutionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /actions/{action}/run:
-    parameters:
-      - name: action
-        in: path
-        required: true
-        description: ID action-оркестратора или action для запуска
-        schema:
-          type: integer
-    post:
-      tags:
-        - Actions
-      summary: Запустить action через оркестратор
-      description: |
-        Режим, основной список actions и lifecycle hooks передаются в теле запроса: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`. Если параметры не переданы, используется текущий action и fallback из `action.config` для старых записей.
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ActionRunRequest'
-      responses:
-        '200':
-          description: Выполнено синхронно
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionRunResponse'
-        '202':
-          description: Поставлено в очередь
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionRunResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
   /actions/{action}/schedule:
     parameters:
       - name: action
         in: path
         required: true
-        description: ID action
+        description: UUID action.
         schema:
-          type: integer
+          type: string
+          format: uuid
     get:
       tags:
         - Actions
+      operationId: getActionSchedule
       summary: Получить расписание action
-      security:
-        - BearerAuth: []
       responses:
         '200':
-          description: 'Расписание action или `data: null`, если расписание не задано.'
+          description: 'Расписание или `data: null`.'
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ActionScheduleResource'
-                  - type: object
-                    properties:
-                      data:
-                        type: 'null'
+                $ref: '#/components/schemas/ActionScheduleEnvelope'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
     put:
       tags:
         - Actions
+      operationId: upsertActionSchedule
       summary: Создать или обновить расписание action
-      description: |
-        Scheduler раз в минуту запускает due-расписания командой `actions:run-scheduled`. В `options` можно передать тот же payload, что и в `POST /actions/{action}/run`: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
-      security:
-        - BearerAuth: []
+      description: Cron проверяется сервером; timezone должна быть валидным IANA-идентификатором.
       requestBody:
         required: true
         content:
@@ -1910,105 +2340,275 @@ paths:
               $ref: '#/components/schemas/ActionScheduleRequest'
       responses:
         '200':
-          description: Расписание сохранено
+          description: Расписание сохранено.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ActionScheduleResource'
+                $ref: '#/components/schemas/ActionScheduleEnvelope'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
+          $ref: '#/components/responses/NotFoundErrors'
         '422':
-          $ref: '#/components/responses/ValidationError'
+          $ref: '#/components/responses/ValidationErrors'
     delete:
       tags:
         - Actions
+      operationId: deleteActionSchedule
       summary: Удалить расписание action
-      security:
-        - BearerAuth: []
       responses:
         '204':
-          description: Расписание удалено
+          description: Расписание удалено.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
         '404':
-          $ref: '#/components/responses/NotFound'
-  /action-runs:
+          $ref: '#/components/responses/NotFoundErrors'
+  /actions/credentials:
     get:
       tags:
         - Actions
+      operationId: listActionCredentials
+      summary: Список доступов actions
+      responses:
+        '200':
+          description: Доступы без открытых значений secrets.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredentialListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+    post:
+      tags:
+        - Actions
+      operationId: createActionCredential
+      summary: Создать доступ action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCredentialRequest'
+      responses:
+        '201':
+          description: Доступ создан.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredentialItemResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /actions/credentials/{credential}:
+    parameters:
+      - name: credential
+        in: path
+        required: true
+        description: Числовой ID доступа.
+        schema:
+          type: integer
+    put:
+      tags:
+        - Actions
+      operationId: updateActionCredential
+      summary: Обновить доступ action
+      description: Пустые значения secrets не заменяют уже сохранённые секреты.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCredentialRequest'
+      responses:
+        '200':
+          description: Доступ обновлён.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionCredentialItemResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Actions
+      operationId: deleteActionCredential
+      summary: Удалить доступ action
+      responses:
+        '204':
+          description: Доступ удалён.
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /actions/runs:
+    get:
+      tags:
+        - Actions
+      operationId: listActionRuns
       summary: Список выполнений actions
-      security:
-        - BearerAuth: []
       parameters:
         - name: filter[status]
           in: query
           schema:
             type: string
             enum:
+              - pending
               - running
               - success
               - failed
               - skipped
-        - name: filter[action_id]
+        - name: page[size]
           in: query
+          description: Максимальное число записей, от 1 до 500.
           schema:
             type: integer
-        - $ref: '#/components/parameters/PageSize'
+            minimum: 1
+            maximum: 500
+            default: 100
       responses:
         '200':
-          description: Последние выполнения actions
+          description: Последние выполнения actions.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActionRunListResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-  /action-runs/completed:
+          $ref: '#/components/responses/UnauthorizedErrors'
+  /actions/runs/completed:
     get:
       tags:
         - Actions
-      summary: Список успешно выполненных задач
-      security:
-        - BearerAuth: []
+      operationId: listCompletedActionRuns
+      summary: Список успешно выполненных actions
       parameters:
-        - name: filter[action_id]
+        - name: page[size]
           in: query
           schema:
             type: integer
-        - $ref: '#/components/parameters/PageSize'
+            minimum: 1
+            maximum: 500
+            default: 100
       responses:
         '200':
-          description: Успешно выполненные задачи
+          description: Успешные выполнения.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActionRunListResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-  /action-runs/failed:
+          $ref: '#/components/responses/UnauthorizedErrors'
+  /actions/runs/failed:
     get:
       tags:
         - Actions
-      summary: Список задач с ошибкой
-      security:
-        - BearerAuth: []
+      operationId: listFailedActionRuns
+      summary: Список завершившихся ошибкой actions
       parameters:
-        - name: filter[action_id]
+        - name: page[size]
           in: query
           schema:
             type: integer
-        - $ref: '#/components/parameters/PageSize'
+            minimum: 1
+            maximum: 500
+            default: 100
       responses:
         '200':
-          description: Задачи с ошибкой. Причина ошибки находится в `reason` и `error`.
+          description: Выполнения с ошибкой; причина находится в `reason` и `error`.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActionRunListResponse'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/UnauthorizedErrors'
+  /actions/schedules:
+    get:
+      tags:
+        - Actions
+      operationId: listActionSchedules
+      summary: Список расписаний actions
+      responses:
+        '200':
+          description: Все расписания с краткими данными action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionScheduleListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+  /actions/directories/{directory}/sync-schedule:
+    parameters:
+      - name: directory
+        in: path
+        required: true
+        description: UUID справочника.
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Actions
+      operationId: getDirectorySyncSchedule
+      summary: Получить cron-расписание синхронизации справочника
+      responses:
+        '200':
+          description: 'Расписание или `data: null`.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectorySyncScheduleResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Actions
+      operationId: upsertDirectorySyncSchedule
+      summary: Создать или обновить cron-расписание синхронизации справочника
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectorySyncScheduleRequest'
+      responses:
+        '200':
+          description: Расписание сохранено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectorySyncScheduleResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Actions
+      operationId: deleteDirectorySyncSchedule
+      summary: Отключить cron-синхронизацию справочника
+      responses:
+        '204':
+          description: Cron-расписание удалено, справочник возвращён в интервальный режим.
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
   /embed/auth/exchange:
     post:
       tags:
@@ -2091,6 +2691,713 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/ErrorResponse'
                   - $ref: '#/components/schemas/ValidationErrorResponse'
+  /proxy/endpoints:
+    get:
+      tags:
+        - Proxy
+      summary: Список интеграций
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[type]
+          in: query
+          schema:
+            type: string
+        - name: filter[category_ids][]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: name, code, type, is_active, created_at, updated_at; префикс - задаёт DESC
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointCollection'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+    post:
+      tags:
+        - Proxy
+      summary: Создать интеграцию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyEndpointRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/EndpointItem'
+        '401':
+          $ref: '#/components/responses/UnauthorizedErrors'
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/endpoints/{proxy}:
+    parameters:
+      - name: proxy
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Proxy
+      summary: Получить интеграцию
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить интеграцию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyEndpointRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EndpointItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить интеграцию
+      responses:
+        '204':
+          description: Интеграция удалена
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/endpoints/{proxy}/fields:
+    get:
+      tags:
+        - Proxy
+      summary: Поля интеграции
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: JSON:API коллекция полей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/handlers:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/credential-fields:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/credential-types:
+    get:
+      tags:
+        - Proxy
+      summary: Каталог Proxy
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция элементов каталога
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+  /proxy/connections:
+    get:
+      tags:
+        - Proxy
+      summary: Список доступов
+      parameters:
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[credential_type]
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция доступов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyConnection'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
+    post:
+      tags:
+        - Proxy
+      summary: Создать доступ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyConnectionRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ConnectionItem'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/connections/{connection}:
+    parameters:
+      - name: connection
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Proxy
+      summary: Получить доступ
+      responses:
+        '200':
+          $ref: '#/components/responses/ConnectionItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить доступ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyConnectionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ConnectionItem'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить доступ
+      responses:
+        '204':
+          description: Доступ удалён
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/feed:
+    get:
+      tags:
+        - Proxy
+      summary: Лента разделов и интеграций
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: filter[type]
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция разделов и интеграций
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyFeedResource'
+                      meta:
+                        allOf:
+                          - $ref: '#/components/schemas/CollectionMeta'
+                          - type: object
+                            properties:
+                              folders_total:
+                                type: integer
+                              items_total:
+                                type: integer
+  /proxy/categories:
+    get:
+      tags:
+        - Proxy
+      summary: Список разделов интеграций
+      parameters:
+        - name: filter[parent_id]
+          in: query
+          schema:
+            type:
+              - string
+              - 'null'
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API коллекция разделов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryResource'
+    post:
+      tags:
+        - Proxy
+      summary: Создать раздел интеграций
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Раздел создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CategoryResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+  /proxy/categories/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Proxy
+      summary: Получить раздел интеграций
+      responses:
+        '200':
+          description: JSON:API ресурс раздела
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CategoryResource'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+    put:
+      tags:
+        - Proxy
+      summary: Обновить раздел интеграций
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Раздел обновлён
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+        '422':
+          $ref: '#/components/responses/ValidationErrors'
+    delete:
+      tags:
+        - Proxy
+      summary: Удалить раздел интеграций
+      responses:
+        '204':
+          description: Раздел удалён
+        '403':
+          $ref: '#/components/responses/ForbiddenErrors'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxy/requests:
+    get:
+      tags:
+        - Proxy
+      summary: Журнал запросов
+      parameters:
+        - name: filter[endpoint_id]
+          in: query
+          schema:
+            type: integer
+        - name: filter[status]
+          in: query
+          schema:
+            type: string
+        - name: filter[search]
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+      responses:
+        '200':
+          description: JSON:API коллекция запросов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyRequest'
+                      meta:
+                        $ref: '#/components/schemas/CollectionMeta'
+  /proxy/requests/{proxyRequest}:
+    get:
+      tags:
+        - Proxy
+      summary: Детали запроса
+      parameters:
+        - name: proxyRequest
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API ресурс запроса
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                  - meta
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProxyRequest'
+                  meta:
+                    $ref: '#/components/schemas/ApiMeta'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /proxies/{uuid}:
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Proxy
+      summary: Вызвать публичную GET-интеграцию
+      responses:
+        '200':
+          description: Ответ обработчика интеграции
+        '404':
+          description: Интеграция не найдена или неактивна
+        '405':
+          description: Метод не разрешён
+    post:
+      tags:
+        - Proxy
+      summary: Вызвать публичную POST-интеграцию
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Запрос принят
+        '404':
+          description: Интеграция не найдена или неактивна
+        '405':
+          description: Метод не разрешён
+        '422':
+          description: Payload не прошёл схему обработчика
+  /proxies/{uuid}/fields:
+    get:
+      tags:
+        - Proxy
+      summary: Поля публичной интеграции
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: JSON:API коллекция полей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/JsonApiCollection'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProxyCatalogResource'
+        '404':
+          $ref: '#/components/responses/NotFoundErrors'
+  /centrifugo/connection-token:
+    get:
+      tags:
+        - Real-time
+      summary: Токен для подключения к Centrifugo
+      description: |
+        Выдаёт короткоживущий JWT для WebSocket-подключения к Centrifugo и адрес WS-эндпоинта. Centrifugo валидирует токен самостоятельно (`sub` = id пользователя) — RoadRunner в этот флоу не входит, он участвует только в subscribe-proxy (авторизация подписки на канал) и в исходящей публикации. Подробности и список каналов — во вступлении к тегу «Real-time».
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токен выдан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentrifugoConnectionToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+webhooks:
+  scenario-run-updated:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → run_updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunUpdatedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-started:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_started
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionStartedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-failed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_failed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionFailedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-chain-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → chain_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChainCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → batch_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-failed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → batch_failed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchFailedMessage'
+      responses:
+        '200':
+          description: ''
+  user-start-scenario:
+    post:
+      tags:
+        - Real-time
+      summary: '#user:{userId} → start_scenario'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartScenarioMessage'
+      responses:
+        '200':
+          description: ''
+  directory-import-status-update:
+    post:
+      tags:
+        - Real-time
+      summary: directory-import:{importId} → status_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryImportStatusMessage'
+      responses:
+        '200':
+          description: ''
 components:
   parameters:
     ScenarioId:
@@ -2180,6 +3487,20 @@ components:
       schema:
         type: string
         example: name,title
+    IncludeGroupRelations:
+      name: include
+      in: query
+      description: JSON:API include связей через запятую. Поддерживаются `createdBy`, `updatedBy` (users). Включённые объекты возвращаются в top-level `included`.
+      schema:
+        type: string
+        example: createdBy,updatedBy
+    FieldsUsers:
+      name: fields[users]
+      in: query
+      description: Sparse fieldset для включённых пользователей (поля через запятую).
+      schema:
+        type: string
+        example: name,email
   responses:
     Unauthorized:
       description: Не аутентифицирован
@@ -2229,6 +3550,48 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiErrorResponse'
+    EndpointCollection:
+      description: JSON:API коллекция интеграций
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/JsonApiCollection'
+              - properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProxyEndpoint'
+                  meta:
+                    $ref: '#/components/schemas/CollectionMeta'
+    EndpointItem:
+      description: JSON:API ресурс интеграции
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+              - meta
+            properties:
+              data:
+                $ref: '#/components/schemas/ProxyEndpoint'
+              meta:
+                $ref: '#/components/schemas/ApiMeta'
+    ConnectionItem:
+      description: JSON:API ресурс доступа
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+              - meta
+            properties:
+              data:
+                $ref: '#/components/schemas/ProxyConnection'
+              meta:
+                $ref: '#/components/schemas/ApiMeta'
   schemas:
     Actor:
       type:
@@ -2324,7 +3687,7 @@ components:
     ApiMeta:
       type: object
       description: |
-        Сквозной блок meta, присутствует в каждом ответе модуля Users (и успешном, и ошибочном).
+        Сквозной блок meta для API-модулей с единым контрактом ответов.
       required:
         - timestamp
         - requestId
@@ -2359,16 +3722,16 @@ components:
           example: '404'
         code:
           type: string
-          description: Машиночитаемый код ошибки (см. UserErrorCode).
-          example: USER_NOT_FOUND
+          description: Машиночитаемый код ошибки из enum соответствующего модуля.
+          example: ACTION_CATEGORY_NOT_FOUND
         title:
           type: string
           description: Краткий заголовок.
-          example: Пользователь не найден
+          example: Раздел не найден
         detail:
           type: string
           description: Человекочитаемое описание.
-          example: Пользователь не найден в проекте.
+          example: Запрошенный ресурс не найден в текущем проекте.
         source:
           type: object
           description: Указатель на источник ошибки (для ошибок валидации).
@@ -2378,7 +3741,7 @@ components:
               example: /data/attributes/login
     ApiErrorResponse:
       type: object
-      description: Единый конверт ошибки модуля Users.
+      description: Единый конверт API-ошибки.
       required:
         - errors
         - meta
@@ -2755,6 +4118,15 @@ components:
           example: Онбординг
         is_active:
           type: boolean
+        is_system:
+          type: boolean
+        is_workspace:
+          type: boolean
+        group_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         scenarios_count:
           type: integer
           description: Количество сценариев в категории
@@ -2788,6 +4160,21 @@ components:
         is_active:
           type: boolean
           example: true
+        group_ids:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            format: uuid
+        inherit_to_descendants:
+          type:
+            - boolean
+            - 'null'
+        is_workspace:
+          type:
+            - boolean
+            - 'null'
     RunnerStartRequest:
       type: object
       description: |
@@ -3607,21 +4994,33 @@ components:
           $ref: '#/components/schemas/UserGroupAttributes'
         relationships:
           type: object
+          description: |
+            Авторы создания/изменения (users). Linkage (type+id); сами пользователи приходят в top-level `included` при запросе с `?include=createdBy,updatedBy`.
           properties:
-            created_by:
-              type:
-                - object
-                - 'null'
+            createdBy:
+              type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Actor'
-            updated_by:
-              type:
-                - object
-                - 'null'
+                  $ref: '#/components/schemas/ActorLinkage'
+            updatedBy:
+              type: object
               properties:
                 data:
-                  $ref: '#/components/schemas/Actor'
+                  $ref: '#/components/schemas/ActorLinkage'
+    ActorLinkage:
+      type:
+        - object
+        - 'null'
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          example: users
+        id:
+          type: string
+          example: '42'
     UserGroupAttributes:
       type: object
       properties:
@@ -3630,13 +5029,13 @@ components:
           example: Отдел продаж
         slug:
           type: string
-          example: sales_team
-          description: Уникальный идентификатор группы (используется при регистрации через внешние системы)
+          example: sales-team
+          description: Уникальный в пределах проекта идентификатор группы
         ext_id:
           type:
             - string
             - 'null'
-          description: Идентификатор группы во внешней системе (CRM, ERP и т.п.)
+          description: Уникальный в пределах проекта идентификатор группы во внешней системе
           example: crm_group_42
         description:
           type:
@@ -3670,8 +5069,8 @@ components:
         slug:
           type: string
           maxLength: 255
-          description: Уникальный идентификатор (буквы, цифры, дефис, подчёркивание)
-          example: sales_team
+          description: Уникальный в пределах проекта идентификатор в формате latin-kebab-case
+          example: sales-team
         ext_id:
           type:
             - string
@@ -3695,10 +5094,10 @@ components:
       properties:
         id:
           type: string
-          example: '12'
+          format: uuid
         type:
           type: string
-          example: actions
+          const: actions
         attributes:
           $ref: '#/components/schemas/ActionAttributes'
         relationships:
@@ -3706,6 +5105,8 @@ components:
           properties:
             runs:
               type: object
+              required:
+                - data
               properties:
                 data:
                   type: array
@@ -3713,6 +5114,8 @@ components:
                     $ref: '#/components/schemas/ActionRun'
             schedule:
               type: object
+              required:
+                - data
               properties:
                 data:
                   oneOf:
@@ -3720,6 +5123,14 @@ components:
                     - type: 'null'
     ActionAttributes:
       type: object
+      required:
+        - name
+        - slug
+        - code
+        - type
+        - is_active
+        - input_fields
+        - category_ids
       properties:
         name:
           type: string
@@ -3727,6 +5138,10 @@ components:
         slug:
           type: string
           example: create-lead-xml
+        code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]*$
+          example: create_lead_xml
         description:
           type:
             - string
@@ -3750,6 +5165,15 @@ components:
             - object
             - 'null'
           additionalProperties: true
+        input_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionInputField'
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
         created_at:
           type:
             - string
@@ -3768,13 +5192,13 @@ components:
         - proxy_request
         - excel_report
         - directory_import
-      description: |
-        `email` зарегистрирован как тип, но отправка пока не реализована. `template_file` создаёт xml/txt/html по шаблону. `proxy_request` отправляет данные через Proxy module. `excel_report` создаёт xlsx-отчёт. `directory_import` запускает импорт справочника через Directories module.
+        - scenario_run_result
     ActionRequest:
       type: object
       required:
         - name
         - slug
+        - code
         - type
         - is_active
       properties:
@@ -3786,6 +5210,11 @@ components:
           type: string
           maxLength: 255
           example: leads-report
+        code:
+          type: string
+          maxLength: 64
+          pattern: ^[a-z][a-z0-9_]*$
+          example: leads_report
         description:
           type:
             - string
@@ -3794,7 +5223,6 @@ components:
           $ref: '#/components/schemas/ActionType'
         is_active:
           type: boolean
-          example: true
         config:
           type:
             - object
@@ -3810,346 +5238,204 @@ components:
             - object
             - 'null'
           additionalProperties: true
-    TemplateFileActionConfig:
-      type: object
-      required:
-        - format
-        - template
-      properties:
-        format:
-          type: string
-          enum:
-            - xml
-            - txt
-            - html
-        template:
-          type: string
-          example: <lead><name>{{ lead.name }}</name></lead>
-        file_name:
-          type:
-            - string
-            - 'null'
-          example: lead.xml
-    ProxyRequestActionConfig:
-      type: object
-      description: |
-        Action вызывает существующий endpoint модуля Proxy через `endpoint_uuid` и получает ответ Proxy module. Нормализация, валидация, логирование и handler остаются внутри `module/Proxy`.
-      required:
-        - endpoint_uuid
-      properties:
-        endpoint_uuid:
-          type: string
-          format: uuid
-        method:
-          type: string
-          enum:
-            - GET
-            - POST
-            - PUT
-            - PATCH
-            - DELETE
-          default: POST
-        headers:
-          type: object
-          additionalProperties: true
-        query:
-          type: object
-          additionalProperties: true
-        payload:
-          type: object
-          additionalProperties: true
-    ExcelReportActionConfig:
-      type: object
-      required:
-        - columns
-      properties:
-        file_name:
-          type:
-            - string
-            - 'null'
-          example: leads.xlsx
-        sheet_name:
-          type:
-            - string
-            - 'null'
-          example: Leads
-        columns:
-          type: array
-          items:
-            type: object
-            required:
-              - header
-              - key
-            properties:
-              header:
-                type: string
-                example: Email
-              key:
-                type: string
-                example: lead.email
-        rows:
+        input_fields:
           type:
             - array
             - 'null'
           items:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ActionInputField'
+        category_ids:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            format: uuid
+    TemplateFileActionConfig:
+      type: object
+      additionalProperties: true
+      properties:
+        template:
+          type: string
+        file_name:
+          type:
+            - string
+            - 'null'
+    ProxyRequestActionConfig:
+      type: object
+      additionalProperties: true
+    ExcelReportActionConfig:
+      type: object
+      additionalProperties: true
     DirectoryImportActionConfig:
       type: object
-      description: |
-        Action создаёт `DirectoryImport` через `Module\Directories\Services\ImportService`. Сам импорт, версии, mapping, обработка строк и ошибки остаются внутри `module/Directories`.
+      additionalProperties: true
+    ActionEnvelope:
+      type: object
       required:
-        - directory_id
-        - source_type
-        - mode
-        - mapping
-        - columns
+        - data
+        - meta
       properties:
-        directory_id:
+        data:
+          $ref: '#/components/schemas/ActionResource'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionInputField:
+      type: object
+      required:
+        - key
+        - type
+      properties:
+        key:
           type: string
-          format: uuid
-        source_type:
+          pattern: ^[a-z][a-z0-9_]*$
+          example: client_uuid
+        label:
+          type:
+            - string
+            - 'null'
+          example: UUID клиента
+        type:
           type: string
           enum:
-            - file
-            - proxy
-            - remote
+            - string
+            - number
+            - boolean
+            - uuid
+            - email
+        required:
+          type: boolean
+          default: false
+        default: {}
+    ActionTypeMeta:
+      type: object
+      required:
+        - value
+        - label
+        - default_code
+        - fields
+      properties:
+        value:
+          $ref: '#/components/schemas/ActionType'
+        label:
+          type: string
+        default_code:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionTypeField'
+    ActionTypeListResponse:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionTypeMeta'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionRunRequest:
+      type: object
+      required:
+        - mode
+        - actions
+      properties:
         mode:
           type: string
           enum:
-            - create
-            - update
-            - replace
-        file_disk:
-          type:
-            - string
-            - 'null'
-          example: local
-        file_path:
-          type:
-            - string
-            - 'null'
-          description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
-          example: actions/leads/leads.xlsx
-        proxy_endpoint_id:
-          type:
-            - integer
-            - 'null'
-          description: ID ProxyEndpoint для `source_type=proxy`.
-        proxy_endpoint_uuid:
-          type:
-            - string
-            - 'null'
-          description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
-        remote:
-          type:
-            - object
-            - 'null'
-          additionalProperties: true
-        mapping:
-          type: object
-          additionalProperties:
-            type: string
-          example:
-            email: email
-            name: name
-        columns:
-          type: array
-          items:
-            type: object
-            required:
-              - key
-              - name
-            properties:
-              key:
-                type: string
-              name:
-                type: string
-              type:
-                type:
-                  - string
-                  - 'null'
-              nullable:
-                type:
-                  - boolean
-                  - 'null'
-        match_by:
-          type:
-            - string
-            - 'null'
-        parent_key_field:
-          type:
-            - string
-            - 'null'
-        chunk_size:
-          type:
-            - integer
-            - 'null'
-          example: 500
-        activate:
-          type:
-            - boolean
-            - 'null'
-        version_id:
-          type:
-            - integer
-            - 'null'
-    ActionExecutionRequest:
-      type: object
-      properties:
+            - parallel
+            - sequential
+        actions:
+          allOf:
+            - $ref: '#/components/schemas/ActionCodeMap'
+          minProperties: 1
+        before:
+          $ref: '#/components/schemas/ActionCodeMap'
+        after:
+          $ref: '#/components/schemas/ActionCodeMap'
+        on_error:
+          $ref: '#/components/schemas/ActionCodeMap'
         input:
-          type: object
-          additionalProperties: true
-          example:
-            lead:
-              name: Иван
-              email: ivan@example.com
-    ActionExecutionResponse:
-      type: object
-      required:
-        - status
-      properties:
-        status:
-          type: string
-          enum:
-            - success
-            - failed
-            - skipped
-        output:
           type:
             - object
             - 'null'
           additionalProperties: true
-        error:
+        schedule:
           type:
-            - string
+            - object
             - 'null'
-        runs:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActionRun'
-    ActionRunRequest:
-      type: object
-      properties:
-        execution_mode:
-          type: string
-          enum:
-            - sync
-            - async
-            - chain
-            - batch
-          description: |
-            Режим выполнения текущего запуска. `chain` выполняет `action_ids` последовательно, `batch` запускает `action_ids` параллельно.
-          example: chain
-        action_ids:
-          type: array
-          description: Основные actions для последовательного или параллельного выполнения.
-          items:
-            type: integer
-          example:
-            - 10
-            - 11
-            - 12
-        before_action_ids:
-          type: array
-          description: Actions, которые выполняются перед основной очередью.
-          items:
-            type: integer
-          example:
-            - 7
-        after_action_ids:
-          type: array
-          description: Actions, которые выполняются после успешной обработки основной очереди.
-          items:
-            type: integer
-          example:
-            - 20
-        failed_action_ids:
-          type: array
-          description: Actions, которые выполняются при ошибке before/main/batch обработки.
-          items:
-            type: integer
-          example:
-            - 30
-        retry:
-          type: object
           properties:
-            attempts:
-              type: integer
-              minimum: 1
-              example: 3
-            backoff:
-              type: array
-              items:
-                type: integer
-              example:
-                - 60
-                - 120
-                - 300
-        input:
-          type: object
-          additionalProperties: true
-          example:
-            scenario_run_id: 15
-            rows:
-              - lead:
-                  email: ivan@example.com
+            cron:
+              type: string
+              maxLength: 120
+            timezone:
+              type:
+                - string
+                - 'null'
+              example: Europe/Moscow
     ActionRunResponse:
       type: object
       required:
         - status
+        - meta
       properties:
         status:
           type: string
           enum:
-            - completed
             - queued
-        result:
+            - scheduled
+        queued:
+          type: integer
+          minimum: 0
+        schedule_id:
+          type: integer
+        next_run_at:
           type:
-            - object
+            - string
             - 'null'
-          properties:
-            status:
+          format: date-time
+        error:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
               type: string
-              enum:
-                - success
-                - failed
-                - skipped
-            output:
-              type:
-                - object
-                - 'null'
-              additionalProperties: true
-            error:
-              type:
-                - string
-                - 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionRunRejectedResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          const: error
+        error:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
     ActionScheduleRequest:
       type: object
       required:
         - enabled
-        - frequency
       properties:
         enabled:
           type: boolean
-          example: true
-        frequency:
-          type: string
-          enum:
-            - every_minute
-            - hourly
-            - daily
-            - weekly
-            - monthly
-          example: daily
-        run_at:
+        cron:
           type:
             - string
             - 'null'
-          pattern: ^\\d{2}:\\d{2}$
-          description: |
-            Время запуска в указанной timezone. Для `hourly` используется только минута, для `every_minute` поле игнорируется.
-          example: '09:30'
+          maxLength: 120
+          example: 0 9 * * 1-5
         timezone:
           type:
             - string
@@ -4160,48 +5446,31 @@ components:
             - object
             - 'null'
           additionalProperties: true
-          description: Input, который будет передан в orchestrator.
-          example:
-            source: schedule
         options:
-          anyOf:
-            - $ref: '#/components/schemas/ActionRunRequest'
-            - type: 'null'
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
         settings:
           type:
             - object
             - 'null'
-          properties:
-            day_of_week:
-              type: integer
-              minimum: 1
-              maximum: 7
-              description: Для weekly. 1 = понедельник, 7 = воскресенье.
-              example: 1
-            day_of_month:
-              type: integer
-              minimum: 1
-              maximum: 31
-              description: Для monthly.
-              example: 1
+          additionalProperties: true
     ActionSchedule:
       type: object
+      required:
+        - action_id
+        - enabled
+        - timezone
       properties:
         id:
           type: integer
         action_id:
-          type: integer
+          type: string
+          format: uuid
         enabled:
           type: boolean
-        frequency:
-          type: string
-          enum:
-            - every_minute
-            - hourly
-            - daily
-            - weekly
-            - monthly
-        run_at:
+        cron:
           type:
             - string
             - 'null'
@@ -4251,22 +5520,36 @@ components:
       properties:
         id:
           type: string
-          example: '5'
         type:
           type: string
-          example: action-schedules
+          const: action-schedules
         attributes:
           $ref: '#/components/schemas/ActionSchedule'
     ActionRun:
       type: object
+      required:
+        - id
+        - action_id
+        - status
+        - attempts_count
       properties:
         id:
           type: integer
         action_id:
-          type: integer
+          type: string
+          format: uuid
+        action_name:
+          type:
+            - string
+            - 'null'
+        action_key:
+          type:
+            - string
+            - 'null'
         status:
           type: string
           enum:
+            - pending
             - running
             - success
             - failed
@@ -4289,11 +5572,9 @@ components:
           type:
             - string
             - 'null'
-          description: Причина ошибки. Для успешных задач `null`.
         attempts_count:
           type: integer
-          minimum: 1
-          description: Номер попытки, на которой была создана запись выполнения.
+          minimum: 0
         started_at:
           type:
             - string
@@ -4324,10 +5605,170 @@ components:
           items:
             $ref: '#/components/schemas/ActionRun'
         meta:
+          allOf:
+            - $ref: '#/components/schemas/ApiMeta'
+            - type: object
+              required:
+                - total
+              properties:
+                total:
+                  type: integer
+    ActionFeedResponse:
+      type: object
+      required:
+        - data
+        - pagination
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/ActionFeedFolder'
+              - $ref: '#/components/schemas/ActionFeedItem'
+            discriminator:
+              propertyName: type
+        pagination:
           type: object
+          required:
+            - current_page
+            - last_page
+            - per_page
+            - total
+            - folders_total
+            - items_total
           properties:
+            current_page:
+              type: integer
+            last_page:
+              type: integer
+            per_page:
+              type: integer
             total:
               type: integer
+            folders_total:
+              type: integer
+            items_total:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionCredential:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - masked_secrets
+        - has_secrets
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ActionCredentialType'
+        config:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        masked_secrets:
+          type: object
+          additionalProperties:
+            type: string
+        has_secrets:
+          type: boolean
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionCredentialRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/ActionCredentialType'
+        config:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+        secrets:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          writeOnly: true
+    ActionCredentialListResponse:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionCredential'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionScheduleListResponse:
+      type: object
+      required:
+        - items
+        - meta
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionScheduleListItem'
+        meta:
+          allOf:
+            - $ref: '#/components/schemas/ApiMeta'
+            - type: object
+              required:
+                - total
+              properties:
+                total:
+                  type: integer
+    DirectorySyncScheduleRequest:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+        cron:
+          type:
+            - string
+            - 'null'
+          maxLength: 120
+        timezone:
+          type:
+            - string
+            - 'null'
+    DirectorySyncScheduleResponse:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/DirectorySyncSchedule'
+            - type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
     EmbedAuthExchangeRequest:
       type: object
       required:
@@ -4369,6 +5810,379 @@ components:
           type: integer
           description: Время жизни access-токена в секундах
           example: 1800
+    CentrifugoConnectionToken:
+      type: object
+      required:
+        - token
+        - ws_url
+      properties:
+        token:
+          type: string
+          description: 'Короткоживущий JWT (HS256, TTL 1 час), которым Centrifugo сама валидирует подключение — `sub` содержит id текущего пользователя. Отдельного subscribe-токена не нужно: авторизация на канал проверяется через RoadRunner subscribe-proxy на бэкенде.'
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc123
+        ws_url:
+          type: string
+          format: uri
+          description: Адрес WebSocket-эндпоинта Centrifugo, к которому подключается фронт.
+          example: ws://localhost:8002/connection/websocket
+    RunUpdatedMessage:
+      type: object
+      required:
+        - type
+        - run
+      description: Канал `scenario-run:{runId}`. Полный снимок состояния прогона — та же форма, что и `RunPayload` в REST-ответах (`POST /scenarios/runner`, `POST /scenarios/runner/{runId}/continue` и т.д.), с добавленным `type`.
+      properties:
+        type:
+          type: string
+          enum:
+            - run_updated
+        run:
+          $ref: '#/components/schemas/RunState'
+      additionalProperties: true
+    ActionStartedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+      description: Канал `scenario-run:{runId}`. Экшен в chain-пайплайне начал выполняться.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_started
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+          description: Код стадии пайплайна (для `wait_for_result`-нод с несколькими шагами).
+    ActionCompletedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+        - status
+      description: Канал `scenario-run:{runId}`. Экшен (одиночный или шаг chain/batch) завершился успешно.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_completed
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+        status:
+          type: string
+          example: success
+        output:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+    ActionFailedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+      description: Канал `scenario-run:{runId}`. Экшен исчерпал попытки и завершился ошибкой.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_failed
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+        error:
+          type:
+            - string
+            - 'null'
+    ChainCompletedMessage:
+      type: object
+      required:
+        - type
+        - context
+      description: Канал `scenario-run:{runId}`. Вся цепочка chain-экшенов отработала.
+      properties:
+        type:
+          type: string
+          enum:
+            - chain_completed
+        context:
+          type: object
+          additionalProperties: true
+          description: Накопленный контекст (output всех шагов цепочки по scope-ключам).
+    BatchCompletedMessage:
+      type: object
+      required:
+        - type
+        - batch_id
+      description: Канал `scenario-run:{runId}`. Все экшены batch-группы завершились успешно.
+      properties:
+        type:
+          type: string
+          enum:
+            - batch_completed
+        batch_id:
+          type: string
+    BatchFailedMessage:
+      type: object
+      required:
+        - type
+        - batch_id
+        - error
+      description: Канал `scenario-run:{runId}`. Хотя бы один экшен batch-группы завершился ошибкой.
+      properties:
+        type:
+          type: string
+          enum:
+            - batch_failed
+        batch_id:
+          type: string
+        error:
+          type: string
+    StartScenarioMessage:
+      type: object
+      required:
+        - type
+        - run_id
+        - url
+      description: Персональный канал `#user:{userId}` (встроенный механизм Centrifugo, подписка на него неявная — по факту аутентифицированного подключения). Публикуется, когда сценарий диспатчится на пользователя удалённо (`POST /scenarios/dispatch`).
+      properties:
+        type:
+          type: string
+          enum:
+            - start_scenario
+        run_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          description: Относительный путь на страницу прогона во фронтенде.
+    DirectoryImportStatusMessage:
+      type: object
+      required:
+        - type
+        - import_id
+        - status
+      description: Канал `directory-import:{importId}`. Прогресс импорта директории (CSV/Excel).
+      properties:
+        type:
+          type: string
+          enum:
+            - status_update
+        import_id:
+          type: integer
+        status:
+          type: string
+          example: processing
+        processed_rows:
+          type: integer
+        imported_rows:
+          type: integer
+        failed_rows:
+          type: integer
+        error_message:
+          type:
+            - string
+            - 'null'
+    ScenarioFeedFolder:
+      type: object
+      description: Строка ленты типа «папка» (категория со сценариями)
+      properties:
+        type:
+          type: string
+          enum:
+            - folder
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        parent_path:
+          type:
+            - string
+            - 'null'
+          description: Путь к папке «А / Б / В»
+        path_ids:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+            format: uuid
+          description: Цепочка UUID от корня до папки (для раскрытия дерева)
+        children_count:
+          type: integer
+          description: Количество дочерних папок (только с привязанными сценариями)
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ScenarioFeedScenario:
+      type: object
+      description: Строка ленты типа «сценарий»
+      properties:
+        type:
+          type: string
+          enum:
+            - scenario
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        alias:
+          type:
+            - string
+            - 'null'
+        description:
+          type:
+            - string
+            - 'null'
+        status:
+          type: string
+          enum:
+            - draft
+            - active
+            - archived
+        folder_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        folder_path:
+          type:
+            - string
+            - 'null'
+          description: Путь папки «А / Б / В»
+        tags:
+          type: array
+          items:
+            type: string
+        versions_count:
+          type: integer
+        active_version_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        created_by:
+          $ref: '#/components/schemas/Actor'
+        updated_by:
+          $ref: '#/components/schemas/Actor'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ScenarioFeedItem:
+      oneOf:
+        - $ref: '#/components/schemas/ScenarioFeedFolder'
+        - $ref: '#/components/schemas/ScenarioFeedScenario'
+      discriminator:
+        propertyName: type
+        mapping:
+          folder: '#/components/schemas/ScenarioFeedFolder'
+          scenario: '#/components/schemas/ScenarioFeedScenario'
+    ScenarioFeedMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        from:
+          type:
+            - integer
+            - 'null'
+        to:
+          type:
+            - integer
+            - 'null'
+        folders_total:
+          type: integer
+          description: Общее число папок в текущем фильтре
+        items_total:
+          type: integer
+          description: Общее число сценариев в текущем фильтре
+        counts_by_status:
+          type: object
+          description: Количество сценариев по статусам (игнорирует фильтр status)
+          properties:
+            all:
+              type: integer
+            active:
+              type: integer
+            draft:
+              type: integer
+            archived:
+              type: integer
+    DispatchRequest:
+      type: object
+      required:
+        - tag
+      description: |
+        Необходимо передать хотя бы один из параметров идентификации: `login` или `external_id`.
+      properties:
+        login:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          description: Логин пользователя в системе
+        external_id:
+          type:
+            - string
+            - 'null'
+          maxLength: 255
+          description: Внешний идентификатор пользователя
+        tag:
+          type: string
+          maxLength: 255
+          description: Тег сценария для запуска
+        context:
+          type:
+            - object
+            - 'null'
+          description: Начальные переменные контекста прогона
+          additionalProperties: true
+        user_data:
+          type:
+            - object
+            - 'null'
+          description: Произвольные данные пользователя (сохраняются в прогоне)
+          additionalProperties: true
     RelationshipLinkage:
       type: object
       required:
@@ -4421,6 +6235,510 @@ components:
             slug:
               type: string
               example: operators
+    ActionTypeField:
+      type: object
+      required:
+        - key
+        - label
+        - type
+        - required
+      additionalProperties: true
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+        description:
+          type:
+            - string
+            - 'null'
+        placeholder:
+          type:
+            - string
+            - 'null'
+        default: {}
+        options:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    ActionFeedFolder:
+      type: object
+      required:
+        - type
+        - id
+        - name
+        - is_system
+        - children_count
+      properties:
+        type:
+          type: string
+          const: folder
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        is_system:
+          type: boolean
+        children_count:
+          type: integer
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionFeedItem:
+      type: object
+      required:
+        - type
+        - id
+        - name
+        - slug
+        - action_type
+        - action_type_label
+        - is_active
+      properties:
+        type:
+          type: string
+          const: action
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        action_type:
+          $ref: '#/components/schemas/ActionType'
+        action_type_label:
+          type: string
+        is_active:
+          type: boolean
+        description:
+          type:
+            - string
+            - 'null'
+        schedule:
+          oneOf:
+            - type: object
+              required:
+                - enabled
+              properties:
+                enabled:
+                  type: boolean
+                cron:
+                  type:
+                    - string
+                    - 'null'
+                next_run_at:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+            - type: 'null'
+        created_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        updated_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ActionCodeMap:
+      type: object
+      description: Объект `code => UUID action`.
+      additionalProperties:
+        type: string
+        format: uuid
+      example:
+        prepare_report: 8a3abf99-7861-4c62-a467-fc90bc8c519f
+    ActionScheduleEnvelope:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/ActionScheduleResource'
+            - type: 'null'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionCredentialType:
+      type: string
+      enum:
+        - none
+        - bearer
+        - basic
+        - api_key
+        - oauth2_placeholder
+    ActionCredentialItemResponse:
+      type: object
+      required:
+        - item
+        - meta
+      properties:
+        item:
+          $ref: '#/components/schemas/ActionCredential'
+        meta:
+          $ref: '#/components/schemas/ApiMeta'
+    ActionScheduleListItem:
+      type: object
+      required:
+        - id
+        - enabled
+        - timezone
+      properties:
+        id:
+          type: integer
+        enabled:
+          type: boolean
+        cron:
+          type:
+            - string
+            - 'null'
+        timezone:
+          type: string
+        last_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        next_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        action:
+          oneOf:
+            - type: object
+              required:
+                - id
+                - name
+                - code
+                - type
+                - is_active
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                code:
+                  type: string
+                type:
+                  $ref: '#/components/schemas/ActionType'
+                is_active:
+                  type: boolean
+            - type: 'null'
+    DirectorySyncSchedule:
+      type: object
+      required:
+        - enabled
+        - timezone
+      properties:
+        enabled:
+          type: boolean
+        cron:
+          type:
+            - string
+            - 'null'
+        timezone:
+          type: string
+        last_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        next_run_at:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ProxyEndpoint:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-endpoints
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - uuid
+            - name
+            - code
+            - type
+            - is_active
+            - is_mocked
+            - handler_class
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            uuid:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+            type:
+              type: string
+              enum:
+                - webhook
+                - suggest
+            method:
+              type:
+                - string
+                - 'null'
+            description:
+              type:
+                - string
+                - 'null'
+            is_active:
+              type: boolean
+            is_mocked:
+              type: boolean
+            handler_class:
+              type: string
+            connection_id:
+              type:
+                - integer
+                - 'null'
+            category_ids:
+              type: array
+              items:
+                type: string
+                format: uuid
+            base_uri:
+              type:
+                - string
+                - 'null'
+              format: uri
+            credentials:
+              type: object
+            secret_filled:
+              type: object
+              additionalProperties:
+                type: boolean
+            config:
+              type: object
+            mock_responses:
+              type: array
+              items:
+                type: object
+            receive_url:
+              type: string
+            created_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updated_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+        relationships:
+          type: object
+    ProxyEndpointRequest:
+      type: object
+      required:
+        - name
+        - code
+        - handler_class
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 255
+        type:
+          type: string
+          enum:
+            - webhook
+            - suggest
+        method:
+          type:
+            - string
+            - 'null'
+          enum:
+            - GET
+            - POST
+            - null
+        description:
+          type:
+            - string
+            - 'null'
+        is_active:
+          type: boolean
+        is_mocked:
+          type: boolean
+        handler_class:
+          type: string
+        connection_id:
+          type:
+            - integer
+            - 'null'
+        category_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        credentials:
+          type:
+            - object
+            - 'null'
+        config:
+          type:
+            - object
+            - 'null'
+        mock_responses:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+    ProxyCatalogResource:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          enum:
+            - proxy-fields
+            - proxy-handlers
+            - proxy-credential-types
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    ProxyConnection:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-connections
+        id:
+          type: string
+        attributes:
+          type: object
+          required:
+            - name
+            - credential_type
+            - config
+            - secret_filled
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            credential_type:
+              type: string
+            credential_label:
+              type: string
+            config:
+              type: object
+            secret_filled:
+              type: object
+              additionalProperties:
+                type: boolean
+            created_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+            updated_at:
+              type:
+                - string
+                - 'null'
+              format: date-time
+    ProxyConnectionRequest:
+      type: object
+      required:
+        - name
+        - credential_type
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        credential_type:
+          type: string
+        values:
+          type: object
+          additionalProperties: true
+    ProxyFeedResource:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          enum:
+            - proxy-folders
+            - proxy-endpoints
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    ProxyRequest:
+      type: object
+      required:
+        - type
+        - id
+        - attributes
+      properties:
+        type:
+          type: string
+          const: proxy-requests
+        id:
+          type: string
+          format: uuid
+        attributes:
+          type: object
+          required:
+            - request_id
+            - status
+            - is_mocked
+          additionalProperties: true
+        relationships:
+          type: object
   securitySchemes:
     BearerAuth:
       type: http
@@ -4448,6 +6766,12 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
+  - name: Интеграции
+    tags:
+      - Proxy
+  - name: Real-time
+    tags:
+      - Real-time
   - name: Авторизация
     tags:
       - Авторизация

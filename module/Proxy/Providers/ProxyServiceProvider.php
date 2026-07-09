@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Providers;
 
+use App\Http\Middleware\AddApiMeta;
+use App\Support\PermissionRegistry;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use App\Support\PermissionRegistry;
+use Module\Projects\Http\Middleware\RequireCurrentProject;
 use Module\Proxy\Enums\ProxyPermission;
 use Module\Proxy\Events\ProxyRequestAccepted;
 use Module\Proxy\Events\ProxyRequestFailed;
@@ -30,10 +33,13 @@ final class ProxyServiceProvider extends ServiceProvider
     #[\Override]
     public function register(): void
     {
-        $this->app->singleton(ClientInterface::class, fn (): ClientInterface => new Client);
+        $this->app->singleton(ClientInterface::class, fn(): ClientInterface => new Client);
         $this->app->singleton(MockApiTransport::class);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         PermissionRegistry::register(ProxyPermission::class);
@@ -44,6 +50,10 @@ final class ProxyServiceProvider extends ServiceProvider
             ->group(dirname(__DIR__).'/routes/web.php');
 
         Route::middleware(['api', 'auth:sanctum'])
+            ->prefix('api')
+            ->group(dirname(__DIR__).'/routes/receive.php');
+
+        Route::middleware(['api', 'auth:sanctum', RequireCurrentProject::class, AddApiMeta::class])
             ->prefix('api')
             ->group(dirname(__DIR__).'/routes/api.php');
 
@@ -58,17 +68,20 @@ final class ProxyServiceProvider extends ServiceProvider
         Event::listen(ProxyRequestFailed::class, [PersistProxyContext::class, 'handleFailed']);
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     private function registerExceptionHandlers(): void
     {
         /** @var Handler $handler */
         $handler = $this->app->make(ExceptionHandler::class);
 
-        $handler->renderable(fn (ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
+        $handler->renderable(fn(ProxyEndpointInactiveException $e) => new JsonResponse(status: 404));
         $handler->renderable(
-            fn (ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405)
+            fn(ProxyMethodNotAllowedException $e) => new JsonResponse(['message' => 'Method Not Allowed'], 405)
         );
         $handler->renderable(
-            fn (ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413)
+            fn(ProxyPayloadTooLargeException $e) => new JsonResponse(['message' => $e->getMessage()], 413)
         );
     }
 }

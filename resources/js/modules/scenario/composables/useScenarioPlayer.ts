@@ -200,6 +200,14 @@ export function useScenarioPlayer() {
     function setRun(nextRun: ScenarioRunPayload | null): void {
         run.value = nextRun
         const isFirstLoad = timeline.value.length === 0
+
+        // После jump step-ы получают новые ID (отменённые шаги заменяются свежими),
+        // поэтому старый timeline невалиден — сбрасываем и строим заново.
+        if (isJumping && nextRun) {
+            timeline.value = []
+            buildTimelineFromSteps(nextRun)
+        }
+
         syncTimeline(nextRun)
         syncActionPipeline(nextRun)
 

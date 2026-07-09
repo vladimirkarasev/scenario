@@ -6,14 +6,21 @@ interface JsonApiResource {
     attributes: Record<string, unknown>
 }
 
+interface RawCredentialType {
+    id: string
+    attributes: {
+        label: string
+        group: string
+        fields: CredentialType['fields']
+    }
+}
+
 function flatten(resource: JsonApiResource): ProxyConnection {
     return {id: Number(resource.id), ...resource.attributes} as unknown as ProxyConnection
 }
 
 export const proxyConnectionRepository = {
-    async list(credentialType?: string): Promise<ProxyConnection[]> {
-        const qs = new URLSearchParams()
-        if (credentialType) qs.set('filter[credential_type]', credentialType)
+    async list(qs: URLSearchParams = new URLSearchParams()): Promise<ProxyConnection[]> {
         const suffix = qs.toString() ? `?${qs}` : ''
         const raw = await getJson<{ data: JsonApiResource[] }>(
             `/api/proxy/connections${suffix}`,
@@ -45,10 +52,15 @@ export const proxyConnectionRepository = {
     },
 
     async types(): Promise<CredentialType[]> {
-        const raw = await getJson<{ data: CredentialType[] }>(
+        const raw = await getJson<{ data: RawCredentialType[] }>(
             '/api/proxy/credential-types',
             'Не удалось загрузить типы доступа.',
         )
-        return raw.data ?? []
+        return raw.data.map(item => ({
+            type: item.id,
+            label: item.attributes.label,
+            group: item.attributes.group,
+            fields: item.attributes.fields,
+        }))
     },
 }

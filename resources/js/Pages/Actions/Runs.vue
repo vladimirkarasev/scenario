@@ -57,7 +57,7 @@ function pretty(value: unknown): string {
 </script>
 
 <template>
-  <Head title="История запусков"/>
+  <Head title="История запусков" />
 
   <AppShell title="История запусков" :navigation-items="navigationItems">
     <div class="min-h-full bg-slate-50">
@@ -69,12 +69,12 @@ function pretty(value: unknown): string {
           <template #actions>
             <a href="/actions"
                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-              <Zap :size="15"/>
+              <Zap :size="15" />
               Действия
             </a>
             <a href="/actions/schedules"
                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50">
-              <CalendarClock :size="15"/>
+              <CalendarClock :size="15" />
               Расписания
             </a>
           </template>
@@ -125,11 +125,11 @@ function pretty(value: unknown): string {
 
         <div class="mb-4 flex items-center gap-3">
           <div class="flex-1">
-            <SearchInput v-model="search" placeholder="Поиск по run ID, action, ошибке…"/>
+            <SearchInput v-model="search" placeholder="Поиск по run ID, action, ошибке…" />
           </div>
           <Button variant="outline" class="gap-2" :disabled="loading" @click="load">
-            <Loader2 v-if="loading" :size="14" class="animate-spin"/>
-            <RefreshCw v-else :size="14"/>
+            <Loader2 v-if="loading" :size="14" class="animate-spin" />
+            <RefreshCw v-else :size="14" />
             Обновить
           </Button>
         </div>
@@ -146,14 +146,15 @@ function pretty(value: unknown): string {
                 <TableHead class="w-28">Длит.</TableHead>
                 <TableHead class="w-40">Запущен</TableHead>
                 <TableHead>Результат</TableHead>
-                <TableHead class="w-10"/>
+                <TableHead class="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow v-for="run in filtered" :key="run.id" class="cursor-pointer hover:bg-slate-50"
                         @click="openDetails(run)">
                 <TableCell class="font-mono text-[12px] text-slate-500">#{{ run.id }}</TableCell>
-                <TableCell class="text-[12px] font-medium text-slate-700">{{
+                <TableCell class="text-[12px] font-medium text-slate-700">
+{{
                     run.action_name || run.action_id
                   }}
                 </TableCell>
@@ -167,12 +168,13 @@ function pretty(value: unknown): string {
                 <TableCell class="text-[12px] text-slate-500">{{ run.attempts_count ?? 1 }}</TableCell>
                 <TableCell class="text-[12px] text-slate-500">{{ duration(run) }}</TableCell>
                 <TableCell class="text-[12px] text-slate-500">{{ fmt(run.started_at) }}</TableCell>
-                <TableCell class="text-[12px] text-slate-400 truncate max-w-md">{{
+                <TableCell class="text-[12px] text-slate-400 truncate max-w-md">
+{{
                     run.reason || run.error || '—'
                   }}
                 </TableCell>
                 <TableCell>
-                  <ChevronRight :size="14" class="text-slate-300"/>
+                  <ChevronRight :size="14" class="text-slate-300" />
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -180,11 +182,11 @@ function pretty(value: unknown): string {
           <EmptyState v-if="!filtered.length && !loading" title="Запусков нет"
                       subtitle="Запустите action или измените фильтр">
             <template #icon>
-              <Play :size="20"/>
+              <Play :size="20" />
             </template>
           </EmptyState>
           <div v-if="loading && !runs.length" class="px-5 py-8 text-center text-[13px] text-slate-400">
-            <CheckCircle2 class="mx-auto mb-2 h-5 w-5 text-slate-300"/>
+            <CheckCircle2 class="mx-auto mb-2 h-5 w-5 text-slate-300" />
             Загрузка…
           </div>
         </div>
@@ -201,7 +203,7 @@ function pretty(value: unknown): string {
       :show-footer="false"
   >
     <template #icon>
-      <Clock3 class="size-3.5 text-slate-500"/>
+      <Clock3 class="size-3.5 text-slate-500" />
     </template>
 
     <div v-if="selected" class="flex-1 space-y-4 overflow-y-auto px-6 py-5">

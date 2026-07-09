@@ -13,8 +13,6 @@ use Module\Proxy\Models\ProxyRequest;
  */
 final class ProxyRequestResource extends JsonApiResource
 {
-    protected bool $usesRequestQueryString = false;
-
     public function toId(Request $request): string
     {
         return (string) $this->id;
@@ -63,6 +61,15 @@ final class ProxyRequestResource extends JsonApiResource
             'response_code' => $resp['status_code'] ?? null,
             'response_headers' => $resp['headers'] ?? null,
             'response_body' => $resp['body'] ?? null,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    #[\Override]
+    public function toRelationships(Request $request): array
+    {
+        return [
+            'endpoint' => ProxyEndpointResource::class,
         ];
     }
 }

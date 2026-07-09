@@ -36,21 +36,28 @@ export interface FeedScenarioItem {
 
 export type ScenarioFeedRow = FeedFolderItem | FeedScenarioItem
 
+export interface ScenarioFeedPagination {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number | null
+    to: number | null
+    folders_total: number
+    items_total: number
+}
+
+export interface ScenarioFeedCounts {
+    all: number
+    active: number
+    draft: number
+    archived: number
+}
+
 export interface ScenarioFeedResponse {
     data: ScenarioFeedRow[]
-    pagination: {
-        current_page: number
-        last_page: number
-        per_page: number
-        total: number
-        folders_total: number
-        items_total: number
-    }
-    counts_by_status: {
-        all: number
-        active: number
-        draft: number
-        archived: number
+    meta: ScenarioFeedPagination & {
+        counts_by_status: ScenarioFeedCounts
     }
 }
 

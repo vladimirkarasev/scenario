@@ -63,6 +63,12 @@ x-tagGroups:
   - name: Группы доступа
     tags:
       - Группы
+  - name: Интеграции
+    tags:
+      - Proxy
+  - name: Real-time
+    tags:
+      - Real-time
   - name: Авторизация
     tags:
       - Авторизация
@@ -94,11 +100,53 @@ tags:
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
+  - name: Proxy
+    description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
+  - name: Real-time
+    description: >
+      Live-обновления идут через Centrifugo (WebSocket), не через REST-поллинг.
+      RoadRunner участвует как proxy: авторизует подписку на канал
+      (subscribe-proxy) и форвардит исходящие публикации в Centrifugo (gRPC
+      API) — сам WebSocket браузер держит напрямую с Centrifugo.
+
+
+      **Подключение:**
+
+
+      1. `GET /centrifugo/connection-token` → `{token, ws_url}`.
+
+      2. WS-клиентом (`centrifuge-js` и т.п.) подключиться к `ws_url`,
+      передав `token`. Centrifugo валидирует его сама — короткоживущий JWT
+      (TTL 1 час, `sub` = id пользователя), без обращения к бэкенду на
+      каждый коннект.
+
+      3. Подписаться на нужный канал. Доступ к каналу проверяет бэкенд
+      через RoadRunner subscribe-proxy.
+
+      4. По истечении токена — запросить `connection-token` заново и
+      переподключиться (Centrifugo не продлевает токен сама).
+
+
+      **Каналы:**
+
+
+      | Канал | Кто слушает | Типы сообщений (`type`) |
+      |---|---|---|
+      | `scenario-run:{runId}` | Открытая страница прогона | `run_updated`, `action_started`, `action_completed`, `action_failed`, `chain_completed`, `batch_completed`, `batch_failed` |
+      | `directory-import:{importId}` | Открытая страница импорта директории | `status_update` |
+      | `#user:{userId}` | Персональный канал текущего пользователя (встроенный в Centrifugo, отдельной подписки не требует) | `start_scenario` |
+
+
+      Форма каждого сообщения — в разделе Webhooks (использован как способ
+      описать shape асинхронных push-сообщений средствами OpenAPI 3.1; по
+      транспорту это не HTTP callback, а публикация в WebSocket-канал).
 
 paths:
   /scenarios/catalog:
     $ref: './paths/catalog.yaml'
 
+  /scenarios/feed:
+    $ref: './paths/scenarios.yaml#/feed'
   /scenarios:
     $ref: './paths/scenarios.yaml#/collection'
   /scenarios/{scenario}:
@@ -116,21 +164,25 @@ paths:
   /scenarios/categories/{category}:
     $ref: './paths/categories.yaml#/item'
 
+  /scenarios/dispatch:
+    $ref: './paths/runner.yaml#/dispatch'
   /scenarios/runner/start:
     $ref: './paths/runner.yaml#/start'
-  /scenarios/runner/{runId}/jump:
-    $ref: './paths/runner.yaml#/jump'
 
-  /scenario-runs:
+  /scenarios/runner:
     $ref: './paths/runs.yaml#/collection'
-  /scenario-runs/users:
+  /scenarios/runner/users:
     $ref: './paths/runs.yaml#/users'
-  /scenario-runs/{runId}:
+  /scenarios/runner/{runId}:
     $ref: './paths/runs.yaml#/item'
-  /scenario-runs/{runId}/continue:
+  /scenarios/runner/{runId}/continue:
     $ref: './paths/runs.yaml#/continue'
-  /scenario-runs/{runId}/jump:
+  /scenarios/runner/{runId}/jump:
     $ref: './paths/runs.yaml#/jump'
+  /scenarios/runner/{runId}/retry-action:
+    $ref: './paths/runs.yaml#/retryAction'
+  /scenarios/runner/{runId}/history:
+    $ref: './paths/runs.yaml#/history'
 
   /scenarios/surveys:
     $ref: './paths/surveys.yaml#/list'
@@ -170,32 +222,195 @@ paths:
   /groups/{group}:
     $ref: './paths/groups.yaml#/item'
   /groups/{group}/members:
-    $ref: './paths/users.yaml#/members'
+    $ref: './paths/groups.yaml#/members'
+  /groups/{group}/member-candidates:
+    $ref: './paths/groups.yaml#/memberCandidates'
   /groups/{group}/members/{user}:
-    $ref: './paths/users.yaml#/memberItem'
+    $ref: './paths/groups.yaml#/memberItem'
 
   /actions:
     $ref: './paths/actions.yaml#/collection'
+  /actions/types:
+    $ref: './paths/actions.yaml#/types'
+  /actions/feed:
+    $ref: './paths/actions.yaml#/feed'
+  /actions/run:
+    $ref: './paths/actions.yaml#/run'
+  /actions/categories:
+    $ref: './paths/actions.yaml#/categoryCollection'
+  /actions/categories/{category}:
+    $ref: './paths/actions.yaml#/categoryItem'
   /actions/{action}:
     $ref: './paths/actions.yaml#/item'
-  /actions/{action}/execute:
-    $ref: './paths/actions.yaml#/execute'
-  /actions/{action}/run:
-    $ref: './paths/actions.yaml#/run'
   /actions/{action}/schedule:
     $ref: './paths/actions.yaml#/schedule'
 
-  /action-runs:
+  /actions/credentials:
+    $ref: './paths/action-credentials.yaml#/collection'
+  /actions/credentials/{credential}:
+    $ref: './paths/action-credentials.yaml#/item'
+  /actions/runs:
     $ref: './paths/action-runs.yaml#/collection'
-  /action-runs/completed:
+  /actions/runs/completed:
     $ref: './paths/action-runs.yaml#/completed'
-  /action-runs/failed:
+  /actions/runs/failed:
     $ref: './paths/action-runs.yaml#/failed'
+  /actions/schedules:
+    $ref: './paths/action-schedules.yaml#/collection'
+  /actions/directories/{directory}/sync-schedule:
+    $ref: './paths/directory-sync-schedules.yaml#/item'
 
   /embed/auth/exchange:
     $ref: './paths/embed-auth.yaml#/exchange'
   /embed/auth/refresh:
     $ref: './paths/embed-auth.yaml#/refresh'
+
+  /proxy/endpoints:
+    $ref: './paths/proxy.yaml#/endpointCollection'
+  /proxy/endpoints/{proxy}:
+    $ref: './paths/proxy.yaml#/endpointItem'
+  /proxy/endpoints/{proxy}/fields:
+    $ref: './paths/proxy.yaml#/endpointFields'
+  /proxy/handlers:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/credential-fields:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/credential-types:
+    $ref: './paths/proxy.yaml#/catalog'
+  /proxy/connections:
+    $ref: './paths/proxy.yaml#/connectionCollection'
+  /proxy/connections/{connection}:
+    $ref: './paths/proxy.yaml#/connectionItem'
+  /proxy/feed:
+    $ref: './paths/proxy.yaml#/feed'
+  /proxy/categories:
+    $ref: './paths/proxy.yaml#/categoryCollection'
+  /proxy/categories/{category}:
+    $ref: './paths/proxy.yaml#/categoryItem'
+  /proxy/requests:
+    $ref: './paths/proxy.yaml#/requestCollection'
+  /proxy/requests/{proxyRequest}:
+    $ref: './paths/proxy.yaml#/requestItem'
+  /proxies/{uuid}:
+    $ref: './paths/proxy.yaml#/receive'
+  /proxies/{uuid}/fields:
+    $ref: './paths/proxy.yaml#/publicFields'
+
+  /centrifugo/connection-token:
+    $ref: './paths/realtime.yaml#/connectionToken'
+
+# Push-сообщения Centrifugo-каналов (см. тег «Real-time»). Формально это не
+# HTTP-колбэки, но `webhooks` — единственное стандартное место в OpenAPI 3.1,
+# где можно задокументировать shape асинхронного push-сообщения от сервера.
+webhooks:
+  scenario-run-updated:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → run_updated'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/RunUpdatedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-started:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_started'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionStartedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-failed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_failed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionFailedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-chain-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → chain_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ChainCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → batch_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/BatchCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-failed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → batch_failed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/BatchFailedMessage'
+      responses:
+        '200':
+          description: ''
+  user-start-scenario:
+    post:
+      tags: [ Real-time ]
+      summary: '#user:{userId} → start_scenario'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/StartScenarioMessage'
+      responses:
+        '200':
+          description: ''
+  directory-import-status-update:
+    post:
+      tags: [ Real-time ]
+      summary: 'directory-import:{importId} → status_update'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/DirectoryImportStatusMessage'
+      responses:
+        '200':
+          description: ''
 
 components:
   parameters:
@@ -348,6 +563,8 @@ components:
 
     UserGroup:
       $ref: './components/schemas/groups.yaml#/UserGroup'
+    ActorLinkage:
+      $ref: './components/schemas/groups.yaml#/ActorLinkage'
     UserGroupAttributes:
       $ref: './components/schemas/groups.yaml#/UserGroupAttributes'
     UserGroupRequest:
@@ -369,14 +586,20 @@ components:
       $ref: './components/schemas/actions.yaml#/ExcelReportActionConfig'
     DirectoryImportActionConfig:
       $ref: './components/schemas/actions.yaml#/DirectoryImportActionConfig'
-    ActionExecutionRequest:
-      $ref: './components/schemas/actions.yaml#/ActionExecutionRequest'
-    ActionExecutionResponse:
-      $ref: './components/schemas/actions.yaml#/ActionExecutionResponse'
+    ActionEnvelope:
+      $ref: './components/schemas/actions.yaml#/ActionEnvelope'
+    ActionInputField:
+      $ref: './components/schemas/actions.yaml#/ActionInputField'
+    ActionTypeMeta:
+      $ref: './components/schemas/actions.yaml#/ActionTypeMeta'
+    ActionTypeListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionTypeListResponse'
     ActionRunRequest:
       $ref: './components/schemas/actions.yaml#/ActionRunRequest'
     ActionRunResponse:
       $ref: './components/schemas/actions.yaml#/ActionRunResponse'
+    ActionRunRejectedResponse:
+      $ref: './components/schemas/actions.yaml#/ActionRunRejectedResponse'
     ActionScheduleRequest:
       $ref: './components/schemas/actions.yaml#/ActionScheduleRequest'
     ActionSchedule:
@@ -387,6 +610,20 @@ components:
       $ref: './components/schemas/actions.yaml#/ActionRun'
     ActionRunListResponse:
       $ref: './components/schemas/actions.yaml#/ActionRunListResponse'
+    ActionFeedResponse:
+      $ref: './components/schemas/actions.yaml#/ActionFeedResponse'
+    ActionCredential:
+      $ref: './components/schemas/actions.yaml#/ActionCredential'
+    ActionCredentialRequest:
+      $ref: './components/schemas/actions.yaml#/ActionCredentialRequest'
+    ActionCredentialListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionCredentialListResponse'
+    ActionScheduleListResponse:
+      $ref: './components/schemas/actions.yaml#/ActionScheduleListResponse'
+    DirectorySyncScheduleRequest:
+      $ref: './components/schemas/actions.yaml#/DirectorySyncScheduleRequest'
+    DirectorySyncScheduleResponse:
+      $ref: './components/schemas/actions.yaml#/DirectorySyncScheduleResponse'
 
     EmbedAuthExchangeRequest:
       $ref: './components/schemas/embed-auth.yaml#/EmbedAuthExchangeRequest'
@@ -394,6 +631,27 @@ components:
       $ref: './components/schemas/embed-auth.yaml#/EmbedAuthRefreshRequest'
     EmbedTokenPairResponse:
       $ref: './components/schemas/embed-auth.yaml#/EmbedTokenPairResponse'
+
+    CentrifugoConnectionToken:
+      $ref: './components/schemas/realtime.yaml#/CentrifugoConnectionToken'
+    RunUpdatedMessage:
+      $ref: './components/schemas/realtime.yaml#/RunUpdatedMessage'
+    ActionStartedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionStartedMessage'
+    ActionCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionCompletedMessage'
+    ActionFailedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionFailedMessage'
+    ChainCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/ChainCompletedMessage'
+    BatchCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/BatchCompletedMessage'
+    BatchFailedMessage:
+      $ref: './components/schemas/realtime.yaml#/BatchFailedMessage'
+    StartScenarioMessage:
+      $ref: './components/schemas/realtime.yaml#/StartScenarioMessage'
+    DirectoryImportStatusMessage:
+      $ref: './components/schemas/realtime.yaml#/DirectoryImportStatusMessage'
 
   securitySchemes:
     BearerAuth:

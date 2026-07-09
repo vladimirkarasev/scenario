@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ! -f /var/www/html/artisan ]]; then
+  echo "artisan not found; RoadRunner is waiting for Laravel app files"
+  exec sleep infinity
+fi
+
+exec rr serve -c /var/www/html/.rr.yaml

@@ -55,6 +55,41 @@ interface FieldConfig {
 // на фронте — labelTemplate у directory_list/directory_table (он рендерится локально
 // по item.data справочника через renderLabelTemplate в SurveyDirectoryListField/TableField).
 const resolvedProps = computed(() => (props.block.props ?? {}) as Record<string, unknown>)
+
+interface DepDropConfig {
+  fieldVarName: string
+  filterKey: string
+  valueKey: string
+}
+
+function resolveDepDropFilterKey(blockProps: Record<string, unknown>): string {
+  const dd = blockProps.depDrop
+  if (!dd || typeof dd !== 'object' || Array.isArray(dd)) return ''
+  return String((dd as DepDropConfig).filterKey ?? '')
+}
+
+function resolveDepDropValue(blockProps: Record<string, unknown>, data: Record<string, unknown>): string | null {
+  const dd = blockProps.depDrop
+  if (!dd || typeof dd !== 'object' || Array.isArray(dd)) return null
+  const config = dd as DepDropConfig
+  if (!config.fieldVarName || !config.filterKey) return null
+
+  const parentValue = data[config.fieldVarName]
+  if (!parentValue || typeof parentValue !== 'object' || Array.isArray(parentValue)) return null
+
+  const shape = parentValue as Record<string, unknown>
+  const vk = config.valueKey || 'external_key'
+
+  if (vk === 'id') return shape.id ? String(shape.id) : null
+  if (vk === 'external_key') return shape.external_key ? String(shape.external_key) : null
+
+  const dataMap = shape.data
+  if (dataMap && typeof dataMap === 'object' && !Array.isArray(dataMap)) {
+    const v = (dataMap as Record<string, unknown>)[vk]
+    return v !== null && v !== undefined ? String(v) : null
+  }
+  return null
+}
 const resolvedChildren = computed(() => ((props.block.children ?? []) as SurveyBlock[]).filter(Boolean))
 const selectOptions = computed(() => Array.isArray(resolvedProps.value.options) ? resolvedProps.value.options as SelectOption[] : [])
 const directoryFields = computed(() => Array.isArray(resolvedProps.value.fields) ? resolvedProps.value.fields as FieldConfig[] : [])
@@ -259,6 +294,8 @@ watch(
         :disabled="disabled"
         :error="hasError"
         :context="context"
+        :filter-key="resolveDepDropFilterKey(resolvedProps)"
+        :filter-value="resolveDepDropValue(resolvedProps, formData)"
         @update:model-value="formData[fieldName] = $event"
     />
     <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>

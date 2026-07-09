@@ -46,6 +46,7 @@
     },
     "dependencies": {
         "@lucide/vue": "^1.17.0",
+        "@sentry/vue": "^10.63.0",
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/vue-table": "^8.21.3",
         "@tanstack/vue-virtual": "^3.13.29",

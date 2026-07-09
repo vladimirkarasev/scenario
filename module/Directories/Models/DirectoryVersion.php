@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Directories\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,25 +28,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read int|null $items_count
  * @property-read int|null $imports_count
  */
+#[Fillable(
+    'directory_id',
+    'version_number',
+    'code',
+    'status',
+    'is_active',
+    'source_type',
+    'sync_options',
+    'allow_other',
+    'other_label',
+    'other_external_key',
+    'schema_json',
+    'source_import_id',
+    'source_metadata_json',
+)]
 final class DirectoryVersion extends Model
 {
     use SoftDeletes;
-
-    protected $fillable = [
-        'directory_id',
-        'version_number',
-        'code',
-        'status',
-        'is_active',
-        'source_type',
-        'sync_options',
-        'allow_other',
-        'other_label',
-        'other_external_key',
-        'schema_json',
-        'source_import_id',
-        'source_metadata_json',
-    ];
 
     /** @return BelongsTo<Directory, $this> */
     public function directory(): BelongsTo

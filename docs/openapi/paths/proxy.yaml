@@ -1,0 +1,372 @@
+endpointCollection:
+  get:
+    tags: [ Proxy ]
+    summary: Список интеграций
+    parameters:
+      - { name: 'filter[search]', in: query, schema: { type: string } }
+      - { name: 'filter[type]', in: query, schema: { type: string } }
+      - { name: 'filter[category_ids][]', in: query, schema: { type: array, items: { type: string, format: uuid } } }
+      - { name: sort, in: query, schema: { type: string }, description: 'name, code, type, is_active, created_at, updated_at; префикс - задаёт DESC' }
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        $ref: '#/components/responses/EndpointCollection'
+      '401': { $ref: '../components/responses.yaml#/UnauthorizedErrors' }
+      '403': { $ref: '../components/responses.yaml#/ForbiddenErrors' }
+  post:
+    tags: [ Proxy ]
+    summary: Создать интеграцию
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/proxy.yaml#/ProxyEndpointRequest' }
+    responses:
+      '201': { $ref: '#/components/responses/EndpointItem' }
+      '401': { $ref: '../components/responses.yaml#/UnauthorizedErrors' }
+      '403': { $ref: '../components/responses.yaml#/ForbiddenErrors' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+
+endpointItem:
+  parameters:
+    - { name: proxy, in: path, required: true, schema: { type: integer } }
+  get:
+    tags: [ Proxy ]
+    summary: Получить интеграцию
+    responses:
+      '200': { $ref: '#/components/responses/EndpointItem' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+  put:
+    tags: [ Proxy ]
+    summary: Обновить интеграцию
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/proxy.yaml#/ProxyEndpointRequest' }
+    responses:
+      '200': { $ref: '#/components/responses/EndpointItem' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+  delete:
+    tags: [ Proxy ]
+    summary: Удалить интеграцию
+    responses:
+      '204': { description: Интеграция удалена }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+connectionCollection:
+  get:
+    tags: [ Proxy ]
+    summary: Список доступов
+    parameters:
+      - { name: 'filter[search]', in: query, schema: { type: string } }
+      - { name: 'filter[credential_type]', in: query, schema: { type: string } }
+      - { name: sort, in: query, schema: { type: string } }
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: JSON:API коллекция доступов
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyConnection' } }
+                    meta: { $ref: '../components/schemas/common.yaml#/CollectionMeta' }
+  post:
+    tags: [ Proxy ]
+    summary: Создать доступ
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/proxy.yaml#/ProxyConnectionRequest' }
+    responses:
+      '201': { $ref: '#/components/responses/ConnectionItem' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+
+connectionItem:
+  parameters:
+    - { name: connection, in: path, required: true, schema: { type: integer } }
+  get:
+    tags: [ Proxy ]
+    summary: Получить доступ
+    responses:
+      '200': { $ref: '#/components/responses/ConnectionItem' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+  put:
+    tags: [ Proxy ]
+    summary: Обновить доступ
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/proxy.yaml#/ProxyConnectionRequest' }
+    responses:
+      '200': { $ref: '#/components/responses/ConnectionItem' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+  delete:
+    tags: [ Proxy ]
+    summary: Удалить доступ
+    responses:
+      '204': { description: Доступ удалён }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+requestCollection:
+  get:
+    tags: [ Proxy ]
+    summary: Журнал запросов
+    parameters:
+      - { name: 'filter[endpoint_id]', in: query, schema: { type: integer } }
+      - { name: 'filter[status]', in: query, schema: { type: string } }
+      - { name: 'filter[search]', in: query, schema: { type: string } }
+      - { name: sort, in: query, schema: { type: string } }
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: JSON:API коллекция запросов
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyRequest' } }
+                    meta: { $ref: '../components/schemas/common.yaml#/CollectionMeta' }
+
+requestItem:
+  get:
+    tags: [ Proxy ]
+    summary: Детали запроса
+    parameters:
+      - { name: proxyRequest, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200':
+        description: JSON:API ресурс запроса
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ data, meta ]
+              properties:
+                data: { $ref: '../components/schemas/proxy.yaml#/ProxyRequest' }
+                meta: { $ref: '../components/schemas/common.yaml#/ApiMeta' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+catalog:
+  get:
+    tags: [ Proxy ]
+    summary: Каталог Proxy
+    parameters:
+      - { name: 'filter[search]', in: query, schema: { type: string } }
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: JSON:API коллекция элементов каталога
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyCatalogResource' } }
+
+endpointFields:
+  get:
+    tags: [ Proxy ]
+    summary: Поля интеграции
+    parameters:
+      - { name: proxy, in: path, required: true, schema: { type: integer } }
+    responses:
+      '200':
+        description: JSON:API коллекция полей
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyCatalogResource' } }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+publicFields:
+  get:
+    tags: [ Proxy ]
+    summary: Поля публичной интеграции
+    parameters:
+      - { name: uuid, in: path, required: true, schema: { type: string, format: uuid } }
+    responses:
+      '200':
+        description: JSON:API коллекция полей
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyCatalogResource' } }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+feed:
+  get:
+    tags: [ Proxy ]
+    summary: Лента разделов и интеграций
+    parameters:
+      - { name: 'filter[parent_id]', in: query, schema: { type: [ string, 'null' ], format: uuid } }
+      - { name: 'filter[search]', in: query, schema: { type: string } }
+      - { name: 'filter[type]', in: query, schema: { type: string } }
+      - $ref: '../components/parameters.yaml#/PageSize'
+      - $ref: '../components/parameters.yaml#/PageNumber'
+    responses:
+      '200':
+        description: JSON:API коллекция разделов и интеграций
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyFeedResource' } }
+                    meta:
+                      allOf:
+                        - $ref: '../components/schemas/common.yaml#/CollectionMeta'
+                        - type: object
+                          properties:
+                            folders_total: { type: integer }
+                            items_total: { type: integer }
+
+categoryCollection:
+  get:
+    tags: [ Proxy ]
+    summary: Список разделов интеграций
+    parameters:
+      - { name: 'filter[parent_id]', in: query, schema: { type: [ string, 'null' ], format: uuid } }
+    responses:
+      '200':
+        description: JSON:API коллекция разделов
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+                - properties:
+                    data: { type: array, items: { $ref: '../components/schemas/categories.yaml#/CategoryResource' } }
+  post:
+    tags: [ Proxy ]
+    summary: Создать раздел интеграций
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/categories.yaml#/CategoryRequest' }
+    responses:
+      '201':
+        description: Раздел создан
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data: { $ref: '../components/schemas/categories.yaml#/CategoryResource' }
+                meta: { $ref: '../components/schemas/common.yaml#/ApiMeta' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+
+categoryItem:
+  parameters:
+    - { name: category, in: path, required: true, schema: { type: string, format: uuid } }
+  get:
+    tags: [ Proxy ]
+    summary: Получить раздел интеграций
+    responses:
+      '200':
+        description: JSON:API ресурс раздела
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data: { $ref: '../components/schemas/categories.yaml#/CategoryResource' }
+                meta: { $ref: '../components/schemas/common.yaml#/ApiMeta' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+  put:
+    tags: [ Proxy ]
+    summary: Обновить раздел интеграций
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/categories.yaml#/CategoryRequest' }
+    responses:
+      '200': { description: Раздел обновлён }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+      '422': { $ref: '../components/responses.yaml#/ValidationErrors' }
+  delete:
+    tags: [ Proxy ]
+    summary: Удалить раздел интеграций
+    responses:
+      '204': { description: Раздел удалён }
+      '403': { $ref: '../components/responses.yaml#/ForbiddenErrors' }
+      '404': { $ref: '../components/responses.yaml#/NotFoundErrors' }
+
+receive:
+  parameters:
+    - { name: uuid, in: path, required: true, schema: { type: string, format: uuid } }
+  get:
+    tags: [ Proxy ]
+    summary: Вызвать публичную GET-интеграцию
+    responses:
+      '200': { description: Ответ обработчика интеграции }
+      '404': { description: Интеграция не найдена или неактивна }
+      '405': { description: Метод не разрешён }
+  post:
+    tags: [ Proxy ]
+    summary: Вызвать публичную POST-интеграцию
+    requestBody:
+      content:
+        application/json:
+          schema: { type: object, additionalProperties: true }
+    responses:
+      '202': { description: Запрос принят }
+      '404': { description: Интеграция не найдена или неактивна }
+      '405': { description: Метод не разрешён }
+      '422': { description: Payload не прошёл схему обработчика }
+
+components:
+  responses:
+    EndpointCollection:
+      description: JSON:API коллекция интеграций
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '../components/schemas/common.yaml#/JsonApiCollection'
+              - properties:
+                  data: { type: array, items: { $ref: '../components/schemas/proxy.yaml#/ProxyEndpoint' } }
+                  meta: { $ref: '../components/schemas/common.yaml#/CollectionMeta' }
+    EndpointItem:
+      description: JSON:API ресурс интеграции
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ data, meta ]
+            properties:
+              data: { $ref: '../components/schemas/proxy.yaml#/ProxyEndpoint' }
+              meta: { $ref: '../components/schemas/common.yaml#/ApiMeta' }
+    ConnectionItem:
+      description: JSON:API ресурс доступа
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [ data, meta ]
+            properties:
+              data: { $ref: '../components/schemas/proxy.yaml#/ProxyConnection' }
+              meta: { $ref: '../components/schemas/common.yaml#/ApiMeta' }

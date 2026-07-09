@@ -272,6 +272,19 @@ final readonly class DirectoryService
         }
     }
 
+    /** @param array<string, mixed> $settings */
+    public function updateImportSettings(Directory $directory, array $settings): void
+    {
+        $existing = is_array($directory->import_settings_json) ? $directory->import_settings_json : [];
+        $directory->forceFill([
+            'import_settings_json' => array_merge(
+                $existing,
+                array_filter($settings, static fn(mixed $v): bool => $v !== null),
+            ),
+        ])->save();
+        DirectoryCache::forgetDirectory($directory->id);
+    }
+
     /** @return array<int, array<string, mixed>> */
     private function sampleItems(DirectoryVersion $version): array
     {

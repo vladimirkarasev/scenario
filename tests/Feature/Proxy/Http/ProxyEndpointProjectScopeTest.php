@@ -67,7 +67,7 @@ final class ProxyEndpointProjectScopeTest extends TestCase
         $this->actingAs($user)
             ->getJson('/api/proxy/feed?filter[parent_id]=null')
             ->assertOk()
-            ->assertJsonPath('pagination.items_total', 1);
+            ->assertJsonPath('meta.items_total', 1);
     }
 
     // -------------------------------------------------------------------------
@@ -80,6 +80,7 @@ final class ProxyEndpointProjectScopeTest extends TestCase
         $project = $this->makeProject();
 
         $user = User::factory()->create([
+            'project_id' => $project->id,
             'sitekey' => $project->sitekey,
             'host' => $project->host,
         ]);

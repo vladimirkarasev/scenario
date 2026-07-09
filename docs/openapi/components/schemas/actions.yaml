@@ -1,13 +1,13 @@
 ActionResource:
   type: object
-  required: [ id, type, attributes ]
+  required: [id, type, attributes]
   properties:
     id:
       type: string
-      example: '12'
+      format: uuid
     type:
       type: string
-      example: actions
+      const: actions
     attributes:
       $ref: '#/ActionAttributes'
     relationships:
@@ -15,6 +15,7 @@ ActionResource:
       properties:
         runs:
           type: object
+          required: [data]
           properties:
             data:
               type: array
@@ -22,6 +23,7 @@ ActionResource:
                 $ref: '#/ActionRun'
         schedule:
           type: object
+          required: [data]
           properties:
             data:
               oneOf:
@@ -30,6 +32,7 @@ ActionResource:
 
 ActionAttributes:
   type: object
+  required: [name, slug, code, type, is_active, input_fields, category_ids]
   properties:
     name:
       type: string
@@ -37,41 +40,82 @@ ActionAttributes:
     slug:
       type: string
       example: create-lead-xml
+    code:
+      type: string
+      pattern: '^[a-z][a-z0-9_]*$'
+      example: create_lead_xml
     description:
-      type: [ string, 'null' ]
+      type: [string, 'null']
     type:
       $ref: '#/ActionType'
     is_active:
       type: boolean
     config:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     schema:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     ui_schema:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
+    input_fields:
+      type: array
+      items:
+        $ref: '#/ActionInputField'
+    category_ids:
+      type: array
+      items:
+        type: string
+        format: uuid
     created_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     updated_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
+
+ActionEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/ActionResource'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
 
 ActionType:
   type: string
-  enum: [ email, template_file, proxy_request, excel_report, directory_import ]
-  description: >
-    `email` зарегистрирован как тип, но отправка пока не реализована.
-    `template_file` создаёт xml/txt/html по шаблону.
-    `proxy_request` отправляет данные через Proxy module.
-    `excel_report` создаёт xlsx-отчёт.
-    `directory_import` запускает импорт справочника через Directories module.
+  enum:
+    - email
+    - template_file
+    - proxy_request
+    - excel_report
+    - directory_import
+    - scenario_run_result
+
+ActionInputField:
+  type: object
+  required: [key, type]
+  properties:
+    key:
+      type: string
+      pattern: '^[a-z][a-z0-9_]*$'
+      example: client_uuid
+    label:
+      type: [string, 'null']
+      example: UUID клиента
+    type:
+      type: string
+      enum: [string, number, boolean, uuid, email]
+    required:
+      type: boolean
+      default: false
+    default: {}
 
 ActionRequest:
   type: object
-  required: [ name, slug, type, is_active ]
+  required: [name, slug, code, type, is_active]
   properties:
     name:
       type: string
@@ -81,403 +125,584 @@ ActionRequest:
       type: string
       maxLength: 255
       example: leads-report
+    code:
+      type: string
+      maxLength: 64
+      pattern: '^[a-z][a-z0-9_]*$'
+      example: leads_report
     description:
-      type: [ string, 'null' ]
+      type: [string, 'null']
     type:
       $ref: '#/ActionType'
     is_active:
       type: boolean
-      example: true
     config:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     schema:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     ui_schema:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
-
-TemplateFileActionConfig:
-  type: object
-  required: [ format, template ]
-  properties:
-    format:
-      type: string
-      enum: [ xml, txt, html ]
-    template:
-      type: string
-      example: '<lead><name>{{ lead.name }}</name></lead>'
-    file_name:
-      type: [ string, 'null' ]
-      example: lead.xml
-
-ProxyRequestActionConfig:
-  type: object
-  description: >
-    Action вызывает существующий endpoint модуля Proxy через `endpoint_uuid` и
-    получает ответ Proxy module. Нормализация, валидация, логирование и handler
-    остаются внутри `module/Proxy`.
-  required: [ endpoint_uuid ]
-  properties:
-    endpoint_uuid:
-      type: string
-      format: uuid
-    method:
-      type: string
-      enum: [ GET, POST, PUT, PATCH, DELETE ]
-      default: POST
-    headers:
-      type: object
-      additionalProperties: true
-    query:
-      type: object
-      additionalProperties: true
-    payload:
-      type: object
-      additionalProperties: true
-
-ExcelReportActionConfig:
-  type: object
-  required: [ columns ]
-  properties:
-    file_name:
-      type: [ string, 'null' ]
-      example: leads.xlsx
-    sheet_name:
-      type: [ string, 'null' ]
-      example: Leads
-    columns:
-      type: array
+    input_fields:
+      type: [array, 'null']
       items:
-        type: object
-        required: [ header, key ]
-        properties:
-          header:
-            type: string
-            example: Email
-          key:
-            type: string
-            example: lead.email
-    rows:
-      type: [ array, 'null' ]
+        $ref: '#/ActionInputField'
+    category_ids:
+      type: [array, 'null']
+      items:
+        type: string
+        format: uuid
+
+ActionTypeField:
+  type: object
+  required: [key, label, type, required]
+  additionalProperties: true
+  properties:
+    key:
+      type: string
+    label:
+      type: string
+    type:
+      type: string
+    required:
+      type: boolean
+    description:
+      type: [string, 'null']
+    placeholder:
+      type: [string, 'null']
+    default: {}
+    options:
+      type: array
       items:
         type: object
         additionalProperties: true
 
-DirectoryImportActionConfig:
+ActionTypeMeta:
   type: object
-  description: >
-    Action создаёт `DirectoryImport` через `Module\Directories\Services\ImportService`.
-    Сам импорт, версии, mapping, обработка строк и ошибки остаются внутри
-    `module/Directories`.
-  required: [ directory_id, source_type, mode, mapping, columns ]
+  required: [value, label, default_code, fields]
   properties:
-    directory_id:
+    value:
+      $ref: '#/ActionType'
+    label:
       type: string
-      format: uuid
-    source_type:
+    default_code:
       type: string
-      enum: [ file, proxy, remote ]
-    mode:
-      type: string
-      enum: [ create, update, replace ]
-    file_disk:
-      type: [ string, 'null' ]
-      example: local
-    file_path:
-      type: [ string, 'null' ]
-      description: Путь к уже сохранённому Excel/CSV/ODS/XLS файлу для `source_type=file`.
-      example: actions/leads/leads.xlsx
-    proxy_endpoint_id:
-      type: [ integer, 'null' ]
-      description: ID ProxyEndpoint для `source_type=proxy`.
-    proxy_endpoint_uuid:
-      type: [ string, 'null' ]
-      description: UUID ProxyEndpoint для `source_type=proxy`, если ID неизвестен.
-    remote:
-      type: [ object, 'null' ]
-      additionalProperties: true
-    mapping:
-      type: object
-      additionalProperties:
-        type: string
-      example:
-        email: email
-        name: name
-    columns:
+    fields:
       type: array
       items:
-        type: object
-        required: [ key, name ]
-        properties:
-          key:
-            type: string
-          name:
-            type: string
-          type:
-            type: [ string, 'null' ]
-          nullable:
-            type: [ boolean, 'null' ]
-    match_by:
-      type: [ string, 'null' ]
-    parent_key_field:
-      type: [ string, 'null' ]
-    chunk_size:
-      type: [ integer, 'null' ]
-      example: 500
-    activate:
-      type: [ boolean, 'null' ]
-    version_id:
-      type: [ integer, 'null' ]
+        $ref: '#/ActionTypeField'
 
-ActionExecutionRequest:
+ActionTypeListResponse:
   type: object
+  required: [items, meta]
   properties:
-    input:
-      type: object
-      additionalProperties: true
-      example:
-        lead:
-          name: Иван
-          email: ivan@example.com
-
-ActionExecutionResponse:
-  type: object
-  required: [ status ]
-  properties:
-    status:
-      type: string
-      enum: [ success, failed, skipped ]
-    output:
-      type: [ object, 'null' ]
-      additionalProperties: true
-    error:
-      type: [ string, 'null' ]
-    runs:
+    items:
       type: array
       items:
-        $ref: '#/ActionRun'
+        $ref: '#/ActionTypeMeta'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
 
 ActionRunRequest:
   type: object
+  required: [mode, actions]
   properties:
-    execution_mode:
+    mode:
       type: string
-      enum: [ sync, async, chain, batch ]
-      description: >
-        Режим выполнения текущего запуска. `chain` выполняет `action_ids`
-        последовательно, `batch` запускает `action_ids` параллельно.
-      example: chain
-    action_ids:
-      type: array
-      description: Основные actions для последовательного или параллельного выполнения.
-      items:
-        type: integer
-      example: [ 10, 11, 12 ]
-    before_action_ids:
-      type: array
-      description: Actions, которые выполняются перед основной очередью.
-      items:
-        type: integer
-      example: [ 7 ]
-    after_action_ids:
-      type: array
-      description: Actions, которые выполняются после успешной обработки основной очереди.
-      items:
-        type: integer
-      example: [ 20 ]
-    failed_action_ids:
-      type: array
-      description: Actions, которые выполняются при ошибке before/main/batch обработки.
-      items:
-        type: integer
-      example: [ 30 ]
-    retry:
-      type: object
-      properties:
-        attempts:
-          type: integer
-          minimum: 1
-          example: 3
-        backoff:
-          type: array
-          items:
-            type: integer
-          example: [ 60, 120, 300 ]
+      enum: [parallel, sequential]
+    actions:
+      allOf:
+        - $ref: '#/ActionCodeMap'
+      minProperties: 1
+    before:
+      $ref: '#/ActionCodeMap'
+    after:
+      $ref: '#/ActionCodeMap'
+    on_error:
+      $ref: '#/ActionCodeMap'
     input:
-      type: object
+      type: [object, 'null']
       additionalProperties: true
-      example:
-        scenario_run_id: 15
-        rows:
-          - lead:
-              email: ivan@example.com
+    schedule:
+      type: [object, 'null']
+      properties:
+        cron:
+          type: string
+          maxLength: 120
+        timezone:
+          type: [string, 'null']
+          example: Europe/Moscow
+
+ActionCodeMap:
+  type: object
+  description: Объект `code => UUID action`.
+  additionalProperties:
+    type: string
+    format: uuid
+  example:
+    prepare_report: 8a3abf99-7861-4c62-a467-fc90bc8c519f
 
 ActionRunResponse:
   type: object
-  required: [ status ]
+  required: [status, meta]
   properties:
     status:
       type: string
-      enum: [ completed, queued ]
-    result:
-      type: [ object, 'null' ]
-      properties:
-        status:
+      enum: [queued, scheduled]
+    queued:
+      type: integer
+      minimum: 0
+    schedule_id:
+      type: integer
+    next_run_at:
+      type: [string, 'null']
+      format: date-time
+    error:
+      type: string
+    errors:
+      type: object
+      additionalProperties:
+        type: array
+        items:
           type: string
-          enum: [ success, failed, skipped ]
-        output:
-          type: [ object, 'null' ]
-          additionalProperties: true
-        error:
-          type: [ string, 'null' ]
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
+ActionRunRejectedResponse:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      const: error
+    error:
+      type: string
+    errors:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
 
 ActionScheduleRequest:
   type: object
-  required: [ enabled, frequency ]
+  required: [enabled]
   properties:
     enabled:
       type: boolean
-      example: true
-    frequency:
-      type: string
-      enum: [ every_minute, hourly, daily, weekly, monthly ]
-      example: daily
-    run_at:
-      type: [ string, 'null' ]
-      pattern: '^\\d{2}:\\d{2}$'
-      description: >
-        Время запуска в указанной timezone. Для `hourly` используется только
-        минута, для `every_minute` поле игнорируется.
-      example: '09:30'
+    cron:
+      type: [string, 'null']
+      maxLength: 120
+      example: '0 9 * * 1-5'
     timezone:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       example: Europe/Moscow
     input:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
-      description: Input, который будет передан в orchestrator.
-      example:
-        source: schedule
     options:
-      anyOf:
-        - $ref: '#/ActionRunRequest'
-        - type: 'null'
+      type: [object, 'null']
+      additionalProperties: true
     settings:
-      type: [ object, 'null' ]
-      properties:
-        day_of_week:
-          type: integer
-          minimum: 1
-          maximum: 7
-          description: Для weekly. 1 = понедельник, 7 = воскресенье.
-          example: 1
-        day_of_month:
-          type: integer
-          minimum: 1
-          maximum: 31
-          description: Для monthly.
-          example: 1
+      type: [object, 'null']
+      additionalProperties: true
 
 ActionSchedule:
   type: object
+  required: [action_id, enabled, timezone]
   properties:
     id:
       type: integer
     action_id:
-      type: integer
+      type: string
+      format: uuid
     enabled:
       type: boolean
-    frequency:
-      type: string
-      enum: [ every_minute, hourly, daily, weekly, monthly ]
-    run_at:
-      type: [ string, 'null' ]
+    cron:
+      type: [string, 'null']
     timezone:
       type: string
     input:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     options:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     settings:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     last_run_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     next_run_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     created_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     updated_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
 
 ActionScheduleResource:
   type: object
-  required: [ id, type, attributes ]
+  required: [id, type, attributes]
   properties:
     id:
       type: string
-      example: '5'
     type:
       type: string
-      example: action-schedules
+      const: action-schedules
     attributes:
       $ref: '#/ActionSchedule'
 
+ActionScheduleEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      oneOf:
+        - $ref: '#/ActionScheduleResource'
+        - type: 'null'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
 ActionRun:
   type: object
+  required: [id, action_id, status, attempts_count]
   properties:
     id:
       type: integer
     action_id:
-      type: integer
+      type: string
+      format: uuid
+    action_name:
+      type: [string, 'null']
+    action_key:
+      type: [string, 'null']
     status:
       type: string
-      enum: [ running, success, failed, skipped ]
+      enum: [pending, running, success, failed, skipped]
     input:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     output:
-      type: [ object, 'null' ]
+      type: [object, 'null']
       additionalProperties: true
     error:
-      type: [ string, 'null' ]
+      type: [string, 'null']
     reason:
-      type: [ string, 'null' ]
-      description: Причина ошибки. Для успешных задач `null`.
+      type: [string, 'null']
     attempts_count:
       type: integer
-      minimum: 1
-      description: Номер попытки, на которой была создана запись выполнения.
+      minimum: 0
     started_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     finished_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
     duration_ms:
-      type: [ integer, 'null' ]
+      type: [integer, 'null']
     created_at:
-      type: [ string, 'null' ]
+      type: [string, 'null']
       format: date-time
 
 ActionRunListResponse:
   type: object
-  required: [ items, meta ]
+  required: [items, meta]
   properties:
     items:
       type: array
       items:
         $ref: '#/ActionRun'
     meta:
+      allOf:
+        - $ref: './common.yaml#/ApiMeta'
+        - type: object
+          required: [total]
+          properties:
+            total:
+              type: integer
+
+ActionFeedFolder:
+  type: object
+  required: [type, id, name, is_system, children_count]
+  properties:
+    type:
+      type: string
+      const: folder
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    parent_id:
+      type: [string, 'null']
+      format: uuid
+    is_system:
+      type: boolean
+    children_count:
+      type: integer
+    created_at:
+      type: [string, 'null']
+      format: date-time
+    updated_at:
+      type: [string, 'null']
+      format: date-time
+
+ActionFeedItem:
+  type: object
+  required: [type, id, name, slug, action_type, action_type_label, is_active]
+  properties:
+    type:
+      type: string
+      const: action
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    slug:
+      type: string
+    action_type:
+      $ref: '#/ActionType'
+    action_type_label:
+      type: string
+    is_active:
+      type: boolean
+    description:
+      type: [string, 'null']
+    schedule:
+      oneOf:
+        - type: object
+          required: [enabled]
+          properties:
+            enabled:
+              type: boolean
+            cron:
+              type: [string, 'null']
+            next_run_at:
+              type: [string, 'null']
+              format: date-time
+        - type: 'null'
+    created_at:
+      type: [string, 'null']
+      format: date-time
+    updated_at:
+      type: [string, 'null']
+      format: date-time
+
+ActionFeedResponse:
+  type: object
+  required: [data, pagination, meta]
+  properties:
+    data:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/ActionFeedFolder'
+          - $ref: '#/ActionFeedItem'
+        discriminator:
+          propertyName: type
+    pagination:
       type: object
+      required: [current_page, last_page, per_page, total, folders_total, items_total]
       properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
         total:
           type: integer
+        folders_total:
+          type: integer
+        items_total:
+          type: integer
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
+ActionCredentialType:
+  type: string
+  enum: [none, bearer, basic, api_key, oauth2_placeholder]
+
+ActionCredential:
+  type: object
+  required: [id, name, type, masked_secrets, has_secrets]
+  properties:
+    id:
+      type: integer
+    name:
+      type: string
+    type:
+      $ref: '#/ActionCredentialType'
+    config:
+      type: [object, 'null']
+      additionalProperties: true
+    masked_secrets:
+      type: object
+      additionalProperties:
+        type: string
+    has_secrets:
+      type: boolean
+    created_at:
+      type: [string, 'null']
+      format: date-time
+    updated_at:
+      type: [string, 'null']
+      format: date-time
+
+ActionCredentialRequest:
+  type: object
+  required: [name, type]
+  properties:
+    name:
+      type: string
+      maxLength: 255
+    type:
+      $ref: '#/ActionCredentialType'
+    config:
+      type: [object, 'null']
+      additionalProperties: true
+    secrets:
+      type: [object, 'null']
+      additionalProperties: true
+      writeOnly: true
+
+ActionCredentialListResponse:
+  type: object
+  required: [items, meta]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: '#/ActionCredential'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
+ActionCredentialItemResponse:
+  type: object
+  required: [item, meta]
+  properties:
+    item:
+      $ref: '#/ActionCredential'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
+ActionScheduleListItem:
+  type: object
+  required: [id, enabled, timezone]
+  properties:
+    id:
+      type: integer
+    enabled:
+      type: boolean
+    cron:
+      type: [string, 'null']
+    timezone:
+      type: string
+    last_run_at:
+      type: [string, 'null']
+      format: date-time
+    next_run_at:
+      type: [string, 'null']
+      format: date-time
+    action:
+      oneOf:
+        - type: object
+          required: [id, name, code, type, is_active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            code:
+              type: string
+            type:
+              $ref: '#/ActionType'
+            is_active:
+              type: boolean
+        - type: 'null'
+
+ActionScheduleListResponse:
+  type: object
+  required: [items, meta]
+  properties:
+    items:
+      type: array
+      items:
+        $ref: '#/ActionScheduleListItem'
+    meta:
+      allOf:
+        - $ref: './common.yaml#/ApiMeta'
+        - type: object
+          required: [total]
+          properties:
+            total:
+              type: integer
+
+DirectorySyncScheduleRequest:
+  type: object
+  required: [enabled]
+  properties:
+    enabled:
+      type: boolean
+    cron:
+      type: [string, 'null']
+      maxLength: 120
+    timezone:
+      type: [string, 'null']
+
+DirectorySyncSchedule:
+  type: object
+  required: [enabled, timezone]
+  properties:
+    enabled:
+      type: boolean
+    cron:
+      type: [string, 'null']
+    timezone:
+      type: string
+    last_run_at:
+      type: [string, 'null']
+      format: date-time
+    next_run_at:
+      type: [string, 'null']
+      format: date-time
+
+DirectorySyncScheduleResponse:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      oneOf:
+        - $ref: '#/DirectorySyncSchedule'
+        - type: 'null'
+    meta:
+      $ref: './common.yaml#/ApiMeta'
+
+TemplateFileActionConfig:
+  type: object
+  additionalProperties: true
+  properties:
+    template:
+      type: string
+    file_name:
+      type: [string, 'null']
+
+ProxyRequestActionConfig:
+  type: object
+  additionalProperties: true
+
+ExcelReportActionConfig:
+  type: object
+  additionalProperties: true
+
+DirectoryImportActionConfig:
+  type: object
+  additionalProperties: true

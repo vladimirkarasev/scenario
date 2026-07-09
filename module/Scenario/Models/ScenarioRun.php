@@ -6,13 +6,16 @@ namespace Module\Scenario\Models;
 
 use Module\Users\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Module\Scenario\Enums\ScenarioRunStatus;
+use Module\Scenario\QueryBuilders\ScenarioRunBuilder;
 
 /**
  * @property string $id
@@ -35,25 +38,16 @@ use Module\Scenario\Enums\ScenarioRunStatus;
  * @property-read User|null $createdBy
  * @property-read User|null $updatedBy
  * @property-read User|null $operator
+ *
+ * @method static ScenarioRunBuilder query()
  */
+#[UseEloquentBuilder(ScenarioRunBuilder::class)]
+#[Fillable('id', 'scenario_id', 'scenario_version_id', 'scenario_version_revision_id', 'current_node_id', 'context', 'status', 'created_by', 'updated_by', 'operator_id')]
 final class ScenarioRun extends Model
 {
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    protected $fillable = [
-        'id',
-        'scenario_id',
-        'scenario_version_id',
-        'scenario_version_revision_id',
-        'current_node_id',
-        'context',
-        'status',
-        'created_by',
-        'updated_by',
-        'operator_id',
-    ];
 
     /** @return BelongsTo<Scenario, ScenarioRun> */
     public function scenario(): BelongsTo
@@ -76,7 +70,19 @@ final class ScenarioRun extends Model
     /** @return HasMany<ScenarioRunStep, ScenarioRun> */
     public function steps(): HasMany
     {
-        return $this->hasMany(ScenarioRunStep::class, 'run_id')->latest('id');
+        return $this->hasMany(ScenarioRunStep::class, 'run_id')
+            ->whereNull('cancelled_at')
+            ->latest('id');
+    }
+
+    /**
+     * Все шаги включая отменённые — для истории прохождения.
+     *
+     * @return HasMany<ScenarioRunStep, ScenarioRun>
+     */
+    public function stepHistory(): HasMany
+    {
+        return $this->hasMany(ScenarioRunStep::class, 'run_id')->orderBy('id');
     }
 
     /** @return BelongsTo<User, ScenarioRun> */
@@ -116,31 +122,53 @@ final class ScenarioRun extends Model
     protected static function booted(): void
     {
         self::creating(static function (ScenarioRun $run): void {
-            if (!$run->getKey()) {
-                $run->{$run->getKeyName()} = (string)Str::uuid();
-            }
-            $userId = Auth::id();
-            if ($userId !== null) {
-                $run->created_by ??= (int)$userId;
-                $run->updated_by ??= (int)$userId;
-                $run->operator_id ??= (int)$userId;
-            }
-
-            // На PostgreSQL number выдаёт DEFAULT nextval(...); прочие драйверы (sqlite в тестах)
-            // последовательности не имеют, поэтому проставляем значение вручную.
-            if ($run->number === null && $run->getConnection()->getDriverName() !== 'pgsql') {
-                $maxNumber = self::query()->max('number');
-                $run->number = (is_numeric($maxNumber) ? (int)$maxNumber : 0) + 1;
-            }
+            $run->ensureUuidKey();
+            $run->fillAuditUsers();
+            $run->fillNumberWithoutSequence();
         });
 
-        // number проставляется PostgreSQL через DEFAULT nextval(...).
-        // Eloquent с $incrementing=false не возвращает сгенерированные значения,
-        // поэтому подтягиваем их явным refresh после insert.
         self::created(static function (ScenarioRun $run): void {
-            if ($run->number === null) {
-                $run->refresh();
-            }
+            $run->refreshGeneratedNumber();
         });
+    }
+
+    private function ensureUuidKey(): void
+    {
+        if (!$this->getKey()) {
+            $this->{$this->getKeyName()} = (string)Str::uuid();
+        }
+    }
+
+    private function fillAuditUsers(): void
+    {
+        $userId = Auth::id();
+        if ($userId !== null) {
+            $this->created_by ??= (int)$userId;
+            $this->updated_by ??= (int)$userId;
+            $this->operator_id ??= (int)$userId;
+        }
+    }
+
+    /**
+     * На PostgreSQL number выдаёт DEFAULT nextval(...); прочие драйверы (sqlite в тестах)
+     * последовательности не имеют, поэтому проставляем значение вручную.
+     */
+    private function fillNumberWithoutSequence(): void
+    {
+        if ($this->number === null && $this->getConnection()->getDriverName() !== 'pgsql') {
+            $maxNumber = self::query()->max('number');
+            $this->number = (is_numeric($maxNumber) ? (int)$maxNumber : 0) + 1;
+        }
+    }
+
+    /**
+     * number проставляется PostgreSQL через DEFAULT nextval(...); Eloquent с $incrementing=false
+     * не возвращает сгенерированные значения, поэтому подтягиваем их явным refresh после insert.
+     */
+    private function refreshGeneratedNumber(): void
+    {
+        if ($this->number === null) {
+            $this->refresh();
+        }
     }
 }
