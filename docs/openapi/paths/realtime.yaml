@@ -1,0 +1,21 @@
+connectionToken:
+  get:
+    tags: [ Real-time ]
+    summary: Токен для подключения к Centrifugo
+    description: >
+      Выдаёт короткоживущий JWT для WebSocket-подключения к Centrifugo и адрес
+      WS-эндпоинта. Centrifugo валидирует токен самостоятельно (`sub` = id
+      пользователя) — RoadRunner в этот флоу не входит, он участвует только в
+      subscribe-proxy (авторизация подписки на канал) и в исходящей публикации.
+      Подробности и список каналов — во вступлении к тегу «Real-time».
+    security:
+      - BearerAuth: [ ]
+    responses:
+      '200':
+        description: Токен выдан
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/realtime.yaml#/CentrifugoConnectionToken'
+      '401':
+        $ref: '../components/responses.yaml#/Unauthorized'

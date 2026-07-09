@@ -1,0 +1,61 @@
+version: '3'
+
+rpc:
+  listen: tcp://127.0.0.1:${RR_RPC_PORT:-6001}
+
+server:
+  command: 'php vendor/bin/rr-worker start'
+
+http:
+  address: ${RR_HTTP_HOST:-0.0.0.0}:${RR_HTTP_PORT:-8080}
+  middleware: [ "static", "headers", "gzip" ]
+  pool:
+    debug: ${RR_DEBUG:-false}
+    num_workers: ${RR_HTTP_WORKERS:-4}
+    supervisor:
+      exec_ttl: 60s
+  headers:
+    response:
+      X-Powered-By: "RoadRunner"
+  static:
+    dir: "public"
+    forbid: [ ".php" ]
+
+sqs:
+  key: ${RR_SQS_KEY:-}
+  secret: ${RR_SQS_SECRET:-}
+  region: ${RR_SQS_REGION:-ru-central1}
+  endpoint: ${RR_SQS_ENDPOINT:-}
+
+jobs:
+  pool:
+    debug: ${RR_DEBUG:-false}
+    num_workers: ${RR_JOBS_WORKERS:-4}
+  pipelines:
+    imports:
+      driver: ${RR_JOBS_DRIVER:-boltdb}
+      config:
+        priority: 10
+        prefetch: 10
+        file: "storage/app/rr-imports.db"
+        queue: ${RR_JOBS_IMPORTS_QUEUE:-imports}
+    default:
+      driver: ${RR_JOBS_DRIVER:-boltdb}
+      config:
+        priority: 10
+        prefetch: 50
+        file: "storage/app/rr-default.db"
+        queue: ${RR_JOBS_DEFAULT_QUEUE:-default}
+  consume: [ "imports", "default" ]
+
+cron:
+  timezone: "UTC"
+  jobs:
+    - name: "laravel-schedule"
+      command: "php artisan schedule:run"
+      schedule: "* * * * *"
+      timeout: "50s"
+
+centrifuge:
+  proxy_address: tcp://0.0.0.0:${RR_CENTRIFUGE_PROXY_PORT:-30001}
+  grpc_api_address: ${CENTRIFUGO_GRPC_API_HOST:-centrifugo}:${CENTRIFUGO_GRPC_API_PORT:-10000}

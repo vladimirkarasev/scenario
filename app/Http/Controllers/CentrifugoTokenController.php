@@ -4,35 +4,36 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use denis660\Centrifugo\Centrifugo;
+use Firebase\JWT\JWT;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Module\Users\Models\User;
 
 final class CentrifugoTokenController extends Controller
 {
-    public function __construct(private readonly Centrifugo $centrifugo)
-    {
-    }
+    private const TOKEN_TTL_SECONDS = 3600;
 
     public function connectionToken(Request $request): JsonResponse
     {
-        $id = $request->user()?->getAuthIdentifier();
-        $userId = is_string($id) || is_int($id) ? (string)$id : '';
+        /** @var User $user */
+        $user = $request->user();
+
+        $secret = config('services.centrifugo.token_hmac_secret_key');
+        if (!is_string($secret) || $secret === '') {
+            throw new \RuntimeException('services.centrifugo.token_hmac_secret_key is not configured.');
+        }
+
+        $now = now();
+
+        $token = JWT::encode([
+            'sub' => (string) $user->id,
+            'iat' => $now->timestamp,
+            'exp' => $now->addSeconds(self::TOKEN_TTL_SECONDS)->timestamp,
+        ], $secret, 'HS256');
 
         return response()->json([
-            'token' => $this->centrifugo->generateConnectionToken($userId, 3600),
-            'ws_url' => config('broadcasting.connections.centrifugo.ws_url'),
-        ]);
-    }
-
-    public function subscribeToken(Request $request): JsonResponse
-    {
-        $id = $request->user()?->getAuthIdentifier();
-        $userId = is_string($id) || is_int($id) ? (string)$id : '';
-        $channel = (string)$request->query('channel', '');
-
-        return response()->json([
-            'token' => $this->centrifugo->generatePrivateChannelToken($userId, $channel, 3600),
+            'token' => $token,
+            'ws_url' => config('services.centrifugo.ws_url'),
         ]);
     }
 }

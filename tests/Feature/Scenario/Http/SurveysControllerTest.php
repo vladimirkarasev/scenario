@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Scenario\Http;
 
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Projects\Models\Project;
 use Module\Scenario\Enums\ScenarioRunStatus;
@@ -13,6 +12,7 @@ use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
 use Module\Users\Models\User;
+use RoadRunner\Centrifugo\CentrifugoApiInterface;
 use Tests\TestCase;
 
 /**
@@ -29,7 +29,7 @@ final class SurveysControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->instance(Centrifugo::class, $this->createMock(Centrifugo::class));
+        $this->instance(CentrifugoApiInterface::class, $this->createMock(CentrifugoApiInterface::class));
         $this->project = Project::query()->create([
             'name' => 'Survey test project',
             'sitekey' => 'survey-test',

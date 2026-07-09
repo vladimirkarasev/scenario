@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Module\Actions\Jobs;
 
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Event;
 use Module\Actions\Enums\ActionRunStatus;
 use Module\Actions\Exceptions\ActionExecutionException;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionExecutor;
+use App\Events\CentrifugoMessagePublished;
 
 final class ExecuteActionJob implements ShouldQueue
 {
@@ -45,7 +46,7 @@ final class ExecuteActionJob implements ShouldQueue
         return $this->backoff;
     }
 
-    public function handle(ActionExecutor $executor, Centrifugo $centrifugo): void
+    public function handle(ActionExecutor $executor): void
     {
         $action = Action::query()->findOrFail($this->actionId);
         $result = $executor->execute($action, $this->input, $this->attempts());
@@ -54,23 +55,23 @@ final class ExecuteActionJob implements ShouldQueue
 
         if ($result->status === ActionRunStatus::Failed) {
             if ($this->attempts() >= $this->tries && $scenarioRunId !== null) {
-                $centrifugo->publish("scenario-run:{$scenarioRunId}", [
+                Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$scenarioRunId}", [
                     'type' => 'action_failed',
                     'action_id' => $this->actionId,
                     'error' => $result->error,
-                ]);
+                ]));
             }
 
             throw new ActionExecutionException($result->error ?? 'Action failed');
         }
 
         if ($scenarioRunId !== null) {
-            $centrifugo->publish("scenario-run:{$scenarioRunId}", [
+            Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$scenarioRunId}", [
                 'type' => 'action_completed',
                 'action_id' => $this->actionId,
                 'status' => $result->status->value,
                 'output' => $result->output,
-            ]);
+            ]));
         }
     }
 

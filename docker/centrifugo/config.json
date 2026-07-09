@@ -4,7 +4,7 @@
   },
   "client": {
     "token": {
-      "hmac_secret_key": "scenario-centrifugo-secret"
+      "hmac_secret_key": "cd261ef813b617080f4dadde374cef46f35fbc5fbf09fcd501891d91ab645c18"
     },
     "allowed_origins": [
       "http://localhost:8000",
@@ -12,21 +12,33 @@
       "http://centrifugo.localhost"
     ]
   },
-  "http_api": {
-    "key": "scenario-centrifugo-api-key"
+  "grpc_api": {
+    "enabled": true,
+    "address": "0.0.0.0",
+    "port": 10000
   },
   "admin": {
     "enabled": true,
     "password": "scenario-admin",
     "secret": "scenario-admin-secret"
   },
+  "proxies": [
+    {
+      "name": "subscribe1",
+      "endpoint": "grpc://laravel:30001"
+    }
+  ],
   "channel": {
     "namespaces": [
       {
-        "name": "directory-import"
+        "name": "directory-import",
+        "subscribe_proxy_enabled": true,
+        "subscribe_proxy_name": "subscribe1"
       },
       {
-        "name": "scenario-run"
+        "name": "scenario-run",
+        "subscribe_proxy_enabled": true,
+        "subscribe_proxy_name": "subscribe1"
       }
     ]
   }

@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
+    // Every module registers its listeners explicitly (Event::listen() in its ServiceProvider) —
+    // auto-discovery would silently double-register any listener also placed under app/Listeners.
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(SetRequestId::class);
         $middleware->append(LogHttpRequest::class);

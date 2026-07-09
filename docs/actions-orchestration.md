@@ -59,9 +59,10 @@ ScenarioRun достигает Action-ноды
 
 ExecuteActionJob выполняется в фоне (retry из action.config)
     → success / failed
-        → broadcast ActionCompletedEvent → Centrifugo
+        → Event::dispatch(new App\Events\CentrifugoMessagePublished($channel, $payload))
             → канал scenario-run:{scenario_run_id}
-            → payload: { type: "action_completed", run_id, status, output }
+            → payload: { type: "action_completed", action_id, status, output }
+            → см. docs/openapi/openapi.yaml, тег «Real-time»
 
 Frontend слушает WS канал scenario-run:{id}
     → получает action_completed
@@ -99,9 +100,10 @@ Frontend слушает WS канал scenario-run:{id}
 
 ## Что нужно реализовать
 
-- [ ] `ExecuteActionJob` — queued job, оборачивает `ActionExecutor::execute()`, бросает исключение если
+- [x] `ExecuteActionJob` — queued job, оборачивает `ActionExecutor::execute()`, бросает исключение если
   `ActionRunStatus::Failed` (для retry)
-- [ ] `ActionCompletedEvent` — broadcast event → Centrifugo канал `scenario-run:{id}`
+- [x] Публикация в Centrifugo — `App\Events\CentrifugoMessagePublished` (не отдельный event-класс на каждый случай,
+  единый event+listener на канал/payload)
 - [ ] Расширить `action.config` схему: `execution_mode`, `wait_for_completion`, `retry`, `webhooks`
 - [ ] `ActionRunController::run()` — читает конфиг, диспатчит sync/chain/batch
 - [ ] Action-нода в сценарии — UI для настройки оркестровки в редакторе

@@ -35,6 +35,7 @@ final readonly class DirectoryImportStatusUpdated
         );
     }
 
+    /** @return non-empty-string */
     public function channel(): string
     {
         return "directory-import:{$this->importId}";

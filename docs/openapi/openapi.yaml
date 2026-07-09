@@ -66,6 +66,9 @@ x-tagGroups:
   - name: Интеграции
     tags:
       - Proxy
+  - name: Real-time
+    tags:
+      - Real-time
   - name: Авторизация
     tags:
       - Авторизация
@@ -99,6 +102,44 @@ tags:
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
   - name: Proxy
     description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
+  - name: Real-time
+    description: >
+      Live-обновления идут через Centrifugo (WebSocket), не через REST-поллинг.
+      RoadRunner участвует как proxy: авторизует подписку на канал
+      (subscribe-proxy) и форвардит исходящие публикации в Centrifugo (gRPC
+      API) — сам WebSocket браузер держит напрямую с Centrifugo.
+
+
+      **Подключение:**
+
+
+      1. `GET /centrifugo/connection-token` → `{token, ws_url}`.
+
+      2. WS-клиентом (`centrifuge-js` и т.п.) подключиться к `ws_url`,
+      передав `token`. Centrifugo валидирует его сама — короткоживущий JWT
+      (TTL 1 час, `sub` = id пользователя), без обращения к бэкенду на
+      каждый коннект.
+
+      3. Подписаться на нужный канал. Доступ к каналу проверяет бэкенд
+      через RoadRunner subscribe-proxy.
+
+      4. По истечении токена — запросить `connection-token` заново и
+      переподключиться (Centrifugo не продлевает токен сама).
+
+
+      **Каналы:**
+
+
+      | Канал | Кто слушает | Типы сообщений (`type`) |
+      |---|---|---|
+      | `scenario-run:{runId}` | Открытая страница прогона | `run_updated`, `action_started`, `action_completed`, `action_failed`, `chain_completed`, `batch_completed`, `batch_failed` |
+      | `directory-import:{importId}` | Открытая страница импорта директории | `status_update` |
+      | `#user:{userId}` | Персональный канал текущего пользователя (встроенный в Centrifugo, отдельной подписки не требует) | `start_scenario` |
+
+
+      Форма каждого сообщения — в разделе Webhooks (использован как способ
+      описать shape асинхронных push-сообщений средствами OpenAPI 3.1; по
+      транспорту это не HTTP callback, а публикация в WebSocket-канал).
 
 paths:
   /scenarios/catalog:
@@ -254,6 +295,122 @@ paths:
     $ref: './paths/proxy.yaml#/receive'
   /proxies/{uuid}/fields:
     $ref: './paths/proxy.yaml#/publicFields'
+
+  /centrifugo/connection-token:
+    $ref: './paths/realtime.yaml#/connectionToken'
+
+# Push-сообщения Centrifugo-каналов (см. тег «Real-time»). Формально это не
+# HTTP-колбэки, но `webhooks` — единственное стандартное место в OpenAPI 3.1,
+# где можно задокументировать shape асинхронного push-сообщения от сервера.
+webhooks:
+  scenario-run-updated:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → run_updated'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/RunUpdatedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-started:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_started'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionStartedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-failed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → action_failed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ActionFailedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-chain-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → chain_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/ChainCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-completed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → batch_completed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/BatchCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-failed:
+    post:
+      tags: [ Real-time ]
+      summary: 'scenario-run:{runId} → batch_failed'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/BatchFailedMessage'
+      responses:
+        '200':
+          description: ''
+  user-start-scenario:
+    post:
+      tags: [ Real-time ]
+      summary: '#user:{userId} → start_scenario'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/StartScenarioMessage'
+      responses:
+        '200':
+          description: ''
+  directory-import-status-update:
+    post:
+      tags: [ Real-time ]
+      summary: 'directory-import:{importId} → status_update'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './components/schemas/realtime.yaml#/DirectoryImportStatusMessage'
+      responses:
+        '200':
+          description: ''
 
 components:
   parameters:
@@ -474,6 +631,27 @@ components:
       $ref: './components/schemas/embed-auth.yaml#/EmbedAuthRefreshRequest'
     EmbedTokenPairResponse:
       $ref: './components/schemas/embed-auth.yaml#/EmbedTokenPairResponse'
+
+    CentrifugoConnectionToken:
+      $ref: './components/schemas/realtime.yaml#/CentrifugoConnectionToken'
+    RunUpdatedMessage:
+      $ref: './components/schemas/realtime.yaml#/RunUpdatedMessage'
+    ActionStartedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionStartedMessage'
+    ActionCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionCompletedMessage'
+    ActionFailedMessage:
+      $ref: './components/schemas/realtime.yaml#/ActionFailedMessage'
+    ChainCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/ChainCompletedMessage'
+    BatchCompletedMessage:
+      $ref: './components/schemas/realtime.yaml#/BatchCompletedMessage'
+    BatchFailedMessage:
+      $ref: './components/schemas/realtime.yaml#/BatchFailedMessage'
+    StartScenarioMessage:
+      $ref: './components/schemas/realtime.yaml#/StartScenarioMessage'
+    DirectoryImportStatusMessage:
+      $ref: './components/schemas/realtime.yaml#/DirectoryImportStatusMessage'
 
   securitySchemes:
     BearerAuth:

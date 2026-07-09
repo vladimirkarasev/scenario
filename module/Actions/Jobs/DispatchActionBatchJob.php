@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Actions\Jobs;
 
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,6 +11,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
+use App\Events\CentrifugoMessagePublished;
 use Throwable;
 
 final class DispatchActionBatchJob implements ShouldQueue
@@ -51,10 +52,10 @@ final class DispatchActionBatchJob implements ShouldQueue
         $batch->then(
             static function (Batch $batch) use ($afterActionIds, $input, $tries, $backoff, $scenarioRunId): void {
                 if ($scenarioRunId !== null) {
-                    app(Centrifugo::class)->publish("scenario-run:{$scenarioRunId}", [
+                    Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$scenarioRunId}", [
                         'type' => 'batch_completed',
                         'batch_id' => $batch->id,
-                    ]);
+                    ]));
                 }
 
                 self::dispatchJobs($afterActionIds, $input, $tries, $backoff);
@@ -70,11 +71,11 @@ final class DispatchActionBatchJob implements ShouldQueue
                 $scenarioRunId,
             ): void {
                 if ($scenarioRunId !== null) {
-                    app(Centrifugo::class)->publish("scenario-run:{$scenarioRunId}", [
+                    Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$scenarioRunId}", [
                         'type' => 'batch_failed',
                         'batch_id' => $batch->id,
                         'error' => $exception->getMessage(),
-                    ]);
+                    ]));
                 }
 
                 self::dispatchJobs(

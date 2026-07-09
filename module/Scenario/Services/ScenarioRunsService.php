@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
+use App\Events\CentrifugoMessagePublished;
 use App\Support\PaginationMeta;
+use Illuminate\Support\Facades\Event;
 use Module\Users\Models\User;
-use denis660\Centrifugo\Centrifugo;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\DTO\ScenarioRunIndexData;
@@ -26,7 +27,6 @@ final readonly class ScenarioRunsService
         private ScenarioRunHistoryService $history,
         private ScenarioRunRepository $runs,
         private ScenarioRunUserRepository $users,
-        private Centrifugo $centrifugo,
         private CurrentProject $currentProject,
     ) {
     }
@@ -220,7 +220,7 @@ final readonly class ScenarioRunsService
         $runId = is_array($run) ? ($run['id'] ?? null) : null;
 
         if (is_string($runId)) {
-            $this->centrifugo->publish("scenario-run:{$runId}", ['type' => 'run_updated', ...$payload]);
+            Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$runId}", ['type' => 'run_updated', ...$payload]));
         }
 
         return $payload;

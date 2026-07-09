@@ -6,12 +6,12 @@ namespace Tests\Feature\Scenario\Http;
 
 use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Projects\Models\Project;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
+use RoadRunner\Centrifugo\CentrifugoApiInterface;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
@@ -33,7 +33,7 @@ final class ScenarioRunControllerTest extends TestCase
     {
         parent::setUp();
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
-        $this->instance(Centrifugo::class, $this->createMock(Centrifugo::class));
+        $this->instance(CentrifugoApiInterface::class, $this->createMock(CentrifugoApiInterface::class));
         $this->project = Project::query()->create([
             'name' => 'Scenario test project',
             'sitekey' => 'scenario-test',

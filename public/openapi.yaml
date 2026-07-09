@@ -52,6 +52,22 @@ tags:
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
   - name: Proxy
     description: Интеграции, доступы, каталоги и журнал запросов в формате JSON:API.
+  - name: Real-time
+    description: |
+      Live-обновления идут через Centrifugo (WebSocket), не через REST-поллинг. RoadRunner участвует как proxy: авторизует подписку на канал (subscribe-proxy) и форвардит исходящие публикации в Centrifugo (gRPC API) — сам WebSocket браузер держит напрямую с Centrifugo.
+
+      **Подключение:**
+
+      1. `GET /centrifugo/connection-token` → `{token, ws_url}`.
+      2. WS-клиентом (`centrifuge-js` и т.п.) подключиться к `ws_url`, передав `token`. Centrifugo валидирует его сама — короткоживущий JWT (TTL 1 час, `sub` = id пользователя), без обращения к бэкенду на каждый коннект.
+      3. Подписаться на нужный канал. Доступ к каналу проверяет бэкенд через RoadRunner subscribe-proxy.
+      4. По истечении токена — запросить `connection-token` заново и переподключиться (Centrifugo не продлевает токен сама).
+
+      **Каналы:**
+
+      | Канал | Кто слушает | Типы сообщений (`type`) | |---|---|---| | `scenario-run:{runId}` | Открытая страница прогона | `run_updated`, `action_started`, `action_completed`, `action_failed`, `chain_completed`, `batch_completed`, `batch_failed` | | `directory-import:{importId}` | Открытая страница импорта директории | `status_update` | | `#user:{userId}` | Персональный канал текущего пользователя (встроенный в Centrifugo, отдельной подписки не требует) | `start_scenario` |
+
+      Форма каждого сообщения — в разделе Webhooks (использован как способ описать shape асинхронных push-сообщений средствами OpenAPI 3.1; по транспорту это не HTTP callback, а публикация в WebSocket-канал).
 paths:
   /scenarios/catalog:
     get:
@@ -3246,6 +3262,142 @@ paths:
                           $ref: '#/components/schemas/ProxyCatalogResource'
         '404':
           $ref: '#/components/responses/NotFoundErrors'
+  /centrifugo/connection-token:
+    get:
+      tags:
+        - Real-time
+      summary: Токен для подключения к Centrifugo
+      description: |
+        Выдаёт короткоживущий JWT для WebSocket-подключения к Centrifugo и адрес WS-эндпоинта. Centrifugo валидирует токен самостоятельно (`sub` = id пользователя) — RoadRunner в этот флоу не входит, он участвует только в subscribe-proxy (авторизация подписки на канал) и в исходящей публикации. Подробности и список каналов — во вступлении к тегу «Real-time».
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Токен выдан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentrifugoConnectionToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+webhooks:
+  scenario-run-updated:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → run_updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunUpdatedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-started:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_started
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionStartedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-action-failed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → action_failed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionFailedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-chain-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → chain_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChainCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-completed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → batch_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchCompletedMessage'
+      responses:
+        '200':
+          description: ''
+  scenario-run-batch-failed:
+    post:
+      tags:
+        - Real-time
+      summary: scenario-run:{runId} → batch_failed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchFailedMessage'
+      responses:
+        '200':
+          description: ''
+  user-start-scenario:
+    post:
+      tags:
+        - Real-time
+      summary: '#user:{userId} → start_scenario'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartScenarioMessage'
+      responses:
+        '200':
+          description: ''
+  directory-import-status-update:
+    post:
+      tags:
+        - Real-time
+      summary: directory-import:{importId} → status_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DirectoryImportStatusMessage'
+      responses:
+        '200':
+          description: ''
 components:
   parameters:
     ScenarioId:
@@ -5658,6 +5810,192 @@ components:
           type: integer
           description: Время жизни access-токена в секундах
           example: 1800
+    CentrifugoConnectionToken:
+      type: object
+      required:
+        - token
+        - ws_url
+      properties:
+        token:
+          type: string
+          description: 'Короткоживущий JWT (HS256, TTL 1 час), которым Centrifugo сама валидирует подключение — `sub` содержит id текущего пользователя. Отдельного subscribe-токена не нужно: авторизация на канал проверяется через RoadRunner subscribe-proxy на бэкенде.'
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc123
+        ws_url:
+          type: string
+          format: uri
+          description: Адрес WebSocket-эндпоинта Centrifugo, к которому подключается фронт.
+          example: ws://localhost:8002/connection/websocket
+    RunUpdatedMessage:
+      type: object
+      required:
+        - type
+        - run
+      description: Канал `scenario-run:{runId}`. Полный снимок состояния прогона — та же форма, что и `RunPayload` в REST-ответах (`POST /scenarios/runner`, `POST /scenarios/runner/{runId}/continue` и т.д.), с добавленным `type`.
+      properties:
+        type:
+          type: string
+          enum:
+            - run_updated
+        run:
+          $ref: '#/components/schemas/RunState'
+      additionalProperties: true
+    ActionStartedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+      description: Канал `scenario-run:{runId}`. Экшен в chain-пайплайне начал выполняться.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_started
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+          description: Код стадии пайплайна (для `wait_for_result`-нод с несколькими шагами).
+    ActionCompletedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+        - status
+      description: Канал `scenario-run:{runId}`. Экшен (одиночный или шаг chain/batch) завершился успешно.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_completed
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+        status:
+          type: string
+          example: success
+        output:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+    ActionFailedMessage:
+      type: object
+      required:
+        - type
+        - action_id
+      description: Канал `scenario-run:{runId}`. Экшен исчерпал попытки и завершился ошибкой.
+      properties:
+        type:
+          type: string
+          enum:
+            - action_failed
+        action_id:
+          type: string
+          format: uuid
+        code:
+          type:
+            - string
+            - 'null'
+        error:
+          type:
+            - string
+            - 'null'
+    ChainCompletedMessage:
+      type: object
+      required:
+        - type
+        - context
+      description: Канал `scenario-run:{runId}`. Вся цепочка chain-экшенов отработала.
+      properties:
+        type:
+          type: string
+          enum:
+            - chain_completed
+        context:
+          type: object
+          additionalProperties: true
+          description: Накопленный контекст (output всех шагов цепочки по scope-ключам).
+    BatchCompletedMessage:
+      type: object
+      required:
+        - type
+        - batch_id
+      description: Канал `scenario-run:{runId}`. Все экшены batch-группы завершились успешно.
+      properties:
+        type:
+          type: string
+          enum:
+            - batch_completed
+        batch_id:
+          type: string
+    BatchFailedMessage:
+      type: object
+      required:
+        - type
+        - batch_id
+        - error
+      description: Канал `scenario-run:{runId}`. Хотя бы один экшен batch-группы завершился ошибкой.
+      properties:
+        type:
+          type: string
+          enum:
+            - batch_failed
+        batch_id:
+          type: string
+        error:
+          type: string
+    StartScenarioMessage:
+      type: object
+      required:
+        - type
+        - run_id
+        - url
+      description: Персональный канал `#user:{userId}` (встроенный механизм Centrifugo, подписка на него неявная — по факту аутентифицированного подключения). Публикуется, когда сценарий диспатчится на пользователя удалённо (`POST /scenarios/dispatch`).
+      properties:
+        type:
+          type: string
+          enum:
+            - start_scenario
+        run_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          description: Относительный путь на страницу прогона во фронтенде.
+    DirectoryImportStatusMessage:
+      type: object
+      required:
+        - type
+        - import_id
+        - status
+      description: Канал `directory-import:{importId}`. Прогресс импорта директории (CSV/Excel).
+      properties:
+        type:
+          type: string
+          enum:
+            - status_update
+        import_id:
+          type: integer
+        status:
+          type: string
+          example: processing
+        processed_rows:
+          type: integer
+        imported_rows:
+          type: integer
+        failed_rows:
+          type: integer
+        error_message:
+          type:
+            - string
+            - 'null'
     ScenarioFeedFolder:
       type: object
       description: Строка ленты типа «папка» (категория со сценариями)
@@ -6431,6 +6769,9 @@ x-tagGroups:
   - name: Интеграции
     tags:
       - Proxy
+  - name: Real-time
+    tags:
+      - Real-time
   - name: Авторизация
     tags:
       - Авторизация

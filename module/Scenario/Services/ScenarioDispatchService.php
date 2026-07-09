@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
+use App\Events\CentrifugoMessagePublished;
 use App\Exceptions\NotFoundException;
+use Illuminate\Support\Facades\Event;
 use Module\Users\Models\User;
-use denis660\Centrifugo\Centrifugo;
 use Module\Scenario\DTO\ScenarioDispatchData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\Enums\ScenarioErrorCode;
@@ -17,7 +18,6 @@ use Module\Scenario\Repositories\ScenarioRunRepository;
 final readonly class ScenarioDispatchService
 {
     public function __construct(
-        private Centrifugo $centrifugo,
         private ScenarioPlayerService $player,
         private ScenarioRunRepository $runs,
     ) {
@@ -70,11 +70,11 @@ final readonly class ScenarioDispatchService
 
         $this->runs->assignActor($run, $target->id);
 
-        $this->centrifugo->publish("#user:{$target->id}", [
+        Event::dispatch(new CentrifugoMessagePublished("#user:{$target->id}", [
             'type' => 'start_scenario',
             'run_id' => $run->id,
             'url' => (string)route('workspace.run', ['run' => $run->id], absolute: false),
-        ]);
+        ]));
 
         return $run->id;
     }

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Module\Actions\Jobs;
 
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Event;
 use Module\Actions\Enums\ActionRunStatus;
 use Module\Actions\Exceptions\ActionExecutionException;
 use Module\Actions\Models\Action;
@@ -18,6 +18,7 @@ use Module\Scenario\Jobs\ResumeScenarioActionNodeJob;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Services\Nodes\Action\ActionStatus;
 use Module\Scenario\Services\Nodes\NodeContextKeys;
+use App\Events\CentrifugoMessagePublished;
 use Throwable;
 
 final class ChainStepJob implements ShouldQueue
@@ -58,18 +59,18 @@ final class ChainStepJob implements ShouldQueue
         return $this->backoff;
     }
 
-    public function handle(ActionExecutor $executor, Centrifugo $centrifugo): void
+    public function handle(ActionExecutor $executor): void
     {
         $action = Action::query()->findOrFail($this->actionId);
 
         $code = $this->codeMap[$this->actionId] ?? $action->code;
 
         if ($this->scenarioRunId !== null) {
-            $centrifugo->publish("scenario-run:{$this->scenarioRunId}", [
+            Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$this->scenarioRunId}", [
                 'type' => 'action_started',
                 'action_id' => $this->actionId,
                 'code' => $code,
-            ]);
+            ]));
 
             $this->recordStageStatus($code, ActionStatus::Running);
         }
@@ -78,12 +79,12 @@ final class ChainStepJob implements ShouldQueue
 
         if ($result->status === ActionRunStatus::Failed) {
             if ($this->attempts() >= $this->tries && $this->scenarioRunId !== null) {
-                $centrifugo->publish("scenario-run:{$this->scenarioRunId}", [
+                Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$this->scenarioRunId}", [
                     'type' => 'action_failed',
                     'action_id' => $this->actionId,
                     'code' => $code,
                     'error' => $result->error,
-                ]);
+                ]));
 
                 $this->recordStageStatus($code, ActionStatus::Failed);
             }
@@ -105,23 +106,23 @@ final class ChainStepJob implements ShouldQueue
         }
 
         if ($this->scenarioRunId !== null) {
-            $centrifugo->publish("scenario-run:{$this->scenarioRunId}", [
+            Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$this->scenarioRunId}", [
                 'type' => 'action_completed',
                 'action_id' => $this->actionId,
                 'code' => $code,
                 'status' => $result->status->value,
                 'output' => $result->output,
-            ]);
+            ]));
 
             $this->recordStageStatus($code, ActionStatus::Success);
         }
 
         if ($this->remainingActionIds === []) {
             if ($this->scenarioRunId !== null) {
-                $centrifugo->publish("scenario-run:{$this->scenarioRunId}", [
+                Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$this->scenarioRunId}", [
                     'type' => 'chain_completed',
                     'context' => $context,
-                ]);
+                ]));
 
                 // Привязанная к прогону action-нода (wait_for_result): авто-продвигаем прогон.
                 if ($this->scenarioNodeId !== null) {

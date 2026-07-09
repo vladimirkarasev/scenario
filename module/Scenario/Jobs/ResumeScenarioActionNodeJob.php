@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Jobs;
 
-use denis660\Centrifugo\Centrifugo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Event;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Services\Nodes\Action\ActionStatus;
 use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\ScenarioPlayerService;
+use App\Events\CentrifugoMessagePublished;
 
 /**
  * Завершает асинхронный pipeline action-ноды (wait_for_result): переносит output'ы экшенов
@@ -38,7 +39,7 @@ final class ResumeScenarioActionNodeJob implements ShouldQueue
     ) {
     }
 
-    public function handle(ScenarioPlayerService $player, Centrifugo $centrifugo): void
+    public function handle(ScenarioPlayerService $player): void
     {
         $run = ScenarioRun::query()->find($this->runId);
 
@@ -75,7 +76,7 @@ final class ResumeScenarioActionNodeJob implements ShouldQueue
         $publishedRunId = is_string($runPayload['id'] ?? null) ? $runPayload['id'] : null;
 
         if ($publishedRunId !== null) {
-            $centrifugo->publish("scenario-run:{$publishedRunId}", ['type' => 'run_updated', ...$payload]);
+            Event::dispatch(new CentrifugoMessagePublished("scenario-run:{$publishedRunId}", ['type' => 'run_updated', ...$payload]));
         }
     }
 }
