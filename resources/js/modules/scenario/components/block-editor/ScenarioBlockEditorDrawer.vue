@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import {computed, markRaw, nextTick, ref, watch} from 'vue'
 import {
-  AlignJustify, Eye, Layers, Plus,
+  AlignJustify, Eye, Layers,
 } from 'lucide-vue-next'
 import AppEditorDrawer from '@/components/AppEditorDrawer.vue'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Skeleton} from '@/components/ui/skeleton'
-import TiptapTextEditor from '@/modules/scenario/components/tiptap/TiptapTextEditor.vue'
-import BlockEditorFieldCard from '@/modules/scenario/components/block-editor/BlockEditorFieldCard.vue'
+import BlockEditorGutenbergEditor from '@/modules/scenario/components/block-editor/BlockEditorGutenbergEditor.vue'
 import BlockEditorPreviewTab from '@/modules/scenario/components/block-editor/BlockEditorPreviewTab.vue'
 import BlockEditorDeleteFieldDialog from '@/modules/scenario/components/block-editor/BlockEditorDeleteFieldDialog.vue'
 import BlockEditorFieldSettingsDialog
@@ -41,9 +40,6 @@ import DateFieldSettings, {
 import DatetimeFieldSettings, {
   fieldMeta as datetimeMeta
 } from '@/modules/scenario/components/block-editor/field-settings/DatetimeFieldSettings.vue'
-import {
-  fieldMeta as richTextMeta
-} from '@/modules/scenario/components/block-editor/field-settings/RichTextFieldSettings.vue'
 import DirectoryListFieldSettings, {
   fieldMeta as directoryListMeta
 } from '@/modules/scenario/components/block-editor/field-settings/DirectoryListFieldSettings.vue'
@@ -92,7 +88,6 @@ const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
     title: 'Поля',
     items: [inputMeta, emailMeta, phoneMeta, textareaMeta, numberMeta, selectMeta, dateMeta, datetimeMeta, hiddenMeta] as FieldPaletteItem[]
   },
-  {title: 'Контент', items: [richTextMeta] as FieldPaletteItem[]},
   {title: 'Удалённые справочники', items: [directoryListMeta, directoryTableMeta] as FieldPaletteItem[]},
   {title: 'Подсказки', items: [suggestMeta] as FieldPaletteItem[]},
 ]
@@ -126,17 +121,6 @@ function fieldTypeIcon(type: BlockFieldType): Component {
 }
 
 // ── Variables ─────────────────────────────────────────────────────────────────
-
-function tiptapToText(value: unknown): string {
-  if (typeof value === 'string') return value
-  if (value && typeof value === 'object') {
-    const doc = value as { content?: { content?: { text?: string }[] }[] }
-    return (doc.content ?? [])
-        .flatMap((node) => (node.content ?? []).map((n) => n.text ?? ''))
-        .join('')
-  }
-  return ''
-}
 
 const USER_VARIABLES = [
   {id: 'user.name', name: 'user.name', label: 'Имя'},
@@ -270,26 +254,9 @@ function closeSettings() {
 }
 
 
-// ── Drag & drop ───────────────────────────────────────────────────────────────
-
-const draggedFieldId = ref<string | null>(null)
-const dragOverFieldId = ref<string | null>(null)
-
-function onFieldDragStart(fieldId: string) {
-  draggedFieldId.value = fieldId
-}
-
-function onFieldDragEnter(fieldId: string) {
-  if (!draggedFieldId.value || draggedFieldId.value === fieldId) return
-  dragOverFieldId.value = fieldId
-}
-
-function onFieldDrop(targetFieldId: string) {
-  if (!draggedFieldId.value || !blockDraft.value) return
-  const idx = blockDraft.value.data.fields.findIndex((f: BlockField) => f.id === targetFieldId)
-  if (idx !== -1) blockEditorStore.moveFieldToIndex(draggedFieldId.value, idx)
-  draggedFieldId.value = null
-  dragOverFieldId.value = null
+function updateFieldById(fieldId: string, patch: Partial<BlockField>) {
+  const field = blockDraft.value?.data.fields.find((f: BlockField) => f.id === fieldId)
+  if (field) updateFieldSettings(field, patch)
 }
 
 // ── Tabs + lifecycle ──────────────────────────────────────────────────────────
@@ -464,7 +431,7 @@ function cancelChanges() {
                     :model-value="blockDraft.data.variable"
                     class="border-slate-200"
                     placeholder="название_шага"
-                    :disabled="true"
+                    disabled
                     @update:model-value="(v: string | number) => blockEditorStore.updateBlockData({ variable: String(v).replace(/\s+/g, '_') })"
                 />
               </div>
@@ -484,37 +451,21 @@ function cancelChanges() {
               </label>
             </div>
 
-            <!-- Empty state -->
-            <div
-                v-if="!blockDraft.data.fields.length"
-                class="flex flex-col items-center rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center"
-            >
-              <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
-                <Plus class="size-5 text-slate-400"/>
-              </div>
-              <div class="text-[13px] font-semibold text-slate-700">Полей пока нет</div>
-              <div class="mt-1 text-[12px] text-slate-400">Выбери тип поля в панели слева</div>
-            </div>
-
-            <!-- Field cards -->
-            <BlockEditorFieldCard
-                v-for="(field, index) in blockDraft.data.fields"
-                v-memo="[field, dragOverFieldId === field.id, canManageCatalog]"
-                :key="field.id"
-                :data-field-id="field.id"
-                :field="field"
-                :index="index"
+            <!-- Unified content: free text and fields live in one flowing tiptap
+                 document — fields are inserted as nodes and their titles are
+                 edited inline (Gutenberg-style), full configuration stays behind
+                 the settings gear. -->
+            <BlockEditorGutenbergEditor
+                :model-value="blockDraft.data.layoutDocument"
+                :fields="blockDraft.data.fields"
                 :can-edit="canManageCatalog"
-                :is-drag-over="dragOverFieldId === field.id"
-                :field-type-label="fieldTypeLabel(field.type)"
-                :field-type-icon="fieldTypeIcon(field.type)"
-                @dragstart="onFieldDragStart(field.id)"
-                @dragenter="onFieldDragEnter(field.id)"
-                @drop="onFieldDrop(field.id)"
-                @dragend="draggedFieldId = null; dragOverFieldId = null"
-                @open-settings="openSettings(field.id)"
-                @delete="askDeleteField(field.id)"
-                @update:value="blockEditorStore.updateField(field.id, { ...field, value: $event } as BlockField)"
+                :field-type-label="fieldTypeLabel"
+                :field-type-icon="fieldTypeIcon"
+                @update:model-value="blockEditorStore.updateBlockData({ layoutDocument: $event })"
+                @update-field="updateFieldById"
+                @open-settings="openSettings"
+                @delete-field="askDeleteField"
+                @reorder-fields="blockEditorStore.reorderFields"
             />
           </div>
 
@@ -523,6 +474,7 @@ function cancelChanges() {
               v-else
               :title="blockDraft.data.title"
               :fields="blockDraft.data.fields"
+              :layout-document="blockDraft.data.layoutDocument"
           />
         </div>
       </main>

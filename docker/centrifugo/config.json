@@ -8,8 +8,8 @@
     },
     "allowed_origins": [
       "http://localhost:8000",
-      "http://scenario.localhost",
-      "http://centrifugo.localhost"
+      "http://scenario.test",
+      "http://centrifugo.test"
     ]
   },
   "grpc_api": {

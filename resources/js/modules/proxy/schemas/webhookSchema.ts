@@ -10,18 +10,34 @@ const mockVariantSchema = z.object({
     is_active: z.boolean(),
 })
 
-export const webhookSchema = z.object({
-    name: z.string().min(1, 'Название обязательно'),
-    code: z.string().min(1, 'Code обязателен'),
-    handler_class: z.string().min(1, 'Обработчик обязателен'),
-    method: z.string(),
-    description: z.string(),
-    is_active: z.boolean(),
-    is_mocked: z.boolean(),
-    category_ids: z.array(z.string()),
-    connection_id: z.number().nullable(),
-    config: jsonValue,
-    mocks: z.array(mockVariantSchema),
-})
+/**
+ * @param credentialTypeByHandler  handler_class → тип доступа, который он требует (null — доступ не нужен).
+ *   Обработчик выбирается раньше доступа, поэтому connection_id обязателен только когда
+ *   уже известно, что выбранный обработчик его требует.
+ */
+export function webhookSchema(credentialTypeByHandler: Record<string, string | null>) {
+    return z.object({
+        name: z.string().min(1, 'Название обязательно'),
+        code: z.string().min(1, 'Code обязателен'),
+        handler_class: z.string().min(1, 'Обработчик обязателен'),
+        method: z.string(),
+        description: z.string(),
+        is_active: z.boolean(),
+        is_mocked: z.boolean(),
+        category_ids: z.array(z.string()),
+        connection_id: z.number().nullable(),
+        config: jsonValue,
+        mocks: z.array(mockVariantSchema),
+    }).superRefine((data, ctx) => {
+        const requiredType = credentialTypeByHandler[data.handler_class] ?? null
+        if (requiredType !== null && data.connection_id === null) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['connection_id'],
+                message: 'Выберите доступ — обработчик требует авторизацию',
+            })
+        }
+    })
+}
 
-export type WebhookFormValues = z.infer<typeof webhookSchema>
+export type WebhookFormValues = z.infer<ReturnType<typeof webhookSchema>>

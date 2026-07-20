@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Directories;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Module\Directories\Exceptions\DirectoryVersionException;
+use Module\Directories\Jobs\RebuildDirectorySearchTextJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Services\DirectoryVersionService;
@@ -91,8 +93,49 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->updateSchema($directory, $version, $fields, 'name');
 
         $version->refresh();
+        $directory->refresh();
         $this->assertSame($fields, $version->schema_json);
-        $this->assertSame('name', $directory->fresh()->match_by);
+        $this->assertSame('name', $directory->match_by);
+    }
+
+    public function test_update_schema_dispatches_search_index_job_when_searchable_fields_change(): void
+    {
+        Queue::fake();
+        $directory = $this->makeDirectory();
+        $version = $this->makeVersion($directory);
+        $version->forceFill([
+            'schema_json' => [
+                ['key' => 'name', 'name' => 'Name', 'type' => 'string', 'searchable' => false],
+            ],
+        ])->save();
+
+        $this->service->updateSchema($directory, $version, [
+            ['key' => 'name', 'name' => 'Name', 'type' => 'string', 'searchable' => true],
+        ], null);
+
+        Queue::assertPushed(
+            RebuildDirectorySearchTextJob::class,
+            static fn(RebuildDirectorySearchTextJob $job): bool => $job->directoryVersionId === $version->id
+                && $job->queue === 'imports',
+        );
+    }
+
+    public function test_update_schema_does_not_dispatch_search_index_job_when_searchable_fields_stay_same(): void
+    {
+        Queue::fake();
+        $directory = $this->makeDirectory();
+        $version = $this->makeVersion($directory);
+        $version->forceFill([
+            'schema_json' => [
+                ['key' => 'name', 'name' => 'Old name', 'type' => 'string', 'searchable' => true],
+            ],
+        ])->save();
+
+        $this->service->updateSchema($directory, $version, [
+            ['key' => 'name', 'name' => 'New name', 'type' => 'string', 'searchable' => true],
+        ], null);
+
+        Queue::assertNotPushed(RebuildDirectorySearchTextJob::class);
     }
 
     /**
@@ -120,8 +163,10 @@ final class DirectoryVersionServiceTest extends TestCase
 
         $this->service->activate($directory, $v2);
 
-        $this->assertFalse((bool)$v1->fresh()->is_active);
-        $this->assertTrue((bool)$v2->fresh()->is_active);
+        $v1->refresh();
+        $v2->refresh();
+        $this->assertFalse((bool)$v1->is_active);
+        $this->assertTrue((bool)$v2->is_active);
     }
 
     /**

@@ -1,18 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import {NodeViewContent, NodeViewWrapper} from '@tiptap/vue-3'
+import type {NodeViewProps} from '@tiptap/core'
 
-const props = defineProps({
-  node: {type: Object, required: true},
-  updateAttributes: {type: Function, required: true},
-  editor: {type: Object, required: true},
-})
+const props = defineProps<NodeViewProps>()
 
 function toggleOpen() {
   props.updateAttributes({open: !props.node.attrs.open})
 }
 
-function onTitleInput(e) {
-  props.updateAttributes({title: e.target.value})
+function onTitleInput(e: Event) {
+  props.updateAttributes({title: (e.target as HTMLInputElement).value})
 }
 </script>
 

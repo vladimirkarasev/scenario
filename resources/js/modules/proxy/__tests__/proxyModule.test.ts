@@ -25,12 +25,40 @@ describe('proxy module', () => {
             connection_id: null,
             config: {},
         }
-        expect(webhookSchema.safeParse({...base, mocks: [{
+        const schema = webhookSchema({})
+        expect(schema.safeParse({...base, mocks: [{
             name: null, status: 200, body: [], headers: null, is_active: true,
         }]}).success).toBe(true)
-        expect(webhookSchema.safeParse({...base, mocks: [{
+        expect(schema.safeParse({...base, mocks: [{
             name: null, status: 99, body: 'invalid', headers: null, is_active: false,
         }]}).success).toBe(false)
+    })
+
+    it('требует доступ, если обработчик привязан к типу доступа', () => {
+        const base = {
+            name: 'Suggest',
+            code: 'suggest',
+            handler_class: 'Handler',
+            method: 'POST',
+            description: '',
+            is_active: true,
+            is_mocked: true,
+            category_ids: [],
+            config: {},
+            mocks: [],
+        }
+        const schema = webhookSchema({Handler: 'Module\\Proxy\\Credentials\\AutoCrm\\AutoCrmCredential'})
+
+        const withoutConnection = schema.safeParse({...base, connection_id: null})
+        expect(withoutConnection.success).toBe(false)
+        if (!withoutConnection.success) {
+            expect(withoutConnection.error.issues[0]?.path).toEqual(['connection_id'])
+        }
+
+        expect(schema.safeParse({...base, connection_id: 5}).success).toBe(true)
+
+        const noCredentialHandler = webhookSchema({})
+        expect(noCredentialHandler.safeParse({...base, connection_id: null}).success).toBe(true)
     })
 
     it('кодирует type и search фильтры', async () => {

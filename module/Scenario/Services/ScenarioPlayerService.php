@@ -255,6 +255,7 @@ final readonly class ScenarioPlayerService
         $version = $this->runVersion($run);
         $isFinished = in_array($run->status, [ScenarioRunStatus::Completed, ScenarioRunStatus::Failed], true);
         $operator = $run->operator;
+        $call = is_array($run->context['call'] ?? null) ? $run->context['call'] : [];
         $renderContext = [
             ...($run->context ?? []),
             'run' => [
@@ -272,6 +273,12 @@ final readonly class ScenarioPlayerService
             'project' => [
                 'name' => $operator?->project?->name,
                 'id' => $operator?->project?->id,
+            ],
+            'call' => [
+                'incoming_phone' => $call['incoming_phone'] ?? null,
+                'outgoing_phone' => $call['outgoing_phone'] ?? null,
+                'internal_phone' => $call['internal_phone'] ?? null,
+                'id' => $call['id'] ?? null,
             ],
         ];
 

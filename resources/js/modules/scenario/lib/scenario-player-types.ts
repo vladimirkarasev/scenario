@@ -19,6 +19,7 @@ export interface ScenarioRenderedBlock {
     type: 'block'
     title: string
     blocks: SurveyBlock[]
+    layoutDocument?: unknown
 }
 
 export interface ScenarioRenderedConditionOption {

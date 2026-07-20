@@ -75,10 +75,13 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             }
         }
 
+        $layoutDocument = $data['layoutDocument'] ?? null;
+
         return [
             'type' => 'block',
             'title' => $this->variableResolver->resolve($this->strField($data, 'title'), $context),
             'blocks' => $this->resolveBlocksKeepingRawTemplates($blocks, $context),
+            'layoutDocument' => is_array($layoutDocument) ? $this->variableResolver->resolve($layoutDocument, $context) : null,
         ];
     }
 
@@ -365,10 +368,12 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Базовые props, общие для большинства полей: имя, подпись, обязательность.
+     * Базовые props, общие для большинства полей: имя, подпись, обязательность,
+     * оформление заголовка (размер/цвет/заливка — выбираются через bubble-menu
+     * в редакторе блока, см. BlockEditorGutenbergEditor.vue).
      *
-     * @param  array<array-key, mixed>                            $field
-     * @return array{name: string, label: string, required: bool}
+     * @param  array<array-key, mixed>                                                                                     $field
+     * @return array{name: string, label: string, required: bool, labelFontSize?: string, labelColor?: string, labelHighlight?: string}
      */
     private function baseProps(array $field, string $name): array
     {
@@ -376,7 +381,26 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             'name' => $name,
             'label' => $this->strField($field, 'label', $name),
             'required' => $this->boolField($field, 'required'),
+            ...$this->labelStyleProps($field),
         ];
+    }
+
+    /**
+     * @param  array<array-key, mixed>                                                       $field
+     * @return array{labelFontSize?: string, labelColor?: string, labelHighlight?: string}
+     */
+    private function labelStyleProps(array $field): array
+    {
+        $props = [];
+
+        foreach (['labelFontSize', 'labelColor', 'labelHighlight'] as $key) {
+            $value = $this->strField($field, $key);
+            if ($value !== '') {
+                $props[$key] = $value;
+            }
+        }
+
+        return $props;
     }
 
     /**

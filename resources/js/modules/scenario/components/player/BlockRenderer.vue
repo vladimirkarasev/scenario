@@ -2,7 +2,9 @@
 import {computed, toRef, useSlots} from 'vue'
 import {Loader2, ArrowRight} from 'lucide-vue-next'
 import SurveyBlockRenderer from '@/modules/scenario/components/player/SurveyBlockRenderer.vue'
+import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextRenderer.vue'
 import {useBlockForm} from '@/modules/scenario/composables/useBlockForm'
+import {buildLayoutSegments} from '@/modules/scenario/lib/block-layout-segments'
 import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
 
 const props = withDefaults(defineProps<{
@@ -16,6 +18,11 @@ const props = withDefaults(defineProps<{
   continueLabel?: string
   draftKey?: string | null
   initialValues?: Record<string, unknown> | null
+  // Единый tiptap-документ редактора блока (свободный текст + поля вперемешку,
+  // см. BlockEditorGutenbergEditor) — если задан, контент рендерится в том же
+  // порядке, что и в редакторе, а не просто списком полей. Раньше сохранённые
+  // блоки без layoutDocument продолжают рендериться как плоский список.
+  layoutDocument?: unknown
 }>(), {
   continueLabel: 'Далее',
   draftKey: null,
@@ -28,6 +35,8 @@ const emit = defineEmits<{
 
 const slots = useSlots()
 const safeBlocks = computed(() => (props.blocks ?? []).filter(Boolean))
+const blocksById = computed(() => new Map(safeBlocks.value.map((block) => [block.id, block])))
+const layoutSegments = computed(() => buildLayoutSegments(props.layoutDocument))
 const hasContinueButton = computed(() => !props.readonly)
 const hasFooter = computed(() => hasContinueButton.value || !!slots.footer)
 
@@ -53,7 +62,20 @@ function handleContinue() {
     </div>
 
     <!-- Content -->
-    <div v-if="safeBlocks.length" class="grid gap-5 px-6 py-5">
+    <div v-if="layoutSegments && layoutSegments.length" class="grid gap-5 px-6 py-5">
+      <template v-for="segment in layoutSegments" :key="segment.key">
+        <TiptapTextRenderer v-if="segment.type === 'text'" :document="segment.document"/>
+        <SurveyBlockRenderer
+            v-else-if="blocksById.get(segment.blockId)"
+            :block="blocksById.get(segment.blockId)!"
+            :context="context"
+            :form-data="formData"
+            :errors="errors"
+            :disabled="disabled"
+        />
+      </template>
+    </div>
+    <div v-else-if="safeBlocks.length" class="grid gap-5 px-6 py-5">
       <SurveyBlockRenderer
           v-for="(block, index) in safeBlocks"
           :key="block?.id ?? `block-${index}`"

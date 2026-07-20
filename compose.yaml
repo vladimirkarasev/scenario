@@ -11,7 +11,7 @@ services:
     command: ["run-roadrunner"]
     working_dir: /var/www/html
     ports:
-      - "8000:8080"
+      - "${LOCAL_IP:-127.0.0.3}:8000:8080"
     volumes:
       - ./:/var/www/html
     depends_on:
@@ -36,7 +36,7 @@ services:
       RR_JOBS_DRIVER: boltdb
       RR_DEBUG: "true"
       BROADCAST_CONNECTION: null
-      CENTRIFUGO_WS_URL: ws://localhost:8002/connection/websocket
+      CENTRIFUGO_WS_URL: ws://${LOCAL_IP:-127.0.0.3}:8002/connection/websocket
       CENTRIFUGO_TOKEN_HMAC_SECRET_KEY: cd261ef813b617080f4dadde374cef46f35fbc5fbf09fcd501891d91ab645c18
       RR_CENTRIFUGE_PROXY_PORT: "30001"
       CENTRIFUGO_GRPC_API_HOST: centrifugo
@@ -56,7 +56,7 @@ services:
       MAIL_PORT: 1025
     labels:
       - traefik.enable=true
-      - traefik.http.routers.scenario.rule=Host(`scenario.localhost`)
+      - traefik.http.routers.scenario.rule=Host(`scenario.test`)
       - traefik.http.routers.scenario.entrypoints=web
       - traefik.http.services.scenario.loadbalancer.server.port=8080
     networks:
@@ -80,7 +80,9 @@ services:
     restart: unless-stopped
     command: ["centrifugo", "-c", "/centrifugo/config.json"]
     ports:
-      - "8002:8000"
+      - "${LOCAL_IP:-127.0.0.3}:8002:8000"
+    environment:
+      CENTRIFUGO_CLIENT_ALLOWED_ORIGINS: "http://localhost:8000 http://${LOCAL_IP:-127.0.0.3}:8000 http://scenario.test http://centrifugo.test"
     volumes:
       - ./docker/centrifugo/config.json:/centrifugo/config.json:ro
     ulimits:
@@ -89,7 +91,7 @@ services:
         hard: 65535
     labels:
       - traefik.enable=true
-      - traefik.http.routers.scenario-centrifugo.rule=Host(`centrifugo.localhost`)
+      - traefik.http.routers.scenario-centrifugo.rule=Host(`centrifugo.test`)
       - traefik.http.routers.scenario-centrifugo.entrypoints=web
       - traefik.http.services.scenario-centrifugo.loadbalancer.server.port=8000
     networks:
@@ -100,7 +102,7 @@ services:
     container_name: scenario-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${LOCAL_IP:-127.0.0.3}:5432:5432"
     environment:
       POSTGRES_DB: scenario
       POSTGRES_USER: scenario
@@ -129,8 +131,8 @@ services:
       - --providers.file.watch=true
       - --entrypoints.web.address=:80
     ports:
-      - "80:80"
-      - "8081:8080"
+      - "${LOCAL_IP:-127.0.0.3}:80:80"
+      - "${LOCAL_IP:-127.0.0.3}:8081:8080"
     volumes:
       - ./docker/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
     networks:
@@ -148,13 +150,13 @@ services:
       - "9913"
       - "1025"
     ports:
-      - "8001:8000"
-      - "1025:1025"
-      - "9912:9912"
-      - "9913:9913"
+      - "${LOCAL_IP:-127.0.0.3}:8001:8000"
+      - "${LOCAL_IP:-127.0.0.3}:1025:1025"
+      - "${LOCAL_IP:-127.0.0.3}:9912:9912"
+      - "${LOCAL_IP:-127.0.0.3}:9913:9913"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.buggregator.rule=Host(`buggregator.localhost`)
+      - traefik.http.routers.buggregator.rule=Host(`buggregator.test`)
       - traefik.http.routers.buggregator.entrypoints=web
       - traefik.http.services.buggregator.loadbalancer.server.port=8000
     networks:
@@ -170,7 +172,7 @@ services:
     volumes:
       - ./:/app
     ports:
-      - "5173:5173"
+      - "${LOCAL_IP:-127.0.0.3}:5173:5173"
     networks:
       - scenario
 

@@ -55,6 +55,20 @@ interface FieldConfig {
 // на фронте — labelTemplate у directory_list/directory_table (он рендерится локально
 // по item.data справочника через renderLabelTemplate в SurveyDirectoryListField/TableField).
 const resolvedProps = computed(() => (props.block.props ?? {}) as Record<string, unknown>)
+// Размер/цвет/заливка заголовка поля, заданные через bubble-menu в редакторе
+// блока (BlockEditorGutenbergEditor) — применяются и здесь, и в реальном
+// опросе, т.к. этот компонент общий для предпросмотра и живого плеера.
+const labelStyle = computed(() => {
+  const {labelFontSize, labelColor, labelHighlight} = resolvedProps.value
+  const style: Record<string, string> = {}
+  if (typeof labelFontSize === 'string' && labelFontSize) style.fontSize = labelFontSize
+  if (typeof labelColor === 'string' && labelColor) style.color = labelColor
+  if (typeof labelHighlight === 'string' && labelHighlight) {
+    style.backgroundColor = labelHighlight
+    style.padding = '0 4px'
+  }
+  return Object.keys(style).length ? style : undefined
+})
 
 interface DepDropConfig {
   fieldVarName: string
@@ -138,7 +152,7 @@ watch(
   </Button>
 
   <div v-else-if="block.type === 'input'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -154,7 +168,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'email'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -172,7 +186,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'phone'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <PhoneInput
@@ -186,7 +200,7 @@ watch(
 
   <div v-else-if="block.type === 'textarea'" class="grid gap-1.5">
     <div class="flex items-baseline justify-between">
-      <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+      <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
           resolvedProps.label ?? fieldName
         }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
       <span class="text-[11px] tabular-nums" :class="hasError ? 'text-destructive' : 'text-muted-foreground'">
@@ -208,7 +222,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'number'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <NumberInput
@@ -226,7 +240,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'select'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySelectField
@@ -243,7 +257,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'date' || block.type === 'datetime'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <DatePicker
@@ -271,7 +285,7 @@ watch(
           :required="Boolean(resolvedProps.required)"
           class="mt-0.5 size-4 shrink-0 rounded border-border accent-primary disabled:cursor-not-allowed"
       />
-      <span class="text-sm text-foreground">
+      <span class="text-sm text-foreground" :style="labelStyle">
                 {{ resolvedProps.label ?? fieldName }}
                 <span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span>
             </span>
@@ -280,7 +294,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_list'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryListField
@@ -302,7 +316,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_table'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryTableField
@@ -323,7 +337,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'suggest'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{{
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySuggestField
@@ -356,7 +370,7 @@ watch(
         class="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-foreground transition hover:bg-muted/40"
         @click="isCollapseOpen = !isCollapseOpen"
     >
-      <span>{{ resolvedProps.label ?? 'Подробнее' }}</span>
+      <span :style="labelStyle">{{ resolvedProps.label ?? 'Подробнее' }}</span>
       <ChevronDown
           class="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
           :class="isCollapseOpen ? 'rotate-180' : ''"

@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Module\Proxy\Gateway\{{ name }}\Methods;
+
+use Module\Proxy\Gateway\Base\Methods\AbstractApiMethod;
+
+final readonly class Create{{ name }}Method extends AbstractApiMethod
+{
+    /** @param  array<string, mixed>  $data */
+    public function __construct(private array $data) {}
+
+    #[\Override]
+    public function key(): string
+    {
+        return '{{ snake }}.create';
+    }
+
+    public function method(): string
+    {
+        return 'POST';
+    }
+
+    public function uri(): string
+    {
+        return '/{{ snake }}';
+    }
+
+    #[\Override]
+    public function body(): mixed
+    {
+        return $this->data;
+    }
+}

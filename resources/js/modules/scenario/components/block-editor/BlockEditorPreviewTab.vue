@@ -8,6 +8,7 @@ import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 const props = defineProps<{
   title: string
   fields: BlockField[]
+  layoutDocument?: unknown
   context?: Record<string, unknown>
 }>()
 
@@ -19,6 +20,7 @@ const visibleBlocks = computed(() => blockFieldsToSurveyBlocks(props.fields))
     <BlockRenderer
         :title="title || 'Шаг'"
         :blocks="visibleBlocks"
+        :layout-document="layoutDocument"
         :context="context ?? {}"
     />
 

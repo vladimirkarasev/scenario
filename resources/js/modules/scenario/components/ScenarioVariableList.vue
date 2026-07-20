@@ -115,7 +115,7 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
 
 <template>
   <div class="space-y-3">
-    <!-- Системные переменные опроса (run/operator/project). Backend инжектит их всегда. -->
+    <!-- Системные переменные опроса (run/operator/project/call). Backend инжектит их всегда. -->
     <div class="space-y-0.5">
       <div class="mb-1.5 text-[10px] font-medium text-slate-400">Системные</div>
       <div

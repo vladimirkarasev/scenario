@@ -15,8 +15,8 @@ use Tests\TestCase;
 
 /**
  * payload() инжектит системные переменные опроса вложенными группами
- * (run / operator / project) — шаблоны вида {{ run.number_formatted }},
- * {{ operator.login }}, {{ project.name }} должны резолвиться в rendered.
+ * (run / operator / project / call) — шаблоны вида {{ run.number_formatted }},
+ * {{ operator.login }}, {{ project.name }}, {{ call.id }} должны резолвиться в rendered.
  */
 final class ScenarioPlayerServicePayloadTest extends TestCase
 {
@@ -41,7 +41,11 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
                 [
                     'id' => 'node_block',
                     'type' => 'block',
-                    'data' => ['title' => '#{{ run.number_formatted }} · {{ operator.login }} · {{ project.name }}'],
+                    'data' => [
+                        'title' => '#{{ run.number_formatted }} · {{ operator.login }} · {{ project.name }}'
+                            . ' · {{ call.incoming_phone }} · {{ call.outgoing_phone }}'
+                            . ' · {{ call.internal_phone }} · {{ call.id }}',
+                    ],
                 ],
                 ['id' => 'node_end', 'type' => 'end', 'data' => ['title' => 'Готово']],
             ],
@@ -73,7 +77,7 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
         $payload = $this->player->payload($run);
 
         $this->assertSame(
-            sprintf('#%s · op_login · Проект Альфа', $run->formattedNumber()),
+            sprintf('#%s · op_login · Проект Альфа ·  ·  ·  · ', $run->formattedNumber()),
             $this->renderedTitle($payload),
         );
     }
@@ -91,7 +95,34 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
         $payload = $this->player->payload($run);
 
         $this->assertSame(
-            sprintf('#%s ·  · ', $run->formattedNumber()),
+            sprintf('#%s ·  ·  ·  ·  ·  · ', $run->formattedNumber()),
+            $this->renderedTitle($payload),
+        );
+    }
+
+    public function test_payload_resolves_call_system_variables_from_context(): void
+    {
+        $run = $this->player->createRun(new ScenarioRunData(
+            scenarioId: $this->scenario->id,
+            scenarioVersionId: null,
+            context: [
+                'call' => [
+                    'incoming_phone' => '+7 999 111-22-33',
+                    'outgoing_phone' => '+7 495 000-00-00',
+                    'internal_phone' => '1234',
+                    'id' => 'call-42',
+                ],
+            ],
+            userData: [],
+        ));
+
+        $payload = $this->player->payload($run);
+
+        $this->assertSame(
+            sprintf(
+                '#%s ·  ·  · +7 999 111-22-33 · +7 495 000-00-00 · 1234 · call-42',
+                $run->formattedNumber(),
+            ),
             $this->renderedTitle($payload),
         );
     }

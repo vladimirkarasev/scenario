@@ -26,20 +26,6 @@ export interface ValidationRule {
     message: string
 }
 
-export const AVAILABLE_VALIDATION_RULES: Partial<Record<BlockFieldType, ValidationRuleType[]>> = {
-    input: ['minLength', 'maxLength', 'pattern'],
-    textarea: ['minLength', 'pattern'],
-    email: ['pattern'],
-}
-
-export const VALIDATION_RULE_LABELS: Record<ValidationRuleType, { label: string; placeholder: string }> = {
-    minLength: {label: 'Мин. длина', placeholder: 'символов'},
-    maxLength: {label: 'Макс. длина', placeholder: 'символов'},
-    pattern: {label: 'Шаблон', placeholder: 'regex'},
-    min: {label: 'Минимум', placeholder: 'число'},
-    max: {label: 'Максимум', placeholder: 'число'},
-}
-
 interface BaseBlockField {
     id: string
     type: BlockFieldType
@@ -48,6 +34,12 @@ interface BaseBlockField {
     required: boolean
     varName: string
     validation?: ValidationRule[]
+    // Размер/цвет/заливка заголовка поля, задаются через bubble-menu в едином
+    // tiptap-документе редактора блока (BlockEditorGutenbergEditor) —
+    // применяются как в предпросмотре, так и в реальном опросе. Пусто = дефолт.
+    labelFontSize?: string
+    labelColor?: string
+    labelHighlight?: string
 }
 
 export function labelToVarName(label: string): string {
@@ -262,7 +254,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         input: {
             id,
             type: 'input',
-            name: `input_${n}`,
+            name: id,
             label: 'Текст',
             required: false,
             placeholder: '',
@@ -272,7 +264,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         email: {
             id,
             type: 'email',
-            name: `email_${n}`,
+            name: id,
             label: 'Email',
             required: false,
             placeholder: '',
@@ -282,7 +274,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         phone: {
             id,
             type: 'phone',
-            name: `phone_${n}`,
+            name: id,
             label: 'Телефон',
             required: false,
             placeholder: '',
@@ -292,7 +284,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         textarea: {
             id,
             type: 'textarea',
-            name: `textarea_${n}`,
+            name: id,
             label: 'Textarea',
             required: false,
             placeholder: '',
@@ -304,7 +296,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         rich_text: {
             id,
             type: 'rich_text',
-            name: `rich_text_${n}`,
+            name: id,
             label: 'Редактор',
             required: false,
             value: {type: 'doc', content: [{type: 'paragraph'}]},
@@ -313,7 +305,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         number: {
             id,
             type: 'number',
-            name: `number_${n}`,
+            name: id,
             label: 'Число',
             required: false,
             placeholder: '',
@@ -327,7 +319,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         select: {
             id,
             type: 'select',
-            name: `select_${n}`,
+            name: id,
             label: 'Список',
             required: false,
             value: '',
@@ -340,7 +332,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         date: {
             id,
             type: 'date',
-            name: `date_${n}`,
+            name: id,
             label: 'Дата',
             required: false,
             value: currentDateValue(),
@@ -351,7 +343,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         datetime: {
             id,
             type: 'datetime',
-            name: `datetime_${n}`,
+            name: id,
             label: 'Дата и время',
             required: false,
             value: currentDateTimeValue(),
@@ -362,7 +354,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         checkbox: {
             id,
             type: 'checkbox',
-            name: `checkbox_${n}`,
+            name: id,
             label: 'Checkbox',
             required: false,
             checked: false,
@@ -371,7 +363,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         hidden: {
             id,
             type: 'hidden',
-            name: `hidden_${n}`,
+            name: id,
             label: '',
             required: false,
             value: '',
@@ -390,7 +382,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         action: {
             id,
             type: 'action',
-            name: `action_${n}`,
+            name: id,
             label: 'Действие',
             required: false,
             actionId: '',
@@ -401,7 +393,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         action_list: {
             id,
             type: 'action_list',
-            name: `action_list_${n}`,
+            name: id,
             label: 'Список действий',
             required: false,
             actions: [],
@@ -410,7 +402,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         directory_list: {
             id,
             type: 'directory_list',
-            name: `directory_list_${n}`,
+            name: id,
             label: 'Справочник',
             required: false,
             directoryId: '',
@@ -425,7 +417,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         directory_table: {
             id,
             type: 'directory_table',
-            name: `directory_table_${n}`,
+            name: id,
             label: 'Справочник',
             required: false,
             directoryId: '',
@@ -440,7 +432,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
         suggest: {
             id,
             type: 'suggest',
-            name: `suggest_${n}`,
+            name: id,
             label: 'Подсказки',
             required: false,
             proxyUuid: '',
@@ -468,14 +460,19 @@ function normalizeBase(f: Record<string, unknown>, base: BlockField): BaseBlockF
                 message: String(r.message ?? ''),
             }))
         : []
+    // "Ключ поля" не редактируется пользователем — всегда равен id (реальный
+    // бэкенд-ключ хранения ответа, см. BlockNodeHandler::continueFrom).
+    const id = String(f.id ?? base.id)
+
     return {
         ...base,
-        id: String(f.id ?? base.id),
-        name: String(f.name ?? base.name),
+        id,
+        name: id,
         label,
         required: f.required === true || f.required === 1,
         varName: f.varName !== undefined ? String(f.varName) : labelToVarName(label),
         validation,
+        labelFontSize: typeof f.labelFontSize === 'string' && f.labelFontSize ? f.labelFontSize : undefined,
     }
 }
 
@@ -489,6 +486,61 @@ function normalizeDateMode(value: unknown, fallback: DateTimeBlockField['default
     if (value === 'picker' || value === 'fixed') return 'fixed'
     if (value === 'text' || value === 'expression') return 'expression'
     return fallback
+}
+
+// Дублирует поля блока с новыми id (включая вложенные validation[].id и,
+// для select, options[].id вместе с ремапом parentId на новые id опций;
+// actionId/action_id внутри полей не трогаем — это ссылки на реальные Action).
+// name ("Ключ поля") и varName ("Название переменной") тоже получают уникальный
+// суффикс: varName участвует в плоской карте шаблонов {{ }} на уровне всего
+// сценария (ScenarioVariableMapBuilder), совпадение — последняя запись молча
+// затирает предыдущую; name — ключ сохранения ответа внутри одного блока.
+export function duplicateBlockFieldIds(fields: BlockField[]): BlockField[] {
+    return fields.map((field): BlockField => {
+        const newId = uid(field.type)
+        const suffix = newId.slice(newId.lastIndexOf('_') + 1)
+        // name всегда равен id (см. normalizeBase) — дублированное поле просто получает новый id.
+        const name = field.name ? newId : field.name
+        const varName = field.varName ? `${field.varName}_${suffix}` : field.varName
+
+        const validation = field.validation
+            ? field.validation.map((rule) => ({...rule, id: uid('rule')}))
+            : field.validation
+
+        if (field.type === 'select') {
+            const optionIdMap = new Map<string, string>()
+            const optionsWithNewIds = field.options.map((option) => {
+                const newOptionId = uid('select_option')
+                optionIdMap.set(option.id, newOptionId)
+                return {...option, id: newOptionId}
+            })
+
+            return {
+                ...field,
+                id: newId,
+                name,
+                varName,
+                validation,
+                options: optionsWithNewIds.map((option) => ({
+                    ...option,
+                    parentId: option.parentId ? optionIdMap.get(option.parentId) ?? null : null,
+                })),
+            }
+        }
+
+        if (field.type === 'action_list') {
+            return {
+                ...field,
+                id: newId,
+                name,
+                varName,
+                validation,
+                actions: field.actions.map((item) => ({...item, id: uid('ali')})),
+            }
+        }
+
+        return {...field, id: newId, name, varName, validation}
+    })
 }
 
 export function normalizeScenarioBlockField(field: unknown, index = 0): BlockField {

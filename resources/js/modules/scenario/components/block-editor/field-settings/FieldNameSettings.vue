@@ -33,10 +33,10 @@ defineOptions({inheritAttrs: false})
   <div v-if="field.type !== 'collapse'" class="space-y-1.5">
     <Label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Ключ поля</Label>
     <Input
-        :model-value="field.name"
+        :model-value="field.id"
         class="h-8 font-mono text-sm"
-        :disabled="disabled"
-        @update:model-value="emit('update', { name: $event.replace(/\s+/g, '_') })"
+        readonly
+        disabled
     />
   </div>
 

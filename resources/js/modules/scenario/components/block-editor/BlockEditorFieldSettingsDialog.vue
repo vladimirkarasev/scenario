@@ -6,10 +6,7 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Separator} from '@/components/ui/separator'
 import FieldNameSettings from '@/modules/scenario/components/block-editor/field-settings/FieldNameSettings.vue'
-import ValidationChainBuilder
-  from '@/modules/scenario/components/block-editor/field-settings/ValidationChainBuilder.vue'
 import ScenarioVariableList from '@/modules/scenario/components/ScenarioVariableList.vue'
-import {AVAILABLE_VALIDATION_RULES} from '@/modules/scenario/lib/scenario-block-fields'
 import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 
 type AnyRecord = Record<string, unknown>
@@ -149,15 +146,6 @@ const requiredToggleVisible = computed(() =>
               @remove-option="emit('removeOption', $event)"
               @reorder-options="emit('reorderOptions', $event)"
           />
-
-          <template v-if="field && AVAILABLE_VALIDATION_RULES[field.type]?.length">
-            <Separator class="bg-slate-100"/>
-            <ValidationChainBuilder
-                :field="field"
-                :disabled="!canEdit"
-                @update="emit('update', $event)"
-            />
-          </template>
         </div>
       </div>
 
