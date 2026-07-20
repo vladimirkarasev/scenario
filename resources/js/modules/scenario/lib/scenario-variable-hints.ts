@@ -128,6 +128,16 @@ export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
             {suffix: 'id', label: 'ID проекта', description: 'Идентификатор проекта'},
         ],
     },
+    {
+        name: 'call',
+        label: 'Звонок',
+        fields: [
+            {suffix: 'incoming_phone', label: 'Входящий номер телефона', description: 'Номер входящего звонка'},
+            {suffix: 'outgoing_phone', label: 'Исходящий номер телефона', description: 'Номер исходящего звонка'},
+            {suffix: 'internal_phone', label: 'Внутренний номер', description: 'Внутренний номер сотрудника'},
+            {suffix: 'id', label: 'Идентификатор звонка', description: 'Уникальный идентификатор звонка'},
+        ],
+    },
 ]
 
 export function extractVarName(varRef: string): string {

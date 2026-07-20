@@ -63,5 +63,15 @@ describe('scenario variable hints', () => {
 
         expect(systemGroupRef(group)).toBe('{{ run }}')
         expect(systemFieldRef(group, field)).toBe('{{ run.id }}')
+
+        const callGroup = SYSTEM_VARIABLE_GROUPS.find(item => item.name === 'call')!
+
+        expect(callGroup.fields.map(item => item.suffix)).toEqual([
+            'incoming_phone',
+            'outgoing_phone',
+            'internal_phone',
+            'id',
+        ])
+        expect(systemFieldRef(callGroup, callGroup.fields[0])).toBe('{{ call.incoming_phone }}')
     })
 })

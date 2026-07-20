@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Module\Proxy\Gateway\{{ name }};
+
+use Module\Proxy\Gateway\{{ name }}\DTO\{{ name }}Data;
+use Module\Proxy\Gateway\{{ name }}\Methods\Create{{ name }}Method;
+use Module\Proxy\Gateway\{{ name }}\Methods\{{ name }}ListMethod;
+use Module\Proxy\Gateway\{{ name }}\Methods\{{ name }}ShowMethod;
+use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
+use Module\Proxy\Gateway\Base\DTO\ApiGatewayResponse;
+use Module\Proxy\Gateway\Base\Services\BaseApiGateway;
+use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
+use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
+use Psr\Log\LoggerInterface;
+
+final class {{ name }}Gateway extends BaseApiGateway
+{
+    public function __construct(
+        ApiGatewayConfig $config,
+        GuzzleApiTransport $transport,
+        MockApiTransport $mockTransport,
+        LoggerInterface $logger,
+    ) {
+        parent::__construct(
+            config: $config,
+            transport: $transport,
+            mockTransport: $mockTransport,
+            logger: $logger,
+        );
+    }
+
+    /**
+     * @return array<int, {{ name }}Data>
+     * @throws \Throwable
+     */
+    public function list(): array
+    {
+        return $this->items($this->send(new {{ name }}ListMethod));
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function show(int $id): {{ name }}Data
+    {
+        return $this->one($this->send(new {{ name }}ShowMethod($id)));
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @throws \Throwable
+     */
+    public function create(array $data): {{ name }}Data
+    {
+        return $this->one($this->send(new Create{{ name }}Method($data)));
+    }
+
+    private function one(ApiGatewayResponse $response): {{ name }}Data
+    {
+        return {{ name }}Data::fromArray(is_array($response->body) ? $response->body : []);
+    }
+
+    /** @return array<int, {{ name }}Data> */
+    private function items(ApiGatewayResponse $response): array
+    {
+        $body = is_array($response->body) ? $response->body : [];
+        $arrays = array_filter($body, is_array(...));
+
+        return array_values(array_map({{ name }}Data::fromArray(...), $arrays));
+    }
+}

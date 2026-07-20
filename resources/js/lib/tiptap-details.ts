@@ -2,6 +2,14 @@ import {Node, mergeAttributes} from '@tiptap/core'
 import {VueNodeViewRenderer} from '@tiptap/vue-3'
 import TiptapDetailsNodeView from '@/modules/scenario/components/tiptap/TiptapDetailsNodeView.vue'
 
+declare module '@tiptap/core' {
+    interface Commands<ReturnType> {
+        details: {
+            setDetails: () => ReturnType
+        }
+    }
+}
+
 export const Details = Node.create({
     name: 'details',
     group: 'block',

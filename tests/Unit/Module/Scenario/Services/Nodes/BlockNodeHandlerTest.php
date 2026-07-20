@@ -194,6 +194,87 @@ final class BlockNodeHandlerTest extends TestCase
         $this->assertArrayNotHasKey('label', $field['props']);
     }
 
+    public function test_render_includes_and_resolves_layout_document(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'layoutDocument' => [
+                    'type' => 'doc',
+                    'content' => [
+                        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Hello {{ name }}']]],
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, ['name' => 'Vladimir']);
+
+        $this->assertSame('doc', $result['layoutDocument']['type']);
+        $this->assertSame('Hello Vladimir', $result['layoutDocument']['content'][0]['content'][0]['text']);
+    }
+
+    public function test_render_layout_document_is_null_when_absent(): void
+    {
+        $node = ['id' => 'node_block', 'type' => 'block', 'data' => ['title' => 'Form']];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $this->assertNull($result['layoutDocument']);
+    }
+
+    public function test_render_includes_label_style_props_when_set(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'input',
+                        'name' => 'email',
+                        'label' => 'Email',
+                        'labelFontSize' => '24px',
+                        'labelColor' => '#ff0000',
+                        'labelHighlight' => '#ffff00',
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertSame('24px', $field['props']['labelFontSize']);
+        $this->assertSame('#ff0000', $field['props']['labelColor']);
+        $this->assertSame('#ffff00', $field['props']['labelHighlight']);
+    }
+
+    public function test_render_omits_label_style_props_when_unset(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    ['id' => 'f1', 'type' => 'input', 'name' => 'email', 'label' => 'Email'],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertArrayNotHasKey('labelFontSize', $field['props']);
+        $this->assertArrayNotHasKey('labelColor', $field['props']);
+        $this->assertArrayNotHasKey('labelHighlight', $field['props']);
+    }
+
     public function test_continue_from_merges_input_into_context(): void
     {
         $run = $this->createRun();

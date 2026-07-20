@@ -8,6 +8,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\DB;
 use Module\Directories\Cache\DirectoryCache;
 use Module\Directories\Exceptions\DirectoryVersionException;
+use Module\Directories\Jobs\RebuildDirectorySearchTextJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryVersionRepository;
@@ -83,6 +84,8 @@ final readonly class DirectoryVersionService
             throw DirectoryVersionException::notBelongsToDirectory();
         }
 
+        $previousSearchableKeys = $this->searchableKeys($version->schema_json);
+
         $version->schema_json = $fields;
         $version->save();
 
@@ -90,7 +93,9 @@ final readonly class DirectoryVersionService
         $directory->default_sort = $defaultSort;
         $directory->save();
 
-        $this->container->make(DirectoryItemService::class)->rebuildSearchTextForVersion($version);
+        if ($previousSearchableKeys !== $this->searchableKeys($fields)) {
+            RebuildDirectorySearchTextJob::dispatch($version->id);
+        }
 
         DirectoryCache::forgetDirectory($directory->id);
 
@@ -221,5 +226,24 @@ final readonly class DirectoryVersionService
             ?? $version->imports()->latest()->first();
 
         return $import !== null ? $import->fields_json : [];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $fields
+     * @return array<int, string>
+     */
+    private function searchableKeys(array $fields): array
+    {
+        $keys = [];
+
+        foreach ($fields as $field) {
+            if (($field['searchable'] ?? false) === true && is_string($field['key'] ?? null)) {
+                $keys[] = $field['key'];
+            }
+        }
+
+        sort($keys);
+
+        return array_values(array_unique($keys));
     }
 }

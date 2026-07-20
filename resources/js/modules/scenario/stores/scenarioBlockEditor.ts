@@ -185,6 +185,20 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         blockDraft.value = {...blockDraft.value, data: {...blockDraft.value.data, fields}}
     }
 
+    // Применяет порядок полей, заданный извне (drag полей внутри единого
+    // tiptap-документа BlockEditorGutenbergEditor) — orderedIds содержит id
+    // всех текущих полей в новом порядке.
+    function reorderFields(orderedIds: string[]): void {
+        if (!blockDraft.value) return
+
+        const fields = blockDraft.value.data.fields
+        const byId = new Map(fields.map((field) => [field.id, field]))
+        const reordered = orderedIds.map((id) => byId.get(id)).filter((f): f is BlockField => Boolean(f))
+        if (reordered.length !== fields.length) return
+
+        blockDraft.value = {...blockDraft.value, data: {...blockDraft.value.data, fields: reordered}}
+    }
+
     function moveFieldToIndex(fieldId: string, targetIndex: number): void {
         if (!blockDraft.value) return
 
@@ -232,6 +246,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         removeField,
         moveField,
         moveFieldToIndex,
+        reorderFields,
         save,
         resetDraft,
     }

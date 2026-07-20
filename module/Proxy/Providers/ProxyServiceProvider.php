@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Module\Projects\Http\Middleware\RequireCurrentProject;
+use Module\Proxy\Console\Commands\MakeProxyCredentialCommand;
+use Module\Proxy\Console\Commands\MakeProxyGatewayCommand;
 use Module\Proxy\Enums\ProxyPermission;
 use Module\Proxy\Events\ProxyRequestAccepted;
 use Module\Proxy\Events\ProxyRequestFailed;
@@ -43,6 +45,11 @@ final class ProxyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         PermissionRegistry::register(ProxyPermission::class);
+
+        $this->commands([
+            MakeProxyGatewayCommand::class,
+            MakeProxyCredentialCommand::class,
+        ]);
 
         $this->registerExceptionHandlers();
 

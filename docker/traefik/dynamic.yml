@@ -1,19 +1,26 @@
 http:
   routers:
     scenario:
-      rule: Host(`scenario.localhost`)
+      rule: Host(`scenario.test`)
+      entryPoints:
+        - web
+      service: scenario
+
+    scenario-local-ip:
+      rule: PathPrefix(`/`)
+      priority: 1
       entryPoints:
         - web
       service: scenario
 
     scenario-centrifugo:
-      rule: Host(`centrifugo.localhost`)
+      rule: Host(`centrifugo.test`)
       entryPoints:
         - web
       service: scenario-centrifugo
 
     buggregator:
-      rule: Host(`buggregator.localhost`)
+      rule: Host(`buggregator.test`)
       entryPoints:
         - web
       service: buggregator

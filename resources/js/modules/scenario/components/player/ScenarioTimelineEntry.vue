@@ -56,6 +56,7 @@ const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
     <BlockRenderer
         :title="asBlock(entry.rendered).title"
         :blocks="asBlock(entry.rendered).blocks"
+        :layout-document="asBlock(entry.rendered).layoutDocument"
         :context="entry.context"
         :initial-values="(entry.context[entry.node_id] as Record<string, unknown> | undefined) ?? null"
         readonly

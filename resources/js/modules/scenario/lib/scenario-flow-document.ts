@@ -1,4 +1,4 @@
-import {normalizeScenarioBlockField, type BlockField} from '@/modules/scenario/lib/scenario-block-fields'
+import {duplicateBlockFieldIds, normalizeScenarioBlockField, type BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 
 export type NodeType = 'start' | 'block' | 'action' | 'condition' | 'end' | 'scenario_link'
 
@@ -355,4 +355,105 @@ export function cloneScenarioFlowDocument(document: unknown): ScenarioFlowDocume
 
 export function stringifyScenarioFlowDocument(document: unknown): string {
     return JSON.stringify(normalizeScenarioFlowDocument(document), null, 2)
+}
+
+// Регенерирует id вложенного содержимого блока (fields, conditionBranches,
+// action_items у action-нод) — при вставке двух копий одной ноды в один граф
+// эти id иначе дублируются и ломают ключи списков/выборки во вложенных редакторах.
+// Ссылки на внешние сущности (actionId, before_action_id, targetScenarioId,
+// directoryId, proxyUuid и т.п.) не трогаем — это реальные UUID из БД.
+function duplicateBlockData(data: ScenarioBlockData): ScenarioBlockData {
+    const cloned = clone(data)
+
+    if (Array.isArray(cloned.fields)) {
+        cloned.fields = duplicateBlockFieldIds(cloned.fields)
+    }
+
+    if (Array.isArray(cloned.conditionBranches)) {
+        cloned.conditionBranches = cloned.conditionBranches.map((branch) => ({
+            ...branch,
+            id: uid('condition_branch'),
+        }))
+    }
+
+    const actionItems = cloned.action_items
+    if (Array.isArray(actionItems)) {
+        cloned.action_items = actionItems.map((item) => (
+            item && typeof item === 'object' ? {...item, id: uid('ali')} : item
+        ))
+    }
+
+    return cloned
+}
+
+export function duplicateScenarioFlowBlocks(
+    blocks: ScenarioBlock[],
+    connections: ScenarioConnection[],
+    offset: { x: number; y: number },
+): { blocks: ScenarioBlock[]; connections: ScenarioConnection[] } {
+    const idMap = new Map<string, string>()
+
+    const duplicatedBlocks = blocks.map((block) => {
+        const newId = uid(block.type)
+        idMap.set(block.id, newId)
+
+        return {
+            ...block,
+            id: newId,
+            position: {x: block.position.x + offset.x, y: block.position.y + offset.y},
+            data: duplicateBlockData(block.data),
+        }
+    })
+
+    const duplicatedConnections = connections
+        .filter((connection) => idMap.has(connection.source.blockId) && idMap.has(connection.target.blockId))
+        .map((connection) => ({
+            ...clone(connection),
+            id: uid('connection'),
+            source: {...connection.source, blockId: idMap.get(connection.source.blockId)!},
+            target: {...connection.target, blockId: idMap.get(connection.target.blockId)!},
+        }))
+
+    return {blocks: duplicatedBlocks, connections: duplicatedConnections}
+}
+
+const CLIPBOARD_FORMAT = 'scenario-flow-clipboard' as const
+
+interface ScenarioFlowClipboardPayload {
+    format: typeof CLIPBOARD_FORMAT
+    version: number
+    blocks: ScenarioBlock[]
+    connections: ScenarioConnection[]
+}
+
+export function serializeScenarioFlowClipboard(blocks: ScenarioBlock[], connections: ScenarioConnection[]): string {
+    const payload: ScenarioFlowClipboardPayload = {
+        format: CLIPBOARD_FORMAT,
+        version: SCHEMA_VERSION,
+        blocks: clone(blocks),
+        connections: clone(connections),
+    }
+
+    return JSON.stringify(payload)
+}
+
+export function parseScenarioFlowClipboard(text: string): { blocks: ScenarioBlock[]; connections: ScenarioConnection[] } | null {
+    let parsed: unknown
+
+    try {
+        parsed = JSON.parse(text)
+    } catch {
+        return null
+    }
+
+    const p = parsed as Record<string, unknown> | null
+
+    if (!p || p.format !== CLIPBOARD_FORMAT || !Array.isArray(p.blocks)) {
+        return null
+    }
+
+    return {
+        blocks: p.blocks.map(normalizeBlock),
+        connections: Array.isArray(p.connections) ? p.connections.map(normalizeConnection) : [],
+    }
 }

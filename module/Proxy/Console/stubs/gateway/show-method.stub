@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Module\Proxy\Gateway\{{ name }}\Methods;
+
+use Module\Proxy\Gateway\Base\Methods\AbstractApiMethod;
+
+final readonly class {{ name }}ShowMethod extends AbstractApiMethod
+{
+    public function __construct(private int $id) {}
+
+    #[\Override]
+    public function key(): string
+    {
+        return '{{ snake }}.show';
+    }
+
+    public function method(): string
+    {
+        return 'GET';
+    }
+
+    public function uri(): string
+    {
+        return '/{{ snake }}/'.$this->id;
+    }
+}

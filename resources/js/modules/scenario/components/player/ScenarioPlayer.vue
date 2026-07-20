@@ -213,6 +213,7 @@ const activeDraftKey = computed(() => {
         v-if="rendered && (rendered as Record<string, unknown>).type === 'block' && !completed && !failed"
         :title="asBlock(rendered).title"
         :blocks="asBlock(rendered).blocks"
+        :layout-document="asBlock(rendered).layoutDocument"
         :context="context"
         :loading="loading"
         :field-errors="fieldErrors"

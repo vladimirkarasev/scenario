@@ -33,6 +33,7 @@ import {
   cloneScenarioFlowDocument,
   createEmptyScenarioFlowDocument,
   createScenarioFlowNode,
+  duplicateScenarioFlowBlocks,
   fromVueFlowState,
   normalizeScenarioFlowDocument,
   stringifyScenarioFlowDocument,
@@ -40,6 +41,7 @@ import {
 } from '@/modules/scenario/lib/scenario-flow-document'
 import {saveScenarioVersionDraft} from '@/modules/scenario/lib/scenario-version-draft'
 import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
+import {useNodeClipboard} from '@/modules/scenario/composables/useNodeClipboard'
 import {USER_VARIABLES} from '@/modules/scenario/lib/scenario-flow-constants'
 import {X} from 'lucide-vue-next'
 
@@ -102,6 +104,7 @@ const copiedConditionVariableId = ref(null)
 // Must stay in sync with the handle ids declared in EndNode and ScenarioLinkNode.
 
 const selectedNode = computed(() => nodes.value.find((node) => node.id === selectedNodeId.value) ?? null)
+const selectedNodes = computed(() => nodes.value.filter((node) => node.selected))
 const selectedEdge = computed(() => edges.value.find((edge) => edge.id === selectedEdgeId.value) ?? null)
 const selectedEdgeSourceNode = computed(() => selectedEdge.value
     ? nodes.value.find((node) => node.id === selectedEdge.value.source) ?? null
@@ -455,6 +458,19 @@ function deleteSelected() {
     return
   }
 
+  if (selectedNodes.value.length > 1) {
+    const nodeIds = new Set(selectedNodes.value.map((node) => node.id))
+    nodes.value = nodes.value.filter((node) => !nodeIds.has(node.id))
+    edges.value = edges.value.filter((edge) => !nodeIds.has(edge.source) && !nodeIds.has(edge.target))
+    selectedNodeId.value = null
+    conditionSettingsOpen.value = false
+    actionEditorOpen.value = false
+    drawerOpen.value = false
+    resetInspectorDraft()
+
+    return
+  }
+
   if (selectedNode.value) {
     const nodeId = selectedNode.value.id
     nodes.value = nodes.value.filter((node) => node.id !== nodeId)
@@ -473,6 +489,72 @@ function deleteSelected() {
     selectedEdgeId.value = null
     drawerOpen.value = false
   }
+}
+
+const {copyToClipboard, readFromClipboard} = useNodeClipboard()
+const pasteCascade = ref(0)
+
+function copySelectedNodes() {
+  if (!selectedNodes.value.length) {
+    return
+  }
+
+  const nodeIds = new Set(selectedNodes.value.map((node) => node.id))
+  const blocks = selectedNodes.value.map((node) => ({
+    id: node.id,
+    type: node.type,
+    position: node.position,
+    data: node.data,
+  }))
+  const connections = edges.value
+      .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
+      .map((edge) => ({
+        id: edge.id,
+        source: {blockId: edge.source, port: edge.sourceHandle ?? null},
+        target: {blockId: edge.target, port: edge.targetHandle ?? null},
+        label: edge.label ?? null,
+        data: edge.data ?? {},
+      }))
+
+  pasteCascade.value = 0
+  copyToClipboard(blocks, connections)
+}
+
+async function pasteClipboardNodes() {
+  if (!props.editable) {
+    return
+  }
+
+  const payload = await readFromClipboard()
+
+  if (!payload || !payload.blocks.length) {
+    return
+  }
+
+  pasteCascade.value += 1
+
+  const {blocks, connections} = duplicateScenarioFlowBlocks(
+      payload.blocks,
+      payload.connections,
+      {x: 48 * pasteCascade.value, y: 48 * pasteCascade.value},
+  )
+
+  const pastedState = toVueFlowState({
+    format: 'scenario-flow',
+    version: 1,
+    viewport: viewport.value,
+    blocks,
+    connections,
+  }, props.scenarios)
+
+  nodes.value = [
+    ...nodes.value.map((node) => ({...node, selected: false})),
+    ...pastedState.nodes.map((node) => ({...node, selected: true})),
+  ]
+  edges.value = [
+    ...edges.value.map((edge) => ({...edge, selected: false})),
+    ...pastedState.edges,
+  ]
 }
 
 function onConnect(connection) {
@@ -625,7 +707,7 @@ function applyConditionLogicalVariable(variable) {
   }, 1500)
 }
 
-function handleDeleteShortcut(event) {
+function handleFlowKeyboardShortcut(event) {
   const target = event.target
 
   if (
@@ -638,24 +720,46 @@ function handleDeleteShortcut(event) {
     return
   }
 
-  if (event.key !== 'Delete' && event.key !== 'Backspace') {
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (!selectedNode.value && !selectedEdge.value) {
+      return
+    }
+
+    event.preventDefault()
+    deleteSelected()
     return
   }
 
-  if (!selectedNode.value && !selectedEdge.value) {
+  const isModifierPressed = event.ctrlKey || event.metaKey
+
+  // event.code (физическая клавиша) вместо event.key — раскладка клавиатуры
+  // (например, русская) меняет event.key для Ctrl+C/V на нелатинский символ.
+  if (isModifierPressed && event.code === 'KeyC') {
+    if (!selectedNodes.value.length) {
+      return
+    }
+
+    event.preventDefault()
+    copySelectedNodes()
     return
   }
 
-  event.preventDefault()
-  deleteSelected()
+  if (isModifierPressed && event.code === 'KeyV') {
+    if (!props.editable) {
+      return
+    }
+
+    event.preventDefault()
+    pasteClipboardNodes()
+  }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleDeleteShortcut)
+  window.addEventListener('keydown', handleFlowKeyboardShortcut)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleDeleteShortcut)
+  window.removeEventListener('keydown', handleFlowKeyboardShortcut)
 })
 
 function onBlockUpdate(block) {
@@ -808,9 +912,11 @@ function applyJsonEdit(parsed) {
               v-if="editable"
               :selected-node="selectedNode"
               :selected-edge="selectedEdge"
+              :selected-nodes="selectedNodes"
               :selected-edge-from-condition="selectedEdgeFromCondition"
               @edit-node="openSelectedNodeEditor"
               @open-condition="openSelectedConditionSettings"
+              @copy="copySelectedNodes"
               @delete="deleteSelected"
           />
         </Transition>

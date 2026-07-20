@@ -1,4 +1,4 @@
-import {computed, ref} from 'vue'
+import {computed, ref, shallowRef} from 'vue'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
 import {proxyConnectionRepository} from '@/modules/proxy/repositories/proxyConnectionRepository'
 import type {HandlerOption, MockResponseVariant, WebhookEndpoint, WebhookField} from '@/modules/proxy/types/webhook'
@@ -53,8 +53,10 @@ export function useWebhookModal(onSaved: () => void) {
     const receiveUrl = ref<string>('')
     const connections = ref<ProxyConnection[]>([])
 
+    const schemaRef = shallowRef(webhookSchema({}))
+
     const {formData: form, errors, formError, submitting, submit, reset} =
-        useZodForm(webhookSchema, emptyForm())
+        useZodForm(schemaRef, emptyForm())
 
     const fields = ref<WebhookField[]>([])
     const loadingFields = ref(false)
@@ -91,6 +93,9 @@ export function useWebhookModal(onSaved: () => void) {
         } catch {
             handlers.value = []
         }
+        schemaRef.value = webhookSchema(
+            Object.fromEntries(handlers.value.map(h => [h.class, h.credential_type])),
+        )
     }
 
     void loadHandlers()
