@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Actions\Repositories;
 
-use Illuminate\Support\Collection;
 use Module\Actions\Models\ActionSchedule;
 
 final class ActionScheduleRepository
@@ -16,26 +15,6 @@ final class ActionScheduleRepository
             ['action_id' => $actionId],
             $attributes,
         );
-    }
-
-    /** @return Collection<int, ActionSchedule> */
-    public function due(): Collection
-    {
-        return ActionSchedule::query()
-            ->with('action')
-            ->where('enabled', true)
-            ->whereNotNull('next_run_at')
-            ->where('next_run_at', '<=', now())
-            ->orderBy('next_run_at')
-            ->get();
-    }
-
-    public function lock(int $id): ?ActionSchedule
-    {
-        return ActionSchedule::query()
-            ->whereKey($id)
-            ->lockForUpdate()
-            ->first();
     }
 
     /** @param  array<string, mixed>  $attributes */

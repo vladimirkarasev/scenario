@@ -13,10 +13,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD групп пользователей.
- * Роуты: GET|POST /api/groups, GET|PUT|DELETE /api/groups/{group}
- */
 final class UserGroupsControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,13 +23,6 @@ final class UserGroupsControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/groups
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список возвращает группы текущего проекта.
-     */
     public function test_index_returns_groups_for_current_project(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_view');
@@ -47,9 +36,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonStructure(['meta' => ['timestamp', 'requestId']]);
     }
 
-    /**
-     * Группы другого проекта не попадают в ответ.
-     */
     public function test_index_excludes_groups_from_other_project(): void
     {
         [$user] = $this->makeUserWithProject('group_view');
@@ -62,9 +48,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    /**
-     * Без пермишена group_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject();
@@ -76,9 +59,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonStructure(['errors' => [['status', 'code', 'title', 'detail']], 'meta' => ['timestamp', 'requestId']]);
     }
 
-    /**
-     * Без авторизации — 401 в едином формате errors[] + meta.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/groups')
@@ -87,13 +67,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonStructure(['errors' => [['status', 'code', 'title', 'detail']], 'meta' => ['timestamp', 'requestId']]);
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/groups/{group}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующая группа — 200 с name и slug в attributes.
-     */
     public function test_show_returns_group_attributes(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_view');
@@ -106,9 +79,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonPath('data.attributes.slug', 'admins');
     }
 
-    /**
-     * Автор отдаётся как JSON:API-связь: linkage + top-level included при ?include=createdBy.
-     */
     public function test_show_includes_creator_as_json_api_relationship(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_view');
@@ -129,9 +99,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertJsonPath('included.0.id', (string) $user->id);
     }
 
-    /**
-     * Несуществующий UUID — 404.
-     */
     public function test_show_returns_404_for_nonexistent(): void
     {
         [$user] = $this->makeUserWithProject('group_view');
@@ -141,9 +108,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Группа чужого проекта недоступна — 404 (скоупинг по проекту).
-     */
     public function test_show_returns_404_for_group_from_other_project(): void
     {
         [$user] = $this->makeUserWithProject('group_view');
@@ -154,13 +118,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/groups
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание группы — 201, запись появляется в БД с site_id проекта.
-     */
     public function test_store_creates_group_and_returns_201(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_create');
@@ -182,9 +139,6 @@ final class UserGroupsControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Пустое тело — 422.
-     */
     public function test_store_returns_422_when_required_fields_missing(): void
     {
         [$user] = $this->makeUserWithProject('group_create');
@@ -194,9 +148,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Дублирующийся slug — 422.
-     */
     public function test_store_returns_422_when_slug_not_unique(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_create');
@@ -228,9 +179,6 @@ final class UserGroupsControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Без пермишена group_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject('group_view');
@@ -240,13 +188,6 @@ final class UserGroupsControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/groups/{group}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление name сохраняется в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_create');
@@ -285,13 +226,6 @@ final class UserGroupsControllerTest extends TestCase
         $this->assertFalse($group->is_active);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/groups/{group}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление группы — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_group_and_returns_204(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_delete');
@@ -304,9 +238,6 @@ final class UserGroupsControllerTest extends TestCase
         $this->assertDatabaseMissing('user_groups', ['id' => $group->id]);
     }
 
-    /**
-     * Без пермишена group_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('group_view');
@@ -316,10 +247,6 @@ final class UserGroupsControllerTest extends TestCase
             ->deleteJson("/api/groups/{$group->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

@@ -10,24 +10,24 @@ tasks:
       - task: up
 
   up:
-    desc: Start application containers
+    desc: Start application containers (including the Temporal dev stack)
     cmds:
-      - "{{.COMPOSE}} up -d"
+      - "{{.COMPOSE}} --profile temporal up -d"
 
   up:dev:
-    desc: Start application containers with dev profile and Traefik
+    desc: Start application containers with dev profile, Traefik and the Temporal dev stack
     cmds:
-      - "{{.COMPOSE}} --profile dev up -d"
+      - "{{.COMPOSE}} --profile dev --profile temporal up -d"
 
   down:
-    desc: Stop and remove application containers
+    desc: Stop and remove application containers (including the Temporal dev stack)
     cmds:
-      - "{{.COMPOSE}} down"
+      - "{{.COMPOSE}} --profile temporal down"
 
   down:dev:
-    desc: Stop and remove application containers including dev profile services
+    desc: Stop and remove application containers including dev profile and Temporal dev stack services
     cmds:
-      - "{{.COMPOSE}} --profile dev down"
+      - "{{.COMPOSE}} --profile dev --profile temporal down"
 
   build:
     desc: Build application images

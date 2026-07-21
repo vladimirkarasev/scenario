@@ -14,29 +14,12 @@ export interface ScenarioFieldOptions {
     onDeleteField: (fieldId: string) => void
 }
 
-// Block-нода поля блока. Заголовок поля — обычный редактируемый inline-контент
-// tiptap (content: 'inline*'), поэтому форматируется тем же тулбаром/bubble
-// menu, что и остальной документ (bold/color/highlight и т.д.) — специальных
-// контролов внутри самой ноды для этого не нужно. Реальный контрол поля
-// (Input/Select/...) — статичная (не-ProseMirror) часть NodeView вокруг
-// заголовка. Поле резолвится по fieldId через options.getField, которые
-// настраивает BlockEditorGutenbergEditor.
 export const ScenarioField = Node.create<ScenarioFieldOptions>({
     name: 'scenarioField',
     group: 'block',
     content: 'inline*',
     draggable: true,
-    // false — иначе клик/тройной клик по заголовку иногда схлопывает выделение
-    // текста в NodeSelection всей ноды, и следующий Backspace/Delete удаляет
-    // поле целиком вместо текста заголовка. Перетаскивание (draggable) от этого
-    // не зависит — работает через data-drag-handle.
     selectable: false,
-    // true — иначе ProseMirror на Backspace в самом начале документа может
-    // «разжаловать» пустое поле в обычный параграф (стандартный fallback
-    // joinBackward для текстовых блоков) — поле визуально пропадает из
-    // документа, хотя его данные остаются. Пустые параграфы рядом с полем
-    // при этом чистим вручную через addKeyboardShortcuts ниже, не полагаясь
-    // на joinBackward, которому isolating закрывает проход через границу.
     isolating: true,
 
     addOptions() {
@@ -73,13 +56,6 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
         return VueNodeViewRenderer(TiptapScenarioFieldNodeView)
     },
 
-    // isolating блокирует стандартный joinBackward сквозь границу поля, поэтому
-    // пустой параграф, оставшийся вплотную к полю (например, после Enter),
-    // сам не удаляется по Backspace — чистим его здесь явно, не трогая саму
-    // ноду поля. Единственное исключение — самый последний параграф в
-    // документе: его держит встроенный TrailingNode (из StarterKit), он тут
-    // же вставит такой же обратно, и это осознанное поведение (всегда есть
-    // куда кликнуть после последнего поля), поэтому его не трогаем.
     addKeyboardShortcuts() {
         return {
             Backspace: () => {
@@ -88,11 +64,6 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
 
                 const {$from} = selection
 
-                // Курсор внутри уже пустого заголовка поля: гасим Backspace явно,
-                // иначе ProseMirror-фоллбэк «разжалует» пустой textblock в обычный
-                // paragraph (стандартное поведение joinBackward, когда сливать
-                // не с чем) — поле визуально исчезает из документа, хотя данные
-                // остаются. isolating сам по себе от этого не защищает.
                 if ($from.parent.type.name === this.name && $from.parent.content.size === 0 && $from.parentOffset === 0) {
                     return true
                 }

@@ -219,7 +219,6 @@ final class ScenarioPlayerGraphTest extends TestCase
             userData: [],
         ));
 
-        // Идентичность прогона остаётся за исходным сценарием; исполнение — в целевой версии.
         $this->assertSame($source->id, $run->scenario_id);
         $this->assertSame($targetVersion->id, $run->scenario_version_id);
         $this->assertSame('target_form', $run->current_node_id);

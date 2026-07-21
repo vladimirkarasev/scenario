@@ -99,8 +99,6 @@ export function useProjectModal(onSaved: () => void) {
         }
     }
 
-    // ── Delete confirm ───────────────────────────────────────────────────
-
     const confirmDelete = ref<Project | null>(null)
     const deleting = ref(false)
     const deleteError = ref<string | null>(null)

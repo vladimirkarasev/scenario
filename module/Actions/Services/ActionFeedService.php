@@ -14,8 +14,6 @@ use Module\Actions\Models\ActionSchedule;
 final readonly class ActionFeedService
 {
     /**
-     * Смешанный поток "разделы сверху + действия" с единой пагинацией (как у справочников).
-     *
      * @return array{
      *     data: array<int, array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, folders_total: int, items_total: int}

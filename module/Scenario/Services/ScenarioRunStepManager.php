@@ -16,8 +16,6 @@ final readonly class ScenarioRunStepManager
     }
 
     /**
-     * Создаёт открытый шаг для узла, если его ещё нет.
-     *
      * @param  array<string, mixed>  $node
      */
     public function ensureOpen(ScenarioRun $run, array $node): void
@@ -43,8 +41,6 @@ final readonly class ScenarioRunStepManager
     }
 
     /**
-     * Создаёт завершённый шаг для неинтерактивного узла.
-     *
      * @param  array<string, mixed>  $node
      * @param  array<string, mixed>  $output
      */
@@ -67,8 +63,6 @@ final readonly class ScenarioRunStepManager
     }
 
     /**
-     * Закрывает текущий открытый шаг, создавая его если не существует.
-     *
      * @param  array<string, mixed>  $input
      * @param  array<string, mixed>  $output
      */

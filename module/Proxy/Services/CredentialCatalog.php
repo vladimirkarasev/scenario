@@ -10,10 +10,6 @@ use Module\Proxy\Credentials\BasicCredential;
 use Module\Proxy\Credentials\BearerCredential;
 use Module\Proxy\Credentials\ProxyCredential;
 
-/**
- * Каталог драйверов доступа (connection). Новый тип доступа = добавить класс сюда.
- * Реестр заодно служит whitelist-ом: привязать можно только зарегистрированный тип.
- */
 final class CredentialCatalog
 {
     private function __construct() {}
@@ -33,7 +29,6 @@ final class CredentialCatalog
         return in_array($class, self::all(), true);
     }
 
-    /** Инстанцирует драйвер по class-string (с проверкой по реестру). */
     public static function make(string $class): ProxyCredential
     {
         if (! self::has($class)) {

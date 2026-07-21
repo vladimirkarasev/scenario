@@ -135,9 +135,6 @@ final class ScenarioBuilder extends Builder
     }
 
     /**
-     * Только сценарии, у которых есть хотя бы одна группа из переданного списка.
-     * Пустой список → ничего не видно.
-     *
      * @param  list<string>  $groupIds
      */
     public function visibleByGroups(array $groupIds): self
@@ -156,10 +153,6 @@ final class ScenarioBuilder extends Builder
         });
     }
 
-    /**
-     * Фильтр для пользовательского workspace.
-     * Админ (с пермишн scenario_view_all) видит всё; остальные — только сценарии в своих группах.
-     */
     public function visibleForUser(?User $user): self
     {
         $groupIds = UserGroupVisibility::groupIds($user);

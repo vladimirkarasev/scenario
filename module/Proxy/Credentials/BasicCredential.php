@@ -7,9 +7,6 @@ namespace Module\Proxy\Credentials;
 use Module\Proxy\DTO\ProxyFieldString;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 
-/**
- * Универсальный доступ: URL + Basic-авторизация (логин/пароль).
- */
 final class BasicCredential extends ProxyCredential
 {
     public function label(): string

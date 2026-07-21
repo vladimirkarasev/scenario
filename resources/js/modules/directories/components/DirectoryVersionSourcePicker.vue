@@ -13,7 +13,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ change: [type: SourceType] }>()
 
-// ── «Другой» (fallback option) ─────────────────────────────────────────────────
 const allowOther = ref(props.currentVersion.allow_other)
 const otherLabel = ref(props.currentVersion.other_label ?? '')
 

@@ -90,7 +90,6 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
     {
         $data = $this->nodeData($node);
 
-        // Явно заданные опции имеют приоритет над ветками условия
         $rawOptions = $this->arrayField($data, 'options');
         $options = [];
 
@@ -112,7 +111,6 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
             return $options;
         }
 
-        // Если нет явных опций — строим из conditionBranches + исходящих рёбер
         $branches = [];
         foreach ($this->arrayField($data, 'conditionBranches') as $branch) {
             if (!is_array($branch)) {

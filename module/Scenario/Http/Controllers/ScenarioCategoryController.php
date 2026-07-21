@@ -34,9 +34,6 @@ final class ScenarioCategoryController extends CategoryController
         return Scenario::class;
     }
 
-    /**
-     * Системную папку (Workspace) удалять нельзя.
-     */
     #[\Override]
     public function destroy(Request $request, Category $category): JsonResponse
     {
@@ -95,10 +92,6 @@ final class ScenarioCategoryController extends CategoryController
         return $resource;
     }
 
-    /**
-     * Рабочая папка в проекте одна: при включении флага снимаем его с остальных
-     * разделов сценариев того же проекта.
-     */
     private function ensureSingleWorkspace(Category $category): void
     {
         if (!$category->is_workspace) {

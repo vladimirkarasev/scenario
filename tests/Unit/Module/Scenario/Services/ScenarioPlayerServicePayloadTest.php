@@ -13,11 +13,6 @@ use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ScenarioPlayerService;
 use Tests\TestCase;
 
-/**
- * payload() инжектит системные переменные опроса вложенными группами
- * (run / operator / project / call) — шаблоны вида {{ run.number_formatted }},
- * {{ operator.login }}, {{ project.name }}, {{ call.id }} должны резолвиться в rendered.
- */
 final class ScenarioPlayerServicePayloadTest extends TestCase
 {
     use RefreshDatabase;
@@ -91,7 +86,6 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
             userData: [],
         ));
 
-        // Без оператора шаблон operator/project схлопывается в пустую строку, но не падает.
         $payload = $this->player->payload($run);
 
         $this->assertSame(

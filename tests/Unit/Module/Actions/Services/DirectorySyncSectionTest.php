@@ -15,10 +15,6 @@ use Module\Directories\Models\Directory;
 use Module\Projects\Models\Project;
 use Tests\TestCase;
 
-/**
- * Служебный sync-экшен справочника складывается в системный раздел «Синхронизация справочников»,
- * который нельзя удалить и который переиспользуется (идемпотентность).
- */
 final class DirectorySyncSectionTest extends TestCase
 {
     use RefreshDatabase;
@@ -39,21 +35,18 @@ final class DirectorySyncSectionTest extends TestCase
 
         $action = Action::query()->where('code', 'directory_sync_'.str_replace('-', '_', $directory->id))->firstOrFail();
 
-        // code/slug должны проходить регулярку ActionRequest (без дефисов).
         $this->assertMatchesRegularExpression('/^[a-z][a-z0-9_]*$/', $action->code);
         $this->assertMatchesRegularExpression('/^[a-z][a-z0-9_]*$/', $action->slug);
 
         $category = Category::query()->where('is_system', true)->where('name', 'Синхронизация справочников')->first();
         $this->assertNotNull($category);
 
-        // Экшен привязан к системному разделу.
         $this->assertDatabaseHas('model_has_categories', [
             'category_id' => $category->id,
             'model_id' => $action->id,
             'model_type' => Action::class,
         ]);
 
-        // Раздел зарегистрирован для model_type=Action (self-row).
         $this->assertDatabaseHas('model_has_categories', [
             'category_id' => $category->id,
             'model_id' => $category->id,

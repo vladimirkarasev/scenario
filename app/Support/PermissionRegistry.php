@@ -7,10 +7,6 @@ namespace App\Support;
 use App\Contracts\PermissionEnum;
 use BackedEnum;
 
-/**
- * Реестр permission-энамов. Каждый модуль регистрирует свои энамы в своём ServiceProvider —
- * реестр не знает про модули (инверсия зависимостей).
- */
 final class PermissionRegistry
 {
     /** @var array<class-string<BackedEnum&PermissionEnum>, class-string<BackedEnum&PermissionEnum>> */

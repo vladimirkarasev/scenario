@@ -9,11 +9,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 
 final readonly class MockResponseResolver
 {
-    /**
-     * Подбирает мок-ответ для endpoint-а в режиме мока.
-     * Возвращает вариант, помеченный активным (`is_active`). Если такого нет —
-     * берёт первый из списка (fallback).
-     */
     public function resolve(ProxyEndpoint $endpoint): ?ProxyResponse
     {
         $variants = $endpoint->mock_responses ?? [];

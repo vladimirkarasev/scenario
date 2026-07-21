@@ -31,8 +31,6 @@ const props = withDefaults(defineProps<{
   showFooter: true,
   dismissible: true,
   modal: true,
-  // По умолчанию drawer НЕ закрывается по клику/взаимодействию вне него
-  // (иначе выделение текста с отпусканием на overlay воспринимается как закрытие).
   lockOutside: true,
 })
 

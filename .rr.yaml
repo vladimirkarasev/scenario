@@ -59,3 +59,8 @@ cron:
 centrifuge:
   proxy_address: tcp://0.0.0.0:${RR_CENTRIFUGE_PROXY_PORT:-30001}
   grpc_api_address: ${CENTRIFUGO_GRPC_API_HOST:-centrifugo}:${CENTRIFUGO_GRPC_API_PORT:-10000}
+
+temporal:
+  address: ${TEMPORAL_ADDRESS:-temporal:7233}
+  activities:
+    num_workers: ${RR_TEMPORAL_WORKERS:-4}

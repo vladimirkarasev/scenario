@@ -12,10 +12,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Models\ProxyRequest;
 use Throwable;
 
-/**
- * Единая точка вызова proxy для любых потребителей (приёмник вебхуков, контроллер,
- * фоновая синхронизация справочника). Сам решает: вернуть mock или дёрнуть handler.
- */
 final readonly class ProxyExecutor
 {
     public function __construct(
@@ -25,8 +21,6 @@ final readonly class ProxyExecutor
     ) {}
 
     /**
-     * Выполнить вызов прокси. Возвращает результат с флагом был ли использован mock.
-     *
      * @param array<string, mixed> $normalizedData Используется для match-логики мока.
      */
     public function execute(
@@ -47,13 +41,8 @@ final readonly class ProxyExecutor
     }
 
     /**
-     * Программный вызов прокси с логированием в `proxy_requests`. Используется
-     * там, где нет реального HTTP-запроса (фоновая синхронизация справочника,
-     * запросы из других модулей).
-     *
      * @param array<string, mixed> $normalizedData
      * @param array<string, mixed> $meta           Произвольная мета для лога (caller и т.п.)
-     *
      * @throws Throwable
      */
     public function executeLogged(

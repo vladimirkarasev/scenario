@@ -205,11 +205,6 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
     }
 
     /**
-     * Supported paths:
-     * - headers.x-per-page
-     * - data.per_page
-     * - meta.per_page
-     *
      * @param  array<string, mixed>|array<int, mixed>  $payload
      */
     private function resolveResponseValue(Response $response, array $payload, string $path): mixed

@@ -10,9 +10,6 @@ use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
 use Module\Proxy\Models\ProxyEndpoint;
 use Psr\Log\LoggerInterface;
 
-/**
- * Строит AutoCrmGateway с доступами из эндпоинта (БД), а не из статического config/proxy.php.
- */
 final readonly class AutoCrmGatewayFactory
 {
     public function __construct(

@@ -52,7 +52,7 @@ function previewText(value: unknown): string {
       if (parsedText) {
         return parsedText
       }
-    } catch { // intentional
+    } catch {
     }
 
     return stripHtml(value)

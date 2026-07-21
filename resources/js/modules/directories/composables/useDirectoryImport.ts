@@ -25,7 +25,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
     const imports = ref<DirectoryImport[]>([])
     const loading = ref(false)
 
-    // ── Real-time subscriptions ───────────────────────────────────────────
     const activeSubs = new Map<number, Subscription>()
 
     function applyWsUpdate(data: ImportStatusEvent): void {
@@ -69,8 +68,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
 
     onUnmounted(() => destroySubs())
 
-    // ── Load ──────────────────────────────────────────────────────────────
-
     async function loadImports(): Promise<void> {
         loading.value = true
         try {
@@ -81,10 +78,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             loading.value = false
         }
     }
-
-    // ── Import options persistence ─────────────────────────────────────────
-
-    // ── Sync (API source) ────────────────────────────────────────────────
 
     const syncModalOpen = ref(false)
     const syncRunning = ref(false)
@@ -113,8 +106,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             syncRunning.value = false
         }
     }
-
-    // ── Excel import wizard ───────────────────────────────────────────────
 
     const importStep = ref<1 | 2>(1)
     const importFile = ref<File | null>(null)
@@ -197,8 +188,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             parsedPreviewRows.value = rows.slice(1, 4).map(r => headerRow.map((_, i) => String((r as string[])[i] ?? '')))
             storedSchemaFields.value = schemaFields
 
-            // Авто-сопоставление: заголовок колонки == названию поля (регистр/пробелы не важны),
-            // фолбэк — совпадение с ключом поля. Иначе оставляем пустым.
             const normalize = (s: string): string => s.trim().toLowerCase()
             const headerKeyByLabel = new Map<string, string>()
             parsedHeaders.value.forEach(h => {
@@ -217,7 +206,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
         importStep.value = 2
     }
 
-    // Returns true on success so the component can switch to history
     async function submitImport(): Promise<boolean> {
         const hasMappings = Object.values(importMapping).some(v => v !== '')
         if (!hasMappings) {

@@ -21,8 +21,6 @@ final readonly class LaunchTokenService
     }
 
     /**
-     * Выпускает одноразовый launch-токен для пользователя текущего проекта по external_id.
-     *
      * @return array{_token: string, expires_in: int}
      */
     public function issue(string $externalId): array

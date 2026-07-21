@@ -25,12 +25,10 @@ const emit = defineEmits<{
 
 defineOptions({inheritAttrs: false})
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
 const containerRef = ref<HTMLElement>()
 const dropdownRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
 
-// ── Overlay state ─────────────────────────────────────────────────────────────
 const isOpen = ref(false)
 const dropdownStyle = ref<Record<string, string>>({})
 const DROPDOWN_HEIGHT_ESTIMATE = 320
@@ -60,7 +58,6 @@ function toggleDropdown() {
   openDropdown()
 }
 
-// ── IMask ─────────────────────────────────────────────────────────────────────
 type ImaskInstance = ReturnType<typeof IMask>
 let im: ImaskInstance | null = null
 
@@ -152,7 +149,6 @@ function clear() {
   isOpen.value = false
 }
 
-// ── Calendar v-model ──────────────────────────────────────────────────────────
 const calendarValue = computed({
   get(): Date | null {
     if (!props.modelValue) return null
@@ -176,7 +172,6 @@ const calendarValue = computed({
   },
 })
 
-// ── Calendar PT ───────────────────────────────────────────────────────────────
 type DayContext = { selected: boolean; today: boolean; disabled: boolean; otherMonth: boolean }
 
 const calendarPt = {

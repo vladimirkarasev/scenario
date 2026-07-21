@@ -1969,7 +1969,7 @@ paths:
         - Actions
       summary: Создать или обновить расписание action
       description: |
-        Scheduler раз в минуту запускает due-расписания командой `actions:run-scheduled`. В `options` можно передать тот же payload, что и в `POST /actions/{action}/run`: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
+        Расписание регистрируется как нативный Temporal Schedule (один на запись) — срабатывает по cron без отдельной polling-команды. В `options` можно передать тот же payload, что и в `POST /actions/{action}/run`: `execution_mode`, `action_ids`, `before_action_ids`, `after_action_ids`, `failed_action_ids`, `retry`.
       security:
         - BearerAuth: []
       requestBody:

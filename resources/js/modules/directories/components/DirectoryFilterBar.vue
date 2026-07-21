@@ -7,16 +7,11 @@ import type {useDirectoryItems} from '@/modules/directories/composables/useDirec
 import type {DirectorySchemaField} from '@/modules/directories/types/directory'
 
 defineProps<{
-  // Разделяемое состояние/хелперы списка справочника.
   ctx: ReturnType<typeof useDirectoryItems>
-  // Показывать поле поиска (есть ли searchable-поля в схеме).
   searchable: boolean
-  // Поля, для которых рендерим чипы фильтров.
   filterFields: DirectorySchemaField[]
 }>()
 
-// Эмитим при открытии popover'а фильтра — потребитель может лениво подгрузить
-// варианты (см. SurveyDirectoryTableField → ensureBaseItems).
 const emit = defineEmits<{ filterOpen: [field: DirectorySchemaField] }>()
 
 function onPopoverChange(isOpen: boolean, field: DirectorySchemaField): void {

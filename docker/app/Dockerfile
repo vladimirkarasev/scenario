@@ -35,6 +35,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pecl install grpc protobuf \
+    && docker-php-ext-enable grpc protobuf
+
 COPY --from=velox /usr/bin/rr /usr/local/bin/rr
 
 COPY ./docker/app/bin/ /usr/local/bin/

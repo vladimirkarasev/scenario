@@ -19,8 +19,6 @@ export function useGroupModal(onSaved: () => void) {
         deleted: 'Группа удалена',
     })
 
-    // ── Members ──────────────────────────────────────────────────────────
-
     const members = ref<GroupMember[]>([])
     const membersMeta = ref<PaginationMeta>({current_page: 1, last_page: 1, per_page: 20, total: 0})
     const loadingMembers = ref(false)
@@ -110,8 +108,6 @@ export function useGroupModal(onSaved: () => void) {
         }
     }
 
-    // ── Modal lifecycle ──────────────────────────────────────────────────
-
     function openCreate(): void {
         editing.value = null
         reset({name: '', slug: '', ext_id: '', description: '', is_active: true})
@@ -179,8 +175,6 @@ export function useGroupModal(onSaved: () => void) {
             formToast.error(e, 'Ошибка обновления.')
         }
     }
-
-    // ── Delete confirm ───────────────────────────────────────────────────
 
     const confirmDelete = ref<Group | null>(null)
     const deleting = ref(false)

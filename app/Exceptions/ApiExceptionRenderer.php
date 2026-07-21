@@ -16,15 +16,6 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
-/**
- * Единый рендер ошибок API в конверт {errors:[...], meta}.
- *
- * Доменные исключения рендерятся на любом `api/*`. Стандартные исключения
- * фреймворка — только на «unified»-роутах: тех, что подключили middleware
- * AddApiMeta (тот же opt-in, что даёт meta в успехе). Так модули не копируют
- * namespace-гарды: подключил AddApiMeta к группе роутов — получил и meta, и
- * единый формат ошибок.
- */
 final class ApiExceptionRenderer
 {
     public static function register(Exceptions $exceptions): void
@@ -89,7 +80,6 @@ final class ApiExceptionRenderer
                 : null
         );
 
-        // Общий фолбэк для прочих HTTP-исключений (abort() из middleware, 405, 429 и т.п.).
         $exceptions->render(function (HttpExceptionInterface $e, Request $request): ?JsonResponse {
             if (!self::isUnifiedRoute($request)) {
                 return null;

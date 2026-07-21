@@ -21,10 +21,8 @@ use Module\Directories\Repositories\DirectoryRepository;
 
 final readonly class DirectoryItemService
 {
-    /** Sentinel id of the synthetic "Other" item (never persisted; negative to avoid colliding with real ids). */
     public const int OTHER_ITEM_ID = -1;
 
-    /** Default external_key used for the "Other" option when the version does not configure its own. */
     public const string OTHER_EXTERNAL_KEY = '__other__';
 
     private const string DEFAULT_OTHER_LABEL = 'Другой';
@@ -63,7 +61,6 @@ final readonly class DirectoryItemService
 
         $items = $this->payloadItems($version, $filters, $filtersTo, $search, $sortKey, $sortDir);
 
-        // "Другой" is appended last as a synthetic option (opt-in via $withOther so the admin grid stays clean).
         if ($withOther) {
             $other = $this->otherItem($version);
             if ($other !== null) {
@@ -162,10 +159,6 @@ final readonly class DirectoryItemService
         ];
     }
 
-    /**
-     * Rebuild search_text for every item belonging to this version.
-     * Called after the schema changes so the indexed content reflects the new searchable fields.
-     */
     public function rebuildSearchTextForVersion(DirectoryVersion $version): void
     {
         $searchableKeys = [];
@@ -184,9 +177,6 @@ final readonly class DirectoryItemService
     }
 
     /**
-     * Synthetic "Other" item built from the version settings. Not persisted: it carries a sentinel id and a
-     * stable external_key so downstream consumers (Actions/CRM mapping) can detect the fallback deterministically.
-     *
      * @return array<string, mixed>|null
      */
     private function otherItem(DirectoryVersion $version): ?array
@@ -203,8 +193,6 @@ final readonly class DirectoryItemService
             ? $version->other_external_key
             : self::OTHER_EXTERNAL_KEY;
 
-        // «Другой» — синтетический вариант без привязки к колонкам схемы. Фронт рендерит его
-        // одной ячейкой (colspan) и берёт текст из label, поэтому колонки заполнять не нужно.
         $data = ['label' => $label];
 
         return [
@@ -275,9 +263,6 @@ final readonly class DirectoryItemService
     }
 
     /**
-     * Expand a filtered collection to also include all ancestor items,
-     * so the frontend can still render the tree correctly.
-     *
      * @param  Collection<int, DirectoryItem>  $matched
      * @return Collection<int, DirectoryItem>
      */

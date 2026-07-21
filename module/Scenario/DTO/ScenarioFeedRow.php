@@ -8,9 +8,6 @@ use App\Models\Category;
 use Module\Scenario\Models\Scenario;
 use Module\Users\Models\User;
 
-/**
- * Строка ленты сценариев: раздел (category) или сценарий — под единый JSON:API ресурс.
- */
 final readonly class ScenarioFeedRow
 {
     /**

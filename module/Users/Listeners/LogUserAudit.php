@@ -52,7 +52,6 @@ final readonly class LogUserAudit
         try {
             $this->logger->info($event, $context);
         } catch (\Throwable) {
-            // Аудит не должен превращать уже выполненную операцию в ошибку HTTP.
         }
     }
 }

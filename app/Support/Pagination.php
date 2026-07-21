@@ -6,10 +6,6 @@ namespace App\Support;
 
 use Illuminate\Http\Request;
 
-/**
- * Пагинация JSON:API (`page[number]` / `page[size]`) с дефолтами и клампингом.
- * Единый источник значений по умолчанию для всех списочных DTO.
- */
 final readonly class Pagination
 {
     public const int DEFAULT_SIZE = 20;

@@ -13,11 +13,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты управления участниками групп.
- * Роуты: GET|POST /api/groups/{group}/members
- *        DELETE /api/groups/{group}/members/{user}
- */
 final class GroupMembersControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,13 +23,6 @@ final class GroupMembersControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/groups/{group}/members
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список участников группы возвращается в data.
-     */
     public function test_index_returns_group_members(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
@@ -49,9 +37,6 @@ final class GroupMembersControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Без участников — data пуст.
-     */
     public function test_index_returns_empty_data_for_group_without_members(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
@@ -83,9 +68,6 @@ final class GroupMembersControllerTest extends TestCase
         $this->assertNotContains((string) $otherProjectUser->id, $ids);
     }
 
-    /**
-     * Без пермишена group_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject();
@@ -96,13 +78,6 @@ final class GroupMembersControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/groups/{group}/members
-    // -------------------------------------------------------------------------
-
-    /**
-     * Добавление пользователя в группу — 204, участник появляется в group.
-     */
     public function test_store_adds_member_to_group(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_create');
@@ -116,9 +91,6 @@ final class GroupMembersControllerTest extends TestCase
         $this->assertTrue($group->members()->where('users.id', $member->id)->exists());
     }
 
-    /**
-     * Несуществующий user_id — 422.
-     */
     public function test_store_returns_422_for_nonexistent_user(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_create');
@@ -142,9 +114,6 @@ final class GroupMembersControllerTest extends TestCase
         $this->assertFalse($group->members()->where('users.id', $member->id)->exists());
     }
 
-    /**
-     * Без пермишена group_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
@@ -156,13 +125,6 @@ final class GroupMembersControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/groups/{group}/members/{user}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление участника из группы — 204, участник больше не в группе.
-     */
     public function test_destroy_removes_member_from_group(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_create');
@@ -177,9 +139,6 @@ final class GroupMembersControllerTest extends TestCase
         $this->assertFalse($group->members()->where('users.id', $member->id)->exists());
     }
 
-    /**
-     * Без пермишена group_create — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('group_view');
@@ -191,10 +150,6 @@ final class GroupMembersControllerTest extends TestCase
             ->deleteJson("/api/groups/{$group->id}/members/{$member->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

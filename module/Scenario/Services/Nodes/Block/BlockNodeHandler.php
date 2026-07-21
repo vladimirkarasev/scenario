@@ -64,7 +64,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             ]);
         }
 
-        // Ранее введённые значения для этого блока: context[blockNodeId] = [fieldName => value]
         $rawBlockContext = $context[$this->nodeId($node)] ?? null;
         /** @var array<string, mixed> $blockContext */
         $blockContext = is_array($rawBlockContext) ? $rawBlockContext : [];
@@ -86,10 +85,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Прогоняем переменные сценария через блоки, но оставляем сырыми те поля, которые
-     * должны подставляться на фронте из локального источника данных (item.data справочника),
-     * — иначе Symfony EL заменит ссылки на отсутствующие переменные на `[]`.
-     *
      * @param array<array-key, mixed> $blocks
      * @param array<string, mixed>    $context
      */
@@ -134,7 +129,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
         $type = $this->strField($field, 'type', 'input');
         $name = $this->strField($field, 'name', 'field_'.($index + 1));
 
-        // Ранее введённое юзером значение перекрывает default из схемы.
         $hasUserValue = array_key_exists($name, $blockContext);
         $userValue = $hasUserValue ? $blockContext[$name] : null;
         $schemaValue = $field['value'] ?? null;
@@ -166,7 +160,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             'select' => $this->selectProps($field, $name, $hasDefault, $defaultValue),
             'date', 'datetime' => $this->dateProps($field, $name, $hasDefault, $defaultValue),
             'hidden' => $this->hiddenProps($name, $defaultValue),
-            default => $this->textProps($field, $name, $hasDefault, $defaultValue), // input / email / phone
+            default => $this->textProps($field, $name, $hasDefault, $defaultValue),
         };
 
         return [
@@ -177,8 +171,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Числовое значение поля (int|float) или null, если не задано (для min/max/step).
-     *
      * @param array<array-key, mixed> $field
      */
     private function numericField(array $field, string $key): int|float|null
@@ -193,8 +185,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Опции select-поля (отфильтрованные массивы).
-     *
      * @param  array<array-key, mixed>       $field
      * @return list<array<array-key, mixed>>
      */
@@ -298,8 +288,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Props поля «Подсказки»: автокомплит-источник — прикреплённый proxy (type=suggest).
-     *
      * @param  array<array-key, mixed> $field
      * @return array<string, mixed>
      */
@@ -368,10 +356,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Базовые props, общие для большинства полей: имя, подпись, обязательность,
-     * оформление заголовка (размер/цвет/заливка — выбираются через bubble-menu
-     * в редакторе блока, см. BlockEditorGutenbergEditor.vue).
-     *
      * @param  array<array-key, mixed>                                                                                     $field
      * @return array{name: string, label: string, required: bool, labelFontSize?: string, labelColor?: string, labelHighlight?: string}
      */
@@ -404,8 +388,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * defaultValue добавляется только если он реально задан (юзером или схемой).
-     *
      * @return array{defaultValue?: mixed}
      */
     private function defaultValueProp(bool $hasDefault, mixed $defaultValue): array
@@ -414,8 +396,6 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     }
 
     /**
-     * Нормализует содержимое rich-text в формат документа или html.
-     *
      * @return array<string, mixed>
      */
     private function richTextProps(mixed $content): array

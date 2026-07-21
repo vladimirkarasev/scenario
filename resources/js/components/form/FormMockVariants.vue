@@ -28,13 +28,11 @@ function emptyVariant(active: boolean): MockVariant {
 }
 
 function add(): void {
-  // Первый добавленный вариант сразу становится показываемым.
   emit('update:modelValue', [...props.modelValue, emptyVariant(props.modelValue.length === 0)])
 }
 
 function remove(idx: number): void {
   const next = props.modelValue.filter((_, i) => i !== idx)
-  // Если удалили активный — показываем первый из оставшихся.
   if (next.length && !next.some(m => m.is_active)) next[0] = {...next[0], is_active: true}
   emit('update:modelValue', next)
 }
@@ -43,7 +41,6 @@ function update(idx: number, patch: Partial<MockVariant>): void {
   emit('update:modelValue', props.modelValue.map((m, i) => i === idx ? {...m, ...patch} : m))
 }
 
-// Активный ответ может быть только один — выбор сбрасывает остальные.
 function setActive(idx: number): void {
   emit('update:modelValue', props.modelValue.map((m, i) => ({...m, is_active: i === idx})))
 }

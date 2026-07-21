@@ -10,7 +10,6 @@ final readonly class DirectoryFeedData
 {
     public function __construct(
         public bool $parentSet,
-        /** Когда parentSet=true: null = uncategorized, uuid = конкретная категория */
         public ?string $parentId,
         public ?string $search,
         public int $page,

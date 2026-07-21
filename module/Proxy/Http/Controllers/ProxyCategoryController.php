@@ -19,10 +19,6 @@ use Module\Categories\Http\Resources\JsonApi\CategoryResource;
 use Module\Proxy\Enums\ProxyErrorCode;
 use Module\Proxy\Models\ProxyEndpoint;
 
-/**
- * Разделы (категории) интеграций. Наследует базовый CRUD категорий; видимость
- * ограничена `model_type = ProxyEndpoint` через `model_has_categories`.
- */
 final class ProxyCategoryController extends CategoryController
 {
     #[\Override]
@@ -51,7 +47,6 @@ final class ProxyCategoryController extends CategoryController
     {
         $category = $this->categories->create(CategoryData::fromRequest($request, canManageCatalog: true));
 
-        // Self-link: раздел становится «виден» для интеграций (фильтр по model_type).
         DB::table('model_has_categories')->insertOrIgnore([
             'category_id' => $category->id,
             'model_id' => $category->id,

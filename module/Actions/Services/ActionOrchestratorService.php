@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Module\Actions\Services;
 
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Support\Facades\Bus;
 use Module\Actions\DTO\RunActionsData;
-use Module\Actions\Jobs\ChainStepJob;
-use Module\Actions\Jobs\DispatchActionBatchJob;
-use Module\Actions\Jobs\ExecuteActionJob;
 use Module\Actions\Models\Action;
+use Module\Actions\Temporal\RunActionsParallelWorkflowInput;
+use Module\Actions\Temporal\RunActionsWorkflowInput;
+use Module\Actions\Temporal\RunActionsWorkflowStarterInterface;
 
 final readonly class ActionOrchestratorService
 {
     public function __construct(
         private Container $container,
+        private RunActionsWorkflowStarterInterface $workflowStarter,
     ) {}
 
     /** @return array<string, mixed> */
@@ -43,8 +43,6 @@ final readonly class ActionOrchestratorService
     }
 
     /**
-     * Проверяет что для каждого action в map есть все его required input_fields.
-     *
      * @return array<string, list<string>> code => list of missing field keys
      */
     private function validateRequiredInputs(RunActionsData $data): array
@@ -104,22 +102,20 @@ final readonly class ActionOrchestratorService
             return ['status' => 'queued', 'queued' => 0];
         }
 
-        [$first, $remaining] = $this->shift($ordered);
         $scenarioRunId = $this->stringOrNull($data->input['scenario_run_id'] ?? null);
         $scenarioNodeId = $this->stringOrNull($data->input['scenario_node_id'] ?? null);
 
-        ChainStepJob::dispatch(
-            $first,
-            $remaining,
-            $data->onErrorIds(),
-            $data->input,
-            1,
-            [60],
-            $scenarioRunId,
-            $data->codesByActionId(),
-            $scenarioNodeId,
-            $data->scopeMap,
-        );
+        $this->workflowStarter->startSequential(new RunActionsWorkflowInput(
+            actionIds: $ordered,
+            onErrorActionIds: $data->onErrorIds(),
+            codeMap: $data->codesByActionId(),
+            context: $data->input,
+            scopeMap: $data->scopeMap,
+            backoffByActionId: $this->backoffByActionId($data),
+            delayBeforeByActionId: $this->delayBeforeByActionId($data),
+            scenarioRunId: $scenarioRunId,
+            scenarioNodeId: $scenarioNodeId,
+        ));
 
         return ['status' => 'queued', 'queued' => count($ordered)];
     }
@@ -133,28 +129,43 @@ final readonly class ActionOrchestratorService
 
         $scenarioRunId = $this->stringOrNull($data->input['scenario_run_id'] ?? null);
 
-        $batchJob = new DispatchActionBatchJob(
-            $data->actionIds(),
-            $data->input,
-            1,
-            [60],
-            $data->afterIds(),
-            $data->onErrorIds(),
-            $scenarioRunId,
-        );
-
-        if ($data->beforeIds() === []) {
-            dispatch($batchJob);
-
-            return ['status' => 'queued', 'queued' => count($data->actionIds())];
-        }
-
-        Bus::chain([
-            ...$this->jobsForIds($data->beforeIds(), $data->input),
-            $batchJob,
-        ])->dispatch();
+        $this->workflowStarter->startParallel(new RunActionsParallelWorkflowInput(
+            beforeIds: $data->beforeIds(),
+            actionIds: $data->actionIds(),
+            afterIds: $data->afterIds(),
+            onErrorActionIds: $data->onErrorIds(),
+            codeMap: $data->codesByActionId(),
+            context: $data->input,
+            backoffByActionId: $this->backoffByActionId($data),
+            delayBeforeByActionId: $this->delayBeforeByActionId($data),
+            scenarioRunId: $scenarioRunId,
+        ));
 
         return ['status' => 'queued', 'queued' => count($data->beforeIds()) + count($data->actionIds())];
+    }
+
+    /** @return array<string, list<int>> */
+    private function backoffByActionId(RunActionsData $data): array
+    {
+        $result = [];
+
+        foreach ($data->codesByActionId() as $actionId => $code) {
+            $result[$actionId] = $data->backoffMap[$code] ?? [];
+        }
+
+        return $result;
+    }
+
+    /** @return array<string, int> */
+    private function delayBeforeByActionId(RunActionsData $data): array
+    {
+        $result = [];
+
+        foreach ($data->codesByActionId() as $actionId => $code) {
+            $result[$actionId] = $data->delayBeforeMap[$code] ?? 0;
+        }
+
+        return $result;
     }
 
     /** @return array<string, mixed> */
@@ -193,34 +204,6 @@ final readonly class ActionOrchestratorService
             'schedule_id' => $schedule->id,
             'next_run_at' => $schedule->next_run_at?->toIso8601String(),
         ];
-    }
-
-    /**
-     * @param  array<int, string>           $actionIds
-     * @param  array<string, mixed>         $input
-     * @return array<int, ExecuteActionJob>
-     */
-    private function jobsForIds(array $actionIds, array $input): array
-    {
-        $jobs = [];
-
-        foreach ($actionIds as $id) {
-            $jobs[] = new ExecuteActionJob($id, $input);
-        }
-
-        return $jobs;
-    }
-
-    /**
-     * @param  array<int, string>                      $ids
-     * @return array{0: string, 1: array<int, string>}
-     */
-    private function shift(array $ids): array
-    {
-        $values = array_values($ids);
-        $head = (string) array_shift($values);
-
-        return [$head, $values];
     }
 
     private function stringOrNull(mixed $value): ?string

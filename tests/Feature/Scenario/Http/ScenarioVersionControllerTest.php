@@ -13,10 +13,6 @@ use Module\Scenario\Models\ScenarioVersion;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты для ScenariosVersionController — список версий.
- * Роут: GET /api/scenarios/{scenario}/versions
- */
 final class ScenarioVersionControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,13 +23,6 @@ final class ScenarioVersionControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/scenarios/{scenario}/versions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список версий сценария возвращается в data.
-     */
     public function test_index_returns_versions_for_scenario(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -47,9 +36,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Версии другого сценария не попадают в ответ.
-     */
     public function test_index_excludes_versions_from_other_scenarios(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -64,9 +50,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * Ответ содержит name и status в attributes.
-     */
     public function test_index_returns_version_attributes(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -80,9 +63,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertJsonPath('data.0.attributes.status', 'active');
     }
 
-    /**
-     * Несуществующий сценарий — 404.
-     */
     public function test_index_returns_404_for_nonexistent_scenario(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -92,9 +72,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Без пермишена scenario_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         $user = $this->makeUser();
@@ -105,9 +82,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Без авторизации — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $scenario = $this->makeScenario();
@@ -116,13 +90,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/scenarios/{scenario}/versions/{version}
-    // -------------------------------------------------------------------------
-
-    /**
-     * show возвращает одну версию с её атрибутами.
-     */
     public function test_show_returns_version(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -138,9 +105,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertJsonPath('data.attributes.scenario_id', $scenario->id);
     }
 
-    /**
-     * show возвращает 404 для несуществующей версии.
-     */
     public function test_show_returns_404_for_missing_version(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -151,9 +115,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * show без пермишена — 403.
-     */
     public function test_show_returns_403_without_permission(): void
     {
         $user = $this->makeUser();
@@ -165,13 +126,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/scenarios/{scenario}/versions
-    // -------------------------------------------------------------------------
-
-    /**
-     * store создаёт версию и возвращает 201 с item.
-     */
     public function test_store_creates_version_and_returns_201(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -193,9 +147,6 @@ final class ScenarioVersionControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * store без name автоматически генерирует имя vN.
-     */
     public function test_store_generates_name_when_omitted(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -210,9 +161,6 @@ final class ScenarioVersionControllerTest extends TestCase
         $this->assertNotNull($response->json('data.name'));
     }
 
-    /**
-     * store со status=active синхронизирует статус сценария через Observer.
-     */
     public function test_store_with_active_status_sets_scenario_active(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -228,9 +176,6 @@ final class ScenarioVersionControllerTest extends TestCase
         $this->assertEquals('active', $scenario->fresh()?->status->value);
     }
 
-    /**
-     * store без schema_json — 422.
-     */
     public function test_store_returns_422_when_schema_json_missing(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -241,9 +186,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * store без пермишена — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -256,13 +198,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/scenarios/{scenario}/versions/{version}
-    // -------------------------------------------------------------------------
-
-    /**
-     * update изменяет имя и статус версии.
-     */
     public function test_update_changes_name_and_status(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -286,9 +221,6 @@ final class ScenarioVersionControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * update без schema_json — 422.
-     */
     public function test_update_returns_422_when_schema_json_missing(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -300,9 +232,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * update без пермишена — 403.
-     */
     public function test_update_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -316,13 +245,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/scenarios/{scenario}/versions/{version}/duplicate
-    // -------------------------------------------------------------------------
-
-    /**
-     * duplicate создаёт копию версии со статусом draft и суффиксом «(копия)».
-     */
     public function test_duplicate_creates_copy_with_draft_status(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -342,9 +264,6 @@ final class ScenarioVersionControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * duplicate без пермишена — 403.
-     */
     public function test_duplicate_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -356,13 +275,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/scenarios/{scenario}/versions/{version}
-    // -------------------------------------------------------------------------
-
-    /**
-     * destroy удаляет версию и возвращает scenario_id.
-     */
     public function test_destroy_deletes_version(): void
     {
         $user = $this->makeUser('scenario_delete');
@@ -376,9 +288,6 @@ final class ScenarioVersionControllerTest extends TestCase
         $this->assertDatabaseMissing('scenario_versions', ['id' => $version->id]);
     }
 
-    /**
-     * destroy без пермишена — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -389,10 +298,6 @@ final class ScenarioVersionControllerTest extends TestCase
             ->deleteJson("/api/scenarios/{$scenario->id}/versions/{$version->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeUser(string ...$permissions): User
     {

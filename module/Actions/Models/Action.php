@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null             $schema
  * @property array<string, mixed>|null             $ui_schema
  * @property array<int, array<string, mixed>>|null $input_fields
+ * @property list<int>|null                        $default_backoff
  * @property Carbon|null                           $created_at
  * @property Carbon|null                           $updated_at
  * @property-read Collection<int, ActionRun> $runs
@@ -46,6 +47,7 @@ final class Action extends Model
         'schema',
         'ui_schema',
         'input_fields',
+        'default_backoff',
     ];
 
     /** @return HasMany<ActionRun, $this> */
@@ -77,6 +79,7 @@ final class Action extends Model
             'schema' => 'array',
             'ui_schema' => 'array',
             'input_fields' => 'array',
+            'default_backoff' => 'array',
             'is_active' => 'boolean',
         ];
     }

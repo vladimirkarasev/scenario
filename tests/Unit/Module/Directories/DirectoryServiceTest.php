@@ -24,9 +24,6 @@ final class DirectoryServiceTest extends TestCase
         $this->service = app(DirectoryService::class);
     }
 
-    /**
-     * Директория принадлежит проекту A, передаём проект B — ожидаем исключение
-     */
     public function test_ensure_project_access_throws_when_directory_belongs_to_other_project(): void
     {
         $projectA = $this->makeProject('sk-a');
@@ -38,9 +35,6 @@ final class DirectoryServiceTest extends TestCase
         $this->service->ensureProjectAccess($directory, $projectB);
     }
 
-    /**
-     * Директория принадлежит правильному проекту — исключений не должно быть
-     */
     public function test_ensure_project_access_passes_when_directory_belongs_to_project(): void
     {
         $project = $this->makeProject('sk-c');
@@ -48,12 +42,9 @@ final class DirectoryServiceTest extends TestCase
 
         $this->service->ensureProjectAccess($directory, $project);
 
-        $this->assertTrue(true); // no exception thrown
+        $this->assertTrue(true);
     }
 
-    /**
-     * Пользователь с sitekey/host, которых нет в БД — ожидаем исключение «Project not found»
-     */
     public function test_current_project_for_user_throws_when_no_matching_project(): void
     {
         $user = User::factory()->create(['sitekey' => 'sk-unknown', 'host' => 'unknown.test']);
@@ -64,9 +55,6 @@ final class DirectoryServiceTest extends TestCase
         $this->service->currentProjectForUser($user);
     }
 
-    /**
-     * sitekey и host пользователя совпадают с проектом — должен вернуться тот же проект
-     */
     public function test_current_project_for_user_returns_matching_project(): void
     {
         $project = $this->makeProject('sk-user', 'myapp.test');

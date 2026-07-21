@@ -10,7 +10,6 @@ final readonly class ProxyFeedData
 {
     public function __construct(
         public bool $parentSet,
-        /** Когда parentSet=true: null = без раздела, uuid = конкретный раздел */
         public ?string $parentId,
         public ?string $search,
         public ?string $type,

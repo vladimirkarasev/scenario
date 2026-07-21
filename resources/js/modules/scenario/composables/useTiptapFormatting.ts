@@ -1,10 +1,6 @@
 import type {Editor} from '@tiptap/vue-3'
 import type {ComputedRef, Ref} from 'vue'
 
-// Общая логика форматирования (bold/italic/heading/цвет/заливка/ссылка), которую
-// используют и toolbar, и bubble-menu — и в TiptapTextEditor, и в
-// BlockEditorGutenbergEditor. Каждый компонент вызывает этот composable сам,
-// передавая свой editor ref, вместо прокидывания функций через props.
 export function useTiptapFormatting(editor: Ref<Editor | undefined> | ComputedRef<Editor | undefined>, editable: Ref<boolean> | ComputedRef<boolean>) {
     function isActive(nameOrAttrs: string | Record<string, unknown>, attrs?: Record<string, unknown>): boolean {
         if (!editor.value) return false

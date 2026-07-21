@@ -98,8 +98,6 @@ function asAction(value: unknown): ScenarioRenderedAction {
   return value as ScenarioRenderedAction
 }
 
-// Цель перехода (jump) для записи таймлайна — node_id следующей записи-шага
-// (через разделители), иначе текущий активный узел.
 function nextTargetNodeId(index: number): string | null {
   for (let i = index + 1; i < pastTimelineRows.value.length; i++) {
     const row = pastTimelineRows.value[i]

@@ -20,11 +20,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты эндпоинтов импорта справочника.
- * Роуты: GET  /api/directories/{directory}/imports
- *        POST /api/directories/{directory}/imports
- */
 final class DirectoryImportControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -35,13 +30,6 @@ final class DirectoryImportControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/{directory}/imports
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список импортов справочника возвращается в data.
-     */
     public function test_index_returns_imports_for_directory(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -57,9 +45,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertJsonPath('meta.total', 2);
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject();
@@ -71,13 +56,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories/{directory}/imports  (file / Excel)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Валидный Excel-файл — импорт ставится в очередь, статус pending, ответ 202.
-     */
     public function test_store_queues_excel_import_and_returns_202(): void
     {
         Bus::fake([ImportDirectoryJob::class]);
@@ -112,9 +90,6 @@ final class DirectoryImportControllerTest extends TestCase
         Bus::assertDispatched(ImportDirectoryJob::class);
     }
 
-    /**
-     * source_type=file без файла — 422 (файл обязателен).
-     */
     public function test_store_returns_422_when_file_missing_for_file_source(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -131,9 +106,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Отсутствие обязательных полей columns/mapping — 422.
-     */
     public function test_store_returns_422_when_columns_and_mapping_missing(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -148,9 +120,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * mapping ссылается на несуществующий ключ колонки — 422.
-     */
     public function test_store_returns_422_when_mapping_target_not_in_columns(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -167,9 +136,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена directory_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -186,9 +152,6 @@ final class DirectoryImportControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Справочник из чужого проекта — 404 (запрос проходит валидацию, но не проходит проверку доступа).
-     */
     public function test_store_returns_404_when_directory_from_other_project(): void
     {
         Bus::fake([ImportDirectoryJob::class]);
@@ -212,10 +175,6 @@ final class DirectoryImportControllerTest extends TestCase
             )
             ->assertNotFound();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array
@@ -285,8 +244,6 @@ final class DirectoryImportControllerTest extends TestCase
     }
 
     /**
-     * Создаёт реальный XLSX-файл в tmp для передачи в request.
-     *
      * @param  array<int, list<string>>  $rows
      */
     private function makeExcelFile(array $rows): UploadedFile

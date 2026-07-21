@@ -10,14 +10,12 @@ final readonly class ScenarioFeedData
 {
     public function __construct(
         public bool $parentSet,
-        /** Когда parentSet=true: null = uncategorized, uuid = конкретная категория */
         public ?string $parentId,
         public ?string $search,
         public ?string $status,
         public ?string $excludeScenarioId,
         public int $page,
         public int $perPage,
-        /** Ограничить выдачу поддеревом этой категории (изоляция, напр. Workspace). */
         public ?string $rootId = null,
     ) {
     }

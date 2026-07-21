@@ -14,11 +14,6 @@ use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ScenarioPlayerService;
 use Tests\TestCase;
 
-/**
- * Связные сценарии в плеере: переход (scenario_link) работает как подпрограмма —
- * по «Концу» связного сценария прогон возвращается в родителя и продолжается,
- * как один сквозной сценарий. Поддерживаются цепочки переходов (1→2→3).
- */
 final class ScenarioPlayerLinkedTest extends TestCase
 {
     use RefreshDatabase;
@@ -33,7 +28,6 @@ final class ScenarioPlayerLinkedTest extends TestCase
 
     public function test_linked_scenario_returns_to_parent_and_shares_context(): void
     {
-        // Дочерний: start → block(answer) → end
         [, $child] = $this->makeScenario(
             nodes: [
                 $this->node('c_start', 'start'),
@@ -46,7 +40,6 @@ final class ScenarioPlayerLinkedTest extends TestCase
             edges: [$this->edge('c_start', 'c_block'), $this->edge('c_block', 'c_end')],
         );
 
-        // Родитель: start → link(child) → end('{{ answer }}')
         [$parent, $parentVersion] = $this->makeScenario(
             nodes: [
                 $this->node('p_start', 'start'),
@@ -61,28 +54,23 @@ final class ScenarioPlayerLinkedTest extends TestCase
 
         $run = $this->createRun($parent);
 
-        // Прогон занырнул в дочерний сценарий и встал на его интерактивном блоке,
-        // но идентичность осталась за родителем.
         $this->assertSame('c_block', $run->current_node_id);
         $this->assertSame($parent->id, $run->scenario_id);
         $this->assertSame($child->id, $run->scenario_version_id);
 
         $run = $this->player->continueRun($run, new ScenarioRunContinueData(['answer' => 42], null));
 
-        // Дочерний дошёл до «Конца» → вернулись в родителя → его «Конец» завершил опрос.
         $this->assertSame('completed', $run->status->value);
         $this->assertSame('p_end', $run->current_node_id);
         $this->assertSame($parent->id, $run->scenario_id);
         $this->assertSame($parentVersion->id, $run->scenario_version_id);
 
-        // Стек вызовов пуст, контекст общий — ответ из дочернего виден в «Конце» родителя.
         $this->assertSame([], $run->context['_call_stack'] ?? []);
         $this->assertSame('Итог: 42', $this->renderedTitle($run));
     }
 
     public function test_chain_of_links_runs_as_single_scenario(): void
     {
-        // s3: start → block → end
         [$s3scenario, $s3] = $this->makeScenario(
             nodes: [
                 $this->node('s3_start', 'start'),
@@ -95,7 +83,6 @@ final class ScenarioPlayerLinkedTest extends TestCase
             edges: [$this->edge('s3_start', 's3_block'), $this->edge('s3_block', 's3_end')],
         );
 
-        // s2: start → link(s3)   (хвостовой переход, без продолжения)
         [$s2scenario, $s2] = $this->makeScenario(
             nodes: [
                 $this->node('s2_start', 'start'),
@@ -107,7 +94,6 @@ final class ScenarioPlayerLinkedTest extends TestCase
             edges: [$this->edge('s2_start', 's2_link')],
         );
 
-        // s1: start → link(s2)   (хвостовой переход, без продолжения)
         [$s1, ] = $this->makeScenario(
             nodes: [
                 $this->node('s1_start', 'start'),
@@ -121,14 +107,12 @@ final class ScenarioPlayerLinkedTest extends TestCase
 
         $run = $this->createRun($s1);
 
-        // Прошли 1→2→3 и встали на блоке третьего; прогон по-прежнему числится за s1.
         $this->assertSame('s3_block', $run->current_node_id);
         $this->assertSame($s1->id, $run->scenario_id);
         $this->assertCount(2, $run->context['_call_stack'] ?? []);
 
         $run = $this->player->continueRun($run, new ScenarioRunContinueData(['done' => 'ok'], null));
 
-        // Хвостовая цепочка завершается на «Конце» третьего сценария.
         $this->assertSame('completed', $run->status->value);
         $this->assertSame('s3_end', $run->current_node_id);
         $this->assertSame($s1->id, $run->scenario_id);
@@ -162,21 +146,16 @@ final class ScenarioPlayerLinkedTest extends TestCase
         );
 
         $run = $this->createRun($parent);
-        // Прошли дочерний и вернулись в родителя — прогон завершён.
         $run = $this->player->continueRun($run, new ScenarioRunContinueData(['answer' => 42], null));
         $this->assertSame('completed', $run->status->value);
 
-        // Откат на блок дочернего сценария не должен падать и восстанавливает его версию.
         $run = $this->player->jumpRun($run, new ScenarioRunJumpData('c_block'));
 
         $this->assertSame('active', $run->status->value);
         $this->assertSame('c_block', $run->current_node_id);
         $this->assertSame($child->id, $run->scenario_version_id);
-        // Стек вызовов восстановлен — после повторного прохождения вернёмся в родителя.
         $this->assertCount(1, $run->context['_call_stack'] ?? []);
     }
-
-    // ── helpers ──────────────────────────────────────────────────────────────
 
     private function createRun(Scenario $scenario): ScenarioRun
     {

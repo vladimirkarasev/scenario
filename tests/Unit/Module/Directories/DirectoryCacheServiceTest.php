@@ -25,9 +25,6 @@ final class DirectoryCacheServiceTest extends TestCase
         $this->service = app(DirectoryCacheService::class);
     }
 
-    /**
-     * Директория без активной версии — ожидаем исключение «Active directory version not found».
-     */
     public function test_throws_when_no_active_version(): void
     {
         $directory = $this->makeDirectory();
@@ -38,9 +35,6 @@ final class DirectoryCacheServiceTest extends TestCase
         $this->service->activeData($directory);
     }
 
-    /**
-     * Активная версия с 2 элементами — результат должен содержать корректные dictionary/data/meta.
-     */
     public function test_returns_paginated_items_from_active_version(): void
     {
         $directory = $this->makeDirectory();
@@ -66,9 +60,6 @@ final class DirectoryCacheServiceTest extends TestCase
         $this->assertSame(2, $result['meta']['total']);
     }
 
-    /**
-     * Фильтр по полю name=Alpha — возвращается только один совпадающий элемент.
-     */
     public function test_filters_rows_by_field_value(): void
     {
         $directory = $this->makeDirectory();
@@ -93,9 +84,6 @@ final class DirectoryCacheServiceTest extends TestCase
         $this->assertSame('Alpha', $result['data'][0]['name']);
     }
 
-    /**
-     * 5 элементов, запрашиваем 2-ю страницу по 2 — total=5, current_page=2, в data 2 записи.
-     */
     public function test_paginates_correctly(): void
     {
         $directory = $this->makeDirectory();
@@ -117,9 +105,6 @@ final class DirectoryCacheServiceTest extends TestCase
         $this->assertCount(2, $result['data']);
     }
 
-    /**
-     * Активная версия без элементов — data=[] и total=0.
-     */
     public function test_returns_empty_data_when_version_has_no_items(): void
     {
         $directory = $this->makeDirectory();

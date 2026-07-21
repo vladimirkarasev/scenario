@@ -8,14 +8,6 @@ use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Module\Scenario\Models\Scenario;
 
-/**
- * Каскадное применение групп от категории-родителя ко всем дочерним
- * объектам (как чекбокс «Заменить все записи разрешений дочерних
- * объектов на записи, наследуемые от этого объекта» в Windows ACL).
- *
- * Sync (не merge): любые ранее привязанные группы у потомков заменяются
- * на переданный набор.
- */
 final readonly class CategoryGroupsCascadeService
 {
     /**
@@ -56,8 +48,6 @@ final readonly class CategoryGroupsCascadeService
     }
 
     /**
-     * BFS по parent_id — собрать id всех потомков.
-     *
      * @return list<string>
      */
     private function collectDescendantIds(Category $root): array

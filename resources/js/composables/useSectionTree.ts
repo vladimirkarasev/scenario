@@ -2,27 +2,17 @@ import {computed, onMounted, ref, type Ref} from 'vue'
 import type {SectionCategory, SectionNode, FlatSectionItem} from '@/types/section'
 
 export interface SectionTreeConfig<T extends SectionCategory> {
-    // Лениво загружает прямых детей раздела (parentId === null — корень).
     loadByParent: (parentId: string | null) => Promise<T[]>
-    // Подпись корневого пункта в сайдбаре («Все интеграции», «Справочники» и т.п.).
     allLabel: string
 }
 
-/**
- * Общее дерево разделов с ленивой подгрузкой детей. Используется модулями
- * proxy / actions / scenario / directories через тонкие обёртки.
- */
 export function useSectionTree<T extends SectionCategory>(config: SectionTreeConfig<T>) {
     const sections = ref([]) as Ref<T[]>
     const loading = ref(false)
     const loadedParents = ref(new Set<string | null>())
     const activeSection = ref<string | 'all'>('all')
     const expandedIds = ref(new Set<string>())
-    // Стабильный ref для фильтрации списка сущностей — обновляется один раз после
-    // прогрузки детей, чтобы список сущностей делал ровно один запрос на клик.
     const categoryFilterIds = ref<string[]>([])
-
-    // ── Построение дерева ────────────────────────────────────────────────
 
     const sectionTree = computed<SectionNode<T>[]>(() => {
         const map = new Map<string, SectionNode<T>>()
@@ -61,8 +51,6 @@ export function useSectionTree<T extends SectionCategory>(config: SectionTreeCon
             : sections.value.find(c => c.id === activeSection.value)?.name ?? '—',
     )
 
-    // ── Загрузка ─────────────────────────────────────────────────────────
-
     async function loadByParent(parentId: string | null): Promise<void> {
         if (loadedParents.value.has(parentId)) return
         loading.value = true
@@ -78,8 +66,6 @@ export function useSectionTree<T extends SectionCategory>(config: SectionTreeCon
     }
 
     onMounted(() => loadByParent(null))
-
-    // ── Разворот / выбор ─────────────────────────────────────────────────
 
     async function toggleExpand(id: string): Promise<void> {
         if (expandedIds.value.has(id)) {
@@ -118,11 +104,8 @@ export function useSectionTree<T extends SectionCategory>(config: SectionTreeCon
         expandedIds.value = next
         const node = sections.value.find(s => s.id === id)
         if (node && node.children_count > 0) await loadByParent(id)
-        // Обновляем фильтр один раз после загрузки — предотвращает двойной запрос списка.
         categoryFilterIds.value = [id]
     }
-
-    // ── Счётчики ─────────────────────────────────────────────────────────
 
     function descendantIds(id: string): Set<string> {
         const ids = new Set<string>([id])
@@ -142,13 +125,10 @@ export function useSectionTree<T extends SectionCategory>(config: SectionTreeCon
         return sections.value.find(s => s.id === id)?.children_count ?? 0
     }
 
-    // ── Мутации (для CRUD) ───────────────────────────────────────────────
-
     function addSection(section: T): void {
         if (!sections.value.some(s => s.id === section.id)) {
             sections.value = [...sections.value, section]
         }
-        // Помечаем родителя как загруженного, чтобы дети не перезатёрлись.
         if (section.parent_id !== null) {
             loadedParents.value = new Set([...loadedParents.value, section.parent_id])
         }
@@ -166,8 +146,6 @@ export function useSectionTree<T extends SectionCategory>(config: SectionTreeCon
     function removeSection(id: string): void {
         sections.value = sections.value.filter(s => s.id !== id)
     }
-
-    // ── Хелперы ──────────────────────────────────────────────────────────
 
     function flatten(nodes: SectionNode<T>[], depth: number): FlatSectionItem<T>[] {
         const result: FlatSectionItem<T>[] = []

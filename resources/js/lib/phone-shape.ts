@@ -1,11 +1,3 @@
-/**
- * Структура значения телефонного поля, которую отправляет PhoneInput на сабмите.
- * Соответствует PHP-классу Module\Scenario\Support\PhoneShape.
- *   - country:   ISO-код страны ("RU")
- *   - formatted: маскированное представление ("+7 (999) 999-99-99")
- *   - original:  только цифры с кодом страны ("79999999999")
- *   - national:  цифры без кода страны ("9999999999")
- */
 export interface PhoneShape {
     country: string
     formatted: string

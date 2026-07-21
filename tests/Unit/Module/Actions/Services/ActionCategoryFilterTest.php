@@ -13,9 +13,6 @@ use Module\Actions\Models\Action;
 use Module\Actions\Repositories\ActionRepository;
 use Tests\TestCase;
 
-/**
- * Фильтрация списка экшенов по разделу (категории) и сохранение связи через categories()->sync.
- */
 final class ActionCategoryFilterTest extends TestCase
 {
     use RefreshDatabase;
@@ -54,8 +51,6 @@ final class ActionCategoryFilterTest extends TestCase
 
     public function test_category_filter_isolated_by_model_type(): void
     {
-        // Категория того же id, но привязанная к другому model_type (как у справочника),
-        // не должна "цеплять" экшен — sync пишет model_type = Action::class.
         $category = $this->makeCategory('Shared');
         $action = $this->makeAction('act');
         $action->categories()->sync([$category->id]);

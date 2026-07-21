@@ -146,7 +146,7 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
             external_key: z.string(),
         })
         if (p.multiple) {
-            const arrItem = z.union([shape, z.string()])  // legacy strings tolerated
+            const arrItem = z.union([shape, z.string()])
             return required
                 ? z.array(arrItem).min(1, 'Поле обязательно для заполнения')
                 : z.array(arrItem).nullable().optional()
@@ -188,7 +188,7 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
     if (type === 'select') {
         const shape = z.object({value: z.string(), label: z.string()})
         if (p.multiple) {
-            const arrItem = z.union([shape, z.string()])  // legacy strings tolerated
+            const arrItem = z.union([shape, z.string()])
             return required
                 ? z.array(arrItem).min(1, 'Поле обязательно для заполнения')
                 : z.array(arrItem).nullable().optional()
@@ -218,7 +218,6 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
         return z.union([z.string(), phoneObject]).or(z.literal('')).nullable().optional()
     }
 
-    // input, hidden
     const base = applyStringRules(z.string(), rules)
     return required ? base.min(1, 'Поле обязательно для заполнения') : base.or(z.literal('')).nullable().optional()
 }

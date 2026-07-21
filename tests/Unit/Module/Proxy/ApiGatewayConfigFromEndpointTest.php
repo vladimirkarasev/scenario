@@ -8,10 +8,6 @@ use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 use Module\Proxy\Models\ProxyEndpoint;
 use Tests\TestCase;
 
-/**
- * Сборка конфига gateway из доступов эндпоинта: тип авторизации выводится
- * из credentials, base_uri и mock — из полей эндпоинта.
- */
 final class ApiGatewayConfigFromEndpointTest extends TestCase
 {
     public function test_bearer_auth_is_derived_from_token(): void

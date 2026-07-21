@@ -23,9 +23,6 @@ final class ProjectServiceTest extends TestCase
         $this->service = app(ProjectService::class);
     }
 
-    /**
-     * Создание проекта сохраняет все атрибуты в БД.
-     */
     public function test_create_persists_project_attributes(): void
     {
         $project = $this->service->create(
@@ -47,9 +44,6 @@ final class ProjectServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * Неактивный проект создаётся с is_active=false.
-     */
     public function test_create_inactive_project(): void
     {
         $project = $this->service->create(
@@ -66,9 +60,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'is_active' => false]);
     }
 
-    /**
-     * Обновление меняет имя в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         $project = $this->makeProject('Старое имя');
@@ -87,9 +78,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'name' => 'Новое имя']);
     }
 
-    /**
-     * Обновление меняет хост в БД.
-     */
     public function test_update_changes_host(): void
     {
         $project = $this->makeProject();
@@ -108,9 +96,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'host' => 'new-host.local']);
     }
 
-    /**
-     * Удаление проекта — запись исчезает из БД.
-     */
     public function test_delete_removes_project_from_db(): void
     {
         $project = $this->makeProject();
@@ -120,9 +105,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertDatabaseMissing('projects', ['id' => $project->id]);
     }
 
-    /**
-     * paginate возвращает все проекты.
-     */
     public function test_paginate_returns_all_projects(): void
     {
         $this->makeProject();
@@ -134,9 +116,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertSame(3, $result->total());
     }
 
-    /**
-     * paginate учитывает параметр perPage.
-     */
     public function test_paginate_respects_per_page(): void
     {
         $this->makeProject();
@@ -148,10 +127,6 @@ final class ProjectServiceTest extends TestCase
         $this->assertCount(2, $result->items());
         $this->assertSame(3, $result->total());
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeProject(string $name = 'Project'): Project
     {

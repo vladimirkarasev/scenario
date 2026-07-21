@@ -1,7 +1,6 @@
 import axios, {type AxiosRequestConfig, type Method} from 'axios'
 import httpClient from '@/lib/http-client'
 
-// Ошибка в формате JSON:API (новый единый конверт: errors[] + meta).
 interface JsonApiError {
     status?: string
     code?: string
@@ -12,7 +11,6 @@ interface JsonApiError {
 
 interface ErrorPayload {
     message?: string
-    // Старый формат — Record<field, string[]>; новый (JSON:API) — массив объектов.
     errors?: Record<string, string[]> | JsonApiError[]
 }
 
@@ -30,13 +28,11 @@ function isJsonApiErrors(errors: ErrorPayload['errors']): errors is JsonApiError
     return Array.isArray(errors)
 }
 
-// `/data/attributes/group_ids.0` → `group_ids.0`; иначе — код ошибки или '_'.
 function fieldFromError(error: JsonApiError): string {
     const match = (error.source?.pointer ?? '').match(/\/data\/attributes\/(.+)$/)
     return match ? match[1] : (error.code ?? '_')
 }
 
-// Свести JSON:API errors[] к привычному Record<field, string[]>.
 function jsonApiFieldErrors(errors: JsonApiError[]): Record<string, string[]> {
     const result: Record<string, string[]> = {}
     for (const error of errors) {

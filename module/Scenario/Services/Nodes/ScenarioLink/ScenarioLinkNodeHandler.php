@@ -35,12 +35,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         return false;
     }
 
-    /**
-     * Входит в связный сценарий как в подпрограмму: запоминает в стеке вызовов
-     * точку возврата в родителя и переключает исполнение на стартовый узел цели.
-     * Идентичность прогона (scenario_id) остаётся за исходным сценарием — в плеере
-     * это выглядит как один сквозной сценарий.
-     */
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
     {
         $data = $this->nodeData($node);
@@ -52,7 +46,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         }
 
         if ($targetVersionId === '') {
-            // Версия не закреплена — берём последнюю активную (иначе последнюю) версию сценария.
             $targetVersion = $this->versions->activeOrLatestForScenario($targetScenarioId);
         } else {
             if (!Str::isUuid($targetVersionId)) {
@@ -77,8 +70,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         $nodeId = $this->nodeId($node);
         $nodeType = $this->nodeType($node);
 
-        // Узел возврата в родителе — следующий за блоком-переходом. Если его нет,
-        // после связного сценария родительская ветка считается завершённой.
         $parentVersion = $this->parentVersion($run);
         $returnNodeId = $parentVersion !== null
             ? $this->graphResolver->defaultNextNodeId($parentVersion, $nodeId)
@@ -96,7 +87,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         ]);
 
         $context = is_array($run->context) ? $run->context : [];
-        // Ревизия гарантированно существует: findStartNode выше уже её требует.
         $targetVariableMap = $this->variableMapBuilder->build($targetRevision->schema_json ?? []);
         $currentVariableMap = is_array($context[RunContextKeys::VARIABLE_MAP] ?? null)
             ? $context[RunContextKeys::VARIABLE_MAP]
@@ -105,7 +95,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             ? $context[RunContextKeys::CALL_STACK]
             : [];
 
-        // Кладём кадр родителя в стек: куда вернуться, когда цель дойдёт до «Конца».
         $callStack[] = [
             'version_id' => $run->scenario_version_id,
             'revision_id' => $run->scenario_version_revision_id,
@@ -126,7 +115,6 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         return NodeAdvanceResult::mutated();
     }
 
-    /** Текущая исполняемая (родительская) версия прогона с подгруженной ревизией. */
     private function parentVersion(ScenarioRun $run): ?ScenarioVersion
     {
         $version = $run->version;

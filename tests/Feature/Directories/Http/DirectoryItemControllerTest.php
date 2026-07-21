@@ -15,12 +15,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты контроллера элементов справочника.
- * Роуты: GET|POST /api/directories/{directory}/items
- *        PUT|DELETE /api/directories/{directory}/items/{item}
- *        DELETE /api/directories/{directory}/items (bulk)
- */
 final class DirectoryItemControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -31,13 +25,6 @@ final class DirectoryItemControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/{directory}/items
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список элементов активной версии — data содержит все записи.
-     */
     public function test_index_returns_items(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -52,9 +39,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * filter[version_id] ограничивает выборку конкретной версией.
-     */
     public function test_index_filters_by_version_id(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -70,9 +54,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject();
@@ -83,13 +64,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories/{directory}/items (manual)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание элемента через manual-вставку — 201, запись в БД.
-     */
     public function test_store_creates_item_in_active_version(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -107,9 +81,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertSame(1, DirectoryItem::query()->count());
     }
 
-    /**
-     * Без пермишена directory_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -121,13 +92,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/directories/{directory}/items/{item}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление data_json элемента сохраняется в БД.
-     */
     public function test_update_persists_item_data(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -146,13 +110,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertSame('Новое', $item->fresh()->data_json['name']);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/directories/{directory}/items/{item}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление элемента — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_item(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -167,13 +124,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertNull(DirectoryItem::query()->find($item->id));
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/directories/{directory}/items (bulk)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Массовое удаление по ids — указанные элементы удаляются, остальные остаются.
-     */
     public function test_bulk_destroy_deletes_specified_items(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -194,9 +144,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertNotNull(DirectoryItem::query()->find($c->id));
     }
 
-    /**
-     * Пустой список ids — 204, ни один элемент не удаляется.
-     */
     public function test_bulk_destroy_with_empty_ids_does_nothing(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -211,13 +158,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertNotNull(DirectoryItem::query()->find($item->id));
     }
 
-    // -------------------------------------------------------------------------
-    // Response shape / attributes
-    // -------------------------------------------------------------------------
-
-    /**
-     * Каждый элемент имеет JSON:API-структуру: id, type = 'directory-item', attributes.
-     */
     public function test_index_response_has_json_api_shape(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -235,9 +175,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonPath('data.0.attributes.data.code', 'A1');
     }
 
-    /**
-     * attributes содержит parent_id, external_key, created_at — помимо data.
-     */
     public function test_index_attributes_include_top_level_fields(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -257,9 +194,6 @@ final class DirectoryItemControllerTest extends TestCase
             ]);
     }
 
-    /**
-     * Без активной версии (и вообще без версий) ответ — пустой массив data.
-     */
     public function test_index_returns_empty_data_when_no_version_exists(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -271,13 +205,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    // -------------------------------------------------------------------------
-    // fields[items] — sparse fieldsets
-    // -------------------------------------------------------------------------
-
-    /**
-     * fields[items]=name возвращает в data только ключ name.
-     */
     public function test_index_sparse_fieldsets_returns_only_requested_data_keys(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -297,9 +224,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertSame('Alpha', $data['name']);
     }
 
-    /**
-     * fields[items]=name,code возвращает оба поля, остальные — нет.
-     */
     public function test_index_sparse_fieldsets_supports_multiple_keys(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -318,9 +242,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertArrayNotHasKey('level', $data);
     }
 
-    /**
-     * Без fields[items] возвращаются все поля data.
-     */
     public function test_index_without_sparse_fieldsets_returns_all_data_keys(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -339,9 +260,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertArrayHasKey('level', $data);
     }
 
-    /**
-     * fields[items] с несуществующим ключом возвращает пустой data объект.
-     */
     public function test_index_sparse_fieldsets_with_nonexistent_key_returns_empty_data(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -356,9 +274,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertSame([], $response->json('data.0.attributes.data'));
     }
 
-    /**
-     * fields[items] фильтрует data, но top-level атрибуты (parent_id, created_at) остаются.
-     */
     public function test_index_sparse_fieldsets_keeps_top_level_attributes(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -377,13 +292,6 @@ final class DirectoryItemControllerTest extends TestCase
         $this->assertArrayHasKey('data', $attrs);
     }
 
-    // -------------------------------------------------------------------------
-    // filter[search] — полнотекстовый поиск
-    // -------------------------------------------------------------------------
-
-    /**
-     * filter[search] возвращает элементы с совпадающим search_text.
-     */
     public function test_index_filter_search_returns_matching_items(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -399,9 +307,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonPath('data.0.attributes.data.name', 'Иванов Иван');
     }
 
-    /**
-     * filter[search] без совпадений возвращает пустой список.
-     */
     public function test_index_filter_search_returns_empty_when_no_match(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -415,9 +320,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    /**
-     * filter[q] — устаревший алиас — также работает как полнотекстовый поиск.
-     */
     public function test_index_filter_q_also_triggers_search(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -431,10 +333,6 @@ final class DirectoryItemControllerTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data');
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

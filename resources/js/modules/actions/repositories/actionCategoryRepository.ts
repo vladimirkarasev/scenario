@@ -36,7 +36,6 @@ export interface ActionCategoryPayload {
 }
 
 export const actionCategoryRepository = {
-    // Полный список разделов (без parent-фильтра) — backend отдаёт из CachedCategoryRepository.
     async all(): Promise<ActionCategory[]> {
         const raw = await getJson<{ data: JsonApiItem[] }>(
             '/api/actions/categories',

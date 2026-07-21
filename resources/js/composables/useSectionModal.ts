@@ -9,7 +9,6 @@ export interface SectionFormBase {
     parent_id: string | null
 }
 
-// Минимальный контракт модалки, который нужен общему диалогу формы раздела.
 export interface SectionModalApi {
     open: Ref<boolean>
     editingId: Ref<string | null>
@@ -37,19 +36,12 @@ export interface SectionModalConfig<
     defaults: z.infer<Schema>
     create: (payload: P) => Promise<T>
     update: (id: string, payload: P) => Promise<T>
-    // Сборка тела запроса из данных формы. По умолчанию — {name, parent_id, is_active:true}.
     buildPayload?: (data: z.infer<Schema>) => P
-    // Поля формы из существующей категории при редактировании. По умолчанию — {name, parent_id}.
     fromCategory?: (category: T) => Partial<z.infer<Schema>>
-    // Доп. реакция модуля на открытие (например, сброс selectedGroups в scenario).
     onOpenModal?: () => void
     onOpenEdit?: (category: T) => void
 }
 
-/**
- * Общая модалка создания/редактирования раздела. Модули передают свой
- * репозиторий/схему и при необходимости расширяют payload и поля формы.
- */
 export function useSectionModal<
     T extends SectionCategory,
     Schema extends z.ZodType<SectionFormBase>,

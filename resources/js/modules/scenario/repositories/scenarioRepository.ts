@@ -165,7 +165,6 @@ function parseFeedRows(rows: FeedRow[]): ScenarioFeedResult {
 }
 
 export const scenarioRepository = {
-    // Id раздела-«рабочей папки»: фильтр is_workspace на эндпоинте категорий.
     async workspaceCategoryId(): Promise<string | null> {
         const qs = new URLSearchParams()
         qs.set('filter[is_workspace]', 'true')

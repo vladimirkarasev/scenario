@@ -64,10 +64,6 @@ final class CategoryRepository implements CategoryRepositoryContract
     }
 
     /**
-     * Load categories for a given model, filtered by parent.
-     * $parentId = null → root categories (parent_id IS NULL).
-     * $parentId = uuid → direct children of that parent.
-     *
      * @param  class-string              $modelClass
      * @return Collection<int, Category>
      */

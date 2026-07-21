@@ -11,14 +11,10 @@ use Illuminate\Mail\Mailables\Envelope;
 use Module\Actions\DTO\EmailMessage;
 use Symfony\Component\Mime\Email;
 
-/**
- * Mailable, собираемый из произвольных subject/html/text action-конфига.
- */
 final class ActionEmail extends Mailable
 {
     public function __construct(private readonly EmailMessage $message)
     {
-        // Текстовую часть добавляем напрямую (Content поддерживает только raw html).
         if ($this->message->bodyText !== '') {
             $text = $this->message->bodyText;
             $this->withSymfonyMessage(static function (Email $email) use ($text): void {
@@ -39,7 +35,6 @@ final class ActionEmail extends Mailable
 
     public function content(): Content
     {
-        // Content требует тело: для html-письма — сам html, иначе минимальный html из текста.
         $html = $this->message->bodyHtml !== ''
             ? $this->message->bodyHtml
             : ($this->message->bodyText !== '' ? nl2br(e($this->message->bodyText)) : '&nbsp;');

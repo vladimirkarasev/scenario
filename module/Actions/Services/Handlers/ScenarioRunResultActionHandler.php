@@ -56,8 +56,6 @@ final readonly class ScenarioRunResultActionHandler implements ActionHandlerInte
     }
 
     /**
-     * Возвращает первое значение, похожее на UUID, иначе ''.
-     *
      * @param array<int, mixed> $candidates
      */
     private function firstUuid(array $candidates): string

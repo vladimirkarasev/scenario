@@ -4,6 +4,7 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {ChevronsUpDown, GripVertical, Trash2} from 'lucide-vue-next'
 import type {ActionInputField} from '@/modules/actions/types/action'
+import {formatBackoffInput, parseBackoffInput} from '@/modules/actions/lib/backoff'
 
 interface ActionItem {
   id: string
@@ -12,7 +13,8 @@ interface ActionItem {
   action_id: string
   name: string
   input: Record<string, unknown>
-  retries: number
+  backoff: number[]
+  delay_before: number
 }
 
 type Variant = 'main' | 'before' | 'error'
@@ -84,6 +86,27 @@ const style = STYLES[props.variant]
       <div class="space-y-1">
         <Label class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Code (scope)</Label>
         <Input v-model="item.code" :disabled="!editable" placeholder="пусто = глобально" class="h-8 font-mono text-xs"/>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-[1fr_100px] gap-2">
+      <div class="space-y-1">
+        <Label class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Backoff (сек, через запятую)</Label>
+        <Input
+            :model-value="formatBackoffInput(item.backoff)"
+            :disabled="!editable"
+            placeholder="0,60,180"
+            class="h-8 font-mono text-xs"
+            @update:model-value="(v: string) => item.backoff = parseBackoffInput(v)"
+        />
+      </div>
+      <div class="space-y-1">
+        <Label class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Delay before (сек)</Label>
+        <Input
+            :model-value="item.delay_before" type="number" min="0" step="1"
+            :disabled="!editable" class="h-8 text-xs"
+            @update:model-value="(v: string | number) => item.delay_before = Math.max(0, Number(v) || 0)"
+        />
       </div>
     </div>
 

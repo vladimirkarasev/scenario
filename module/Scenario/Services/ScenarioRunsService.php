@@ -32,8 +32,6 @@ final readonly class ScenarioRunsService
     }
 
     /**
-     * Список прогонов с пагинацией и статистикой по статусам.
-     *
      * @return array{
      *     runs: list<array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, from: int|null, to: int|null},
@@ -57,8 +55,6 @@ final readonly class ScenarioRunsService
     }
 
     /**
-     * Пользователи для фильтра «создал»: по явным id или строке поиска.
-     *
      * @param  list<int>  $ids
      * @return list<array<string, mixed>>
      */
@@ -74,8 +70,6 @@ final readonly class ScenarioRunsService
     }
 
     /**
-     * Создать прогон, вернуть payload плеера и разослать его в канал прогона.
-     *
      * @return array<string, mixed>
      */
     public function store(ScenarioRunData $data): array
@@ -138,8 +132,6 @@ final readonly class ScenarioRunsService
     }
 
     /**
-     * Статистика по статусам считается по тем же фильтрам, но без учёта status.
-     *
      * @return array{total: int, active: int, completed: int, failed: int}
      */
     private function stats(ScenarioRunIndexData $data): array
@@ -209,8 +201,6 @@ final readonly class ScenarioRunsService
     }
 
     /**
-     * Публикует payload в канал scenario-run:{id} и возвращает его же.
-     *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */

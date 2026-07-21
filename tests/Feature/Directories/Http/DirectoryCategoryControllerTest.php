@@ -15,11 +15,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD категорий справочников.
- * Роуты: GET|POST /api/directories/categories
- *        GET|PUT|DELETE /api/directories/categories/{category}
- */
 final class DirectoryCategoryControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -30,13 +25,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/categories
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список категорий возвращается в data.
-     */
     public function test_index_returns_categories(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -49,14 +37,11 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Категории из другого проекта не попадают в список.
-     */
     public function test_index_excludes_categories_from_other_project(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
         $this->makeCategory('Мой', projectId: $project->id);
-        $this->makeCategory('Чужой'); // project_id = null
+        $this->makeCategory('Чужой');
 
         $this->actingAs($user)
             ->getJson('/api/directories/categories')
@@ -64,9 +49,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject();
@@ -76,22 +58,12 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Без авторизации — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/directories/categories')
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/categories/{category}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующая категория — 200 с name в attributes.
-     */
     public function test_show_returns_category_attributes(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -103,9 +75,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertJsonPath('data.attributes.name', 'Авто');
     }
 
-    /**
-     * Несуществующий UUID — 404.
-     */
     public function test_show_returns_404_for_nonexistent_category(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -115,13 +84,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories/categories
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание корневой категории — 200, запись появляется в БД.
-     */
     public function test_store_creates_category(): void
     {
         [$user] = $this->makeUserWithProject('directory_create');
@@ -137,9 +99,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         $this->assertDatabaseHas('categories', ['name' => 'Новая категория']);
     }
 
-    /**
-     * Создание вложенной категории — parent_id сохраняется.
-     */
     public function test_store_creates_nested_category(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -159,9 +118,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Созданная через store категория регистрируется в model_has_categories с project_id текущего проекта.
-     */
     public function test_store_persists_project_id_in_model_has_categories(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -182,9 +138,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Пустое тело — 422.
-     */
     public function test_store_returns_422_when_name_missing(): void
     {
         [$user] = $this->makeUserWithProject('directory_create');
@@ -194,9 +147,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена directory_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -206,13 +156,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/directories/categories/{category}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Переименование категории сохраняется в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -229,13 +172,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => 'Новое имя']);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/directories/categories/{category}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление категории — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_category_and_returns_204(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -248,9 +184,6 @@ final class DirectoryCategoryControllerTest extends TestCase
         $this->assertDatabaseMissing('categories', ['id' => $category->id]);
     }
 
-    /**
-     * Без пермишена directory_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -260,10 +193,6 @@ final class DirectoryCategoryControllerTest extends TestCase
             ->deleteJson("/api/directories/categories/{$category->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

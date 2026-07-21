@@ -32,7 +32,6 @@ const proxyPicker = useDirectoryProxyPicker(
 
 const activeTab = ref<'data' | 'schema' | 'settings' | 'source'>('data')
 
-// syncOpts нужен только как заглушка для DirectorySettingsApi (в external не используется)
 const syncOpts = reactive<DirectoryVersionSyncOptions>({add_new: true, update_existing: true, delete_unused: false})
 
 const schemaFields = computed(() =>

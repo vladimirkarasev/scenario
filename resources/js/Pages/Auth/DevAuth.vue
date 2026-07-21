@@ -25,9 +25,6 @@ const roles = ref(props.demo?.roles ?? '')
 const loading = ref(false)
 const error = ref('')
 
-// Полностью повторяет прод: создаём пользователя проекта, получаем одноразовый _token
-// и делаем полную перезагрузку на страницу с ?_token= — глобальный перехват в app.ts
-// обменяет его на пару токенов.
 async function launch() {
   loading.value = true
   error.value = ''

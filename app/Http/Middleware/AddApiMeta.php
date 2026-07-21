@@ -10,10 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Добавляет meta (timestamp + requestId) в каждый успешный JSON-ответ.
- * Ошибки несут meta самостоятельно через ApiErrorResponse.
- */
 final class AddApiMeta
 {
     /** @param  Closure(Request): Response  $next */

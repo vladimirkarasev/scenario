@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\Action;
 
-/**
- * Состояние выполнения action-ноды и её отдельных стадий (хранится в context прогона).
- *
- *  - нода (_action_runs):   Running | Failed | Done
- *  - стадия (_action_stages): Running | Success | Failed
- */
 enum ActionStatus: string
 {
     case Running = 'running';

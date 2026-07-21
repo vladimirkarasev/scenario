@@ -12,10 +12,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * Привязка интеграций к проекту: store ставит project_id текущего проекта,
- * index и feed показывают только интеграции текущего проекта.
- */
 final class ProxyEndpointProjectScopeTest extends TestCase
 {
     use RefreshDatabase;
@@ -46,7 +42,7 @@ final class ProxyEndpointProjectScopeTest extends TestCase
 
         $mine = $this->makeEndpoint(projectId: $project->id);
         $this->makeEndpoint(projectId: $other->id);
-        $this->makeEndpoint(projectId: null); // глобальная — тоже не в проекте
+        $this->makeEndpoint(projectId: null);
 
         $response = $this->actingAs($user)
             ->getJson('/api/proxy/endpoints')
@@ -69,10 +65,6 @@ final class ProxyEndpointProjectScopeTest extends TestCase
             ->assertOk()
             ->assertJsonPath('meta.items_total', 1);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(): array

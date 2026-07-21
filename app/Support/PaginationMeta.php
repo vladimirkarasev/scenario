@@ -6,10 +6,6 @@ namespace App\Support;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-/**
- * Единый формат блока пагинации в meta коллекций:
- * current_page / last_page / per_page / total / from / to.
- */
 final readonly class PaginationMeta
 {
     /**

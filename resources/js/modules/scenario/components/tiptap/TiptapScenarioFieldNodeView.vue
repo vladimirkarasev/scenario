@@ -19,13 +19,8 @@ const field = computed<BlockField | null>(() => options.value.getField(fieldId.v
 const canEdit = computed(() => options.value.isEditable())
 const hasLabel = computed(() => Boolean(field.value?.label?.trim()))
 
-// Реальный контрол поля в документе — превью, а не форма (см. openFieldSettings
-// ниже), поэтому визуально выглядит как обычное поле, но не перехватывает
-// клавиатуру/клики; общий набор атрибутов для всех вариантов контрола.
 const inertProps = {class: 'pointer-events-none', tabindex: -1, readonly: true} as const
 
-// Поле могло быть удалено из другого места (список полей слева) — убираем
-// осиротевшую ноду из документа, чтобы не редактировать «призрак».
 watch(field, (value) => {
   if (!value) props.deleteNode()
 }, {immediate: true})
@@ -34,9 +29,6 @@ function onValueUpdate(value: unknown) {
   options.value.onUpdateField(fieldId.value, {value} as Partial<BlockField>)
 }
 
-// Реальный контрол поля (Input/Select/...) в документе — превью, а не форма:
-// значение по умолчанию правится в настройках, поэтому клик по нему открывает
-// диалог настроек (как клик по шестерёнке), а не фокусирует ввод.
 function openFieldSettings() {
   if (!canEdit.value) return
   options.value.onOpenSettings(fieldId.value)

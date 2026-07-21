@@ -12,8 +12,6 @@ use Module\Directories\Models\Directory;
 final readonly class DirectoryFeedService
 {
     /**
-     * Возвращает смешанный поток "папки сверху + справочники" с единой пагинацией.
-     *
      * @return array{
      *     data: array<int, array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, folders_total: int, items_total: int}
@@ -28,7 +26,6 @@ final readonly class DirectoryFeedService
         $lastPage = max(1, (int)ceil($total / $data->perPage));
         $offset = ($data->page - 1) * $data->perPage;
 
-        // Папки занимают первые $foldersTotal позиций потока
         $folderOffset = min($offset, $foldersTotal);
         $folderTake = max(0, min($data->perPage, $foldersTotal - $folderOffset));
         $itemOffset = max(0, $offset - $foldersTotal);

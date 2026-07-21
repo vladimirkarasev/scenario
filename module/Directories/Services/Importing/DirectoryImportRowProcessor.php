@@ -57,7 +57,6 @@ final readonly class DirectoryImportRowProcessor
                     ->flatten()
                     ->implode(' ');
             } catch (UniqueConstraintViolationException) {
-                // Concurrent workers can race while creating the same external key. The first writer wins.
             }
         }
 
@@ -184,8 +183,6 @@ final readonly class DirectoryImportRowProcessor
     }
 
     /**
-     * Row number is included so duplicate data rows in the same file each get a unique key.
-     *
      * @param  array<string, string|null>  $prepared
      * @param  Collection<int, string>  $mappedFieldKeys
      */

@@ -13,7 +13,6 @@ import {Head, router} from '@inertiajs/vue3'
 import {ClipboardList} from 'lucide-vue-next'
 import {computed, onMounted, ref, watch} from 'vue'
 
-// project_id берём из /api/user (резолвится по access-токену) и передаём в feed.
 const authStore = useAuthStore()
 const projectId = ref<string | null>(authStore.user?.project_id ?? null)
 const workspaceCategoryId = ref<string | null>(null)
@@ -21,15 +20,11 @@ const hasWorkspace = computed(() => workspaceCategoryId.value !== null)
 
 const {navigationItems} = useDashboardNavigation()
 
-// ── Types ─────────────────────────────────────────────────────────────
-
 interface ScenarioItem {
   id: string
   name: string
   status: 'active' | 'draft' | 'archived'
 }
-
-// ── Lazy tree state (единый источник — /api/scenarios/feed) ───────────
 
 const childrenByParent = ref<Map<string, FeedFolder[]>>(new Map())
 const scenariosByCategory = ref<Map<string, ScenarioItem[]>>(new Map())
@@ -37,7 +32,6 @@ const expandedIds = ref(new Set<string>())
 const loadingIds = ref(new Set<string>())
 const rootLoading = ref(false)
 
-// Метаданные категорий (пути и цепочки предков) из ответов feed.
 const pathById = new Map<string, string>()
 const parentPathById = new Map<string, string>()
 const pathIdsById = new Map<string, string[]>()
@@ -114,8 +108,6 @@ onMounted(async () => {
   await loadRoot()
 })
 
-// ── Sidebar tree ─────────────────────────────────────────────────────
-
 interface FlatTreeItem {
   type: 'folder' | 'scenario'
   id: string
@@ -160,8 +152,6 @@ const sidebarTreeItems = computed<FlatTreeItem[]>(() => {
   }
   return result
 })
-
-// ── Search ───────────────────────────────────────────────────────────
 
 interface SearchScenarioResult {
   id: string
@@ -245,8 +235,6 @@ async function jumpToFolder(catId: string): Promise<void> {
     }
   }
 }
-
-// ── Player state ──────────────────────────────────────────────────────
 
 const selectedScenarioId = ref<string | null>(null)
 const playerKey = ref(0)

@@ -6,9 +6,6 @@ namespace Module\Groups\Enums;
 
 use App\Contracts\ErrorText;
 
-/**
- * Коды ошибок модуля Groups. Текст — в lang/<locale>/errors.php (errors.groups.*).
- */
 enum GroupErrorCode: string implements ErrorText
 {
     case GroupNotFound = 'GROUP_NOT_FOUND';

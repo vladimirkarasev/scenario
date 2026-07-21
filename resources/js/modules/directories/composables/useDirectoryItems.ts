@@ -8,7 +8,6 @@ export interface FlatTreeItem extends DirectoryItem {
     isExpanded: boolean
 }
 
-// id синтетического «Другой» (mirrors DirectoryItemService::OTHER_ITEM_ID).
 const OTHER_ITEM_ID = -1
 
 export function useDirectoryItems(directoryId: string, defaultSort?: string | null, withOther = false) {
@@ -17,8 +16,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
     const loading = ref(false)
     const treeExpanded = reactive<Record<number, boolean>>({})
     const selectedIds = ref<Set<number>>(new Set())
-
-    // ── Filters ──────────────────────────────────────────────────────────
 
     const searchQuery = ref('')
     const activeFilters = reactive<Record<string, string>>({})
@@ -43,17 +40,13 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
 
     function toggleSort(key: string): void {
         if (sortKey.value !== key) {
-            // New column: first click → desc
             sortKey.value = key
             sortDir.value = 'desc'
         } else if (sortDir.value === 'desc') {
             sortDir.value = 'asc'
         } else if (key === _default.key) {
-            // Столбец сортировки по умолчанию: «сброса» нет (он и так дефолт),
-            // поэтому просто переключаем asc → desc, иначе поле было бы не пересортировать.
             sortDir.value = 'desc'
         } else {
-            // Обычный столбец после asc → сброс к сортировке по умолчанию.
             sortKey.value = _default.key
             sortDir.value = _default.dir
         }
@@ -82,15 +75,11 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
         }
     }
 
-    // ── Fetch ────────────────────────────────────────────────────────────
-
     let currentVersionId: number | undefined
     let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
     async function loadItems(versionId?: number): Promise<void> {
         currentVersionId = versionId
-        // Защита от вызова с пустым directoryId (например, до выбора справочника
-        // в редакторе блока) — иначе получаем 404 /api/directories//items.
         if (!directoryId) {
             items.value = []
             baseItems.value = []
@@ -100,7 +89,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
         try {
             const qs = new URLSearchParams()
             if (versionId) qs.set('filter[version_id]', String(versionId))
-            // Бэкенд подставит синтетический «Другой» последним, только если у версии включён allow_other.
             if (withOther) qs.set('filter[with_other]', '1')
             if (searchQuery.value.trim()) qs.set('filter[q]', searchQuery.value.trim())
             if (sortKey.value) qs.set('sort', sortDir.value === 'desc' ? `-${sortKey.value}` : sortKey.value)
@@ -130,8 +118,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
         }, 300)
     }, {deep: true})
 
-    // ── Tree ─────────────────────────────────────────────────────────────
-
     const flatTree = computed((): FlatTreeItem[] => {
         const childrenOf = (parentId: number | null) =>
             items.value.filter(i => i.parent_id === parentId)
@@ -160,9 +146,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
         })
     }
 
-    // ── Selection ────────────────────────────────────────────────────────
-
-    // Синтетический «Другой» не выбирается (нельзя удалять/редактировать).
     const visibleIds = computed(() => flatTree.value.map(n => n.id).filter(id => id !== OTHER_ITEM_ID))
     const allSelected = computed(() => visibleIds.value.length > 0 && visibleIds.value.every(id => selectedIds.value.has(id)))
     const someSelected = computed(() => selectedIds.value.size > 0)
@@ -178,8 +161,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
         if (allSelected.value) selectedIds.value = new Set()
         else selectedIds.value = new Set(visibleIds.value)
     }
-
-    // ── Edit dialog ──────────────────────────────────────────────────────
 
     const editDialogOpen = ref(false)
     const editingItemId = ref<number | null>(null)
@@ -265,8 +246,6 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
     function fieldValue(item: DirectoryItem, key: string): string {
         return item.data[key] ?? '—'
     }
-
-    // ── Filter chip helpers (shared by DirectoryItemsTable & SurveyDirectoryTableField) ──
 
     function formatFilterDate(iso: string, withTime: boolean): string {
         if (!iso) return ''

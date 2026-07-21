@@ -13,12 +13,6 @@ use Illuminate\Support\Facades\Http;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionService;
 
-/**
- * Отправляет обновлённые данные экшена во внешний API при сохранении.
- * Диспатчится из {@see \Module\Actions\Observers\ActionObserver}.
- * URL настраивается через config('services.action_sync.url') (env ACTION_SYNC_WEBHOOK_URL);
- * если не задан — джоба ничего не делает.
- */
 final class SyncActionToApiJob implements ShouldQueue
 {
     use Dispatchable;

@@ -6,10 +6,6 @@ namespace Module\Actions\Services\Mail;
 
 use Module\Actions\Models\EmailAccount;
 
-/**
- * Резолвит конфиг отправки по адресу "От" (from). Так у каждого проекта своя
- * отправка: достаточно завести EmailAccount с нужным from_address.
- */
 final readonly class EmailAccountResolver
 {
     public function resolveByFrom(?string $from): ?EmailAccount

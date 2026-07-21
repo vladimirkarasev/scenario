@@ -15,7 +15,7 @@ const props = defineProps({
   placeholder: {type: String, default: 'Выберите...'},
   emptyText: {type: String, default: 'Ничего не найдено'},
   disabled: {type: Boolean, default: false},
-  size: {type: String, default: 'default'}, // 'default' | 'sm'
+  size: {type: String, default: 'default'},
 })
 
 const emit = defineEmits(['update:modelValue'])

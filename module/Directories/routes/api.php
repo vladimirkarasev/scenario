@@ -19,7 +19,6 @@ use Module\Directories\Http\Controllers\DirectoryListController;
 use Module\Directories\Http\Controllers\DirectoryManualItemController;
 use Module\Directories\Http\Controllers\DirectoryVersionController;
 
-// Must be before api/directories/{directory} so "categories" is not captured as {directory}
 Route::prefix('api/directories/categories')
     ->name('directories.categories.')
     ->middleware(['api', 'auth:sanctum'])

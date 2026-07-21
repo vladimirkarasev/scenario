@@ -16,13 +16,6 @@ use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\ScenarioPlayerService;
 use App\Events\CentrifugoMessagePublished;
 
-/**
- * Завершает асинхронный pipeline action-ноды (wait_for_result): переносит output'ы экшенов
- * в контекст прогона, помечает состояние ноды и — при успехе — авто-продвигает прогон к
- * следующему узлу. Итоговое состояние публикуется в канал scenario-run:{id} как run_updated.
- *
- * Диспатчится из Module\Actions\Jobs\ChainStepJob по завершении/сбою цепочки.
- */
 final class ResumeScenarioActionNodeJob implements ShouldQueue
 {
     use Dispatchable;

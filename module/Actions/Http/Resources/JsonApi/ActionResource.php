@@ -41,6 +41,7 @@ final class ActionResource extends JsonApiResource
             'schema' => $this->schema,
             'ui_schema' => $this->ui_schema,
             'input_fields' => $this->input_fields ?? [],
+            'default_backoff' => $this->default_backoff,
             'category_ids' => $this->whenLoaded(
                 'categories',
                 fn (): array => $this->categories->pluck('id')->all(),

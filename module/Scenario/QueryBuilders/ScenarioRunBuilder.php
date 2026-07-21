@@ -39,7 +39,6 @@ final class ScenarioRunBuilder extends Builder
         return $this->where('status', $status);
     }
 
-    /** Только завершённые прогоны (успешные и упавшие). */
     public function finished(bool $finished = true): self
     {
         if (!$finished) {
@@ -59,7 +58,6 @@ final class ScenarioRunBuilder extends Builder
         return $this->whereIn('created_by', $ids);
     }
 
-    /** Поиск по названию сценария или id прогона. */
     public function search(?string $query): self
     {
         $query = $query !== null ? trim($query) : '';

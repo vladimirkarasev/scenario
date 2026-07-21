@@ -9,10 +9,6 @@ use Illuminate\Support\Facades\Mail;
 use Module\Actions\Enums\EmailDriver;
 use Module\Actions\Models\EmailAccount;
 
-/**
- * Подбирает настроенный отправитель под аккаунт. Для SMTP собирает runtime-mailer
- * из настроек аккаунта; без аккаунта — дефолтный mailer приложения.
- */
 final readonly class EmailSenderFactory
 {
     private const string RUNTIME_MAILER = 'email_account_runtime';
@@ -44,7 +40,6 @@ final readonly class EmailSenderFactory
             'scheme' => $this->nullableStr($settings, 'encryption') === 'ssl' ? 'smtps' : null,
         ]);
 
-        // Сбрасываем закешированный mailer, чтобы пересобрался с новыми настройками.
         Mail::purge(self::RUNTIME_MAILER);
 
         return self::RUNTIME_MAILER;

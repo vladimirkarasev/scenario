@@ -21,20 +21,6 @@ use Spiral\RoadRunnerLaravel\OctaneWorker;
 use Spiral\RoadRunnerLaravel\WorkerInterface;
 use Spiral\RoadRunnerLaravel\WorkerOptionsInterface;
 
-/**
- * Handles Centrifugo's subscribe proxy events (RR_MODE=centrifuge, see .rr.yaml `centrifuge:` section
- * and config/roadrunner.php `workers['centrifuge']`). Connect auth is handled by Centrifugo itself
- * (client.token.hmac_secret_key, docker/centrifugo/config.json) — a short-lived JWT minted by
- * App\Http\Controllers\CentrifugoTokenController with `sub` = user id, no connect-proxy round trip
- * (RR's centrifuge plugin can't forward the client-supplied token as a header on any released
- * Centrifugo version — the `emulated_headers` feature that would allow it isn't in a release yet).
- * Centrifugo passes the JWT's `sub` through as `$request->user` on every subsequent proxy event, so
- * subscribe here just needs to check it's non-empty.
- *
- * Each event runs through Laravel\Octane\Worker::handleTask(), the same per-task container
- * sandboxing the bridge's own QueueWorker uses for jobs — a fresh cloned app per event, so nothing
- * resolved while handling one WebSocket connection leaks into another's.
- */
 final class CentrifugoWorker implements WorkerInterface
 {
     public function start(WorkerOptionsInterface $options): void

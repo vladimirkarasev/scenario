@@ -17,18 +17,12 @@ use Module\Proxy\Models\ProxyRequest;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * Полный flow: api-справочник + замоканный proxy endpoint → синхронизация должна
- * подтянуть `items` из mock body, сохранить их в `directory_items` с заполненным
- * `data_json`, а в `proxy_requests` появиться запись с typom `INTERNAL`.
- */
 final class ProxyImportSyncTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_proxy_import_with_mock_creates_items_with_data(): void
     {
-        // ─── Arrange ────────────────────────────────────────────────────────────
         $project = $this->makeProject();
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
@@ -67,7 +61,6 @@ final class ProxyImportSyncTest extends TestCase
             'match_by' => 'id',
             'api_config_json' => [
                 'proxy_uuid' => $endpoint->uuid,
-                // намеренно НЕ указываем field_mapping — должен сработать fallback 1:1
             ],
         ]);
 
@@ -83,13 +76,11 @@ final class ProxyImportSyncTest extends TestCase
             ],
         ]);
 
-        // ─── Act ────────────────────────────────────────────────────────────────
         /** @var DictionaryApiSyncService $sync */
         $sync = app(DictionaryApiSyncService::class);
         $import = $sync->queue($directory, $user->id);
         $sync->runImport($import->id);
 
-        // ─── Assert ─────────────────────────────────────────────────────────────
         $import->refresh();
 
         $this->assertSame('completed', $import->status, "Import failed: {$import->error_message}");
@@ -97,10 +88,8 @@ final class ProxyImportSyncTest extends TestCase
         $this->assertSame(3, $import->imported_rows);
         $this->assertSame(0, $import->failed_rows);
 
-        // mapping_json fallback должен быть 1:1
         $this->assertSame(['id' => 'id', 'name' => 'name'], $import->mapping_json);
 
-        // items записались с заполненным data_json
         $items = DirectoryItem::query()
             ->where('directory_version_id', $version->id)
             ->orderBy('external_key')
@@ -112,7 +101,6 @@ final class ProxyImportSyncTest extends TestCase
         $this->assertSame(['id' => '2', 'name' => 'Geely'], $items[1]->data_json);
         $this->assertSame(['id' => '3', 'name' => 'Chery'], $items[2]->data_json);
 
-        // proxy_requests получил запись от внутреннего вызова
         $proxyRequests = ProxyRequest::query()
             ->where('proxy_endpoint_id', $endpoint->id)
             ->get();

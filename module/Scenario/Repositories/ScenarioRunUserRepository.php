@@ -10,9 +10,6 @@ use Illuminate\Database\Eloquent\Collection;
 final class ScenarioRunUserRepository
 {
     /**
-     * Поиск пользователей для фильтра прогонов: приоритет у явных id,
-     * иначе поиск по строке; без критериев — пустой список.
-     *
      * @param  list<int>  $ids
      * @return Collection<int, User>
      */

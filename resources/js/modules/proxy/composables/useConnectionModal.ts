@@ -41,7 +41,6 @@ export function useConnectionModal(onSaved: () => void) {
 
     function selectType(type: string): void {
         credentialType.value = type
-        // Сбрасываем значения под поля нового типа (только в режиме создания).
         if (!isEditing.value) {
             values.value = {}
             secretFilled.value = {}

@@ -32,7 +32,6 @@ export function useActionModal(
 ) {
     const show = ref(false)
     const editingId = ref<string | null>(null)
-    // Пока slug не правили вручную, при создании он автоматически слугифицируется из названия.
     const slugEdited = ref(false)
 
     const formToast = useFormToast({
@@ -48,6 +47,7 @@ export function useActionModal(
             is_active: true,
             config: {} as Record<string, unknown>,
             input_fields: [] as ActionInputField[],
+            default_backoff: [] as number[],
             category_ids: [] as string[],
         })
 
@@ -59,7 +59,6 @@ export function useActionModal(
         return actionTypes().find(m => m.value === type)?.default_code ?? ''
     }
 
-    // Название меняет slug только при создании и пока slug не редактировали вручную.
     function onNameInput(value: string): void {
         form.name = value
         if (editingId.value === null && !slugEdited.value) {
@@ -81,6 +80,7 @@ export function useActionModal(
             description: '', type: initialType, is_active: true,
             config: buildConfig(fieldsFor(initialType)),
             input_fields: [],
+            default_backoff: [],
             category_ids: presetCategoryId ? [presetCategoryId] : [],
         })
         show.value = true
@@ -98,6 +98,7 @@ export function useActionModal(
             is_active: action.is_active,
             config: {...buildConfig(fieldsFor(action.type)), ...(action.config ?? {})},
             input_fields: action.input_fields.map(f => ({...f})),
+            default_backoff: [...(action.default_backoff ?? [])],
             category_ids: [...(action.category_ids ?? [])],
         })
         show.value = true
@@ -206,6 +207,7 @@ export function useActionModal(
                     input_fields: data.input_fields
                         .filter(f => f.key)
                         .map(f => ({...f, default: f.default ?? null})) as ActionInputField[],
+                    default_backoff: data.default_backoff,
                     category_ids: data.category_ids,
                 }
                 const result = id
@@ -233,6 +235,7 @@ export function useActionModal(
                 schema: next.schema ?? {},
                 ui_schema: next.ui_schema ?? {},
                 input_fields: next.input_fields,
+                default_backoff: next.default_backoff ?? [],
                 category_ids: next.category_ids,
             })
             formToast.saved(true)

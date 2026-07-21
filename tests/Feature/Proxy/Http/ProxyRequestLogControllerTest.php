@@ -13,9 +13,6 @@ use Module\Proxy\Models\ProxyRequest;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты лога входящих запросов (только чтение — список и детальная карточка).
- */
 final class ProxyRequestLogControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -29,13 +26,6 @@ final class ProxyRequestLogControllerTest extends TestCase
         $this->user = $this->createProxyUser();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/proxy/requests
-    // -------------------------------------------------------------------------
-
-    /**
-     * Без фильтров возвращаются все записи в JSON:API ключе data.
-     */
     public function test_index_returns_all_requests(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -49,9 +39,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonPath('data.0.type', 'proxy-requests');
     }
 
-    /**
-     * Ответ содержит meta с данными пагинации.
-     */
     public function test_index_returns_pagination_meta(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -63,9 +50,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonStructure(['meta' => ['current_page', 'last_page', 'per_page', 'total']]);
     }
 
-    /**
-     * page[size] ограничивает количество записей на странице.
-     */
     public function test_index_paginates_with_page_size(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -82,9 +66,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonPath('meta.last_page', 2);
     }
 
-    /**
-     * filter[endpoint_id]=X — возвращаются только записи нужного эндпоинта.
-     */
     public function test_index_filters_by_endpoint_id(): void
     {
         $endpointA = $this->makeEndpoint();
@@ -98,9 +79,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * filter[status]=X — возвращаются только записи нужного статуса.
-     */
     public function test_index_filters_by_status(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -114,9 +92,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonPath('data.0.attributes.status', 'failed');
     }
 
-    /**
-     * filter[search] ищет по request_id.
-     */
     public function test_index_searches_by_request_id(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -130,9 +105,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonPath('data.0.attributes.request_id', $match->request_id);
     }
 
-    /**
-     * Список не включает детальные атрибуты (payload, normalized_data, response_body).
-     */
     public function test_index_items_exclude_detail_fields(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -148,9 +120,6 @@ final class ProxyRequestLogControllerTest extends TestCase
         $this->assertArrayNotHasKey('response_body', $attributes);
     }
 
-    /**
-     * Базовые атрибуты присутствуют в каждом элементе списка.
-     */
     public function test_index_items_contain_base_fields(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -169,22 +138,12 @@ final class ProxyRequestLogControllerTest extends TestCase
         $this->assertArrayHasKey('endpoint_id', $item['attributes']);
     }
 
-    /**
-     * Неаутентифицированный запрос — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/proxy/requests')
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/proxy/requests/{proxyRequest}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Детальная карточка включает payload, normalized_data, response_body, received_at, processed_at.
-     */
     public function test_show_returns_detail_fields(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -202,9 +161,6 @@ final class ProxyRequestLogControllerTest extends TestCase
         $this->assertArrayHasKey('processed_at', $attributes);
     }
 
-    /**
-     * Корректный ID записи — возвращается нужный лог.
-     */
     public function test_show_returns_correct_request(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -217,9 +173,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertJsonPath('data.attributes.request_id', $request->request_id);
     }
 
-    /**
-     * Несуществующий UUID — 404.
-     */
     public function test_show_returns_404_for_nonexistent_id(): void
     {
         $this->actingAs($this->user)
@@ -227,9 +180,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Имя эндпоинта подгружается через связь и попадает в ответ.
-     */
     public function test_show_includes_endpoint_name(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -240,10 +190,6 @@ final class ProxyRequestLogControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.attributes.endpoint', $endpoint->name);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeEndpoint(): ProxyEndpoint
     {

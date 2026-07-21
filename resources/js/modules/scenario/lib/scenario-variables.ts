@@ -2,13 +2,8 @@ import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 import type {ScenarioBlock} from '@/modules/scenario/lib/scenario-flow-document'
 import type {VariableEntry} from '@/modules/scenario/types/scenario-variable-entry'
 
-// Типы полей, которые не порождают переменную (контент / вложенные действия).
 const NON_VARIABLE_FIELD_TYPES = new Set(['rich_text', 'collapse', 'action', 'action_list'])
 
-/**
- * Преобразует поля блока в плоский список переменных ({{ varName }}).
- * Единый источник для всех панелей переменных (редактор блока, action-нода, инспекторы).
- */
 export function fieldsToVariableEntries(
     fields: BlockField[],
     blockId: string,
@@ -36,10 +31,6 @@ export function fieldsToVariableEntries(
     })
 }
 
-/**
- * Собирает переменные всех block-нод сценария.
- * `currentBlockId` помечает «текущий» блок (показывается бейджем в списке).
- */
 export function blocksToVariableEntries(
     blocks: ScenarioBlock[],
     currentBlockId = '',

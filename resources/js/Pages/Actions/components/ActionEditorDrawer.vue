@@ -23,6 +23,7 @@ import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {actionCategoryRepository} from '@/modules/actions/repositories/actionCategoryRepository'
 import type {useActionModal} from '@/modules/actions/composables/useActionModal'
 import type {ActionTypeMeta} from '@/modules/actions/types/action'
+import {formatBackoffInput, parseBackoffInput} from '@/modules/actions/lib/backoff'
 
 const props = defineProps<{
   modal: ReturnType<typeof useActionModal>
@@ -106,6 +107,18 @@ function insertInputVar(key: string): void {
           </FormSelect>
           <FormTextarea v-model="modal.form.description" label="Описание" placeholder="Краткое описание для коллег"
                         :rows="3" :error="modal.errors.description" />
+
+          <FormField
+              label="Backoff по умолчанию (сек, через запятую)"
+              hint="Например: 0,60,180 — 1-я попытка сразу, 2-я через 60с, 3-я через 180с после провала 2-й. Можно переопределить на конкретном шаге в сценарии."
+          >
+            <Input
+                :model-value="formatBackoffInput(modal.form.default_backoff)"
+                placeholder="0,60,180"
+                class="font-mono"
+                @update:model-value="(v: string) => modal.form.default_backoff = parseBackoffInput(v)"
+            />
+          </FormField>
 
           <FormField v-if="modal.editingId.value" label="Разделы">
             <SectionTreeSelect

@@ -14,8 +14,6 @@ use Module\Users\Http\Resources\JsonApi\UserResource;
  */
 final class UserGroupResource extends JsonApiResource
 {
-    // true → ресурс уважает sparse fieldsets (?fields[groups]=name,slug),
-    // чтобы во включённых группах отдавались только нужные поля.
     protected bool $usesRequestQueryString = true;
 
     public function toId(Request $request): string
@@ -45,9 +43,6 @@ final class UserGroupResource extends JsonApiResource
     }
 
     /**
-     * Связи отдаются как JSON:API include (?include=createdBy,updatedBy);
-     * авторы (users) приходят в top-level `included`.
-     *
      * @return array<string, mixed>
      */
     #[\Override]

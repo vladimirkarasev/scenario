@@ -30,7 +30,6 @@ final class DefaultNodeHandlerTest extends TestCase
 
         $scenario = Scenario::query()->create(['name' => 'Test', 'is_active' => true]);
         $this->version = ScenarioVersion::query()->create(['scenario_id' => $scenario->id]);
-        // DefaultNodeHandler handles 'start' nodes (not in the registry's explicit match)
         $revision = $this->createRevision($this->version, [
             'nodes_json' => [
                 ['id' => 'node_start', 'type' => 'start', 'data' => ['key' => 'value']],

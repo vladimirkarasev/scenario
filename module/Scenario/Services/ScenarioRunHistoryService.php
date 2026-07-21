@@ -18,8 +18,6 @@ final readonly class ScenarioRunHistoryService
     }
 
     /**
-     * Хронологический лог: переходы между блоками + изменения полей.
-     *
      * @return list<array<string, mixed>>
      */
     public function buildHistory(ScenarioRun $run): array
@@ -53,7 +51,6 @@ final readonly class ScenarioRunHistoryService
             $nodeTitle  = $this->nodeTitle($step, $versionCache);
             $cancelled  = $step->cancelled_at !== null;
 
-            // Событие перехода — всегда, включая отменённые шаги
             $events[] = [
                 'at'         => $step->entered_at?->toIso8601String(),
                 'actor'      => $actor,
@@ -63,7 +60,6 @@ final readonly class ScenarioRunHistoryService
                 'cancelled'  => $cancelled,
             ];
 
-            // Изменения полей — только для завершённых блоков с непустым input
             if (
                 $step->node_type === ScenarioNodeType::Block
                 && $step->exited_at !== null
@@ -98,8 +94,6 @@ final readonly class ScenarioRunHistoryService
                     }
                 }
 
-                // Обновляем tracking всегда — чтобы следующий шаг для того же узла
-                // получил правильный diff даже после отменённых шагов.
                 $lastInputByNode[$step->node_id] = array_merge(
                     $lastInputByNode[$step->node_id] ?? [],
                     $input,

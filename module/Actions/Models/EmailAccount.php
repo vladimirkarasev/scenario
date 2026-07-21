@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Module\Projects\Models\Project;
 
 /**
- * Конфиг отправки email для проекта. Резолвится по from_address (адрес "От").
- *
  * @property string                    $id
  * @property string|null               $project_id
  * @property string                    $from_address

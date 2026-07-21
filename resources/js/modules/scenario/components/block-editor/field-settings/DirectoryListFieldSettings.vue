@@ -45,8 +45,6 @@ function clearDirectory(): void {
   emit('update', {directoryId: '', versionId: '', labelTemplate: ''})
 }
 
-// ── DepDrop ────────────────────────────────────────────────────────────────────
-
 const depDropEnabled = computed(() => Boolean(props.field.depDrop))
 
 const candidateFields = computed(() =>

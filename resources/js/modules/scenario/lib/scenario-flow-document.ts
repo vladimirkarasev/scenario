@@ -116,8 +116,6 @@ function defaultNodeData(type: string): ScenarioBlockData {
             description: '',
             conditionBranches: [],
             execution_mode: 'sequential',
-            delay_between: 180,
-            retries: 3,
             action_items: [],
             before_action_id: '',
             before_code: '',
@@ -357,11 +355,6 @@ export function stringifyScenarioFlowDocument(document: unknown): string {
     return JSON.stringify(normalizeScenarioFlowDocument(document), null, 2)
 }
 
-// Регенерирует id вложенного содержимого блока (fields, conditionBranches,
-// action_items у action-нод) — при вставке двух копий одной ноды в один граф
-// эти id иначе дублируются и ломают ключи списков/выборки во вложенных редакторах.
-// Ссылки на внешние сущности (actionId, before_action_id, targetScenarioId,
-// directoryId, proxyUuid и т.п.) не трогаем — это реальные UUID из БД.
 function duplicateBlockData(data: ScenarioBlockData): ScenarioBlockData {
     const cloned = clone(data)
 

@@ -53,7 +53,6 @@ export interface CategoryOption {
 }
 
 export const categoryRepository = {
-    // Лёгкая загрузка дерева для выбора: только id + name + parent_id (JSON:API sparse fieldset).
     async options(): Promise<CategoryOption[]> {
         const qs = new URLSearchParams({'fields[category]': 'name,parent_id'})
         const response = await getJson<Record<string, unknown>>(

@@ -28,8 +28,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{ save: [] }>()
 
-// ── Drag-and-drop reorder ────────────────────────────────────────────────────
-
 const draggingIdx = ref<number | null>(null)
 const dragOverIdx = ref<number | null>(null)
 

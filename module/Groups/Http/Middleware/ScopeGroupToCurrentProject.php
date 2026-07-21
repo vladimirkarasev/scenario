@@ -10,10 +10,6 @@ use Module\Groups\Models\UserGroup;
 use Module\Projects\CurrentProject;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Route-bound группа (`{group}`) должна принадлежать текущему проекту —
- * иначе 404 (не раскрываем существование чужих групп).
- */
 final readonly class ScopeGroupToCurrentProject
 {
     public function __construct(private CurrentProject $currentProject)

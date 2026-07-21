@@ -17,13 +17,18 @@ use Module\Actions\Listeners\LogEmailActivity;
 use Module\Actions\Listeners\SyncActionToApiListener;
 use Module\Actions\Models\Action;
 use Module\Actions\Observers\ActionObserver;
+use Module\Actions\Temporal\ActionScheduleSyncer;
+use Module\Actions\Temporal\ActionScheduleSyncerInterface;
+use Module\Actions\Temporal\RunActionsWorkflowStarter;
+use Module\Actions\Temporal\RunActionsWorkflowStarterInterface;
 
 final class ActionsServiceProvider extends ServiceProvider
 {
     #[\Override]
     public function register(): void
     {
-        //
+        $this->app->bind(RunActionsWorkflowStarterInterface::class, RunActionsWorkflowStarter::class);
+        $this->app->bind(ActionScheduleSyncerInterface::class, ActionScheduleSyncer::class);
     }
 
     public function boot(): void
@@ -35,7 +40,6 @@ final class ActionsServiceProvider extends ServiceProvider
 
         Action::observe(ActionObserver::class);
 
-        // Подписчики на сохранение экшена — добавляй сюда новые строки.
         Event::listen(ActionSaved::class, [SyncActionToApiListener::class, 'handle']);
 
         Event::listen(EmailSent::class, [LogEmailActivity::class, 'handleSent']);

@@ -9,14 +9,6 @@ use Closure;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Collection;
 
-/**
- * Кеширующий декоратор над {@see CategoryRepository}.
- *
- * Кешируются «тяжёлые» выборки разделов (forModel / forModelByParent с
- * подзапросами и withCount), чтобы дерево/списки выбора грузились быстрее.
- * Любая запись (create/update/delete) инвалидирует кеш через bump версии —
- * это не требует taggable-стора и работает на любом драйвере кеша.
- */
 final readonly class CachedCategoryRepository implements CategoryRepositoryContract
 {
     private const int TTL = 300;
@@ -101,9 +93,6 @@ final readonly class CachedCategoryRepository implements CategoryRepositoryContr
     }
 
     /**
-     * Кешируем «сырые» атрибуты моделей (примитивы), а не сами Eloquent-объекты —
-     * это надёжно при любом драйвере кеша. На чтении регидрируем в модели.
-     *
      * @param  list<string|null>                    $parts
      * @param  Closure(): Collection<int, Category> $resolver
      * @return Collection<int, Category>

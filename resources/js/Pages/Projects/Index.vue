@@ -32,8 +32,6 @@ const {
   openDeleteConfirm, closeDeleteConfirm, doDelete,
 } = useProjectModal(load)
 
-// ── UUID copy ──────────────────────────────────────────────────────────
-
 const copiedId = ref<string | null>(null)
 
 function copyId(id: string): void {
@@ -48,8 +46,6 @@ function copyId(id: string): void {
 function shortId(id: string): string {
   return id.slice(0, 8) + '…'
 }
-
-// ── Stats ──────────────────────────────────────────────────────────────
 
 const activeCount = computed(() => projects.value.filter(p => p.is_active).length)
 const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).length)

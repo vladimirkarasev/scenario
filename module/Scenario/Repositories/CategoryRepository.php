@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\DB;
 final class CategoryRepository
 {
     /**
-     * Workspace-папки, привязанные к модели (в проекте, если он задан).
-     *
      * @return Collection<int, Category>
      */
     public function workspaceForModel(string $modelType, ?string $projectId): Collection
@@ -32,7 +30,6 @@ final class CategoryRepository
             ->get();
     }
 
-    /** Привязать раздел к типу модели в pivot model_has_categories. */
     public function attachToModelType(Category $category, string $modelType, ?string $projectId): void
     {
         DB::table('model_has_categories')->insertOrIgnore([
@@ -45,7 +42,6 @@ final class CategoryRepository
         ]);
     }
 
-    /** Снять флаг is_workspace с остальных разделов модели того же проекта. */
     public function demoteOtherWorkspaces(Category $category, string $modelType, ?string $projectId): void
     {
         Category::query()

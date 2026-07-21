@@ -18,8 +18,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->validator = new BlockNodeValidator;
     }
 
-    // ------------------------------------------------------------------ empty / no rules
-
     public function test_no_fields_passes_any_input(): void
     {
         $this->assertPasses($this->nodeData([]), ['anything' => 'value']);
@@ -37,8 +35,6 @@ final class BlockNodeValidatorTest extends TestCase
     {
         $this->assertPasses($this->nodeData(['not-an-array']), []);
     }
-
-    // ------------------------------------------------------------------ required
 
     public function test_required_field_passes_when_present(): void
     {
@@ -69,8 +65,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertArrayHasKey('title', $e->errors());
     }
 
-    // ------------------------------------------------------------------ nullable
-
     public function test_nullable_field_passes_when_absent(): void
     {
         $this->assertPasses(
@@ -86,8 +80,6 @@ final class BlockNodeValidatorTest extends TestCase
             ['comment' => ''],
         );
     }
-
-    // ------------------------------------------------------------------ checkbox
 
     public function test_required_checkbox_passes_when_accepted(): void
     {
@@ -118,8 +110,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertArrayHasKey('agree', $e->errors());
     }
 
-    // ------------------------------------------------------------------ email
-
     public function test_email_field_passes_valid_address(): void
     {
         $this->assertPasses(
@@ -147,8 +137,6 @@ final class BlockNodeValidatorTest extends TestCase
         );
     }
 
-    // ------------------------------------------------------------------ number
-
     public function test_number_field_passes_numeric_value(): void
     {
         $this->assertPasses(
@@ -167,8 +155,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertArrayHasKey('age', $e->errors());
         $this->assertStringContainsString('числом', $e->errors()['age'][0]);
     }
-
-    // ------------------------------------------------------------------ date / datetime
 
     public function test_date_field_passes_valid_date(): void
     {
@@ -196,8 +182,6 @@ final class BlockNodeValidatorTest extends TestCase
             ['meeting_at' => '2025-06-01 14:30:00'],
         );
     }
-
-    // ------------------------------------------------------------------ textarea maxLength
 
     public function test_textarea_passes_within_default_max_length(): void
     {
@@ -231,8 +215,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertStringContainsString('100', $e->errors()['note'][0]);
     }
 
-    // ------------------------------------------------------------------ multiple fields
-
     public function test_multiple_fields_all_pass(): void
     {
         $this->assertPasses(
@@ -258,8 +240,6 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertArrayHasKey('email', $e->errors());
     }
 
-    // ------------------------------------------------------------------ helpers
-
     /** @param  array<array-key, mixed>  $fields */
     private function nodeData(array $fields): array
     {
@@ -274,7 +254,7 @@ final class BlockNodeValidatorTest extends TestCase
     private function assertPasses(array $nodeData, array $input): void
     {
         $this->validator->validate($nodeData, $input);
-        $this->assertTrue(true); // reached without exception
+        $this->assertTrue(true);
     }
 
     private function assertFails(array $nodeData, array $input): ValidationException

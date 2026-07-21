@@ -11,20 +11,6 @@ use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\VariableResolver;
 
-/**
- * Механика выполнения action-ноды: сбор action-item'ов, запуск через оркестратор,
- * повтор с упавшей стадии и хранение состояния pipeline в контексте прогона.
- *
- * Состояние в context:
- *  - _action_runs[nodeId]   — общее состояние ноды: 'running' | 'failed' | 'done'
- *  - _action_stages[nodeId] — статусы отдельных стадий: code => 'running'|'success'|'failed'
- *
- * ActionNodeHandler решает «когда» (lifecycle), этот класс — «как».
- *
- * Термины:
- *  - orchCode — оркестрационный/input/event-ключ стадии (реальный code экшена, поле action_code);
- *  - scope    — куда сложить результат (поле code): пусто = глобальный scope (мерж в корень).
- */
 final readonly class ActionNodePipeline
 {
     use NodeHelpers;
@@ -35,11 +21,7 @@ final readonly class ActionNodePipeline
     ) {
     }
 
-    // ── Состояние ───────────────────────────────────────────────────────────────
-
     /**
-     * Состояние ноды: null (не запускались) | Running | Failed | Done.
-     *
      * @param  array<string, mixed>  $context
      */
     public function state(array $context, string $nodeId): ?ActionStatus
@@ -61,9 +43,6 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * Сохранённые статусы стадий (code => running|success|failed) — для восстановления
-     * pipeline после перезагрузки. Пишутся инкрементально в ChainStepJob.
-     *
      * @param  array<string, mixed>  $context
      * @return array<string, string>
      */
@@ -82,11 +61,7 @@ final readonly class ActionNodePipeline
         return $result;
     }
 
-    // ── Стадии для render ─────────────────────────────────────────────────────────
-
     /**
-     * Список стадий pipeline для отрисовки: orchCode (ключ для событий) + подпись.
-     *
      * @param  array<string, mixed>  $node
      * @return list<array{code: string, name: string}>
      */
@@ -118,16 +93,7 @@ final readonly class ActionNodePipeline
         return $stages;
     }
 
-    // ── Запуск ────────────────────────────────────────────────────────────────────
-
     /**
-     * Собирает action-item'ы ноды и запускает их через оркестратор.
-     * Возвращает true, если что-то было задиспатчено.
-     *
-     * Если передан $scenarioNodeId (путь wait_for_result), запуск всегда последовательный
-     * и помечается scenario_node_id — это включает code-тегированный pipeline по WS
-     * и авто-резюм прогона по завершении цепочки.
-     *
      * @param  array<string, mixed>  $node
      */
     public function dispatch(ScenarioRun $run, array $node, ?string $scenarioNodeId = null): bool
@@ -139,8 +105,19 @@ final readonly class ActionNodePipeline
         $input = [];
         /** @var array<string, string> $scopeMap */
         $scopeMap = [];
+        /** @var array<string, list<int>> $backoffMap */
+        $backoffMap = [];
+        /** @var array<string, int> $delayBeforeMap */
+        $delayBeforeMap = [];
 
-        $actions = $this->collectScopedItems($this->arrayField($data, 'action_items'), $context, $input, $scopeMap);
+        $actions = $this->collectScopedItems(
+            $this->arrayField($data, 'action_items'),
+            $context,
+            $input,
+            $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
+        );
         $before = $this->collectHookItems(
             $data,
             'before_items',
@@ -149,7 +126,9 @@ final readonly class ActionNodePipeline
             'before_input',
             $context,
             $input,
-            $scopeMap
+            $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
         );
         $onError = $this->collectHookItems(
             $data,
@@ -159,7 +138,9 @@ final readonly class ActionNodePipeline
             'error_input',
             $context,
             $input,
-            $scopeMap
+            $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
         );
 
         if ($actions === [] && $before === [] && $onError === []) {
@@ -169,18 +150,15 @@ final readonly class ActionNodePipeline
         $mode = $this->strField($data, 'execution_mode', 'sequential');
 
         if ($scenarioNodeId !== null) {
-            $mode = 'sequential'; // pipeline всегда последовательный (стадии по порядку + накопление контекста)
+            $mode = 'sequential';
         }
 
-        $this->run($run, $mode, $actions, $before, $onError, $input, $scopeMap, $scenarioNodeId);
+        $this->run($run, $mode, $actions, $before, $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $scenarioNodeId);
 
         return true;
     }
 
     /**
-     * Повторяет выполнение pipeline начиная с упавшей стадии: успешные стадии остаются,
-     * упавшая и последующие запускаются заново. Возвращает true, если повтор запущен.
-     *
      * @param  array<string, mixed>  $node
      */
     public function retry(ScenarioRun $run, array $node): bool
@@ -198,12 +176,18 @@ final readonly class ActionNodePipeline
         $input = [];
         /** @var array<string, string> $scopeMap */
         $scopeMap = [];
+        /** @var array<string, list<int>> $backoffMap */
+        $backoffMap = [];
+        /** @var array<string, int> $delayBeforeMap */
+        $delayBeforeMap = [];
 
         $ordered = $this->collectScopedItems(
             [...$this->arrayField($data, 'before_items'), ...$this->arrayField($data, 'action_items')],
             $context,
             $input,
             $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
         );
         $onError = $this->collectHookItems(
             $data,
@@ -213,7 +197,9 @@ final readonly class ActionNodePipeline
             'error_input',
             $context,
             $input,
-            $scopeMap
+            $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
         );
 
         $codes = array_keys($ordered);
@@ -223,7 +209,6 @@ final readonly class ActionNodePipeline
             return false;
         }
 
-        // Срез от упавшей стадии и далее.
         $sliceCodes = array_slice($codes, (int)array_search($failedCode, $codes, true));
 
         /** @var array<string, string> $retryActions */
@@ -235,16 +220,12 @@ final readonly class ActionNodePipeline
         $this->resetStages($run, $nodeId, $sliceCodes);
         $this->markState($run, $nodeId, ActionStatus::Running);
 
-        $this->run($run, 'sequential', $retryActions, [], $onError, $input, $scopeMap, $nodeId);
+        $this->run($run, 'sequential', $retryActions, [], $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $nodeId);
 
         return true;
     }
 
-    // ── Внутреннее ──────────────────────────────────────────────────────────────
-
     /**
-     * Первая стадия со статусом 'failed' среди $codes (в порядке их следования).
-     *
      * @param  array<string, mixed>  $context
      * @param  array<int, string>  $codes
      */
@@ -262,8 +243,6 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * Убирает статусы повторяемых стадий (успешные оставляет).
-     *
      * @param  array<int, string>  $codes
      */
     private function resetStages(ScenarioRun $run, string $nodeId, array $codes): void
@@ -285,11 +264,13 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * @param  array<string, string>  $actions  orchCode => actionId
-     * @param  array<string, string>  $before
-     * @param  array<string, string>  $onError
-     * @param  array<string, mixed>  $input
-     * @param  array<string, string>  $scopeMap
+     * @param  array<string, string>     $actions  orchCode => actionId
+     * @param  array<string, string>     $before
+     * @param  array<string, string>     $onError
+     * @param  array<string, mixed>      $input
+     * @param  array<string, string>     $scopeMap
+     * @param  array<string, list<int>>  $backoffMap
+     * @param  array<string, int>        $delayBeforeMap
      */
     private function run(
         ScenarioRun $run,
@@ -299,6 +280,8 @@ final readonly class ActionNodePipeline
         array $onError,
         array $input,
         array $scopeMap,
+        array $backoffMap,
+        array $delayBeforeMap,
         ?string $scenarioNodeId,
     ): void {
         $input['scenario_run_id'] = (string)$run->id;
@@ -318,6 +301,8 @@ final readonly class ActionNodePipeline
                 schedule: null,
                 canManageActions: true,
                 scopeMap: $scopeMap,
+                backoffMap: $backoffMap,
+                delayBeforeMap: $delayBeforeMap,
             )
         );
     }
@@ -329,9 +314,6 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * Оркестрационный/input/event-ключ item: реальный code экшена (action_code).
-     * Для старых нод (где action_code не сохранён) — fallback на code.
-     *
      * @param  array<array-key, mixed>  $item
      */
     private function itemOrchCode(array $item): string
@@ -342,17 +324,22 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * Собирает items в карту orchCode => actionId, попутно наполняя input (scoped по orchCode)
-     * и scopeMap (orchCode => result scope; пустой code = глобальный scope).
-     *
-     * @param  array<array-key, mixed>  $items
-     * @param  array<string, mixed>  $context
-     * @param  array<string, mixed>  $input
-     * @param  array<string, string>  $scopeMap
+     * @param  array<array-key, mixed>   $items
+     * @param  array<string, mixed>      $context
+     * @param  array<string, mixed>      $input
+     * @param  array<string, string>     $scopeMap
+     * @param  array<string, list<int>>  $backoffMap
+     * @param  array<string, int>        $delayBeforeMap
      * @return array<string, string>
      */
-    private function collectScopedItems(array $items, array $context, array &$input, array &$scopeMap): array
-    {
+    private function collectScopedItems(
+        array $items,
+        array $context,
+        array &$input,
+        array &$scopeMap,
+        array &$backoffMap,
+        array &$delayBeforeMap,
+    ): array {
         $result = [];
 
         foreach ($items as $item) {
@@ -370,18 +357,20 @@ final readonly class ActionNodePipeline
             $result[$orchCode] = $actionId;
             $input[$orchCode] = $this->resolveInput($item, 'input', $context);
             $scopeMap[$orchCode] = $this->strField($item, 'code');
+            $backoffMap[$orchCode] = $this->intListField($item, 'backoff');
+            $delayBeforeMap[$orchCode] = $this->intField($item, 'delay_before');
         }
 
         return $result;
     }
 
     /**
-     * Hook-действия (before/error) из items; при пустом списке — fallback на legacy single-hook поля.
-     *
-     * @param  array<string, mixed>  $data
-     * @param  array<string, mixed>  $context
-     * @param  array<string, mixed>  $input
-     * @param  array<string, string>  $scopeMap
+     * @param  array<string, mixed>      $data
+     * @param  array<string, mixed>      $context
+     * @param  array<string, mixed>      $input
+     * @param  array<string, string>     $scopeMap
+     * @param  array<string, list<int>>  $backoffMap
+     * @param  array<string, int>        $delayBeforeMap
      * @return array<string, string>
      */
     private function collectHookItems(
@@ -393,8 +382,17 @@ final readonly class ActionNodePipeline
         array $context,
         array &$input,
         array &$scopeMap,
+        array &$backoffMap,
+        array &$delayBeforeMap,
     ): array {
-        $result = $this->collectScopedItems($this->arrayField($data, $itemsKey), $context, $input, $scopeMap);
+        $result = $this->collectScopedItems(
+            $this->arrayField($data, $itemsKey),
+            $context,
+            $input,
+            $scopeMap,
+            $backoffMap,
+            $delayBeforeMap,
+        );
 
         if ($result === []) {
             $result = $this->collectLegacyHook($data, $legacyCodeKey, $legacyIdKey, $legacyInputKey, $context, $input);

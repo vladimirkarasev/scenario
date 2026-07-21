@@ -44,6 +44,8 @@ final class ActionRequest extends FormRequest
             'input_fields.*.type' => ['required', Rule::in(['string', 'number', 'boolean', 'uuid', 'email'])],
             'input_fields.*.required' => ['nullable', 'boolean'],
             'input_fields.*.default' => ['nullable'],
+            'default_backoff' => ['nullable', 'array'],
+            'default_backoff.*' => ['integer', 'min:0'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['required', 'uuid', 'exists:categories,id'],
         ];

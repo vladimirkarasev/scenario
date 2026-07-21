@@ -10,10 +10,6 @@ use Module\Proxy\Gateway\AutoCrm\AutoCrmGateway;
 use Module\Proxy\Gateway\AutoCrm\AutoCrmGatewayFactory;
 use Module\Proxy\ProxyHandler;
 
-/**
- * Базовый handler для эндпоинтов AutoCRM: строит gateway из привязанного доступа
- * (connection типа {@see AutoCrmCredential}), который админ выбирает в UI при создании интеграции.
- */
 abstract class AutoCrmEndpointHandler extends ProxyHandler
 {
     public function __construct(protected readonly AutoCrmGatewayFactory $gateways) {}

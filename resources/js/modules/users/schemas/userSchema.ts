@@ -7,7 +7,6 @@ export function userSchema(_isEditing: boolean) {
         email: z.string().min(1, 'Email обязателен').email('Некорректный email'),
         login: z.string().min(1, 'Логин обязателен'),
         external_id: z.string(),
-        // Пароль необязателен (встроенные пользователи входят по токену); если задан — минимум 8 символов.
         password: z.string().refine(v => v === '' || v.length >= 8, 'Минимум 8 символов'),
         roles: z.array(z.string()),
         group_ids: z.array(z.string()),

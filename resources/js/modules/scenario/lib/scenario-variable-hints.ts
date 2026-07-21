@@ -47,7 +47,6 @@ export const DATE_FIELD_TYPES = new Set(['date', 'datetime'])
 export const SELECT_FIELD_TYPE = 'select'
 export const PHONE_FIELD_TYPE = 'phone'
 
-// Значение телефона — объект {country, formatted, original} (см. PhoneShape).
 export const PHONE_ACCESSORS: StructureItem[] = [
     {suffix: 'formatted', name: 'Форматированный', description: '+7 (999) 999-99-99'},
     {suffix: 'original', name: 'Цифры с кодом страны', description: '79999999999'},

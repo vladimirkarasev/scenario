@@ -6,9 +6,9 @@ export type FieldType = 'string' | 'integer' | 'boolean' | 'date' | 'datetime'
 export type FilterDisplayType = FieldType | 'list'
 
 export type FilterOperator =
-    | 'contains' | 'starts_with' | 'equals'   // string
-    | 'gt' | 'lt' | 'between'                  // integer
-    | 'before' | 'after'                       // date / datetime (reuse between too)
+    | 'contains' | 'starts_with' | 'equals'
+    | 'gt' | 'lt' | 'between'
+    | 'before' | 'after'
 
 export const FILTER_OPERATORS: Record<FilterDisplayType, { value: FilterOperator; label: string }[]> = {
     string: [{value: 'contains', label: 'Содержит'},

@@ -38,8 +38,6 @@ const {navigationItems} = useDashboardNavigation()
 const tree = useActionSectionTree()
 const feed = useActionFeed(tree.activeSection)
 
-// Типы экшенов нужны только редактору (тип/конфиг-поля) — грузим лениво при
-// первом создании/редактировании, а не на каждой загрузке страницы.
 const actionTypes = ref<ActionTypeMeta[]>([])
 let actionTypesLoaded = false
 
@@ -73,7 +71,6 @@ async function createInActiveSection(): Promise<void> {
   modal.openCreate(tree.activeSection.value !== 'all' ? tree.activeSection.value : null)
 }
 
-// ── Breadcrumb ──────────────────────────────────────────────────────────────
 interface Crumb { id: string | 'all'; name: string }
 
 const breadcrumb = computed<Crumb[]>(() => {
@@ -93,7 +90,6 @@ const headerTitle = computed(() =>
     tree.activeSection.value === 'all' ? 'Действия' : tree.currentSectionName.value,
 )
 
-// ── Folder rows ─────────────────────────────────────────────────────────────
 function toCategory(row: FeedFolderRow): ActionCategory {
   return {
     id: row.id,
@@ -117,7 +113,6 @@ async function deleteSection(section: ActionCategory): Promise<void> {
   feed.load()
 }
 
-// ── Action rows (feed gives slim payload → догружаем полный по id) ───────────
 async function editAction(row: FeedActionRow): Promise<void> {
   await ensureActionTypes()
   modal.openEdit(await actionRepository.find(row.id))

@@ -79,8 +79,6 @@ final class DirectoryExcelImport implements ShouldQueue, SkipsEmptyRows, ToColle
 
     private function importService(): ImportService
     {
-        // Резолвим в момент выполнения: объект импорта сериализуется при постановке
-        // chunk-job в очередь, поэтому хранить контейнер/сервис в свойстве нельзя.
         return app(ImportService::class);
     }
 }

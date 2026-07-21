@@ -29,8 +29,6 @@ interface FieldConfig {
   filterValues?: string[]
 }
 
-// Сохраняем полный объект строки справочника, чтобы backend и шаблоны
-// могли подставлять значения без повторного запроса к справочнику.
 interface DirectoryItemValue {
   id: string
   label: string
@@ -69,22 +67,16 @@ const emit = defineEmits<{
   'update:modelValue': [value: DirectoryItemValue | DirectoryItemValue[] | '']
 }>()
 
-// ── State ─────────────────────────────────────────────────────────────────────
-
 const open = ref(false)
 const schema = ref<DirectorySchemaField[]>([])
 const schemaReady = ref(false)
 
 const ctx = useDirectoryItems(props.directoryId, null, true)
 
-// Pending: id -> объект, который полетит в emit.
 const pendingItems = ref<Map<string, DirectoryItemValue>>(new Map())
 const tableScrollRef = ref<HTMLElement | null>(null)
 const tableRef = ref<HTMLTableElement | null>(null)
 
-// Ширины колонок (px), измеряются при первой отрисовке таблицы и затем
-// прибиваются гвоздями через colgroup, чтобы при прокрутке/виртуализации
-// ничего не «прыгало». Ключ — `key` schema-поля; для checkbox колонки — '__select'.
 const colWidths = ref<Record<string, number>>({})
 
 function measureColWidths(): void {
@@ -104,7 +96,6 @@ function measureColWidths(): void {
   colWidths.value = next
 }
 
-// Горизонтальная прокрутка таблицы стрелками (общий composable).
 const {
   canScrollLeft: canScrollTableLeft,
   canScrollRight: canScrollTableRight,
@@ -114,24 +105,17 @@ const {
   stopScroll: stopTableHorizontalScroll,
 } = useHorizontalScrollArrows(tableScrollRef)
 
-// ── Виртуализация (TanStack Virtual, динамическая высота строк) ───────────────
-// Контейнер скролла живёт внутри диалога и монтируется только при открытии.
-// Читаем tableScrollRef.value прямо в computed — это создаёт реактивную
-// зависимость, поэтому при появлении/смене контейнера опции пересчитываются и
-// виртуализатор заново подписывается на scroll/resize. Без этого после открытия
-// модалки прокрутка вниз не подгружала бы нижние строки.
 const rowVirtualizer = useVirtualizer(computed(() => {
   const scrollEl = tableScrollRef.value
   return {
     count: ctx.flatTree.value.length,
     getScrollElement: () => scrollEl,
-    estimateSize: () => 41, // стартовая оценка; реальная высота меряется measureElement
+    estimateSize: () => 41,
     overscan: 8,
     getItemKey: (index: number) => ctx.flatTree.value[index]?.id ?? index,
   }
 }))
 
-// Реальный замер высоты строки (поддержка переноса/многострочных значений).
 function measureRow(el: Element | ComponentPublicInstance | null): void {
   if (el instanceof Element) rowVirtualizer.value.measureElement(el)
 }
@@ -147,14 +131,11 @@ const paddingBottom = computed(() =>
         : 0,
 )
 
-// ── Value helpers ─────────────────────────────────────────────────────────────
-
 function getItemValue(item: DirectoryItem): string {
   return String(item.id)
 }
 
 function getItemLabel(item: DirectoryItem): string {
-  // У «Другой» label продублирован во все колонки — берём одно значение, не рендерим шаблон.
   if (item.id === OTHER_ITEM_ID) {
     return String(Object.values(item.data)[0] ?? '')
   }
@@ -174,8 +155,6 @@ function toDirectoryItemValue(item: DirectoryItem): DirectoryItemValue {
   }
 }
 
-// Нормализуем входящее значение в массив объектов. Поддерживаем legacy строки —
-// для них label = id, data = {}.
 function normalizeIncoming(value: FieldValue): DirectoryItemValue[] {
   if (value === null || value === undefined || value === '') return []
   const arr = Array.isArray(value) ? value : [value]
@@ -197,15 +176,10 @@ function normalizeIncoming(value: FieldValue): DirectoryItemValue[] {
   return result.filter((i) => i.id)
 }
 
-// ── Current selection ─────────────────────────────────────────────────────────
-
 const currentItems = computed<DirectoryItemValue[]>(() => normalizeIncoming(props.modelValue))
 
 const hasSelection = computed(() => currentItems.value.length > 0)
 
-// Пересчитываем label при каждом рендере: если у сохранённого item есть data,
-// прогоняем через текущий labelTemplate. Иначе фоллбэк на сохранённое значение
-// (legacy / случай когда data не сохранилась).
 const selectionChips = computed(() =>
     currentItems.value.map((i) => {
       const fromTemplate = props.labelTemplate && Object.keys(i.data ?? {}).length
@@ -214,8 +188,6 @@ const selectionChips = computed(() =>
       return {value: i.id, label: fromTemplate || i.label || i.id}
     }),
 )
-
-// ── Schema-derived computed ───────────────────────────────────────────────────
 
 const fieldConfigMap = computed(() =>
     Object.fromEntries((props.fields ?? []).map((f) => [f.key, f])),
@@ -228,9 +200,6 @@ const visibleSchemaFields = computed((): DirectorySchemaField[] => {
 
 const tableColspan = computed(() => visibleSchemaFields.value.length + (props.allowSelection ? 1 : 0))
 
-// Лениво подгружаем «полный» список items без фильтров — нужен только когда юзер
-// открывает list-фильтр (чтобы baseItems внутри useDirectoryItems заполнился и
-// listOptions вернул варианты). Один раз на жизнь диалога.
 const baseItemsLoaded = ref(false)
 
 async function ensureBaseItems(): Promise<void> {
@@ -242,14 +211,11 @@ async function ensureBaseItems(): Promise<void> {
   ctx.clearFilters()
   const vId = props.versionId ? Number(props.versionId) : undefined
   await ctx.loadItems(vId)
-  // Восстанавливаем фильтры — это снова дёрнет loadItems через debounced watcher,
-  // но юзер уже видит варианты в popover'е.
   for (const [k, v] of Object.entries(savedSingle)) ctx.activeFilters[k] = v
   for (const [k, v] of Object.entries(savedMulti)) ctx.activeFiltersMulti[k] = v
   for (const [k, v] of Object.entries(savedTo)) ctx.activeFiltersTo[k] = v
 }
 
-// Лениво подгружаем варианты только при открытии list-фильтра.
 function onFilterOpen(f: DirectorySchemaField): void {
   if (f.filter_type !== 'list') return
   void ensureBaseItems()
@@ -259,16 +225,12 @@ const filterableSchemaFields = computed((): DirectorySchemaField[] =>
     schema.value.filter((sf) => {
       const cfg = fieldConfigMap.value[sf.key]
       if (!cfg?.filterable) return false
-      // Закреплённые фильтры скрываем от юзера: значение уже подставлено,
-      // юзер не должен видеть/менять/удалять чип.
       if (cfg.lockFilter) return false
       return true
     }),
 )
 
 const hasSearchable = computed(() => schema.value.some((sf) => sf.searchable))
-
-// ── Load schema ───────────────────────────────────────────────────────────────
 
 async function loadSchema(): Promise<void> {
   if (schemaReady.value || !props.directoryId) return
@@ -283,8 +245,6 @@ async function loadSchema(): Promise<void> {
   }
 }
 
-// ── Modal open / close / confirm ──────────────────────────────────────────────
-
 async function onOpen(): Promise<void> {
   if (!props.directoryId) return
 
@@ -298,8 +258,6 @@ async function onOpen(): Promise<void> {
   ctx.clearFilters()
   if (props.defaultSearch) ctx.searchQuery.value = props.defaultSearch
 
-  // Стартовые фильтры выставляем ДО первого loadItems, чтобы был ровно один запрос.
-  // Опции для list-фильтра подгружаются лениво при первом открытии чипа (см. ниже).
   for (const cfg of props.fields) {
     const values = cfg.filterValues ?? []
     if (cfg.filterMode === 'literal' && values.length > 0) {
@@ -352,8 +310,6 @@ function removeChip(value: string, e: MouseEvent): void {
     emit('update:modelValue', '')
   }
 }
-
-// ── Row selection ─────────────────────────────────────────────────────────────
 
 function isPending(item: DirectoryItem): boolean {
   return pendingItems.value.has(getItemValue(item))

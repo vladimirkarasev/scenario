@@ -95,7 +95,6 @@ final readonly class ExpressionService
             function (array $matches) use ($context, $emptyExpressionValueAsBlank): string {
                 $inner = trim((string)($matches[1] ?: ($matches[2] ?? '')));
 
-                // Спец-суффикс ._array — вернуть значение как JSON-массив (для multiple-полей).
                 if (preg_match('/^(.+)\._array$/u', $inner, $m) === 1) {
                     return $this->renderAsArray(trim($m[1]), $context, $emptyExpressionValueAsBlank);
                 }
@@ -103,8 +102,6 @@ final readonly class ExpressionService
                 try {
                     return $this->stringify($this->evaluate($inner, $context), $emptyExpressionValueAsBlank);
                 } catch (\Throwable) {
-                    // Доступ к свойству null / массива (не выбрано / multiple) не должен валить
-                    // весь рендер — выражение даёт пустую строку.
                     return '';
                 }
             },
@@ -216,9 +213,6 @@ final readonly class ExpressionService
     }
 
     /**
-     * Если массив — это список shapes (DirectoryList или Select) с полем label,
-     * вернёт массив лейблов. Иначе null.
-     *
      * @param  list<mixed>  $value
      * @return list<string>|null
      */
@@ -291,7 +285,6 @@ final readonly class ExpressionService
                 return '';
             }
 
-            // Массив shapes (multiple для DirectoryList / Select) — джойним лейблы
             if (array_is_list($value)) {
                 $labels = $this->collectShapeLabels($value);
                 if ($labels !== null) {

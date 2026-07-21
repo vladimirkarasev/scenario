@@ -13,10 +13,6 @@ use Module\Proxy\Models\ProxyRequest;
 final class ProxyContextFactory
 {
     /**
-     * Build a context for programmatic data queries (no real HTTP request).
-     * The handler receives query params via $context->query() and is expected
-     * to fetch data from a remote source and return it in ProxyResponse::ok($body).
-     *
      * @param array<string, mixed> $query Proxy field names: filter, sort, direction, page, per_page
      */
     public function forQuery(ProxyEndpoint $endpoint, array $query = []): ProxyContext

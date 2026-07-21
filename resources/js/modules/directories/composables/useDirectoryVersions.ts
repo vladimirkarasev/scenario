@@ -45,8 +45,6 @@ export function useDirectoryVersions(directoryId: string) {
         }
     }
 
-    // ── Create ───────────────────────────────────────────────────────────
-
     const createDialogOpen = ref(false)
     const createClone = ref(false)
     const createLoading = ref(false)
@@ -67,8 +65,6 @@ export function useDirectoryVersions(directoryId: string) {
         }
     }
 
-    // ── Activate ─────────────────────────────────────────────────────────
-
     const activateDialogOpen = ref(false)
     const activatingVersion = ref<DirectoryVersion | null>(null)
     const activateLoading = ref(false)
@@ -86,8 +82,6 @@ export function useDirectoryVersions(directoryId: string) {
             activateLoading.value = false
         }
     }
-
-    // ── Delete ────────────────────────────────────────────────────────────
 
     const deleteDialogOpen = ref(false)
     const deletingVersion = ref<DirectoryVersion | null>(null)
@@ -109,8 +103,6 @@ export function useDirectoryVersions(directoryId: string) {
             deleteLoading.value = false
         }
     }
-
-    // ── Schema editing ────────────────────────────────────────────────────
 
     const editableSchema = ref<DirectorySchemaField[]>([])
     const editableMatchBy = ref<string>('')
@@ -140,8 +132,6 @@ export function useDirectoryVersions(directoryId: string) {
     function removeSchemaField(index: number): void {
         if (editableSchema.value.length > 1) editableSchema.value.splice(index, 1)
     }
-
-    // ── Field modal ───────────────────────────────────────────────────────
 
     const fieldModalOpen = ref(false)
     const fieldModalIndex = ref<number>(-1)
@@ -198,7 +188,6 @@ export function useDirectoryVersions(directoryId: string) {
         fieldModalOpen.value = false
     }
 
-    // legacy inline helpers kept for compatibility
     function onSchemaNameInput(field: DirectorySchemaField): void {
         if (!manualKeyEdited.has(field)) field.key = toSlug(field.name)
     }
@@ -249,8 +238,6 @@ export function useDirectoryVersions(directoryId: string) {
             schemaSaving.value = false
         }
     }
-
-    // ── Code editing ──────────────────────────────────────────────────────
 
     const editingCodeId = ref<number | null>(null)
     const editingCodeValue = ref('')

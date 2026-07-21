@@ -62,8 +62,6 @@ interface FieldPaletteItem {
   icon: Component
 }
 
-// ── Props / emits ─────────────────────────────────────────────────────────────
-
 const props = defineProps<{
   open: boolean
   scenarioId: string
@@ -76,12 +74,8 @@ const emit = defineEmits<{
   'update:block': [ScenarioBlock]
 }>()
 
-// ── Store ─────────────────────────────────────────────────────────────────────
-
 const blockEditorStore = useScenarioBlockEditorStore()
 const {loading, loadError, canManageCatalog, versionDocument, blockDraft} = storeToRefs(blockEditorStore)
-
-// ── Field palette ─────────────────────────────────────────────────────────────
 
 const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   {
@@ -120,8 +114,6 @@ function fieldTypeIcon(type: BlockFieldType): Component {
   return fieldTypeMap[type]?.icon ?? markRaw(AlignJustify)
 }
 
-// ── Variables ─────────────────────────────────────────────────────────────────
-
 const USER_VARIABLES = [
   {id: 'user.name', name: 'user.name', label: 'Имя'},
   {id: 'user.fio', name: 'user.fio', label: 'ФИО'},
@@ -130,17 +122,12 @@ const USER_VARIABLES = [
   {id: 'user.auth_date', name: 'user.auth_date', label: 'Дата авторизации'},
 ]
 
-// Единый источник переменных (как в редакторе графа): блоки графа + связанные
-// сценарии. Редактируемый блок подменяем на «живой» draft, чтобы переменные
-// текущего блока обновлялись на лету.
 const {variables: allVariables, blocks: variableListBlocks} = useScenarioVariables(
     () => versionDocument.value.blocks.map(
         (b) => (b.id === props.blockId && blockDraft.value ? blockDraft.value : b),
     ),
     () => props.blockId,
 )
-
-// ── Copy var ──────────────────────────────────────────────────────────────────
 
 const copiedFieldVarId = ref<string | null>(null)
 
@@ -152,8 +139,6 @@ async function copyFieldVarName(field: BlockField) {
     copiedFieldVarId.value = null
   }, 1500)
 }
-
-// ── Field CRUD ────────────────────────────────────────────────────────────────
 
 function addFieldAndScroll(type: BlockFieldType) {
   blockEditorStore.addField(type)
@@ -202,8 +187,6 @@ function removeSelectOption(field: BlockField, optionId: string) {
   } as Partial<BlockField>)
 }
 
-// ── Delete field dialog ───────────────────────────────────────────────────────
-
 const confirmDeleteFieldId = ref<string | null>(null)
 const confirmDeleteDialogOpen = computed({
   get: () => confirmDeleteFieldId.value !== null,
@@ -226,8 +209,6 @@ function confirmDelete() {
   blockEditorStore.removeField(id)
   confirmDeleteFieldId.value = null
 }
-
-// ── Field settings dialog ─────────────────────────────────────────────────────
 
 const settingsFieldId = ref<string | null>(null)
 const settingsDialogOpen = computed({
@@ -253,17 +234,13 @@ function closeSettings() {
   settingsFieldId.value = null
 }
 
-
 function updateFieldById(fieldId: string, patch: Partial<BlockField>) {
   const field = blockDraft.value?.data.fields.find((f: BlockField) => f.id === fieldId)
   if (field) updateFieldSettings(field, patch)
 }
 
-// ── Tabs + lifecycle ──────────────────────────────────────────────────────────
-
 const activeDrawerTab = ref<'editor' | 'preview'>('editor')
 const isLoaded = ref(false)
-
 
 watch(
     () => [props.open, props.scenarioId, props.versionId, props.blockId] as const,

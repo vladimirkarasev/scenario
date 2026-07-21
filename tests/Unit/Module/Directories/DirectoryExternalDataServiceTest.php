@@ -29,9 +29,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->service = app(DirectoryExternalDataService::class);
     }
 
-    /**
-     * Директория без активной версии — ожидаем исключение «Active directory version not found».
-     */
     public function test_throws_when_no_active_version(): void
     {
         $directory = $this->makeDirectory();
@@ -42,9 +39,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->service->activeData($directory);
     }
 
-    /**
-     * api_config_json пустой, proxy_uuid не задан — ожидаем исключение «no proxy configured».
-     */
     public function test_throws_when_proxy_not_configured(): void
     {
         $directory = $this->makeDirectory(['api_config_json' => []]);
@@ -56,9 +50,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->service->activeData($directory);
     }
 
-    /**
-     * proxy_uuid указан, но ProxyEndpoint не существует — ожидаем исключение «not found».
-     */
     public function test_throws_when_proxy_endpoint_not_found(): void
     {
         $uuid = 'missing-proxy-uuid';
@@ -71,9 +62,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->service->activeData($directory);
     }
 
-    /**
-     * Прокси возвращает данные с field_mapping — поля переименовываются, структура dictionary/data/meta корректна.
-     */
     public function test_returns_mapped_data_from_proxy(): void
     {
         $uuid = 'proxy-happy-path';
@@ -104,9 +92,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->assertSame(['total' => 2], $result['meta']);
     }
 
-    /**
-     * Прокси вернул data как строку вместо массива — data и meta должны быть пустыми.
-     */
     public function test_returns_empty_data_when_proxy_response_is_not_array(): void
     {
         $uuid = 'proxy-non-array';
@@ -120,9 +105,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->assertSame([], $result['meta']);
     }
 
-    /**
-     * Маппинг с пустым proxy-полем — такой ключ должен быть пропущен в результате.
-     */
     public function test_field_mapping_skips_entries_with_empty_proxy_field(): void
     {
         $uuid = 'proxy-skip-empty';
@@ -143,9 +125,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->assertArrayNotHasKey('skip_me', $result['data'][0]);
     }
 
-    /**
-     * Маппинг пустой — id всегда пробрасывается, остальные поля отсутствуют.
-     */
     public function test_item_id_is_always_included_even_without_mapping(): void
     {
         $uuid = 'proxy-id-only';
@@ -163,9 +142,6 @@ final class DirectoryExternalDataServiceTest extends TestCase
         $this->assertArrayNotHasKey('name', $result['data'][0]);
     }
 
-    /**
-     * Прокси не вернул ключ meta — в результате meta должен быть пустым массивом.
-     */
     public function test_meta_defaults_to_empty_when_absent_from_response(): void
     {
         $uuid = 'proxy-no-meta';

@@ -34,9 +34,6 @@ interface BaseBlockField {
     required: boolean
     varName: string
     validation?: ValidationRule[]
-    // Размер/цвет/заливка заголовка поля, задаются через bubble-menu в едином
-    // tiptap-документе редактора блока (BlockEditorGutenbergEditor) —
-    // применяются как в предпросмотре, так и в реальном опросе. Пусто = дефолт.
     labelFontSize?: string
     labelColor?: string
     labelHighlight?: string
@@ -173,18 +170,10 @@ export interface DirectoryListBlockField extends BaseBlockField {
 export interface DirectoryTableFieldConfig {
     key: string
     visible: boolean
-    // Стартовое значение фильтра по этой колонке (используется когда filterMode='template'
-    // или для простых текстовых колонок). Поддерживает {{ Var }}; backend резолвит шаблон в
-    // payload, фронт применяет полученное значение при открытии диалога. Пусто = не задан.
     defaultValue: string
-    // Показывать ли фильтр-чип в UI выбора (юзер может его менять).
     filterable: boolean
-    // Закрепить фильтр: применить значение по умолчанию, скрыть chip — юзер не сможет убрать.
     lockFilter: boolean
-    // Режим стартового значения фильтра: 'literal' — выбрано из реальных опций справочника,
-    // 'template' — строковый шаблон с переменными. По умолчанию 'literal'.
     filterMode?: 'literal' | 'template'
-    // Для list-multi колонок в режиме literal: массив выбранных значений.
     filterValues?: string[]
 }
 
@@ -201,9 +190,7 @@ export interface DirectoryTableBlockField extends BaseBlockField {
 
 export interface SuggestBlockField extends BaseBlockField {
     type: 'suggest'
-    // UUID прикреплённого proxy-эндпоинта (type=suggest), который отдаёт варианты.
     proxyUuid: string
-    // Ключ объекта-варианта, показываемый чипом/в списке. Пусто = первый ключ объекта.
     labelField: string
     placeholder: string
     multiple: boolean
@@ -460,8 +447,6 @@ function normalizeBase(f: Record<string, unknown>, base: BlockField): BaseBlockF
                 message: String(r.message ?? ''),
             }))
         : []
-    // "Ключ поля" не редактируется пользователем — всегда равен id (реальный
-    // бэкенд-ключ хранения ответа, см. BlockNodeHandler::continueFrom).
     const id = String(f.id ?? base.id)
 
     return {
@@ -488,18 +473,10 @@ function normalizeDateMode(value: unknown, fallback: DateTimeBlockField['default
     return fallback
 }
 
-// Дублирует поля блока с новыми id (включая вложенные validation[].id и,
-// для select, options[].id вместе с ремапом parentId на новые id опций;
-// actionId/action_id внутри полей не трогаем — это ссылки на реальные Action).
-// name ("Ключ поля") и varName ("Название переменной") тоже получают уникальный
-// суффикс: varName участвует в плоской карте шаблонов {{ }} на уровне всего
-// сценария (ScenarioVariableMapBuilder), совпадение — последняя запись молча
-// затирает предыдущую; name — ключ сохранения ответа внутри одного блока.
 export function duplicateBlockFieldIds(fields: BlockField[]): BlockField[] {
     return fields.map((field): BlockField => {
         const newId = uid(field.type)
         const suffix = newId.slice(newId.lastIndexOf('_') + 1)
-        // name всегда равен id (см. normalizeBase) — дублированное поле просто получает новый id.
         const name = field.name ? newId : field.name
         const varName = field.varName ? `${field.varName}_${suffix}` : field.varName
 
@@ -675,7 +652,6 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
         }
 
         case 'directory_list': {
-            // backward-compat: camelCase preferred, snake_case legacy; label_field → {{ key }} template
             const rawTpl = f.labelTemplate ?? f.label_template
             const labelTemplate = rawTpl ? String(rawTpl) : (f.label_field ? `{{ ${f.label_field} }}` : '')
             const rawAllow = f.allowRootSelection ?? f.allow_root_selection

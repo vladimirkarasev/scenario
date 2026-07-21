@@ -39,8 +39,6 @@ final readonly class DirectoryImportActionHandler implements ActionHandlerInterf
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
 
         try {
-            // Для proxy-источника конфиг (proxy, сопоставление, схема, ключ) собирается
-            // из самого справочника в момент запуска — он всегда актуален.
             $import = $this->stringValue($config['source_type'] ?? null, '') === DirectoryImportSourceType::Proxy->value
                 ? $this->apiSync->queue($this->directory($config))
                 : $this->importService->queue($this->data($config));

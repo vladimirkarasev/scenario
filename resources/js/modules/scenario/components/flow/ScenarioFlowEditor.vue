@@ -99,9 +99,6 @@ const inspectorDraft = reactive({})
 const schemaPreview = ref('')
 const activeRightTab = ref('editor')
 const copiedConditionVariableId = ref(null)
-// Handle IDs that belong to the "input plane" — connections started from them
-// get direction-reversed so the node always ends up as the target, not the source.
-// Must stay in sync with the handle ids declared in EndNode and ScenarioLinkNode.
 
 const selectedNode = computed(() => nodes.value.find((node) => node.id === selectedNodeId.value) ?? null)
 const selectedNodes = computed(() => nodes.value.filter((node) => node.selected))
@@ -124,8 +121,6 @@ const conditionPreviewOptions = computed(() => {
       }))
 })
 
-// Полный список переменных для единого ScenarioVariableList (инспекторы action /
-// condition / end): блоки текущего графа + переменные связанных сценариев.
 const {variables: variableEntries, blocks: variableListBlocks} = useScenarioVariables(() => nodes.value)
 const currentFlowDocument = () => fromVueFlowState({
   nodes: nodes.value,
@@ -301,7 +296,6 @@ watch(
     {deep: true},
 )
 
-// Снимок data ноды на момент открытия drawer — для отката по «Отменить».
 const inspectorSnapshot = ref(null)
 
 watch(
@@ -435,7 +429,6 @@ function addNode(type) {
   const block = createScenarioFlowNode(type, {x: cx, y: cy})
 
   if (type === 'block') {
-    // variable должна быть уникальна (используется в шаблонах).
     const suffix = block.id.slice(block.id.indexOf('_') + 1)
     block.data.variable = `block_${suffix}`
   }
@@ -562,8 +555,6 @@ function onConnect(connection) {
     return
   }
 
-  // Direction уже корректный: input handles имеют type="target", output handles —
-  // type="source", поэтому Vue Flow сам выставляет edge.source / edge.target.
   edges.value = addEdge({
     ...connection,
     id: `edge_${Date.now()}`,
@@ -645,8 +636,6 @@ function onEdgeClick({event, edge}) {
   resetInspectorDraft()
 }
 
-// Перекрашиваем линии в зависимости от текущего выбора. Только цвет, без изменения
-// толщины — иначе рекурсия с deep-watch на edges ломает реактивность Vue Flow.
 watch(selectedEdgeId, (id) => {
   for (const edge of edges.value) {
     const isSelected = edge.id === id
@@ -732,8 +721,6 @@ function handleFlowKeyboardShortcut(event) {
 
   const isModifierPressed = event.ctrlKey || event.metaKey
 
-  // event.code (физическая клавиша) вместо event.key — раскладка клавиатуры
-  // (например, русская) меняет event.key для Ctrl+C/V на нелатинский символ.
   if (isModifierPressed && event.code === 'KeyC') {
     if (!selectedNodes.value.length) {
       return

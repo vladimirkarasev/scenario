@@ -61,8 +61,6 @@ async function copy(text: string, id: string): Promise<void> {
   }, 1500)
 }
 
-// ─── Schema cache (для directory hints) ──────────────────────────────────────
-
 const schemaCache = reactive<Record<string, DirectorySchemaField[]>>({})
 const schemaLoading = reactive<Record<string, boolean>>({})
 
@@ -96,8 +94,6 @@ function isLoadingSchema(v: VarLike): boolean {
   if (!v.directoryId) return false
   return Boolean(schemaLoading[cacheKey(v.directoryId, v.versionId ?? '')])
 }
-
-// ─── Popover state ───────────────────────────────────────────────────────────
 
 const openVarId = ref<string | null>(null)
 

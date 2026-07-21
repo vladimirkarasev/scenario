@@ -64,8 +64,6 @@ export function useRoleModal(availablePermissions: Ref<PermissionOption[]>, onSa
         }
     }
 
-    // ── Delete confirm ───────────────────────────────────────────────────
-
     const confirmDelete = ref<Role | null>(null)
     const deleting = ref(false)
     const deleteError = ref<string | null>(null)
@@ -96,8 +94,6 @@ export function useRoleModal(availablePermissions: Ref<PermissionOption[]>, onSa
             deleting.value = false
         }
     }
-
-    // ── Permission helpers ───────────────────────────────────────────────
 
     function togglePermission(name: string): void {
         const idx = form.permissions.indexOf(name)

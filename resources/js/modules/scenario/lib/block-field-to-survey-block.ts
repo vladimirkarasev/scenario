@@ -143,9 +143,6 @@ function buildSurveyBlock(field: BlockField): SurveyBlock {
 export function blockFieldToSurveyBlock(field: BlockField): SurveyBlock {
     let block = buildSurveyBlock(field)
 
-    // labelFontSize/labelColor/labelHighlight (выбираются через bubble-menu в
-    // редакторе блока) применяются ко всем типам, у которых есть видимый label —
-    // проще один раз здесь, чем дублировать в каждой ветке buildSurveyBlock выше.
     if (block.props && 'label' in block.props) {
         const labelStyle: Record<string, unknown> = {}
         if (field.labelFontSize) labelStyle.labelFontSize = field.labelFontSize

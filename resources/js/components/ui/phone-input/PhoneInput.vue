@@ -24,7 +24,6 @@ const props = withDefaults(defineProps<{
   error: false,
 })
 
-
 const emit = defineEmits<{
   'update:modelValue': [value: PhoneValue | null]
 }>()
@@ -34,7 +33,6 @@ function toFormattedString(v: PhoneValue | string | null | undefined): string {
   if (typeof v === 'string') return v
   return v.formatted ?? ''
 }
-
 
 const COUNTRIES: Country[] = [
   {code: 'RU', name: 'Россия', flag: '🇷🇺', dialCode: '+7', mask: '+{7} (000) 000-00-00', trunk: '8'},
@@ -59,7 +57,6 @@ const COUNTRIES: Country[] = [
   {code: 'TR', name: 'Турция', flag: '🇹🇷', dialCode: '+90', mask: '+{90} 000 000 00 00', trunk: '0'},
   {code: 'CN', name: 'Китай', flag: '🇨🇳', dialCode: '+86', mask: '+{86} 000 0000 0000', trunk: '0'},
 ]
-
 
 defineOptions({inheritAttrs: false})
 
@@ -112,9 +109,6 @@ function nationalLength(): number {
   return (selectedCountry.value.mask.match(/0/g) ?? []).length
 }
 
-// Цифры номера без кода страны: отсекаем код (+7, +375…) или магистральный
-// префикс набора (РФ — «8», Европа — «0», США — «1»). Возвращаем максимум
-// nationalLength цифр.
 function normalizeNationalDigits(raw: string): string {
   let digits = raw.replace(/\D/g, '')
   const codeDigits = selectedCountry.value.dialCode.replace(/\D/g, '')
@@ -153,8 +147,6 @@ function handlePaste(e: ClipboardEvent) {
   const text = e.clipboardData?.getData('text') ?? ''
   if (!text.trim()) return
   e.preventDefault()
-  // unmaskedValue — только цифры плейсхолдеров (без фиксированного «+7»):
-  // маска сама подставит код страны и расставит разделители.
   im.unmaskedValue = normalizeNationalDigits(text)
   handleAccept()
 }

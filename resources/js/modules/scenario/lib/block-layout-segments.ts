@@ -19,10 +19,6 @@ function isEmptyParagraph(node: Record<string, unknown>): boolean {
     return content.every((n) => n.type === 'text' && !String(n.text ?? '').trim())
 }
 
-// Раскладывает единый tiptap-документ редактора блока (свободный текст +
-// scenarioField-ноды вперемешку) на последовательность сегментов в исходном
-// порядке — используется, чтобы предпросмотр/реальный опрос показывали
-// документ так же, как он выглядит в редакторе, а не только список полей.
 export function buildLayoutSegments(layoutDocument: unknown): LayoutSegment[] | null {
     if (!layoutDocument || typeof layoutDocument !== 'object') return null
 

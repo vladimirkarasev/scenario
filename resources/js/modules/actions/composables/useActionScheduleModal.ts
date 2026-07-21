@@ -40,14 +40,12 @@ export function useActionScheduleModal(onSaved: (id: string, schedule: ActionSch
 
     async function open(item: Action): Promise<void> {
         action.value = item
-        // Сразу показываем модалку с тем, что есть из списка, и подгружаем актуальное расписание.
         fillForm(item.schedule)
         show.value = true
 
         loading.value = true
         try {
             const schedule = await actionScheduleRepository.get(item.id)
-            // Пользователь мог закрыть/открыть другую модалку, пока шёл запрос.
             if (!show.value || action.value?.id !== item.id) return
             action.value = {...item, schedule}
             fillForm(schedule)

@@ -16,9 +16,6 @@ function toArr(v: string | string[] | undefined): string[] {
     return Array.isArray(v) ? v : [v]
 }
 
-/**
- * activeSection: 'all' | uuid. 'all' → корень (без раздела + корневые папки).
- */
 export function useProxyFeed(activeSection: Ref<string | 'all'>) {
     const params = useUrlSearchParams<FeedParams>('history', {removeNullishValues: true})
     const loading = ref(false)
