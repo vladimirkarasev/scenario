@@ -1,9 +1,5 @@
 import {sendJson} from '@/lib/http'
 
-/**
- * Рантайм-вызов suggest-proxy из плеера: POST /api/proxies/{uuid} с телом { query }.
- * Ответ proxy ожидается как список объектов-вариантов (корневой массив или { items: [...] }).
- */
 export const suggestRepository = {
     async suggest(uuid: string, query: string): Promise<Record<string, unknown>[]> {
         const raw = await sendJson(`/api/proxies/${uuid}`, {

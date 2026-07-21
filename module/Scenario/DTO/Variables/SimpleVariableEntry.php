@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\DTO\Variables;
 
-/** Переменная для текстовых/числовых/булевых полей: input, email, phone, textarea, number, checkbox, hidden. */
 final readonly class SimpleVariableEntry implements VariableEntryInterface
 {
     public function __construct(

@@ -13,11 +13,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты разделов (категорий) интеграций.
- * Роуты: GET|POST /api/proxy/categories, PUT|DELETE /api/proxy/categories/{category}
- * + фильтрация эндпоинтов по filter[category_ids][] и привязка через category_ids.
- */
 final class ProxyCategoryControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -30,10 +25,6 @@ final class ProxyCategoryControllerTest extends TestCase
         parent::setUp();
         $this->user = $this->createProxyUser();
     }
-
-    // -------------------------------------------------------------------------
-    // CRUD разделов
-    // -------------------------------------------------------------------------
 
     public function test_store_creates_section_and_returns_it_in_index(): void
     {
@@ -113,10 +104,6 @@ final class ProxyCategoryControllerTest extends TestCase
         $this->assertDatabaseHas('categories', ['id' => $section->id]);
     }
 
-    // -------------------------------------------------------------------------
-    // Привязка эндпоинтов к разделам
-    // -------------------------------------------------------------------------
-
     public function test_store_endpoint_assigns_categories(): void
     {
         $section = $this->makeSection('CRM');
@@ -161,7 +148,7 @@ final class ProxyCategoryControllerTest extends TestCase
         $section = $this->makeSection('CRM');
         $inSection = $this->makeEndpoint();
         $inSection->categories()->sync([$section->id]);
-        $this->makeEndpoint(); // без раздела
+        $this->makeEndpoint();
 
         $response = $this->actingAs($this->user)
             ->getJson("/api/proxy/endpoints?filter[category_ids][]={$section->id}")
@@ -170,10 +157,6 @@ final class ProxyCategoryControllerTest extends TestCase
 
         $this->assertSame((string) $inSection->id, $response->json('data.0.id'));
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeSection(string $name, ?string $parentId = null, bool $isSystem = false): Category
     {

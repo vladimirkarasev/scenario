@@ -99,8 +99,6 @@ final class DirectoryImportPayloadNormalizer
             $result[$fieldKey] = null;
         }
 
-        // Build a secondary lookup without underscores for matching when XLSX.js
-        // and PhpSpreadsheet parse the same cell differently (spaces vs no spaces).
         $rowByStripped = [];
         foreach ($rawRow as $k => $v) {
             $key = $this->normalizeColumnKey($k);

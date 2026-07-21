@@ -6,9 +6,6 @@ namespace Module\Scenario\Enums;
 
 use App\Contracts\ErrorText;
 
-/**
- * Коды ошибок модуля Scenario. Текст — в lang/<locale>/errors.php (errors.scenario.*).
- */
 enum ScenarioErrorCode: string implements ErrorText
 {
     case ScenarioNotFound = 'SCENARIO_NOT_FOUND';

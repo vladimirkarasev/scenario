@@ -34,9 +34,6 @@ final class UserGroupServiceTest extends TestCase
         $this->service = app(UserGroupService::class);
     }
 
-    /**
-     * Создание группы — site_id берётся из CurrentProject.
-     */
     public function test_create_sets_site_id_from_current_project(): void
     {
         $actor = $this->makeUser();
@@ -53,9 +50,6 @@ final class UserGroupServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * Создание группы — created_by и updated_by устанавливаются из актора.
-     */
     public function test_create_sets_actor_as_creator(): void
     {
         $actor = $this->makeUser();
@@ -69,9 +63,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertSame($actor->id, $group->updated_by);
     }
 
-    /**
-     * Обновление группы меняет имя в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         $actor = $this->makeUser();
@@ -86,9 +77,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertDatabaseHas('user_groups', ['id' => $group->id, 'name' => 'Новое имя']);
     }
 
-    /**
-     * Удаление группы — запись исчезает из БД.
-     */
     public function test_delete_removes_group(): void
     {
         $group = $this->makeGroup();
@@ -98,9 +86,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertDatabaseMissing('user_groups', ['id' => $group->id]);
     }
 
-    /**
-     * addMember прикрепляет пользователя к группе.
-     */
     public function test_add_member_attaches_user_to_group(): void
     {
         $group = $this->makeGroup();
@@ -111,9 +96,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertTrue($group->members()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * Повторный addMember не дублирует участника.
-     */
     public function test_add_member_is_idempotent(): void
     {
         $group = $this->makeGroup();
@@ -125,9 +107,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertSame(1, $group->members()->where('users.id', $user->id)->count());
     }
 
-    /**
-     * addMember бросает доменный 404, если пользователь не найден.
-     */
     public function test_add_member_throws_when_user_not_found(): void
     {
         $group = $this->makeGroup();
@@ -140,9 +119,6 @@ final class UserGroupServiceTest extends TestCase
         }
     }
 
-    /**
-     * removeMember отвязывает пользователя от группы.
-     */
     public function test_remove_member_detaches_user_from_group(): void
     {
         $group = $this->makeGroup();
@@ -154,9 +130,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertFalse($group->members()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * syncFromRegistration создаёт группу, если её ещё нет.
-     */
     public function test_sync_from_registration_creates_group_when_not_exists(): void
     {
         $user = $this->makeUser();
@@ -173,9 +146,6 @@ final class UserGroupServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * syncFromRegistration обновляет имя, если группа уже существует с другим именем.
-     */
     public function test_sync_from_registration_updates_name_when_changed(): void
     {
         $user = $this->makeUser();
@@ -187,9 +157,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertDatabaseHas('user_groups', ['id' => $group->id, 'name' => 'Новое имя']);
     }
 
-    /**
-     * syncFromRegistration добавляет пользователя как участника группы.
-     */
     public function test_sync_from_registration_adds_user_as_member(): void
     {
         $user = $this->makeUser();
@@ -200,9 +167,6 @@ final class UserGroupServiceTest extends TestCase
         $this->assertTrue($group->members()->where('users.id', $user->id)->exists());
     }
 
-    /**
-     * syncFromRegistration не затирает ext_id, если новый extId === null.
-     */
     public function test_sync_from_registration_does_not_overwrite_ext_id_when_null(): void
     {
         $user = $this->makeUser();
@@ -341,10 +305,6 @@ final class UserGroupServiceTest extends TestCase
 
         $this->service->find($group);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeProject(): Project
     {

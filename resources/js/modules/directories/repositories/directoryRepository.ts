@@ -12,8 +12,6 @@ import type {
     SourceType,
 } from '@/modules/directories/types/directory'
 
-// ── Normalizers ──────────────────────────────────────────────────────────────
-
 type ApiResource<T> = { id: string; type: string; attributes: T }
 
 function normalizeDirectory(item: ApiResource<Omit<Directory, 'id'>>): Directory {
@@ -31,8 +29,6 @@ function normalizeItem(item: ApiResource<Omit<DirectoryItem, 'id'>>): DirectoryI
 function normalizeImport(item: ApiResource<Omit<DirectoryImport, 'id'>>): DirectoryImport {
     return {id: Number(item.id), ...item.attributes}
 }
-
-// ── Repository ───────────────────────────────────────────────────────────────
 
 export const directoryRepository = {
     async list(qs: URLSearchParams): Promise<{ items: Directory[]; meta: DirectoryListMeta }> {
@@ -70,8 +66,6 @@ export const directoryRepository = {
         await destroyJson(`/api/directories/${id}`, 'Не удалось удалить справочник.')
     },
 
-    // ── Items ──────────────────────────────────────────────────────────────────
-
     async items(directoryId: string, qs: URLSearchParams): Promise<{ items: DirectoryItem[] }> {
         const res = await getJson<Record<string, unknown>>(`/api/directories/${directoryId}/items?${qs}`, 'Не удалось загрузить элементы.')
         return {items: (res.data as ApiResource<Omit<DirectoryItem, 'id'>>[]).map(normalizeItem)}
@@ -108,8 +102,6 @@ export const directoryRepository = {
             fallbackMessage: 'Не удалось удалить элементы.'
         })
     },
-
-    // ── Versions ───────────────────────────────────────────────────────────────
 
     async versions(directoryId: string): Promise<{ items: DirectoryVersion[] }> {
         const res = await getJson<Record<string, unknown>>(`/api/directories/${directoryId}/versions`, 'Не удалось загрузить версии.')
@@ -177,8 +169,6 @@ export const directoryRepository = {
     async removeVersion(directoryId: string, versionId: number): Promise<void> {
         await destroyJson(`/api/directories/${directoryId}/versions/${versionId}`, 'Не удалось удалить версию.')
     },
-
-    // ── Imports ────────────────────────────────────────────────────────────────
 
     async imports(directoryId: string, versionId?: number): Promise<{ items: DirectoryImport[] }> {
         const qs = versionId != null ? `?version_id=${versionId}` : ''

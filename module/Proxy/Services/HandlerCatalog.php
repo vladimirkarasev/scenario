@@ -11,11 +11,6 @@ use Module\Proxy\Proxies\Test\TestEchoProxyHandler;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Module\Proxy\Proxies\Test\TestSuggestProxyHandler;
 
-/**
- * Каталог обработчиков (endpoint_handler), которые разработчик пишет в коде. Админ
- * выбирает из него обработчик при создании интеграции в UI. Новый обработчик =
- * добавить класс сюда (namespace-проверка остаётся в HandlerResolver).
- */
 final class HandlerCatalog
 {
     private function __construct() {}
@@ -50,8 +45,6 @@ final class HandlerCatalog
     }
 
     /**
-     * Поиск + срез страницы по каталогу (он статический, но обработчиков может быть много).
-     *
      * @return array{items: array<int, array{class: string, label: string, group: string}>, total: int}
      */
     public static function search(?string $query, int $page, int $perPage): array

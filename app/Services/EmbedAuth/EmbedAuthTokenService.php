@@ -122,7 +122,6 @@ final class EmbedAuthTokenService
             throw new InvalidTokenException('User is not in project.', 403);
         }
 
-        // Revoke old access token
         if ($refreshToken->personal_access_token_id !== null) {
             PersonalAccessToken::query()
                 ->where('id', $refreshToken->personal_access_token_id)
@@ -131,7 +130,6 @@ final class EmbedAuthTokenService
 
         $tokenPair = $this->issueTokenPair($user, $project);
 
-        // Revoke old refresh token after issuing new one (rotation)
         $refreshToken->update([
             'revoked_at' => now(),
             'last_used_at' => now(),

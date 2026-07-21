@@ -28,8 +28,6 @@ export function useUserList() {
         loading.value = true
         error.value = null
         try {
-            // Размер страницы не хардкодим — дефолт задаёт backend (Pagination::DEFAULT_SIZE);
-            // переопределить можно в любой момент через ?page[size]= в URL.
             const qs = new URLSearchParams(window.location.search)
             if (!qs.has('page[number]')) qs.set('page[number]', '1')
             const result = await userRepository.list(qs)
@@ -66,7 +64,7 @@ export function useUserList() {
         if (searchTimer) clearTimeout(searchTimer)
         searchTimer = setTimeout(() => {
             if (params['page[number]'] !== undefined) {
-                params['page[number]'] = undefined  // triggers page watcher → load()
+                params['page[number]'] = undefined
             } else {
                 load()
             }

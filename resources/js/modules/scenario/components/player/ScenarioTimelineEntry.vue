@@ -37,7 +37,6 @@ function conditionTitle(): string {
   return asCondition(props.entry.rendered).question || 'Условие'
 }
 
-// Пройденная action-нода: все стадии успешны.
 const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
   const result: Record<string, ActionStageStatus> = {}
   for (const stage of asAction(props.entry.rendered).stages ?? []) {

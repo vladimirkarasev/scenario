@@ -17,12 +17,9 @@ httpClient.interceptors.request.use((config) => {
     return config
 })
 
-// ── Token refresh ──────────────────────────────────────────────────────
-
 let isRefreshing = false
 let queue: Array<(token: string) => void> = []
 
-// WeakSet tracks which requests have already been retried (avoids _retry property hacks)
 const retried = new WeakSet<object>()
 
 function drainQueue(token: string): void {

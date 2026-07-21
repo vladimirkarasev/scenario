@@ -393,10 +393,6 @@ final readonly class ImportService
         ], true);
     }
 
-    /**
-     * После импорта всех фрагментов данных преобразуйте значения поля parent_key_field во внешние ключи parent_id.
-     * Сопоставляет значение parent_key_field каждого элемента со значением external_key элементов в той же версии.
-     */
     private function resolveParentKeys(DirectoryImport $import): void
     {
         $parentKeyField = $import->parent_key_field;
@@ -424,7 +420,6 @@ final readonly class ImportService
 
             $parentId = $keyToId->get(is_scalar($parentKeyValue) ? (string)$parentKeyValue : '');
 
-            // Пропустить самоссылку
             if ($parentId === null || $parentId === $item->id) {
                 continue;
             }

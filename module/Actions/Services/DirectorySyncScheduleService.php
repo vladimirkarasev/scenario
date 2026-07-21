@@ -14,15 +14,6 @@ use Module\Categories\Repositories\CategoryRepositoryContract;
 use Module\Directories\Enums\DirectoryImportSourceType;
 use Module\Directories\Models\Directory;
 
-/**
- * Связывает cron-расписание синхронизации справочника с модулем Actions:
- * под каждый справочник заводится служебный Action (тип «Импорт справочника»,
- * proxy-источник) и его ActionSchedule с cron. Запуском занимается уже готовая
- * команда actions:run-scheduled → ActionScheduleService::runDue.
- *
- * Все служебные sync-экшены складываются в системный раздел «Синхронизация справочников»
- * ({@see self::SYNC_SECTION_NAME}, is_system) — пользователь не может его удалить.
- */
 final readonly class DirectorySyncScheduleService
 {
     private const string SYNC_SECTION_NAME = 'Синхронизация справочников';
@@ -67,8 +58,6 @@ final readonly class DirectorySyncScheduleService
             settings: [],
         );
 
-        // Когда активен cron — переводим справочник в cron-режим, чтобы интервальный
-        // queueDue его не дублировал.
         $this->setScheduleMode($directory, $enabled && $cron !== null && $cron !== '' ? 'cron' : 'interval');
 
         return $schedule;
@@ -97,19 +86,15 @@ final readonly class DirectorySyncScheduleService
 
         $directory->forceFill([
             'api_config_json' => $config,
-            // В cron-режиме обнуляем интервальный next_sync_at.
             'next_sync_at' => $mode === 'cron' ? null : $directory->next_sync_at,
         ])->save();
     }
 
     private function code(Directory $directory): string
     {
-        // Код экшена обязан матчить регулярку ActionRequest `^[a-z][a-z0-9_]*$`,
-        // поэтому дефисы UUID заменяем на подчёркивания (иначе редактирование падает 422).
         return 'directory_sync_'.str_replace('-', '_', $directory->id);
     }
 
-    /** Привязать служебный sync-экшен к системному разделу «Синхронизация справочников». */
     private function attachToSyncSection(Action $action, ?string $projectId): void
     {
         $category = $this->resolveSyncCategory($projectId);
@@ -119,10 +104,6 @@ final readonly class DirectorySyncScheduleService
         ]);
     }
 
-    /**
-     * Найти или создать системный раздел «Синхронизация справочников» для (Action, проект).
-     * Создаётся через CachedCategoryRepository (сбрасывает кэш разделов).
-     */
     private function resolveSyncCategory(?string $projectId): Category
     {
         $existing = Category::query()

@@ -40,7 +40,6 @@ final class ActionConfigField
         return $this;
     }
 
-    /** Тип: string|text|code|number|boolean|select|email_list|key_value */
     public function type(string $type): self
     {
         $this->type = $type;

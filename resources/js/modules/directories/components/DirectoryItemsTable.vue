@@ -48,25 +48,20 @@ const props = defineProps<{
 
 const ctx = useDirectoryItems(props.directoryId, props.defaultSort, true)
 
-// id синтетического «Другой» (mirrors DirectoryItemService::OTHER_ITEM_ID).
 const OTHER_ITEM_ID = -1
 
 function isOtherRow(id: number): boolean {
   return id === OTHER_ITEM_ID
 }
 
-// ── Виртуализация (TanStack Virtual, динамическая высота строк) ───────────────
 const scrollParent = ref<HTMLElement | null>(null)
 const totalColumns = computed(() => props.schemaFields.length + (props.canDelete ? 1 : 0))
 
-// Горизонтальная прокрутка таблицы стрелками (общий composable).
 const {
   canScrollLeft, canScrollRight, updateMetrics,
   onScroll: onTableScroll, startScroll, stopScroll,
 } = useHorizontalScrollArrows(scrollParent)
 
-// После загрузки/смены данных ширина таблицы меняется — пересчитываем,
-// нужны ли стрелки.
 async function refreshScrollMetrics(): Promise<void> {
   await nextTick()
   updateMetrics()
@@ -75,12 +70,11 @@ async function refreshScrollMetrics(): Promise<void> {
 const rowVirtualizer = useVirtualizer(computed(() => ({
   count: ctx.flatTree.value.length,
   getScrollElement: () => scrollParent.value,
-  estimateSize: () => 44, // стартовая оценка; реальная высота меряется measureElement
+  estimateSize: () => 44,
   overscan: 10,
   getItemKey: (index: number) => ctx.flatTree.value[index]?.id ?? index,
 })))
 
-// Реальный замер высоты строки (поддержка переноса/многострочных значений).
 function measureElement(el: Element | ComponentPublicInstance | null): void {
   if (el instanceof Element) rowVirtualizer.value.measureElement(el)
 }
@@ -107,7 +101,6 @@ watch(() => props.versionId, async (id) => {
   await refreshScrollMetrics()
 })
 
-// Колонки/переносы могут менять ширину при изменении набора строк.
 watch(() => ctx.flatTree.value.length, () => void refreshScrollMetrics())
 
 async function clearFiltersAndReload(): Promise<void> {
@@ -431,13 +424,6 @@ defineExpose({reload: () => ctx.loadItems(props.versionId), clearFiltersAndReloa
 </template>
 
 <style scoped>
-/*
-  shadcn <Table> оборачивает <table> в собственный контейнер с overflow-x-auto.
-  Из-за этого горизонтальный скролл «съедается» внутренним контейнером и не
-  доходит до scrollParent — стрелки прокрутки (и общий скролл по X) не работают.
-  Отключаем внутренний overflow, чтобы оба направления скроллились на одном
-  scrollParent — как в SurveyDirectoryTableField.
-*/
 :deep([data-slot='table-container']) {
   overflow-x: visible;
 }

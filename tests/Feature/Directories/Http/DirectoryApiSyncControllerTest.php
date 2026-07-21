@@ -15,10 +15,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты синхронизации справочника из внешнего API.
- * Роут: POST /api/directories/{directory}/sync-api
- */
 final class DirectoryApiSyncControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -29,13 +25,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories/{directory}/sync-api
-    // -------------------------------------------------------------------------
-
-    /**
-     * api-справочник — синхронизация ставится в очередь, ответ 202.
-     */
     public function test_store_queues_sync_for_api_directory_and_returns_202(): void
     {
         Bus::fake([SyncDictionaryFromApiJob::class]);
@@ -58,9 +47,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
         Bus::assertDispatched(SyncDictionaryFromApiJob::class);
     }
 
-    /**
-     * Справочник с source_type=manual — 422 (должен быть api).
-     */
     public function test_store_returns_422_for_non_api_directory(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -71,9 +57,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * api-справочник с опциями add_new/update_existing — импорт создаётся с этими настройками.
-     */
     public function test_store_accepts_sync_options(): void
     {
         Bus::fake([SyncDictionaryFromApiJob::class]);
@@ -94,9 +77,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
         Bus::assertDispatched(SyncDictionaryFromApiJob::class);
     }
 
-    /**
-     * Без пермишена directory_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -107,9 +87,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Справочник из чужого проекта — 404.
-     */
     public function test_store_returns_404_for_directory_from_other_project(): void
     {
         [$user] = $this->makeUserWithProject('directory_create');
@@ -119,10 +96,6 @@ final class DirectoryApiSyncControllerTest extends TestCase
             ->postJson("/api/directories/{$other->id}/sync-api")
             ->assertNotFound();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

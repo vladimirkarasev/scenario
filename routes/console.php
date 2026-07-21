@@ -12,10 +12,6 @@ Schedule::command('directories:run-scheduled-imports')
     ->everyMinute()
     ->withoutOverlapping();
 
-Schedule::command('actions:run-scheduled')
-    ->everyMinute()
-    ->withoutOverlapping();
-
 Schedule::command('dictionaries:sync')
     ->everyMinute()
     ->withoutOverlapping();

@@ -26,7 +26,6 @@ final class DirectoriesServiceProvider extends ServiceProvider
     #[\Override]
     public function register(): void
     {
-        //
     }
 
     public function boot(): void

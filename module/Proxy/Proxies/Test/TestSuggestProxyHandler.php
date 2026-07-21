@@ -9,11 +9,6 @@ use Module\Proxy\DTO\ProxyFieldString;
 use Module\Proxy\DTO\ProxyResponse;
 use Module\Proxy\ProxyHandler;
 
-/**
- * Тестовый suggest-proxy для block-поля «Подсказки»: принимает { query } и возвращает
- * отфильтрованный по подстроке список городов (объекты с id/address/region).
- * Каждый вариант целиком сохраняется в ответ опроса.
- */
 final class TestSuggestProxyHandler extends ProxyHandler
 {
     /** @var list<array{id: string, address: string, region: string}> */

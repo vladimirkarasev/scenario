@@ -31,7 +31,6 @@ final class ProjectsServiceProvider extends ServiceProvider
 
             $projects = $this->app->make(ProjectRepository::class);
 
-            // 1. Embed-доступ: проект привязан к access-токену, а не к юзеру.
             $bearer = $this->app->make(Request::class)->bearerToken();
             if (is_string($bearer)) {
                 $token = PersonalAccessToken::findToken($bearer);
@@ -50,8 +49,6 @@ final class ProjectsServiceProvider extends ServiceProvider
                 }
             }
 
-            // 2. Системный пользователь проекта: проект задан прямо на юзере.
-            //    Так системник, ходящий по своему API-токену, скоупится на свой проект.
             if (is_string($user->project_id) && $user->project_id !== '') {
                 $project = $projects->activeById($user->project_id);
                 if ($project instanceof Project) {
@@ -59,7 +56,6 @@ final class ProjectsServiceProvider extends ServiceProvider
                 }
             }
 
-            // 3. Фолбэк: стандартный web-доступ по sitekey/host пользователя.
             if ($user->sitekey && $user->host) {
                 return new CurrentProject($projects->activeBySitekeyAndHost($user->sitekey, $user->host));
             }

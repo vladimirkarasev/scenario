@@ -6,10 +6,6 @@ namespace Module\Users\Enums;
 
 use App\Contracts\ErrorText;
 
-/**
- * Коды ошибок модуля Users и их текст (title/detail). Единственное место с
- * текстом ошибок — сюда подключается локализация (`__()`), throw-сайты не трогаем.
- */
 enum UserErrorCode: string implements ErrorText
 {
     case UserNotFound = 'USER_NOT_FOUND';

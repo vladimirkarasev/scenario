@@ -43,9 +43,6 @@ final class UserResource extends JsonApiResource
     }
 
     /**
-     * Связи отдаются как JSON:API include (?include=roles,groups);
-     * сами объекты приходят в top-level `included`.
-     *
      * @return array<string, mixed>
      */
     #[\Override]

@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 
 /**
- * Wraps a directory payload array (from DirectoryService) as a JSON:API resource.
- *
  * @property array<string, mixed> $resource
  */
 final class DirectoryResource extends JsonApiResource

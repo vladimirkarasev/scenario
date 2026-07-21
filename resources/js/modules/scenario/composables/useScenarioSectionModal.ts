@@ -8,8 +8,6 @@ export function useScenarioSectionModal(
     onCreated: (category: CategoryRef) => void,
     onUpdated: (category: CategoryRef) => void,
 ) {
-    // Группы доступа выбираются через FormTagSearch — состояние живёт здесь,
-    // а в payload собирается из id выбранных групп.
     const selectedGroups = ref<Array<Record<string, unknown>>>([])
 
     const modal = useSectionModal<CategoryRef, typeof scenarioSectionSchema, ScenarioCategoryPayload>(
@@ -43,7 +41,6 @@ export function useScenarioSectionModal(
                 selectedGroups.value = []
             },
             onOpenEdit: (category) => {
-                // Минимальный набор; реальные имена подтянутся при поиске.
                 selectedGroups.value = (category.group_ids ?? []).map(id => ({id, name: id}))
             },
         },

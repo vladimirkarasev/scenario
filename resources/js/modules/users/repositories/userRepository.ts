@@ -28,8 +28,6 @@ interface RawIncluded {
     attributes: Record<string, unknown>
 }
 
-// JSON:API: связи приходят отдельным массивом `included`; запросы шлём с
-// ?include=roles,groups и sparse fieldsets, чтобы тянуть только нужные поля.
 const INCLUDE_PARAMS: Record<string, string> = {
     include: 'roles,groups',
     'fields[groups]': 'name,slug',

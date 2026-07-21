@@ -76,8 +76,6 @@ final class ScenarioRun extends Model
     }
 
     /**
-     * Все шаги включая отменённые — для истории прохождения.
-     *
      * @return HasMany<ScenarioRunStep, ScenarioRun>
      */
     public function stepHistory(): HasMany
@@ -149,10 +147,6 @@ final class ScenarioRun extends Model
         }
     }
 
-    /**
-     * На PostgreSQL number выдаёт DEFAULT nextval(...); прочие драйверы (sqlite в тестах)
-     * последовательности не имеют, поэтому проставляем значение вручную.
-     */
     private function fillNumberWithoutSequence(): void
     {
         if ($this->number === null && $this->getConnection()->getDriverName() !== 'pgsql') {
@@ -161,10 +155,6 @@ final class ScenarioRun extends Model
         }
     }
 
-    /**
-     * number проставляется PostgreSQL через DEFAULT nextval(...); Eloquent с $incrementing=false
-     * не возвращает сгенерированные значения, поэтому подтягиваем их явным refresh после insert.
-     */
     private function refreshGeneratedNumber(): void
     {
         if ($this->number === null) {

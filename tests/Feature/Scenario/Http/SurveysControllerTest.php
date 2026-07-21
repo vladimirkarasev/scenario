@@ -15,11 +15,6 @@ use Module\Users\Models\User;
 use RoadRunner\Centrifugo\CentrifugoApiInterface;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты для SurveysController.
- * Роуты: GET /api/scenarios/surveys          (index)
- *        GET /api/scenarios/survey/{runId}   (show)
- */
 final class SurveysControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -37,8 +32,6 @@ final class SurveysControllerTest extends TestCase
             'is_active' => true,
         ]);
     }
-
-    // ------------------------------------------------------------------ GET /api/scenarios/surveys
 
     public function test_index_returns_paginated_surveys(): void
     {
@@ -107,8 +100,6 @@ final class SurveysControllerTest extends TestCase
             ->assertJsonPath('meta.total', 5)
             ->assertJsonCount(2, 'data');
     }
-
-    // ------------------------------------------------------------------ GET /api/scenarios/survey/{runId}
 
     public function test_show_returns_full_run_payload(): void
     {
@@ -179,8 +170,6 @@ final class SurveysControllerTest extends TestCase
             ->assertNotFound()
             ->assertJsonPath('errors.0.code', 'SCENARIO_RUN_NOT_FOUND');
     }
-
-    // ------------------------------------------------------------------ helpers
 
     /** @return array{Scenario, ScenarioVersion, ScenarioVersionRevision} */
     private function makeScenarioWithBlock(string $blockNodeId): array

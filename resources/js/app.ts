@@ -31,8 +31,6 @@ router.on('before', (event) => {
     }
 })
 
-// Глобальный вход по launch-токену: ловим ?_token= на любой странице, меняем на пару
-// access/refresh, вырезаем токен из URL (чтобы не оседал в истории/логах) и продолжаем.
 async function consumeLaunchToken(): Promise<void> {
     const params = new URLSearchParams(window.location.search)
     const token = params.get('_token')
@@ -58,8 +56,6 @@ async function consumeLaunchToken(): Promise<void> {
     }
 }
 
-// Выполняем обмен _token ДО монтирования Vue: гарантирует что access_token
-// уже в sessionStorage когда компоненты начнут делать API-запросы.
 if (!publicPaths.includes(window.location.pathname)) {
     await consumeLaunchToken()
 }
@@ -96,10 +92,7 @@ createInertiaApp({
                 },
             });
 
-        // Sentry инициализируется до mount(), чтобы перехватить errorHandler.
         if (import.meta.env.VITE_SENTRY_DSN) {
-            // Извлекаем ключ из DSN (часть до @), чтобы X-Sentry-Auth работал
-            // и с Buggregator (ключ "sentry"), и с реальным Sentry (свой ключ).
             const sentryKey = new URL(import.meta.env.VITE_SENTRY_DSN).username || 'sentry'
 
             Sentry.init({

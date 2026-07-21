@@ -5,11 +5,8 @@ import type {SectionCategory} from '@/types/section'
 
 const props = withDefaults(defineProps<{
   modelValue: string[]
-  // Готовый реактивный список разделов (если уже загружен снаружи).
   items?: SectionCategory[]
-  // Ленивая загрузка полного плоского списка разделов модуля (для модалок).
   loadAll?: () => Promise<SectionCategory[]>
-  // Перезагружать список при открытии (чтобы видеть только что созданные разделы).
   open?: boolean
 }>(), {open: true})
 
@@ -19,7 +16,6 @@ const internal = ref<SectionCategory[]>([])
 const loading = ref(false)
 const loaded = ref(false)
 
-// items имеет приоритет; иначе используем то, что подгрузили через loadAll.
 const categories = computed<SectionCategory[]>(() => props.items ?? internal.value)
 
 async function load(): Promise<void> {
@@ -39,14 +35,12 @@ watch(() => props.open, (isOpen) => {
   if (isOpen) void load()
 }, {immediate: true})
 
-// Плоский список с отступом по глубине — все разделы видны (как папки в редакторе).
 interface FlatItem { cat: SectionCategory; depth: number }
 
 const flat = computed<FlatItem[]>(() => {
   const childrenOf = new Map<string | null, SectionCategory[]>()
   const ids = new Set(categories.value.map(c => c.id))
   for (const c of categories.value) {
-    // Раздел, чей родитель не загружен, показываем как корневой.
     const key = c.parent_id !== null && ids.has(c.parent_id) ? c.parent_id : null
     const arr = childrenOf.get(key) ?? []
     arr.push(c)

@@ -53,23 +53,11 @@ final class AppServiceProvider extends ServiceProvider
         $this->registerRoadRunnerQueueConnector();
     }
 
-    /**
-     * Overrides Spiral\RoadRunnerLaravel\Queue\QueueServiceProvider's connector: the bridge's
-     * (final) RoadRunnerQueue doesn't implement Queue::pendingSize()/delayedSize()/reservedSize()/
-     * creationTimeOfOldestPendingJob(), added to the contract after the bridge's last release.
-     */
     private function registerRoadRunnerQueueConnector(): void
     {
         Queue::extend('roadrunner', static fn() => new RoadRunnerConnector());
     }
 
-    /**
-     * Registered from register(), not boot(): this provider's boot() runs twice per
-     * request/command (a Laravel bootstrap quirk unrelated to this class — the first app
-     * provider appears to get an early partial boot pass ahead of the regular full one).
-     * register() runs exactly once, so listener registration belongs here to avoid every
-     * Centrifugo message being published/logged twice.
-     */
     private function registerCentrifugoListeners(): void
     {
         Event::listen(CentrifugoMessagePublished::class, [PublishCentrifugoMessage::class, 'handle']);

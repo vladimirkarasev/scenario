@@ -25,7 +25,6 @@ export function useScenarioPlayer() {
     const run = ref<ScenarioRunPayload | null>(null)
     const timeline = ref<ScenarioTimelineEntry[]>([])
 
-    // Состояние pipeline активной action-ноды (wait_for_result): code => статус стадии.
     const actionStages = ref<Record<string, ActionStageStatus>>({})
     const pipelineFailed = ref(false)
 
@@ -41,15 +40,11 @@ export function useScenarioPlayer() {
     const pastTimeline = computed(() => timeline.value.filter((entry) => entry.status === 'past'))
     const currentTimeline = computed(() => timeline.value.find((entry) => entry.status === 'current') ?? null)
 
-    // Таймлайн с разделителями границ связанных сценариев (scenario_link).
-    // Стек версий: при входе в связный сценарий — «Начало», при возврате — «Конец».
     const pastTimelineRows = computed<ScenarioTimelineRow[]>(() => {
         const rows: ScenarioTimelineRow[] = []
         const stack: { versionId: string; name: string; version: string }[] = []
         let seq = 0
 
-        // Засеваем корневым сценарием прогона, иначе первый видимый шаг (например,
-        // сразу в связном сценарии) ошибочно считается корнем — и не будет «Начало».
         const rootVersionId = run.value?.root_scenario_version_id
         if (rootVersionId) {
             stack.push({
@@ -67,32 +62,26 @@ export function useScenarioPlayer() {
             if (versionId) {
                 const top = stack[stack.length - 1]
                 if (!top) {
-                    // Корневой сценарий — без разделителя.
                     stack.push({versionId, name, version})
                 } else if (top.versionId !== versionId) {
                     const idx = stack.findIndex((f) => f.versionId === versionId)
                     if (idx >= 0) {
-                        // Возврат в родителя — закрываем более глубокие уровни.
                         while (stack.length - 1 > idx) {
                             const frame = stack.pop()!
                             rows.push({type: 'divider', key: `dv-end-${seq++}`, kind: 'end', scenarioName: frame.name, versionName: frame.version})
                         }
                     } else {
-                        // Вход в связный сценарий.
                         stack.push({versionId, name, version})
                         rows.push({type: 'divider', key: `dv-start-${seq++}`, kind: 'start', scenarioName: name, versionName: version})
                     }
                 }
             }
 
-            // Текущий узел рендерится отдельно (активный блок) — в ленту не кладём,
-            // но его разделитель «Начало» уже выведен выше.
             if (entry.status === 'past') {
                 rows.push({type: 'entry', entry})
             }
         }
 
-        // Прогон завершился внутри связанных сценариев — закрываем оставшиеся уровни.
         if ((completed.value || failed.value) && stack.length > 1) {
             for (let i = stack.length - 1; i >= 1; i--) {
                 const frame = stack[i]
@@ -125,10 +114,6 @@ export function useScenarioPlayer() {
             scenario_version_name: nextRun.scenario_version_name ?? null,
         }
 
-        // Серверный payload содержит свежий rendered для каждого пройденного шага
-        // (перерисован с актуальным контекстом). Обновляем все entries, чтобы
-        // отображаемые значения соответствовали текущему состоянию — включая те,
-        // что сейчас перейдут из current в past.
         const stepsById = new Map<string, ScenarioRunStep>(
             (nextRun.steps ?? []).map((s) => [`step:${s.id}`, s]),
         )
@@ -169,8 +154,6 @@ export function useScenarioPlayer() {
     function buildTimelineFromSteps(nextRun: ScenarioRunPayload): void {
         const existingKeys = new Set(timeline.value.map((e) => e.key))
 
-        // Backend отдаёт steps в порядке от новых к старым (->latest('id')).
-        // Для timeline нужен хронологический порядок: от старых к новым.
         const entries: ScenarioTimelineEntry[] = (nextRun.steps ?? [])
             .slice()
             .reverse()
@@ -201,8 +184,6 @@ export function useScenarioPlayer() {
         run.value = nextRun
         const isFirstLoad = timeline.value.length === 0
 
-        // После jump step-ы получают новые ID (отменённые шаги заменяются свежими),
-        // поэтому старый timeline невалиден — сбрасываем и строим заново.
         if (isJumping && nextRun) {
             timeline.value = []
             buildTimelineFromSteps(nextRun)
@@ -211,14 +192,11 @@ export function useScenarioPlayer() {
         syncTimeline(nextRun)
         syncActionPipeline(nextRun)
 
-        // При первой загрузке (resume активного run-а, completed/failed) — восстанавливаем историю шагов
         if (!isJumping && isFirstLoad && nextRun) {
             buildTimelineFromSteps(nextRun)
         }
     }
 
-    // Сидирует/сбрасывает pipeline-стадии при смене текущей ноды. Уже известные статусы стадий
-    // сохраняются (live-обновления по WS не затираются повторным run_updated).
     function syncActionPipeline(nextRun: ScenarioRunPayload | null): void {
         const r = nextRun?.rendered as {
             type?: string
@@ -228,7 +206,6 @@ export function useScenarioPlayer() {
         } | null
 
         if (r?.type === 'action') {
-            // Приоритет: live-статус из памяти > сохранённый на сервере (после перезагрузки) > pending.
             const persisted = r.results ?? {}
             const next: Record<string, ActionStageStatus> = {}
             for (const stage of r.stages ?? []) {
@@ -337,8 +314,6 @@ export function useScenarioPlayer() {
 
     async function retryAction() {
         if (!run.value) return
-        // Сбрасываем локальные статусы, чтобы pipeline пересеялся из серверного состояния
-        // (успешные стадии останутся, повторяемые — снова pending → running по WS).
         actionStages.value = {}
         pipelineFailed.value = false
         loading.value = true

@@ -9,10 +9,6 @@ export interface SourceTypeMeta {
     icon: Component
 }
 
-/**
- * Единый список типов источника справочника. Меняем здесь — обновляется везде:
- * форма создания, настройки справочника, настройки версии.
- */
 export const SOURCE_TYPES: readonly SourceTypeMeta[] = [
     {id: 'manual', label: 'Вручную', description: 'Заполнять через интерфейс', icon: Database},
     {id: 'excel', label: 'Excel', description: 'Импорт из файла Excel или CSV', icon: FileSpreadsheet},

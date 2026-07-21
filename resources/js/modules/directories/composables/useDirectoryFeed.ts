@@ -19,9 +19,6 @@ function toArr(v: string | string[] | undefined): string[] {
     return Array.isArray(v) ? v : [v]
 }
 
-/**
- * activeSection: 'all' | uuid — null означает uncategorized (root).
- */
 export function useDirectoryFeed(activeSection: Ref<string | 'all'>) {
     const params = useUrlSearchParams<FeedParams>('history', {removeNullishValues: true})
     const loading = ref(false)
@@ -53,10 +50,8 @@ export function useDirectoryFeed(activeSection: Ref<string | 'all'>) {
             qs.set('page[size]', String(PAGE_SIZE))
             const searchTrim = search.value.trim()
             if (searchTrim) {
-                // Глобальный поиск — parent_id не передаём
                 qs.set('filter[search]', searchTrim)
             } else if (activeSection.value === 'all') {
-                // Корень: uncategorized записи + root папки
                 qs.set('filter[parent_id]', 'null')
             } else {
                 qs.set('filter[parent_id]', activeSection.value)

@@ -34,7 +34,6 @@ final class ScenarioVersionRequest extends FormRequest
         };
 
         return [
-            // Имя опционально: если не передано — репозиторий генерирует «vN».
             'name' => [
                 'nullable',
                 'string',

@@ -8,11 +8,6 @@ use App\Services\Expression\ExpressionService;
 use App\Services\Expression\Functions\PluckFunction;
 use Tests\TestCase;
 
-/**
- * Покрываем баг из run #42: {{ implode(" / ", pluck(Справочник, "data.gorod")) }}
- * возвращал " / " вместо "Челябинск / Белгород", потому что у multiple-справочника
- * массив объектов нужно было корректно итерировать.
- */
 final class PluckFunctionTest extends TestCase
 {
     private PluckFunction $pluck;
@@ -61,11 +56,6 @@ final class PluckFunctionTest extends TestCase
         $this->assertSame([], $this->pluck->evaluate([], [['id' => '1']], null));
     }
 
-    /**
-     * Single-mode справочник кладётся в context как один assoc-объект, а не как list.
-     * pluck должен обернуть его в список — чтобы `pluck(Справочник, "data.gorod")`
-     * работал одинаково и для single, и для multiple.
-     */
     public function test_pluck_treats_single_object_as_one_element_list(): void
     {
         $single = ['id' => '736', 'data' => ['gorod' => 'Челябинск']];

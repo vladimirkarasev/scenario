@@ -7,12 +7,6 @@ namespace Module\Proxy\Credentials;
 use Module\Proxy\DTO\ProxyField;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 
-/**
- * Драйвер доступа (connection): объявляет поля формы и базовую авторизацию для
- * конкретного провайдера. Выбирается хендлером через {@see ProxyHandler::credentialType()},
- * подгружается из {@see \Module\Proxy\Services\CredentialCatalog}. Под специфичные API
- * пишется свой класс с нужными полями и логикой авторизации.
- */
 abstract class ProxyCredential
 {
     abstract public function label(): string;
@@ -20,15 +14,11 @@ abstract class ProxyCredential
     abstract public function group(): string;
 
     /**
-     * Поля доступа (builder API, ->secret() для секретов). UI рисует форму по ним.
-     *
      * @return iterable<ProxyField>
      */
     abstract public function fields(): iterable;
 
     /**
-     * Базовая авторизация: из сохранённых значений доступа собирает конфиг транспорта.
-     *
      * @param  array<string, mixed>  $values  config + расшифрованные secrets
      */
     abstract public function gatewayConfig(string $name, array $values, bool $mock): ApiGatewayConfig;

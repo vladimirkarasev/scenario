@@ -18,7 +18,6 @@ export function useGroupList() {
         loading.value = true
         error.value = null
         try {
-            // Размер страницы не хардкодим — дефолт задаёт backend (Pagination::DEFAULT_SIZE).
             const qs = new URLSearchParams({'page[number]': String(page.value)})
             if (search.value) qs.set('filter[search]', search.value)
             const result = await groupRepository.list(qs)

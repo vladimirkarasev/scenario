@@ -13,10 +13,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты ленты интеграций (разделы сверху + интеграции, единая пагинация).
- * Роут: GET /api/proxy/feed
- */
 final class ProxyFeedControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -47,7 +43,7 @@ final class ProxyFeedControllerTest extends TestCase
             ->assertJsonPath('meta.items_total', 1);
 
         $types = array_column($response->json('data'), 'type');
-        $this->assertSame(['proxy-folders', 'proxy-endpoints'], $types); // папки всегда сверху
+        $this->assertSame(['proxy-folders', 'proxy-endpoints'], $types);
     }
 
     public function test_feed_inside_section_returns_only_its_endpoints(): void
@@ -94,10 +90,6 @@ final class ProxyFeedControllerTest extends TestCase
         }
         $this->assertSame('proxy-endpoints', $row['type']);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeSection(string $name): Category
     {

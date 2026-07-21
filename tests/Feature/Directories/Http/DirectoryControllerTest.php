@@ -13,10 +13,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD справочников.
- * Роуты: GET|POST /api/directories, GET|PUT|DELETE /api/directories/{directory}
- */
 final class DirectoryControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,13 +23,6 @@ final class DirectoryControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список возвращает справочники текущего проекта пользователя.
-     */
     public function test_index_returns_directories_for_user_project(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -46,9 +35,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Справочники другого проекта не попадают в ответ.
-     */
     public function test_index_excludes_directories_from_other_projects(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -61,9 +47,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject();
@@ -73,22 +56,12 @@ final class DirectoryControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Без авторизации — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/directories')
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/{directory}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующий справочник возвращает name и slug в attributes.
-     */
     public function test_show_returns_directory_attributes(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -101,9 +74,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertJsonPath('data.attributes.slug', 'test-dir');
     }
 
-    /**
-     * Справочник из чужого проекта — DirectoryException::notInProject() → 404.
-     */
     public function test_show_denies_access_to_directory_from_other_project(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -114,9 +84,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Несуществующий ID — 404.
-     */
     public function test_show_returns_404_for_nonexistent_directory(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -126,13 +93,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories
-    // -------------------------------------------------------------------------
-
-    /**
-     * Валидные данные — 201, запись появляется в БД.
-     */
     public function test_store_creates_directory_and_returns_201(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -154,9 +114,6 @@ final class DirectoryControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Пустое тело — 422 из-за отсутствия name и slug.
-     */
     public function test_store_returns_422_when_required_fields_missing(): void
     {
         [$user] = $this->makeUserWithProject('directory_create');
@@ -166,9 +123,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена directory_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -183,13 +137,6 @@ final class DirectoryControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/directories/{directory}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление name и description сохраняется в БД.
-     */
     public function test_update_persists_new_values(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_create');
@@ -208,13 +155,6 @@ final class DirectoryControllerTest extends TestCase
         $this->assertDatabaseHas('directories', ['id' => $directory->id, 'name' => 'Новое']);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/directories/{directory}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_directory_and_returns_204(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -227,9 +167,6 @@ final class DirectoryControllerTest extends TestCase
         $this->assertDatabaseMissing('directories', ['id' => $directory->id]);
     }
 
-    /**
-     * Без пермишена directory_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -239,10 +176,6 @@ final class DirectoryControllerTest extends TestCase
             ->deleteJson("/api/directories/{$directory->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

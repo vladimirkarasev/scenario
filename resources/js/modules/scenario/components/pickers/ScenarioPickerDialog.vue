@@ -18,9 +18,7 @@ const emit = defineEmits<{
   select: [scenario: { id: string; name: string }]
 }>()
 
-// Локальный стейт раздела/папки внутри диалога — не лезем в URL state страницы.
 const activeFolder = ref<string>('all')
-// Стек посещённых папок: [{id, name}, ...]. Корень не входит.
 const trail = ref<{ id: string; name: string }[]>([])
 const excludeRef = toRef(props, 'excludeScenarioId')
 const excludeNullable = computed(() => excludeRef.value ?? null)
@@ -29,7 +27,6 @@ const {rows, meta, loading, page, search} = useScenarioFeed(activeFolder, {
   syncUrl: false,
 })
 
-// Сбрасываем папку и поиск при каждом открытии
 watch(() => props.open, (open) => {
   if (open) {
     activeFolder.value = 'all'
@@ -46,8 +43,6 @@ const STATUS_DOT: Record<'active' | 'draft' | 'archived', string> = {
 }
 
 function enterFolder(id: string, name: string) {
-  // Из глобального поиска переходить по папке: путь к ней не знаем,
-  // показываем как единственную крошку.
   if (search.value.trim()) {
     search.value = ''
     trail.value = [{id, name}]
@@ -58,7 +53,6 @@ function enterFolder(id: string, name: string) {
   page.value = 1
 }
 
-// Переход на крошку по индексу. -1 = корень.
 function goToCrumb(index: number) {
   search.value = ''
   if (index < 0) {

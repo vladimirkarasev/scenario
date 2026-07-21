@@ -9,10 +9,6 @@ declare module '@tiptap/core' {
     }
 }
 
-// Расширяет стандартный textStyle mark атрибутом fontSize — тот же mark, что
-// использует Color (extension-color), поэтому подключается вместо обычного
-// TextStyle, а не рядом с ним. Управляется из bubble-menu тем же способом,
-// что цвет/заливка — через выделение текста, без отдельных контролов на ноде.
 export const FontSize = TextStyle.extend({
     name: 'textStyle',
 

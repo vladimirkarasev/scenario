@@ -17,12 +17,6 @@ use Spiral\RoadRunner\Jobs\OptionsInterface;
 use Spiral\RoadRunner\Jobs\QueueInterface;
 use Spiral\RoadRunnerLaravel\Queue\Contract\HasQueueOptions;
 
-/**
- * Re-implementation of Spiral\RoadRunnerLaravel\Queue\RoadRunnerQueue (roadrunner-php/laravel-bridge
- * 6.5.0), which is declared `final` and doesn't implement Queue::pendingSize()/delayedSize()/
- * reservedSize()/creationTimeOfOldestPendingJob() — added to the contract after the bridge's last
- * release, which makes the bridge's class fatal to even autoload on this Laravel version.
- */
 final class RoadRunnerQueue extends QueueBase implements QueueContract
 {
     /**

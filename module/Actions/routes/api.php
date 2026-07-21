@@ -25,7 +25,6 @@ Route::prefix('api/actions')
         Route::get('/feed', ActionFeedController::class)->name('feed');
         Route::post('/', [ActionController::class, 'store'])->name('store');
 
-        // Разделы (категории) экшенов — ДО /{action}, иначе "categories" поймается как {action}.
         Route::get('/categories', [ActionCategoryController::class, 'index'])->name('categories.index');
         Route::post('/categories', [ActionCategoryController::class, 'store'])->name('categories.store');
         Route::get('/categories/{category}', [ActionCategoryController::class, 'show'])->name('categories.show');

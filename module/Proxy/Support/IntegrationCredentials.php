@@ -38,8 +38,6 @@ final class IntegrationCredentials
     }
 
     /**
-     * Маскирует секреты для отдачи в API: значение секрета → null, плюс карта secret_filled.
-     *
      * @param  array<string, mixed>  $credentials
      * @return array{credentials: array<string, mixed>, secret_filled: array<string, bool>}
      */

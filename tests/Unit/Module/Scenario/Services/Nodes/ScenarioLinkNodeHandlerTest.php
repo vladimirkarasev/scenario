@@ -68,14 +68,11 @@ final class ScenarioLinkNodeHandlerTest extends TestCase
         $run = $this->run->fresh();
 
         $this->assertTrue($result->runMutated);
-        // Идентичность прогона остаётся за исходным сценарием.
         $this->assertSame($sourceScenarioId, $run->scenario_id);
-        // Исполнение переключается на целевую версию.
         $this->assertSame($this->targetVersion->id, $run->scenario_version_id);
         $this->assertSame('target_start', $run->current_node_id);
         $this->assertSame('value', $run->context['preserved'] ?? null);
 
-        // В стек вызовов положен кадр возврата в родителя.
         $stack = $run->context['_call_stack'] ?? [];
         $this->assertCount(1, $stack);
         $this->assertSame($sourceVersionId, $stack[0]['version_id']);
@@ -93,7 +90,6 @@ final class ScenarioLinkNodeHandlerTest extends TestCase
     {
         $scenario = Scenario::query()->create(['name' => 'Pinless', 'is_active' => true]);
 
-        // Активная версия (старее) + черновик (новее): должна выбраться активная.
         $active = ScenarioVersion::query()->create(['scenario_id' => $scenario->id, 'status' => 'active']);
         $this->createRevision($active, [
             'nodes_json' => [['id' => 'a_start', 'type' => 'start', 'data' => []]],

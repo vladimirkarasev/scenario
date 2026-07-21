@@ -22,14 +22,6 @@ import TiptapEditorContentArea from '@/modules/scenario/components/tiptap/Tiptap
 import type {BlockField, BlockFieldType} from '@/modules/scenario/lib/scenario-block-fields'
 import type {Component} from 'vue'
 
-// Единый tiptap-документ, в котором свободный текст (заголовки/абзацы, таблицы,
-// подробности и т.д. — тот же набор возможностей, что и в TiptapTextEditor, через
-// общие TiptapFormattingToolbar/TiptapFormattingBubbleMenu/TiptapEditorContentArea)
-// и поля блока (BlockField) сосуществуют как ноды одного дерева — в духе
-// Gutenberg: поле добавляется прямо в поток контента, его заголовок и оформление
-// редактируются inline (см. TiptapScenarioFieldNodeView). Конфигурация полей, где
-// inline-редактирования недостаточно (опции select, справочники и т.п.),
-// по-прежнему открывается через шестерёнку → BlockEditorFieldSettingsDialog.
 const props = defineProps<{
   modelValue: unknown
   fields: BlockField[]
@@ -52,11 +44,6 @@ function isTiptapDoc(value: unknown): value is TiptapDoc {
   return Boolean(value && typeof value === 'object' && (value as {type?: string}).type === 'doc')
 }
 
-// scenarioField больше не атом — заголовок поля хранится как обычный inline-
-// контент ноды (редактируется/форматируется прямо в документе), поэтому при
-// создании ноды его нужно засеять текстом текущего field.label и, если заданы,
-// марками размера/цвета/заливки (чтобы оформление, выбранное через bubble-menu,
-// переживало перезагрузку редактора).
 function fieldNode(field: BlockField): Record<string, unknown> {
   const marks: Record<string, unknown>[] = []
   if (field.labelFontSize || field.labelColor) {
@@ -90,9 +77,6 @@ interface LabelInfo {
   highlight: string | null
 }
 
-// Текст заголовка и первые заданные размер/цвет/заливка из содержимого
-// scenarioField-ноды за один проход — используется в onUpdate на каждое
-// изменение документа, поэтому не гоняем content несколько раз.
 function fieldNodeLabelInfo(node: Record<string, unknown>): LabelInfo {
   const content = Array.isArray(node.content) ? node.content as Record<string, unknown>[] : []
   const info: LabelInfo = {text: '', fontSize: null, color: null, highlight: null}
@@ -189,11 +173,6 @@ const editor = useEditor({
 
     const fieldNodes = json.content.filter((node) => node.type === 'scenarioField')
 
-    // Заголовок поля редактируется прямо в документе (content: 'inline*') —
-    // прогоняем текст и марки размера/цвета/заливки обратно в field.label и
-    // field.labelFontSize/labelColor/labelHighlight, чтобы предпросмотр и
-    // реальный опрос (SurveyBlockRenderer, тот же компонент) видели
-    // актуальное оформление, а не только редактор.
     fieldNodes.forEach((node) => {
       const id = String((node.attrs as {fieldId?: string} | undefined)?.fieldId ?? '')
       const currentField = props.fields.find((f) => f.id === id)
@@ -221,8 +200,6 @@ const editor = useEditor({
   },
 })
 
-// Поле добавили извне (кнопка в палитре слева) — довставляем недостающую
-// ноду в конец документа, чтобы она реально появилась в единой ленте контента.
 watch(
     () => props.fields.map((f) => f.id).join(','),
     () => {
@@ -245,8 +222,6 @@ watch(
 
 const formatting = useTiptapFormatting(editor, toRef(props, 'canEdit'))
 
-// Свободное значение (не только пресеты) — просто число в px, вводится вручную
-// или выбирается из datalist-подсказок в BubbleMenu.
 function currentFontSizeNumber(): string {
   const raw = String(editor.value?.getAttributes('textStyle')?.fontSize ?? '')
   const match = raw.match(/^(\d+(?:\.\d+)?)/)

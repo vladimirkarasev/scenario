@@ -15,7 +15,9 @@ final readonly class RunActionsData
      * @param array<string, string>     $onError  map code => action_uuid (при сбое)
      * @param array<string, mixed>      $input    глобальные данные для всех action в этом запуске
      * @param array<string, mixed>|null $schedule если задан — создать расписание вместо немедленного запуска
-     * @param array<string, string>     $scopeMap code => scope результата ('' = глобальный scope, output мержится в корень контекста)
+     * @param array<string, string>     $scopeMap       code => scope результата ('' = глобальный scope, output мержится в корень контекста)
+     * @param array<string, list<int>>  $backoffMap     code => задержки (сек) перед каждой попыткой
+     * @param array<string, int>        $delayBeforeMap code => одноразовая задержка (сек) перед первой попыткой
      */
     public function __construct(
         public string $mode,
@@ -27,6 +29,8 @@ final readonly class RunActionsData
         public ?array $schedule,
         public bool $canManageActions,
         public array $scopeMap = [],
+        public array $backoffMap = [],
+        public array $delayBeforeMap = [],
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -68,8 +72,6 @@ final readonly class RunActionsData
     }
 
     /**
-     * Обратный индекс actionId => code из всех map. Дубли overwrite-ятся: actions > before > after > on_error.
-     *
      * @return array<string, string>
      */
     public function codesByActionId(): array

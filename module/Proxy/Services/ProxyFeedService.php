@@ -12,8 +12,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 final readonly class ProxyFeedService
 {
     /**
-     * Смешанный поток "разделы сверху + интеграции" с единой пагинацией (как у справочников/действий).
-     *
      * @return array{
      *     data: array<int, array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, folders_total: int, items_total: int}

@@ -24,9 +24,6 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->service = app(DictionaryApiSyncService::class);
     }
 
-    /**
-     * Директория типа manual — queue() должен бросить исключение «source_type must be api».
-     */
     public function test_throws_when_directory_is_not_api_type(): void
     {
         $directory = $this->makeDirectory('manual');
@@ -37,9 +34,6 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->service->queue($directory);
     }
 
-    /**
-     * api-директория с несуществующим proxy_uuid — ожидаем исключение «Proxy endpoint not found».
-     */
     public function test_throws_when_proxy_endpoint_not_found(): void
     {
         $missingUuid = 'non-existent-proxy-uuid';
@@ -51,9 +45,6 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->service->queue($directory);
     }
 
-    /**
-     * api-директория с валидным прокси — создаётся DirectoryImport с source_type=proxy.
-     */
     public function test_queues_import_for_api_directory_with_proxy(): void
     {
         $uuid = 'valid-proxy-uuid';

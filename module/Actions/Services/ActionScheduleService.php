@@ -11,6 +11,7 @@ use Module\Actions\DTO\RunActionsData;
 use Module\Actions\Models\Action;
 use Module\Actions\Models\ActionSchedule;
 use Module\Actions\Repositories\ActionScheduleRepository;
+use Module\Actions\Temporal\ActionScheduleSyncerInterface;
 
 final readonly class ActionScheduleService
 {
@@ -24,8 +25,8 @@ final readonly class ActionScheduleService
     ];
 
     public function __construct(
-        private ActionOrchestratorService $orchestrator,
         private ActionScheduleRepository $schedules,
+        private ActionScheduleSyncerInterface $syncer,
     ) {}
 
     /**
@@ -42,69 +43,33 @@ final readonly class ActionScheduleService
         array $options,
         array $settings,
     ): ActionSchedule {
-        $schedule = $this->schedules->upsertForAction($action->id, [
-            'enabled' => $enabled,
-            'cron' => $cron,
-            'timezone' => $timezone ?: config('app.timezone', 'UTC'),
-            'input' => $this->stringKeyed($input),
-            'options' => $this->stringKeyed($options),
-            'settings' => $this->stringKeyed($settings),
-        ]);
+        return DB::transaction(function () use ($action, $enabled, $cron, $timezone, $input, $options, $settings): ActionSchedule {
+            $schedule = $this->schedules->upsertForAction($action->id, [
+                'enabled' => $enabled,
+                'cron' => $cron,
+                'timezone' => $timezone ?: config('app.timezone', 'UTC'),
+                'input' => $this->stringKeyed($input),
+                'options' => $this->stringKeyed($options),
+                'settings' => $this->stringKeyed($settings),
+            ]);
 
-        $this->schedules->update($schedule, [
-            'next_run_at' => $enabled ? $this->nextRunAt($schedule) : null,
-        ]);
+            $this->schedules->update($schedule, [
+                'next_run_at' => $enabled ? $this->nextRunAt($schedule) : null,
+            ]);
 
-        return $schedule->fresh(['action']) ?? $schedule;
+            $schedule = $schedule->fresh(['action']) ?? $schedule;
+
+            $this->syncer->sync($schedule);
+
+            return $schedule;
+        });
     }
 
     public function delete(ActionSchedule $schedule): void
     {
+        $scheduleId = $schedule->id;
         $this->schedules->delete($schedule);
-    }
-
-    public function runDue(): int
-    {
-        $ran = 0;
-
-        $this->schedules
-            ->due()
-            ->each(function (ActionSchedule $schedule) use (&$ran): void {
-                DB::transaction(function () use ($schedule, &$ran): void {
-                    $locked = $this->schedules->lock($schedule->id);
-
-                    if (
-                        $locked === null
-                        || ! $locked->enabled
-                        || $locked->next_run_at === null
-                        || $locked->next_run_at->isFuture()
-                    ) {
-                        return;
-                    }
-
-                    $action = $locked->action()->first();
-
-                    $queued = false;
-
-                    if ($action instanceof Action && $action->is_active) {
-                        $this->orchestrator->runFromData($this->scheduleToRunData($locked, $action));
-                        $queued = true;
-                    }
-
-                    $now = now();
-
-                    $this->schedules->update($locked, [
-                        'last_run_at' => $now,
-                        'next_run_at' => $this->nextRunAt($locked, $now),
-                    ]);
-
-                    if ($queued) {
-                        $ran++;
-                    }
-                });
-            });
-
-        return $ran;
+        $this->syncer->delete($scheduleId);
     }
 
     /** @return array<string, mixed>|null */
@@ -149,7 +114,7 @@ final readonly class ActionScheduleService
         return CronExpression::isValidExpression($cron);
     }
 
-    private function scheduleToRunData(ActionSchedule $schedule, Action $action): RunActionsData
+    public function runDataForSchedule(ActionSchedule $schedule, Action $action): RunActionsData
     {
         $options = is_array($schedule->options) ? $schedule->options : [];
 

@@ -10,10 +10,6 @@ use Module\Actions\DTO\EmailSendResult;
 use Module\Actions\Events\EmailSendFailed;
 use Module\Actions\Events\EmailSent;
 
-/**
- * Точка входа отправки: по from находит аккаунт проекта, подменяет from на
- * адрес/имя аккаунта (авторитетный источник) и отправляет нужным транспортом.
- */
 final readonly class EmailDispatcher
 {
     public function __construct(

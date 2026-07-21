@@ -9,8 +9,6 @@ use App\Support\PermissionRegistry;
 final class PermissionCatalogService
 {
     /**
-     * Плоский справочник всех разрешений, отсортированный по имени.
-     *
      * @return list<array{name: string, label: string, group: string}>
      */
     public function list(): array

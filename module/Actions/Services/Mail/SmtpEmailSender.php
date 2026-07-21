@@ -10,10 +10,6 @@ use Module\Actions\DTO\EmailSendResult;
 use Module\Actions\Enums\EmailDriver;
 use Throwable;
 
-/**
- * Отправка через SMTP. Имя mailer-а задаётся фабрикой: null — дефолтный mailer
- * приложения (config/mail.php), либо runtime-mailer, собранный из настроек аккаунта.
- */
 final readonly class SmtpEmailSender implements EmailSenderInterface
 {
     public function __construct(private ?string $mailerName = null) {}

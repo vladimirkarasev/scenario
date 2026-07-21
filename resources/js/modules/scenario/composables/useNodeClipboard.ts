@@ -10,7 +10,6 @@ export function useNodeClipboard() {
         try {
             await navigator.clipboard.writeText(serializeScenarioFlowClipboard(blocks, connections))
         } catch {
-            // Нет прав на буфер обмена — тихо игнорируем, как остальные copy-to-clipboard в проекте.
         }
     }
 

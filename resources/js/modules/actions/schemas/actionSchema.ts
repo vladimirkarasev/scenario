@@ -21,6 +21,7 @@ export const actionSchema = z.object({
     is_active: z.boolean(),
     config: z.record(z.unknown()),
     input_fields: z.array(actionInputFieldSchema),
+    default_backoff: z.array(z.number().int().min(0)),
     category_ids: z.array(z.string()),
 })
 

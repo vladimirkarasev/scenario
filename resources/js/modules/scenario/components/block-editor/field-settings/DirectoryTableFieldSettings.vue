@@ -46,10 +46,6 @@ const fieldConfigs = computed(() =>
     }),
 )
 
-// ─── Lazy-loading опций списочных колонок ───────────────────────────────────
-// Грузим items справочника тем же composable, что и плеер — он сам даст listOptions
-// для каждой list-multi колонки. Активируется только если есть хоть одна
-// фильтруемая колонка, чтобы не дёргать API впустую.
 const filterableConfigs = computed(() =>
     fieldConfigs.value.filter((c) => c.filterable && schemaFieldByKey(c.key)?.filterable),
 )

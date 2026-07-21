@@ -7,9 +7,6 @@ namespace Module\Proxy\Credentials;
 use Module\Proxy\DTO\ProxyFieldString;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 
-/**
- * Универсальный доступ: URL + Bearer-токен. Подходит большинству REST-API.
- */
 class BearerCredential extends ProxyCredential
 {
     public function label(): string

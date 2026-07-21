@@ -25,7 +25,6 @@ const emit = defineEmits<{
 defineOptions({inheritAttrs: false})
 const hasGroups = computed(() => props.field?.options?.some((o) => o.parentId))
 
-// Depth in the tree (0 = root, 1 = child, 2 = grandchild, …)
 function getDepth(option: SelectBlockFieldOption, options: SelectBlockFieldOption[]): number {
   let depth = 0
   let current: SelectBlockFieldOption | undefined = option
@@ -42,7 +41,6 @@ function getDepth(option: SelectBlockFieldOption, options: SelectBlockFieldOptio
   return depth
 }
 
-// Collect the item + its entire subtree (all descendants)
 function collectSubtree(fromId: string, options: SelectBlockFieldOption[]): SelectBlockFieldOption[] {
   const ids = new Set([fromId])
   let changed = true
@@ -58,7 +56,6 @@ function collectSubtree(fromId: string, options: SelectBlockFieldOption[]): Sele
   return options.filter((o) => ids.has(o.id))
 }
 
-// Returns true if making `fromId` a child of `targetId` would create a cycle
 function wouldCreateCycle(fromId: string, targetId: string, options: SelectBlockFieldOption[]): boolean {
   const subtreeIds = new Set(collectSubtree(fromId, options).map((o) => o.id))
   return subtreeIds.has(targetId)
@@ -142,7 +139,6 @@ function onDrop(e: DragEvent, targetId: string, options: SelectBlockFieldOption[
   if (zone === 'inside') {
     if (wouldCreateCycle(fromId, targetId, options)) return
 
-    // Move entire subtree into target; insert after target's existing subtree
     const itemsToMove = collectSubtree(fromId, options).map((o) =>
         o.id === fromId ? {...o, parentId: targetId} : o,
     )
@@ -160,11 +156,9 @@ function onDrop(e: DragEvent, targetId: string, options: SelectBlockFieldOption[
     return
   }
 
-  // Adopt the target's level; prevent cycles when reparenting into a subtree
   const newParentId = targetItem.parentId
   if (newParentId && wouldCreateCycle(fromId, newParentId, options)) return
 
-  // Move entire subtree; only the root item's parentId changes
   const itemsToMove = collectSubtree(fromId, options).map((o) =>
       o.id === fromId ? {...o, parentId: newParentId} : o,
   )
@@ -174,7 +168,6 @@ function onDrop(e: DragEvent, targetId: string, options: SelectBlockFieldOption[
   let insertAt = remaining.findIndex((o) => o.id === targetId)
 
   if (zone === 'after') {
-    // Skip past ALL descendants of the target (not just direct children)
     const targetSubtreeIds = new Set(collectSubtree(targetId, remaining).map((o) => o.id))
     let lastIdx = insertAt
     for (let i = insertAt + 1; i < remaining.length; i++) {
@@ -183,7 +176,6 @@ function onDrop(e: DragEvent, targetId: string, options: SelectBlockFieldOption[
     }
     insertAt = lastIdx + 1
   }
-  // zone === 'before': insertAt stays, item lands before the target
 
   remaining.splice(insertAt, 0, ...itemsToMove)
   emit('reorder-options', remaining)

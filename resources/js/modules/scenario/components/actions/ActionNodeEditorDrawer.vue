@@ -48,7 +48,8 @@ interface ActionItem {
   action_id: string
   name: string
   input: Record<string, unknown>
-  retries: number
+  backoff: number[]
+  delay_before: number
 }
 
 interface ActionNodeData {
@@ -57,12 +58,9 @@ interface ActionNodeData {
   skipInSurvey: boolean
   wait_for_result: boolean
   execution_mode: 'sequential' | 'parallel'
-  delay_between: number | null
-  retries: number
   action_items: ActionItem[]
   before_items: ActionItem[]
   error_items: ActionItem[]
-  // legacy (single hook) — заполняется из старых нод, очищается при save
   before_action_id?: string
   before_code?: string
   before_input?: Record<string, unknown>
@@ -73,16 +71,12 @@ interface ActionNodeData {
   [key: string]: unknown
 }
 
-// ── Draft ──────────────────────────────────────────────────────────────────────
-
 const draft = reactive<ActionNodeData>({
   title: '',
   variable: '',
   skipInSurvey: false,
   wait_for_result: false,
   execution_mode: 'sequential',
-  delay_between: 180,
-  retries: 3,
   action_items: [],
   before_items: [],
   error_items: [],
@@ -96,6 +90,10 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? {...(value as Record<string, unknown>)} : {}
 }
 
+function asBackoff(value: unknown): number[] {
+  return Array.isArray(value) ? value.filter((n): n is number => typeof n === 'number') : []
+}
+
 function hydrateItems(raw: unknown): ActionItem[] {
   if (!Array.isArray(raw)) return []
   return raw.map((item) => ({
@@ -105,7 +103,8 @@ function hydrateItems(raw: unknown): ActionItem[] {
     action_id: asString((item as ActionItem | undefined)?.action_id),
     name: asString((item as ActionItem | undefined)?.name),
     input: asRecord((item as ActionItem | undefined)?.input),
-    retries: typeof (item as ActionItem | undefined)?.retries === 'number' ? (item as ActionItem).retries : 1,
+    backoff: asBackoff((item as ActionItem | undefined)?.backoff),
+    delay_before: typeof (item as ActionItem | undefined)?.delay_before === 'number' ? (item as ActionItem).delay_before : 0,
   }))
 }
 
@@ -115,13 +114,10 @@ function hydrateFromProps(): void {
   draft.skipInSurvey = Boolean(props.nodeData.skipInSurvey)
   draft.wait_for_result = Boolean(props.nodeData.wait_for_result)
   draft.execution_mode = props.nodeData.execution_mode === 'parallel' ? 'parallel' : 'sequential'
-  draft.delay_between = props.nodeData.delay_between != null ? Number(props.nodeData.delay_between) : 180
-  draft.retries = props.nodeData.retries !== undefined ? Number(props.nodeData.retries) : 3
   draft.action_items = hydrateItems(props.nodeData.action_items)
   draft.before_items = hydrateItems(props.nodeData.before_items)
   draft.error_items = hydrateItems(props.nodeData.error_items)
 
-  // Миграция legacy single hook → первый элемент массива.
   if (draft.before_items.length === 0 && props.nodeData.before_action_id) {
     draft.before_items.push({
       id: uid(),
@@ -130,7 +126,8 @@ function hydrateFromProps(): void {
       action_id: asString(props.nodeData.before_action_id),
       name: '',
       input: asRecord(props.nodeData.before_input),
-      retries: 1,
+      backoff: [],
+      delay_before: 0,
     })
   }
   if (draft.error_items.length === 0 && props.nodeData.error_action_id) {
@@ -141,7 +138,8 @@ function hydrateFromProps(): void {
       action_id: asString(props.nodeData.error_action_id),
       name: '',
       input: asRecord(props.nodeData.error_input),
-      retries: 1,
+      backoff: [],
+      delay_before: 0,
     })
   }
 }
@@ -156,19 +154,16 @@ watch(() => props.open, async (val) => {
 })
 
 function save(): void {
-  const cloneItems = (items: ActionItem[]) => items.map(item => ({...item, input: {...item.input}}))
+  const cloneItems = (items: ActionItem[]) => items.map(item => ({...item, input: {...item.input}, backoff: [...item.backoff]}))
   emit('update', {
     title: draft.title,
     variable: draft.variable,
     skipInSurvey: draft.skipInSurvey,
     wait_for_result: draft.wait_for_result,
     execution_mode: draft.execution_mode,
-    delay_between: draft.delay_between,
-    retries: draft.retries,
     action_items: cloneItems(draft.action_items),
     before_items: cloneItems(draft.before_items),
     error_items: cloneItems(draft.error_items),
-    // Сбрасываем legacy single-hook поля.
     before_action_id: '',
     before_code: '',
     before_input: {},
@@ -178,8 +173,6 @@ function save(): void {
   })
   emit('update:open', false)
 }
-
-// ── Actions loading ────────────────────────────────────────────────────────────
 
 const actions = ref<Action[]>([])
 const loadingActions = ref(false)
@@ -208,7 +201,6 @@ async function loadFields(id: string): Promise<ActionInputField[]> {
   return []
 }
 
-// pickerTarget = `item:${id}` для любого ActionItem (в action_items / before_items / error_items).
 const pickerTarget = ref<`item:${string}` | null>(null)
 const pickerOpen = computed({
   get: () => pickerTarget.value !== null,
@@ -257,14 +249,12 @@ function actionCode(id: string): string {
 
 onMounted(loadActions)
 
-// ── Action items ───────────────────────────────────────────────────────────────
-
 function uid(): string {
   return `ai_${Math.random().toString(36).slice(2, 10)}`
 }
 
 function newItem(): ActionItem {
-  return {id: uid(), code: '', action_code: '', action_id: '', name: '', input: {}, retries: 1}
+  return {id: uid(), code: '', action_code: '', action_id: '', name: '', input: {}, backoff: [], delay_before: 0}
 }
 
 function addItem(): void {
@@ -302,11 +292,10 @@ function buildInputDefaults(fields: ActionInputField[]): Record<string, unknown>
 
 function onItemActionChange(item: ActionItem, action: Action): void {
   item.action_id = action.id
-  // action_code — реальный code экшена (для оркестрации/input/стадий). code пользователь
-  // задаёт сам как scope результата (пусто = глобальный scope, результаты могут перетираться).
   item.action_code = action.code || action.slug
   item.name = action.name
   item.input = buildInputDefaults(action.input_fields)
+  item.backoff = action.default_backoff?.length ? [...action.default_backoff] : [0]
 }
 
 function itemFields(item: ActionItem): ActionInputField[] {
@@ -401,23 +390,6 @@ function itemFields(item: ActionItem): ActionInputField[] {
             </button>
           </div>
         </FormField>
-
-        <FormRow>
-          <FormField label="Задержка (сек)">
-            <Input
-                :model-value="draft.delay_between ?? ''" type="number" min="0" step="1"
-                :disabled="!editable" placeholder="—"
-                @update:model-value="(v: string | number | undefined) => draft.delay_between = v === '' || v === undefined || v === null ? null : Number(v)"
-            />
-          </FormField>
-          <FormField label="Попыток на действие">
-            <Input
-                :model-value="draft.retries" type="number" min="1" max="10" step="1"
-                :disabled="!editable"
-                @update:model-value="(v: string | number | undefined) => draft.retries = Math.max(1, Number(v) || 1)"
-            />
-          </FormField>
-        </FormRow>
 
         <Separator class="bg-slate-100"/>
 

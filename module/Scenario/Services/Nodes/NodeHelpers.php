@@ -7,7 +7,6 @@ namespace Module\Scenario\Services\Nodes;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 
-/** Типобезопасные помощники для работы с данными узла и прогона. */
 trait NodeHelpers
 {
     /** @param  array<string, mixed>  $node */
@@ -27,8 +26,6 @@ trait NodeHelpers
     }
 
     /**
-     * Возвращает data-секцию узла с гарантированными строковыми ключами.
-     *
      * @param  array<string, mixed>  $node
      * @return array<string, mixed>
      */
@@ -51,7 +48,6 @@ trait NodeHelpers
         return $result;
     }
 
-    /** Возвращает версию прогона или выбрасывает исключение, если она не загружена. */
     private function runVersion(ScenarioRun $run): ScenarioVersion
     {
         return $run->version ?? throw new \RuntimeException('Run version is not loaded.');
@@ -90,5 +86,34 @@ trait NodeHelpers
         $val = $data[$key] ?? null;
 
         return is_array($val) ? $val : [];
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $data
+     * @return list<int>
+     */
+    private function intListField(array $data, string $key): array
+    {
+        $val = $data[$key] ?? null;
+
+        if (!is_array($val)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($val as $item) {
+            if (!is_int($item) && !is_numeric($item)) {
+                continue;
+            }
+
+            $intItem = (int)$item;
+
+            if ($intItem >= 0) {
+                $result[] = $intItem;
+            }
+        }
+
+        return $result;
     }
 }

@@ -12,8 +12,6 @@ final readonly class ConditionEvaluator
     }
 
     /**
-     * Вычисляет выражение из условия и возвращает ID целевого узла.
-     *
      * @param  array<string, mixed>  $condition
      * @param  array<string, mixed>  $context
      */
@@ -73,7 +71,6 @@ final readonly class ConditionEvaluator
         return $comparator((float)$actual, (float)$expected);
     }
 
-    /** Приводит скалярное значение к строке для сравнения. */
     private function toStr(mixed $value): string
     {
         if ($value === null) {

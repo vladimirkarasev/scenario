@@ -10,9 +10,6 @@ use Module\Actions\Events\ActionSaved;
 use Module\Actions\Models\Action;
 use Tests\TestCase;
 
-/**
- * ActionObserver на сохранении (create/update) бросает доменное событие ActionSaved.
- */
 final class ActionObserverTest extends TestCase
 {
     use RefreshDatabase;

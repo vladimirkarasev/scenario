@@ -54,8 +54,6 @@ export interface ScenarioRenderedAction {
     data: Record<string, unknown>
     wait_for_result: boolean
     stages: ActionStage[]
-    // Сохранённые на сервере статусы стадий (code => статус) — чтобы после перезагрузки
-    // pipeline показывал реальное состояние, а не «выполняется».
     results: Record<string, ActionStageStatus>
     failed?: boolean
 }
@@ -64,7 +62,6 @@ export interface ScenarioRunStep {
     id: number
     node_id: string
     node_type: ScenarioNodeType
-    // Версия/сценарий, к которым относится шаг (связные сценарии: шаги из разных версий).
     scenario_version_id?: string | null
     scenario_name?: string | null
     scenario_version_name?: string | null
@@ -84,7 +81,6 @@ export interface RunHistoryEvent {
     node_type: string
     node_title: string | null
     cancelled: boolean
-    // только для field_filled / field_changed
     field_label?: string
     field_id?: string
     old_value?: unknown
@@ -134,13 +130,11 @@ export interface ScenarioTimelineEntry {
     status: 'past' | 'current'
     rendered: ScenarioRenderedBlock | ScenarioRenderedCondition | ScenarioRenderedEnd | Record<string, unknown> | null
     context: Record<string, unknown>
-    // Сценарий/версия шага — для разделителей границ связанных сценариев.
     scenario_version_id?: string | null
     scenario_name?: string | null
     scenario_version_name?: string | null
 }
 
-// Разделитель «Начало/Конец сценария» в таймлайне для границ scenario_link.
 export interface ScenarioTimelineDivider {
     type: 'divider'
     key: string
@@ -152,9 +146,6 @@ export interface ScenarioTimelineDivider {
 export type ScenarioTimelineRow =
     | { type: 'entry'; entry: ScenarioTimelineEntry }
     | ScenarioTimelineDivider
-
-// ── WebSocket-сообщения канала scenario-run:{id} ────────────────────────────────
-// Все сообщения дискриминируются по `type` (расширяемо: позже добавятся file_* и др.).
 
 export interface RunUpdatedMessage {
     type: 'run_updated'

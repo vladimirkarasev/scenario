@@ -38,14 +38,10 @@ describe('users module', () => {
             roles: [],
             group_ids: [],
         }
-        // Валидная форма без пароля проходит и при создании, и при редактировании.
         expect(userSchema(false).safeParse(value).success).toBe(true)
         expect(userSchema(true).safeParse(value).success).toBe(true)
-        // Логин обязателен.
         expect(userSchema(false).safeParse({...value, login: ''}).success).toBe(false)
-        // Email обязателен и должен быть валидным.
         expect(userSchema(false).safeParse({...value, email: 'invalid'}).success).toBe(false)
-        // Короткий пароль отклоняется.
         expect(userSchema(false).safeParse({...value, password: 'short'}).success).toBe(false)
     })
 

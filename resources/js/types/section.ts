@@ -1,6 +1,3 @@
-// Общая база категории-«раздела» для модулей proxy / actions / scenario / directories.
-// Все доменные типы (ProxyCategory, ActionCategory, ScenarioCategory, CategoryRef)
-// совместимы с этим интерфейсом.
 export interface SectionCategory {
     id: string
     parent_id: string | null

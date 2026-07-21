@@ -16,7 +16,6 @@ interface RawField {
     attributes: WebhookField
 }
 
-/** Разворачивает JSON:API-ресурс ({id, attributes}) в плоский WebhookEndpoint. */
 function flatten(resource: JsonApiResource): WebhookEndpoint {
     return {id: Number(resource.id), ...resource.attributes} as unknown as WebhookEndpoint
 }

@@ -14,11 +14,6 @@ use Module\Scenario\Models\ScenarioVersion;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты для ScenariosController.
- * Роуты: GET|POST /api/scenarios, GET|PUT|DELETE /api/scenarios/{scenario}
- *        POST /api/scenarios/{scenario}/duplicate
- */
 final class ScenariosControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -29,13 +24,6 @@ final class ScenariosControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/scenarios
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список возвращает все сценарии с активной версией (activeOnly по умолчанию).
-     */
     public function test_index_returns_active_scenarios(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -48,9 +36,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * По умолчанию activeOnly=true — сценарии без активной версии не включаются.
-     */
     public function test_index_excludes_scenarios_without_active_version_by_default(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -63,9 +48,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * filter[active_only]=false возвращает все сценарии, включая без активной версии.
-     */
     public function test_index_with_active_only_false_returns_all_scenarios(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -78,9 +60,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * filter[search]=... фильтрует по имени сценария (ASCII, т.к. SQLite LOWER() не поддерживает кириллицу).
-     */
     public function test_index_filters_by_search_query(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -93,9 +72,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * filter[is_active]=false исключает активные сценарии.
-     */
     public function test_index_filters_by_is_active(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -108,9 +84,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * filter[status]=active возвращает только активные сценарии.
-     */
     public function test_index_filters_by_status_active(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -126,9 +99,6 @@ final class ScenariosControllerTest extends TestCase
         $response->assertJsonPath('data.0.attributes.status', 'active');
     }
 
-    /**
-     * filter[status]=draft возвращает только черновики.
-     */
     public function test_index_filters_by_status_draft(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -143,9 +113,6 @@ final class ScenariosControllerTest extends TestCase
         $response->assertJsonPath('data.0.attributes.status', 'draft');
     }
 
-    /**
-     * filter[status]=archived возвращает только архивные сценарии.
-     */
     public function test_index_filters_by_status_archived(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -160,9 +127,6 @@ final class ScenariosControllerTest extends TestCase
         $response->assertJsonPath('data.0.attributes.status', 'archived');
     }
 
-    /**
-     * Неизвестный статус в filter[status] возвращает 0 результатов (tryFrom возвращает null → без фильтра, но enum не содержит такого значения).
-     */
     public function test_index_ignores_unknown_status_filter(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -174,9 +138,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * Атрибут status присутствует в ответе для каждого сценария.
-     */
     public function test_show_includes_status_attribute(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -188,9 +149,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonPath('data.attributes.status', 'active');
     }
 
-    /**
-     * Новый сценарий без активной версии имеет status=draft.
-     */
     public function test_new_scenario_has_draft_status(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -202,9 +160,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonPath('data.attributes.status', 'draft');
     }
 
-    /**
-     * Без пермишена scenario_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         $user = $this->makeUser();
@@ -214,22 +169,12 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Неаутентифицированный запрос — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/scenarios')
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/scenarios/{scenario}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующий сценарий возвращает атрибуты в data.
-     */
     public function test_show_returns_scenario_attributes(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -242,9 +187,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonPath('data.attributes.is_active', true);
     }
 
-    /**
-     * Несуществующий ID — 404.
-     */
     public function test_show_returns_404_for_nonexistent_scenario(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -254,9 +196,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Без пермишена scenario_view — 403.
-     */
     public function test_show_returns_403_without_permission(): void
     {
         $user = $this->makeUser();
@@ -267,13 +206,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/scenarios
-    // -------------------------------------------------------------------------
-
-    /**
-     * Пользователь с scenario_create создаёт сценарий — 201, запись в БД.
-     */
     public function test_store_creates_scenario_with_permission(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -289,9 +221,6 @@ final class ScenariosControllerTest extends TestCase
         $this->assertDatabaseHas('scenarios', ['name' => 'Новый сценарий']);
     }
 
-    /**
-     * Без пермишена scenario_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -301,9 +230,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Отсутствует name — 422.
-     */
     public function test_store_returns_422_when_name_missing(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -313,13 +239,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/scenarios/{scenario}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Пользователь с scenario_create обновляет имя — 200, имя меняется в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -336,9 +255,6 @@ final class ScenariosControllerTest extends TestCase
         $this->assertDatabaseHas('scenarios', ['id' => $scenario->id, 'name' => 'Новое']);
     }
 
-    /**
-     * Без пермишена scenario_create — 403.
-     */
     public function test_update_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -349,13 +265,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/scenarios/{scenario}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Пользователь с scenario_delete удаляет сценарий — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_scenario_and_returns_204(): void
     {
         $user = $this->makeUser('scenario_delete');
@@ -368,9 +277,6 @@ final class ScenariosControllerTest extends TestCase
         $this->assertDatabaseMissing('scenarios', ['id' => $scenario->id]);
     }
 
-    /**
-     * Без пермишена scenario_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -381,13 +287,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/scenarios/{scenario}/duplicate
-    // -------------------------------------------------------------------------
-
-    /**
-     * Пользователь с scenario_create дублирует сценарий — 201, копия в БД с суффиксом «(копия)».
-     */
     public function test_duplicate_creates_copy_with_suffix(): void
     {
         $user = $this->makeUser('scenario_create');
@@ -401,9 +300,6 @@ final class ScenariosControllerTest extends TestCase
         $this->assertDatabaseHas('scenarios', ['name' => 'Оригинал (копия)']);
     }
 
-    /**
-     * Без пермишена scenario_create — 403.
-     */
     public function test_duplicate_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -414,18 +310,11 @@ final class ScenariosControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // Project isolation
-    // -------------------------------------------------------------------------
-
-    /**
-     * Когда у пользователя есть проект — index возвращает только сценарии этого проекта.
-     */
     public function test_index_returns_only_scenarios_from_current_project(): void
     {
         [$user, $project] = $this->makeUserWithProject('scenario_view');
         $this->makeActiveScenario('Мой', $project->id);
-        $this->makeActiveScenario('Чужой'); // project_id = null
+        $this->makeActiveScenario('Чужой');
 
         $this->actingAs($user)
             ->getJson('/api/scenarios')
@@ -433,9 +322,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /**
-     * store сохраняет project_id из CurrentProject.
-     */
     public function test_store_persists_current_project_id(): void
     {
         [$user, $project] = $this->makeUserWithProject('scenario_create');
@@ -450,9 +336,6 @@ final class ScenariosControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * show возвращает 404 если сценарий принадлежит другому проекту.
-     */
     public function test_show_returns_404_when_scenario_belongs_to_different_project(): void
     {
         [$user] = $this->makeUserWithProject('scenario_view');
@@ -466,9 +349,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * update возвращает 404 если сценарий принадлежит другому проекту.
-     */
     public function test_update_returns_404_when_scenario_belongs_to_different_project(): void
     {
         [$user] = $this->makeUserWithProject('scenario_create');
@@ -482,9 +362,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * destroy возвращает 404 если сценарий принадлежит другому проекту.
-     */
     public function test_destroy_returns_404_when_scenario_belongs_to_different_project(): void
     {
         [$user] = $this->makeUserWithProject('scenario_delete');
@@ -498,9 +375,6 @@ final class ScenariosControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * duplicate возвращает 404 если сценарий принадлежит другому проекту.
-     */
     public function test_duplicate_returns_404_when_scenario_belongs_to_different_project(): void
     {
         [$user] = $this->makeUserWithProject('scenario_create');
@@ -513,10 +387,6 @@ final class ScenariosControllerTest extends TestCase
             ->postJson("/api/scenarios/{$scenario->id}/duplicate")
             ->assertNotFound();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeUser(string ...$permissions): User
     {
@@ -566,7 +436,6 @@ final class ScenariosControllerTest extends TestCase
             'project_id' => $projectId,
         ]);
 
-        // Observer сам установит scenario.status=active и active_version_id
         ScenarioVersion::query()->create([
             'id' => (string)Str::uuid(),
             'scenario_id' => $scenario->id,

@@ -21,7 +21,6 @@ final readonly class LogSecurityAudit
                 'actor' => $event->actorId,
             ]);
         } catch (\Throwable) {
-            // Ошибка внешнего логгера не должна откатывать уже выполненную операцию.
         }
     }
 }

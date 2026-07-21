@@ -34,11 +34,6 @@ final class CategoryBuilder
     private bool $hasParentFilter = false;
 
     /**
-     * Список id групп для фильтрации workspace.
-     * null = фильтр не применяется (admin / bypass);
-     * [] = ничего не видно;
-     * [...] = видны только сценарии, у которых пересечение групп с этим списком.
-     *
      * @var list<string>|null
      */
     private ?array $visibleByGroupIds = null;
@@ -98,9 +93,6 @@ final class CategoryBuilder
     }
 
     /**
-     * Применить фильтр workspace: видны только сценарии в одной из этих групп.
-     * Передать null — фильтр выключен (admin); пустой массив — пользователь без групп, ничего не видит.
-     *
      * @param  list<string>|null  $groupIds
      */
     public function visibleByGroups(?array $groupIds): self

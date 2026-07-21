@@ -85,7 +85,6 @@ final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
             $importChunk($import->id, $rows, $baseRowNumber);
             $baseRowNumber += $rows->count();
 
-            // Останавливаемся если страница не полная — handler больше ничего не отдаст.
             if ($rows->count() < $perPage) {
                 break;
             }
@@ -95,9 +94,6 @@ final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
     }
 
     /**
-     * Извлекает массив элементов из тела ответа. Поддерживает наиболее
-     * распространённые варианты: `items` и `data`.
-     *
      * @param  array<string, mixed>  $body
      * @return array<int, mixed>
      */

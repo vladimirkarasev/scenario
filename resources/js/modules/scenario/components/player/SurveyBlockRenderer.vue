@@ -50,14 +50,7 @@ interface FieldConfig {
   filterable: boolean
 }
 
-// Backend (VariableResolver) уже резолвит все шаблоны переменных сценария в props
-// при формировании payload. Единственный шаблон, который остаётся сырым и подставляется
-// на фронте — labelTemplate у directory_list/directory_table (он рендерится локально
-// по item.data справочника через renderLabelTemplate в SurveyDirectoryListField/TableField).
 const resolvedProps = computed(() => (props.block.props ?? {}) as Record<string, unknown>)
-// Размер/цвет/заливка заголовка поля, заданные через bubble-menu в редакторе
-// блока (BlockEditorGutenbergEditor) — применяются и здесь, и в реальном
-// опросе, т.к. этот компонент общий для предпросмотра и живого плеера.
 const labelStyle = computed(() => {
   const {labelFontSize, labelColor, labelHighlight} = resolvedProps.value
   const style: Record<string, string> = {}

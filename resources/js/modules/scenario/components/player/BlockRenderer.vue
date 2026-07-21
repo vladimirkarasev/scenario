@@ -18,10 +18,6 @@ const props = withDefaults(defineProps<{
   continueLabel?: string
   draftKey?: string | null
   initialValues?: Record<string, unknown> | null
-  // Единый tiptap-документ редактора блока (свободный текст + поля вперемешку,
-  // см. BlockEditorGutenbergEditor) — если задан, контент рендерится в том же
-  // порядке, что и в редакторе, а не просто списком полей. Раньше сохранённые
-  // блоки без layoutDocument продолжают рендериться как плоский список.
   layoutDocument?: unknown
 }>(), {
   continueLabel: 'Далее',

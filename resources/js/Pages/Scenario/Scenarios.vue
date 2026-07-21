@@ -34,7 +34,6 @@ const auth = useAuthStore()
 const canManage = computed(() => auth.hasPermission('scenario_create'))
 const canDelete = computed(() => auth.hasPermission('scenario_delete'))
 
-// ── Tree composable ──────────────────────────────────────────────────────
 const tree = useScenarioSectionTree()
 const activeFolder = tree.activeSection
 
@@ -43,7 +42,6 @@ const {
   page, search: searchQuery, statusTab, load: loadFeed,
 } = useScenarioFeed(activeFolder)
 
-// ── Section CRUD modal ───────────────────────────────────────────────────
 const sectionModal = useScenarioSectionModal(
     (created) => {
       tree.addSection(created);
@@ -61,7 +59,6 @@ async function loadGroups(query: string): Promise<Array<Record<string, unknown>>
   return res.data.map(g => ({id: g.id, name: g.name}))
 }
 
-// ── Section delete ───────────────────────────────────────────────────────
 const deleteTarget = ref<CategoryRef | null>(null)
 const deleteLoading = ref(false)
 const deleteError = ref<string | null>(null)
@@ -89,7 +86,6 @@ async function doDeleteSection(): Promise<void> {
   }
 }
 
-// ── Scenario delete / duplicate ──────────────────────────────────────────
 const deleteScenarioTarget = ref<{ id: string; name: string } | null>(null)
 const deleteScenarioLoading = ref(false)
 
@@ -122,7 +118,6 @@ async function duplicateScenario(id: string): Promise<void> {
   }
 }
 
-// ── Scenario create ──────────────────────────────────────────────────────
 const createModal = useScenarioCreateModal((created) => {
   router.visit(route('scenarios.edit', created.id))
 })
@@ -132,7 +127,6 @@ function openCreateScenario(): void {
   createModal.openCreate(preset)
 }
 
-// ── UI ───────────────────────────────────────────────────────────────────
 const isSearchMode = computed(() => searchQuery.value.trim().length > 0)
 
 async function selectFolder(id: string): Promise<void> {
@@ -166,7 +160,6 @@ const headerSubtitle = computed(() => {
   ].join(' · ')
 })
 
-// ── Breadcrumb ───────────────────────────────────────────────────────────
 interface BreadcrumbItem {
   id: string;
   name: string
@@ -197,7 +190,6 @@ const statusTabs = computed(() => [
   {key: 'archived' as StatusTab, label: 'Архив', count: countsByStatus.value.archived},
 ])
 
-// ── Mapping table events to handlers ─────────────────────────────────────
 function onEditFolderRow(row: FeedFolderItem): void {
   sectionModal.openEdit({
     id: row.id, parent_id: row.parent_id, name: row.name,

@@ -7,10 +7,6 @@ namespace App\Exceptions;
 use App\Contracts\ErrorText;
 use RuntimeException;
 
-/**
- * Базовое доменное исключение. Рендерится в единый JSON:API-формат
- * ошибки: {"errors": [{"status", "code", "title", "detail"}]}.
- */
 abstract class DomainException extends RuntimeException
 {
     public function __construct(
@@ -23,10 +19,6 @@ abstract class DomainException extends RuntimeException
 
     abstract public function status(): int;
 
-    /**
-     * Собрать исключение из источника текста (enum кода) — без строк на call-site.
-     * Основной способ броска; текст живёт в enum.
-     */
     public static function from(ErrorText $code): static
     {
         return new static($code->code(), $code->title(), $code->detail());

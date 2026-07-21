@@ -46,16 +46,12 @@ const emit = defineEmits<{
   'update:modelValue': [value: DirectoryListShape | DirectoryListShape[] | null]
 }>()
 
-// ── State ─────────────────────────────────────────────────────────────────────
-
 const open = ref(false)
 const search = ref('')
 const searchRef = ref<InstanceType<typeof Input> | null>(null)
 const items = ref<DirectoryItem[]>([])
 const loading = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-// ── «Другой» (free-text fallback) ──────────────────────────────────────────────
 
 const OTHER_SHAPE_ID = String(OTHER_ITEM_ID)
 const otherText = ref('')
@@ -65,10 +61,7 @@ function isOtherItem(item: DirectoryItem): boolean {
   return item.id === OTHER_ITEM_ID
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function getLabel(item: DirectoryItem): string {
-  // У «Другой» label продублирован во все колонки — рендерить шаблон нельзя (вышло бы «Другая · Другая»).
   if (isOtherItem(item)) {
     return String(Object.values(item.data)[0] ?? otherDefaultLabel.value)
   }
@@ -95,7 +88,6 @@ function toShape(item: DirectoryItem): DirectoryListShape {
   }
 }
 
-/** Извлекает массив ID из текущего modelValue (shape, string, либо их массивов). */
 function modelToIds(value: IncomingModelValue): string[] {
   if (value === null || value === undefined || value === '') return []
   const arr = Array.isArray(value) ? value : [value]
@@ -104,7 +96,6 @@ function modelToIds(value: IncomingModelValue): string[] {
       .filter((v) => v !== '')
 }
 
-/** Достаёт label из shape (если есть в текущем modelValue), либо null. */
 function labelFromModel(id: string): string | null {
   const value = props.modelValue
   if (value === null) return null
@@ -115,8 +106,6 @@ function labelFromModel(id: string): string | null {
   return null
 }
 
-// ── Tree (multiple mode) ───────────────────────────────────────────────────────
-
 const rootItems = computed(() =>
     props.multiple ? items.value.filter((i) => !i.parent_id) : [],
 )
@@ -126,8 +115,6 @@ function childItems(parentId: number): DirectoryItem[] {
 }
 
 const showTree = computed(() => props.multiple && !search.value && rootItems.value.length > 0)
-
-// ── Selection ─────────────────────────────────────────────────────────────────
 
 const selectedValues = computed<string[]>(() => modelToIds(props.modelValue))
 
@@ -154,7 +141,6 @@ function currentShapes(): DirectoryListShape[] {
   for (const v of arr) {
     if (isDirectoryListShape(v)) out.push(v)
     else if (typeof v === 'string' && v !== '') {
-      // Legacy: пытаемся достать full item из загруженного списка для апгрейда до shape
       const found = items.value.find((i) => getValue(i) === v)
       if (found) out.push(toShape(found))
     }
@@ -162,7 +148,6 @@ function currentShapes(): DirectoryListShape[] {
   return out
 }
 
-// Выбранный shape «Другой» (если есть) — ищем по сентинел-id.
 const otherSelectedShape = computed<DirectoryListShape | null>(() => {
   const value = props.modelValue
   if (value === null) return null
@@ -175,7 +160,6 @@ const otherSelectedShape = computed<DirectoryListShape | null>(() => {
 
 const hasOtherSelected = computed(() => otherSelectedShape.value !== null)
 
-// Восстанавливаем текст уточнения из модели (например, при редактировании ответа).
 watch(otherSelectedShape, (shape) => {
   const next = shape?.other_text ?? ''
   if (otherText.value !== next) otherText.value = next
@@ -233,8 +217,6 @@ function clearAll(e: MouseEvent): void {
   emit('update:modelValue', props.multiple ? [] : null)
 }
 
-// ── Backend search ────────────────────────────────────────────────────────────
-
 const isFilteredAndEmpty = computed(
     () => Boolean(props.filterKey) && (props.filterValue === null || props.filterValue === ''),
 )
@@ -272,8 +254,6 @@ function onSearch(value: string): void {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => loadItems(value), 300)
 }
-
-// ── Popover open/close ────────────────────────────────────────────────────────
 
 async function onOpenChange(val: boolean): Promise<void> {
   open.value = val

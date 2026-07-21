@@ -35,6 +35,10 @@ function numberValue(value: unknown): number {
     return typeof value === 'number' ? value : Number(value || 0)
 }
 
+function numberListOrNull(value: unknown): number[] | null {
+    return Array.isArray(value) ? value.filter((n): n is number => typeof n === 'number') : null
+}
+
 function normalizeSchedule(value: unknown): ActionSchedule | null {
     if (!isRecord(value)) return null
 
@@ -86,6 +90,7 @@ export function normalizeAction(item: JsonApiItem): Action {
         schema: objectValue(a.schema),
         ui_schema: objectValue(a.ui_schema),
         input_fields: normalizeInputFields(a.input_fields),
+        default_backoff: numberListOrNull(a.default_backoff),
         category_ids: Array.isArray(a.category_ids) ? a.category_ids.map(String) : [],
         schedule: normalizeSchedule(scheduleRaw),
         created_at: nullableString(a.created_at),

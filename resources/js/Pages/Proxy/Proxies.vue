@@ -82,7 +82,6 @@ async function deleteSection(section: ProxyCategory): Promise<void> {
   feed.load()
 }
 
-// Лента отдаёт slim-строки → для редактирования/тоггла догружаем полную интеграцию по id.
 async function editEndpoint(row: FeedEndpointRow): Promise<void> {
   openEdit(await webhookRepository.find(row.id))
 }

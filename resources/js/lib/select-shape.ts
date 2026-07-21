@@ -1,10 +1,3 @@
-/**
- * Структура значения select-поля.
- * Соответствует PHP-классу Module\Scenario\Support\SelectShape.
- *
- *   - value: код опции
- *   - label: отображаемое имя опции
- */
 export interface SelectShape {
     value: string
     label: string

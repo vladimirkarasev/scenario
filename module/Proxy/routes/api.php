@@ -17,7 +17,6 @@ Route::prefix('proxy')->name('api.proxy.')->group(static function (): void {
     Route::get('/credential-fields', [ProxyEndpointController::class, 'credentialSchema'])
         ->name('credential-fields');
 
-    // Доступы (connections) + каталог типов доступа.
     Route::get('/credential-types', [ProxyConnectionController::class, 'types'])->name('credential-types');
     Route::get('/connections', [ProxyConnectionController::class, 'index'])->name('connections.index');
     Route::post('/connections', [ProxyConnectionController::class, 'store'])->name('connections.store');
@@ -25,7 +24,6 @@ Route::prefix('proxy')->name('api.proxy.')->group(static function (): void {
     Route::put('/connections/{connection}', [ProxyConnectionController::class, 'update'])->name('connections.update');
     Route::delete('/connections/{connection}', [ProxyConnectionController::class, 'destroy'])->name('connections.destroy');
 
-    // Разделы (категории) интеграций.
     Route::get('/categories', [ProxyCategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [ProxyCategoryController::class, 'store'])->name('categories.store');
     Route::get('/categories/{category}', [ProxyCategoryController::class, 'show'])->name('categories.show');

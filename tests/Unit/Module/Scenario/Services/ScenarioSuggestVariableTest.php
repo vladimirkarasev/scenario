@@ -12,10 +12,6 @@ use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ScenarioPlayerService;
 use Tests\TestCase;
 
-/**
- * Поле «Подсказки» (type=suggest) сохраняет в ответ весь пришедший объект варианта,
- * а его поля доступны как переменная опроса: {{ place.address }}.
- */
 final class ScenarioSuggestVariableTest extends TestCase
 {
     use RefreshDatabase;
@@ -41,7 +37,6 @@ final class ScenarioSuggestVariableTest extends TestCase
                 ['id' => 'e2', 'source' => 'node_a', 'target' => 'node_b'],
                 ['id' => 'e3', 'source' => 'node_b', 'target' => 'node_end'],
             ],
-            // schema_json питает _variable_map (varName → поле блока).
             'schema_json' => [
                 'nodes' => [
                     ['id' => 'node_a', 'type' => 'block', 'data' => ['fields' => [$suggestField]]],
@@ -57,18 +52,15 @@ final class ScenarioSuggestVariableTest extends TestCase
         ));
         $this->assertSame('node_a', $run->current_node_id);
 
-        // Оператор выбрал вариант из подсказок — сохраняется весь объект.
         $suggested = ['address' => 'москва', 'id' => '123'];
         $run = $player->continueRun($run, new ScenarioRunContinueData(['sug' => $suggested], null));
 
         $this->assertSame('node_b', $run->current_node_id);
 
-        // Объект целиком лёг в context блока.
         $context = is_array($run->context) ? $run->context : [];
         $nodeA = is_array($context['node_a'] ?? null) ? $context['node_a'] : [];
         $this->assertSame($suggested, $nodeA['sug'] ?? null);
 
-        // Переменная place.address резолвится в заголовке следующего блока.
         $payload = $player->payload($run);
         $title = $this->renderedTitle($payload);
         $this->assertSame('Город: москва', $title);

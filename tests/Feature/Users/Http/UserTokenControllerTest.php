@@ -12,11 +12,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты управления API-токенами пользователя.
- * Роуты: GET|POST /api/users/{user}/tokens
- *        DELETE /api/users/{user}/tokens/{tokenId}
- */
 final class UserTokenControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,13 +22,6 @@ final class UserTokenControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/users/{user}/tokens
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список токенов пользователя возвращается в data.
-     */
     public function test_index_returns_user_tokens(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_view');
@@ -47,9 +35,6 @@ final class UserTokenControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Без токенов — data пуст.
-     */
     public function test_index_returns_empty_data_when_no_tokens(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_view');
@@ -61,9 +46,6 @@ final class UserTokenControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    /**
-     * Без пермишена user_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject();
@@ -74,13 +56,6 @@ final class UserTokenControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/users/{user}/tokens
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание токена — 201, plain_text_token присутствует в ответе.
-     */
     public function test_store_creates_token_and_returns_plain_text(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_manage');
@@ -99,9 +74,6 @@ final class UserTokenControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Пустое тело (нет name) — 422.
-     */
     public function test_store_returns_422_when_name_missing(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_manage');
@@ -112,9 +84,6 @@ final class UserTokenControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена user_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_view');
@@ -125,13 +94,6 @@ final class UserTokenControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/users/{user}/tokens/{tokenId}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление токена — 204, токен исчезает из БД.
-     */
     public function test_destroy_deletes_token_and_returns_204(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_manage');
@@ -146,9 +108,6 @@ final class UserTokenControllerTest extends TestCase
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => $tokenId]);
     }
 
-    /**
-     * Несуществующий tokenId — 204 (идемпотентное удаление).
-     */
     public function test_destroy_is_idempotent_for_nonexistent_token(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_token_manage');
@@ -192,10 +151,6 @@ final class UserTokenControllerTest extends TestCase
             ->getJson("/api/users/{$target->id}/tokens")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

@@ -57,7 +57,6 @@ const sectionModal = useDirectorySectionModal(
     },
 )
 
-// ── Section delete ─────────────────────────────────────────────────────
 const deleteTarget = ref<CategoryRef | null>(null)
 const deleteLoading = ref(false)
 const deleteError = ref<string | null>(null)
@@ -92,7 +91,6 @@ function openAddDir(): void {
   }
 }
 
-// ── Breadcrumb ──────────────────────────────────────────────────────
 interface BreadcrumbItem {
   id: string;
   name: string
@@ -113,8 +111,6 @@ const breadcrumb = computed<BreadcrumbItem[]>(() => {
   return [root, ...path]
 })
 
-// ── Unified rows (server feed: folders + directories) ────────────────
-
 const isRoot = computed(() => tree.activeSection.value === 'all')
 
 const headerSubtitle = computed(() => {
@@ -126,7 +122,6 @@ const headerSubtitle = computed(() => {
   return parts.join(' · ')
 })
 
-// Feed row даёт slim payload; полная Directory нужна модалкам — догружаем по id.
 async function editDirectory(id: string): Promise<void> {
   const {item} = await directoryRepository.find(id)
   dirModal.openEdit(item)

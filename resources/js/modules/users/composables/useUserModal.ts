@@ -31,12 +31,8 @@ export function useUserModal(onSaved: () => void) {
         deleted: 'Пользователь удалён',
     })
 
-    // ── Selected items mirror form.roles / form.group_ids ───────────────
-
     const selectedRoles = ref<RoleItem[]>([])
     const selectedGroups = ref<GroupItem[]>([])
-
-    // ── Role search ──────────────────────────────────────────────────────
 
     const roleSearch = ref('')
     const roleDropdownOpen = ref(false)
@@ -82,8 +78,6 @@ export function useUserModal(onSaved: () => void) {
         form.roles = form.roles.filter(n => n !== name)
     }
 
-    // ── Group search ─────────────────────────────────────────────────────
-
     const groupSearch = ref('')
     const groupDropdownOpen = ref(false)
     const groupResults = ref<GroupItem[]>([])
@@ -128,8 +122,6 @@ export function useUserModal(onSaved: () => void) {
         selectedGroups.value = selectedGroups.value.filter(g => g.id !== id)
         form.group_ids = form.group_ids.filter(gid => gid !== id)
     }
-
-    // ── Modal lifecycle ──────────────────────────────────────────────────
 
     function resetAll(): void {
         roleRequestId++
@@ -213,8 +205,6 @@ export function useUserModal(onSaved: () => void) {
         } catch { /* отобразили ошибки */
         }
     }
-
-    // ── Delete confirm ───────────────────────────────────────────────────
 
     const confirmDelete = ref<User | null>(null)
     const deleting = ref(false)

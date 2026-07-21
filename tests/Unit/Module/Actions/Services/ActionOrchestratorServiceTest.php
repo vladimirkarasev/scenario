@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Actions\Services;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Module\Actions\DTO\RunActionsData;
-use Module\Actions\Jobs\ChainStepJob;
-use Module\Actions\Jobs\DispatchActionBatchJob;
 use Module\Actions\Services\ActionOrchestratorService;
+use Module\Actions\Temporal\RunActionsWorkflowStarterInterface;
+use Tests\Stubs\FakeRunActionsWorkflowStarter;
 use Tests\TestCase;
 
 final class ActionOrchestratorServiceTest extends TestCase
@@ -26,9 +25,10 @@ final class ActionOrchestratorServiceTest extends TestCase
 
     private const string ALERT_ID = '00000000-0000-0000-0000-000000000030';
 
-    public function test_sequential_dispatches_single_chain_step_with_full_pipeline(): void
+    public function test_sequential_starts_run_actions_workflow_with_full_pipeline(): void
     {
-        Bus::fake();
+        $starter = new FakeRunActionsWorkflowStarter();
+        $this->app->instance(RunActionsWorkflowStarterInterface::class, $starter);
 
         $data = new RunActionsData(
             mode: 'sequential',
@@ -39,34 +39,60 @@ final class ActionOrchestratorServiceTest extends TestCase
             input: ['scenario_run_id' => '44'],
             schedule: null,
             canManageActions: true,
+            backoffMap: ['email_template' => [0, 60]],
+            delayBeforeMap: ['scenario' => 15],
         );
 
         $result = app(ActionOrchestratorService::class)->runFromData($data);
 
         $this->assertSame('queued', $result['status']);
         $this->assertSame(4, $result['queued']);
-        Bus::assertDispatched(ChainStepJob::class);
+        $this->assertCount(1, $starter->sequentialCalls);
+        $call = $starter->sequentialCalls[0];
+        $this->assertSame(
+            [self::SCENARIO_ID, self::TEMPLATE_ID, self::EMAIL_ID, self::LOG_ID],
+            $call->actionIds,
+        );
+        $this->assertSame([self::ALERT_ID], $call->onErrorActionIds);
+        $this->assertSame('44', $call->scenarioRunId);
+        $this->assertSame([0, 60], $call->backoffByActionId[self::TEMPLATE_ID]);
+        $this->assertSame([], $call->backoffByActionId[self::EMAIL_ID]);
+        $this->assertSame(15, $call->delayBeforeByActionId[self::SCENARIO_ID]);
+        $this->assertSame(0, $call->delayBeforeByActionId[self::EMAIL_ID]);
     }
 
-    public function test_parallel_dispatches_batch_job(): void
+    public function test_parallel_starts_run_actions_parallel_workflow(): void
     {
-        Bus::fake();
+        $starter = new FakeRunActionsWorkflowStarter();
+        $this->app->instance(RunActionsWorkflowStarterInterface::class, $starter);
 
         $data = new RunActionsData(
             mode: 'parallel',
             actions: ['email_template' => self::TEMPLATE_ID, 'lead_email' => self::EMAIL_ID],
-            before: [],
-            after: [],
-            onError: [],
+            before: ['scenario' => self::SCENARIO_ID],
+            after: ['log' => self::LOG_ID],
+            onError: ['alert' => self::ALERT_ID],
             input: ['scenario_run_id' => '44'],
             schedule: null,
             canManageActions: true,
+            backoffMap: ['lead_email' => [0, 30, 90]],
+            delayBeforeMap: ['email_template' => 5],
         );
 
         $result = app(ActionOrchestratorService::class)->runFromData($data);
 
         $this->assertSame('queued', $result['status']);
-        $this->assertSame(2, $result['queued']);
-        Bus::assertDispatched(DispatchActionBatchJob::class);
+        $this->assertSame(3, $result['queued']);
+        $this->assertCount(1, $starter->parallelCalls);
+
+        $call = $starter->parallelCalls[0];
+        $this->assertSame([self::SCENARIO_ID], $call->beforeIds);
+        $this->assertSame([self::TEMPLATE_ID, self::EMAIL_ID], $call->actionIds);
+        $this->assertSame([self::LOG_ID], $call->afterIds);
+        $this->assertSame([self::ALERT_ID], $call->onErrorActionIds);
+        $this->assertSame('44', $call->scenarioRunId);
+        $this->assertSame([0, 30, 90], $call->backoffByActionId[self::EMAIL_ID]);
+        $this->assertSame(5, $call->delayBeforeByActionId[self::TEMPLATE_ID]);
+        $this->assertSame(0, $call->delayBeforeByActionId[self::EMAIL_ID]);
     }
 }

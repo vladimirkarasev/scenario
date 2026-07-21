@@ -8,10 +8,6 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
 use Monolog\LogRecord;
 
-/**
- * Sends each log record over a fresh TCP connection.
- * Avoids stale-socket failures in long-running processes (Octane, php artisan serve).
- */
 final class BuggregatorHandler extends AbstractProcessingHandler
 {
     public function __construct(

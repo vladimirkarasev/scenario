@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\DTO\Variables;
 
-/** Переменная для поля типа select (статические опции). */
 final readonly class SelectVariableEntry implements VariableEntryInterface
 {
     /**

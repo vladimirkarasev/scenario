@@ -1,9 +1,6 @@
 import type {Router} from '@inertiajs/core'
 import type {Component, Plugin} from 'vue'
 
-// @inertiajs/vue3 v2.3.18 has duplicate `export default function` overloads in
-// createInertiaApp.d.ts — TypeScript 6 fails to surface them as named exports.
-// This augmentation restores the three affected members.
 declare module '@inertiajs/vue3' {
     export const router: Router
 

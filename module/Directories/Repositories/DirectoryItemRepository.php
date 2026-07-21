@@ -266,7 +266,6 @@ final class DirectoryItemRepository
     /** @param  Builder<DirectoryItem>  $query */
     private function applyListFilter(Builder $query, string $key, string $value): void
     {
-        // Match both new JSON-array format '["a","b"]' and legacy plain string 'a'.
         $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $value);
         $query->where(function (Builder $q) use ($key, $value, $escaped): void {
             $q->whereRaw('data_json->>? LIKE ?', [$key, '%"'.$escaped.'"%'])

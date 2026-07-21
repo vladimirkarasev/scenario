@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\DTO\Variables;
 
-/** Переменная для полей date и datetime. */
 final readonly class DateVariableEntry implements VariableEntryInterface
 {
     /**

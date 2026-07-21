@@ -22,7 +22,6 @@ export function useWebhookRequestFilters(params: WebhookRequestListParams) {
     const statusOpen = ref(false)
     const endpointSearch = ref('')
     const endpointResults = ref<EndpointOption[]>([])
-    // Имя выбранного эндпоинта для чипа (резолвится по id, не держит весь список).
     const selectedEndpoint = ref<EndpointOption | null>(null)
 
     const selectedEndpointId = computed(() => first(params['filter[endpoint_id]']))
@@ -34,7 +33,6 @@ export function useWebhookRequestFilters(params: WebhookRequestListParams) {
 
     const hasFilters = computed(() => !!selectedEndpointId.value || !!selectedStatusValue.value)
 
-    // Восстанавливаем имя выбранного эндпоинта из URL (deep-link).
     onMounted(async () => {
         const id = selectedEndpointId.value
         if (!id) return

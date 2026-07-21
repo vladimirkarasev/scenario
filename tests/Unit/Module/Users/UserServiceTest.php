@@ -40,9 +40,6 @@ final class UserServiceTest extends TestCase
         $this->actor->assignRole($administrator);
     }
 
-    /**
-     * Создание пользователя сохраняет базовые атрибуты в БД.
-     */
     public function test_create_persists_user_attributes(): void
     {
         $user = $this->service->create(
@@ -61,9 +58,6 @@ final class UserServiceTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'ivan@example.com', 'name' => 'Иван Иванов']);
     }
 
-    /**
-     * Создание пользователя привязывает его к текущему проекту.
-     */
     public function test_create_adds_user_to_project(): void
     {
         $user = $this->service->create(
@@ -104,9 +98,6 @@ final class UserServiceTest extends TestCase
         );
     }
 
-    /**
-     * Создание с ролью — роль синхронизируется.
-     */
     public function test_create_syncs_roles(): void
     {
         Role::query()->create(['name' => 'admin', 'guard_name' => 'web']);
@@ -128,9 +119,6 @@ final class UserServiceTest extends TestCase
         $this->assertTrue($user->hasRole('admin'));
     }
 
-    /**
-     * Пароль хэшируется при создании.
-     */
     public function test_create_hashes_password(): void
     {
         $plainPassword = 'plaintext123';
@@ -177,9 +165,6 @@ final class UserServiceTest extends TestCase
         }
     }
 
-    /**
-     * Обновление меняет имя в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         $user = $this->makeUserInProject(['name' => 'Старое имя']);
@@ -200,9 +185,6 @@ final class UserServiceTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Новое имя']);
     }
 
-    /**
-     * Обновление с новым паролем — пароль хэшируется и меняется.
-     */
     public function test_update_hashes_new_password_when_provided(): void
     {
         $user = $this->makeUserInProject();
@@ -225,9 +207,6 @@ final class UserServiceTest extends TestCase
         $this->assertTrue(Hash::check($newPassword, $stored->password));
     }
 
-    /**
-     * Обновление с password=null — пароль не меняется.
-     */
     public function test_update_does_not_change_password_when_null(): void
     {
         $user = $this->makeUserInProject();
@@ -293,9 +272,6 @@ final class UserServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * Удаление пользователя — запись исчезает из БД.
-     */
     public function test_delete_removes_user_from_db(): void
     {
         $user = $this->makeUserInProject();
@@ -305,9 +281,6 @@ final class UserServiceTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
 
-    /**
-     * find загружает отношения roles и groups.
-     */
     public function test_find_loads_roles_and_groups_relations(): void
     {
         $user = $this->makeUserInProject();
@@ -317,10 +290,6 @@ final class UserServiceTest extends TestCase
         $this->assertTrue($result->relationLoaded('roles'));
         $this->assertTrue($result->relationLoaded('groups'));
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeProject(): Project
     {

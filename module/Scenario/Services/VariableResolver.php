@@ -25,8 +25,6 @@ final readonly class VariableResolver
     }
 
     /**
-     * Рендерит шаблон опроса.
-     *
      * @param  array<string, mixed>  $context
      */
     public function resolve(mixed $value, array $context = []): mixed
@@ -35,8 +33,6 @@ final readonly class VariableResolver
     }
 
     /**
-     * Развернуть плоские переменные опроса (по _variable_map) поверх raw-контекста.
-     *
      * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */

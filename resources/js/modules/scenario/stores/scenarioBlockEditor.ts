@@ -59,15 +59,11 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         try {
             canManageCatalog.value = true
 
-            // ScenarioFlowEditor сохраняет драфт в localStorage перед открытием дровера.
-            // Читаем его напрямую, не обращаясь к API.
             const draftDocument = loadScenarioVersionDraft(currentDraftKey())
 
             if (draftDocument.blocks.length || draftDocument.connections.length) {
                 versionDocument.value = draftDocument
             } else {
-                // Драфта нет — создаём минимальный документ с пустым блоком,
-                // чтобы редактор открылся и пользователь мог добавить поля.
                 versionDocument.value = normalizeScenarioFlowDocument({
                     format: 'scenario-flow',
                     version: 1,
@@ -185,9 +181,6 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         blockDraft.value = {...blockDraft.value, data: {...blockDraft.value.data, fields}}
     }
 
-    // Применяет порядок полей, заданный извне (drag полей внутри единого
-    // tiptap-документа BlockEditorGutenbergEditor) — orderedIds содержит id
-    // всех текущих полей в новом порядке.
     function reorderFields(orderedIds: string[]): void {
         if (!blockDraft.value) return
 

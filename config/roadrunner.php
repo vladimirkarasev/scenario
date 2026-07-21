@@ -70,7 +70,12 @@ return [
         'defaultWorker' => env('TEMPORAL_TASK_QUEUE', TemporalWorkerFactoryInterface::DEFAULT_TASK_QUEUE),
         'workers' => [],
         'declarations' => [
-            // 'App\Temporal\GreeterWorkflow'
+            \Module\Actions\Temporal\Activities\ExecuteActionActivity::class,
+            \Module\Actions\Temporal\Activities\ResumeScenarioRunActivity::class,
+            \Module\Actions\Temporal\Activities\RunScheduledActionActivity::class,
+            \Module\Actions\Temporal\Workflows\RunActionsWorkflow::class,
+            \Module\Actions\Temporal\Workflows\RunActionsParallelWorkflow::class,
+            \Module\Actions\Temporal\Workflows\RunScheduledActionWorkflow::class,
         ],
     ],
 

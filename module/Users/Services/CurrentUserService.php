@@ -16,8 +16,6 @@ final readonly class CurrentUserService
     }
 
     /**
-     * Профиль текущего пользователя: контакты, текущий проект и его разрешения.
-     *
      * @return array{id: int, name: string, email: string, project_id: string|null, permissions: list<string>}
      */
     public function profile(User $user): array

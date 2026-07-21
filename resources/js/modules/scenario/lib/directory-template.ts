@@ -1,5 +1,3 @@
-// Поддерживаем простые ключи ({{ name }}), слаги с дефисами ({{ city-name }})
-// и точечные пути ({{ user.name }}). Дефис в конце класса — литеральный.
 const TEMPLATE_RE = /\{\{\s*([\w.-]+)\s*\}\}/g
 
 function resolvePath(source: unknown, path: string): unknown {
@@ -22,7 +20,6 @@ export function renderLabelTemplate(
 ): string {
     if (!template) return ''
     const result = template.replace(TEMPLATE_RE, (_, key: string) => {
-        // Сначала ищем плоский ключ в data (поле справочника), затем — путь в context.
         if (key in data) return String(data[key] ?? '')
         const fromContext = resolvePath(context, key)
         if (fromContext === undefined || fromContext === null) return ''

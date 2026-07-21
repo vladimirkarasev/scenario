@@ -44,7 +44,6 @@ final class ScenarioVersionObserver
             return;
         }
 
-        // Статус снят с active — ищем другую активную версию
         $otherActive = ScenarioVersion::query()
             ->where('scenario_id', $version->scenario_id)
             ->where('id', '!=', $version->id)

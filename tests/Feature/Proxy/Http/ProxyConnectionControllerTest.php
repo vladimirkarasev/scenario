@@ -16,10 +16,6 @@ use Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * Доступы (connections): CRUD, шифрование/маскирование секретов, привязка к эндпоинту
- * с проверкой совместимости типа доступа и обработчика.
- */
 final class ProxyConnectionControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -32,10 +28,6 @@ final class ProxyConnectionControllerTest extends TestCase
         parent::setUp();
         $this->user = $this->createProxyUser();
     }
-
-    // -------------------------------------------------------------------------
-    // Каталог типов доступа
-    // -------------------------------------------------------------------------
 
     public function test_credential_types_returns_drivers_with_fields(): void
     {
@@ -52,10 +44,6 @@ final class ProxyConnectionControllerTest extends TestCase
         $this->assertEqualsCanonicalizing(['base_uri', 'bearer_token'], $keys);
     }
 
-    // -------------------------------------------------------------------------
-    // CRUD + секреты
-    // -------------------------------------------------------------------------
-
     public function test_store_splits_config_and_encrypts_secret(): void
     {
         $response = $this->actingAs($this->user)
@@ -69,10 +57,8 @@ final class ProxyConnectionControllerTest extends TestCase
             ->assertJsonPath('data.attributes.config.base_uri', 'https://crm.example.com')
             ->assertJsonPath('data.attributes.secret_filled.bearer_token', true);
 
-        // Секрет не возвращается в API.
         $this->assertArrayNotHasKey('bearer_token', (array) $response->json('data.attributes.config'));
 
-        // В БД секрет зашифрован.
         $raw = DB::table('proxy_connections')->where('name', 'AutoCRM прод')->value('secrets');
         $this->assertIsString($raw);
         $this->assertStringNotContainsString('secret-123', $raw);
@@ -124,10 +110,6 @@ final class ProxyConnectionControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    // -------------------------------------------------------------------------
-    // Привязка к эндпоинту: совместимость типа
-    // -------------------------------------------------------------------------
-
     public function test_endpoint_accepts_matching_connection(): void
     {
         $connection = ProxyConnection::query()->create([
@@ -161,7 +143,7 @@ final class ProxyConnectionControllerTest extends TestCase
             ->postJson('/api/proxy/endpoints', [
                 'name' => 'Модели',
                 'code' => 'models',
-                'handler_class' => ModelsProxyHandler::class, // требует AutoCrmCredential
+                'handler_class' => ModelsProxyHandler::class,
                 'connection_id' => $connection->id,
             ])
             ->assertUnprocessable()
@@ -180,7 +162,7 @@ final class ProxyConnectionControllerTest extends TestCase
             ->postJson('/api/proxy/endpoints', [
                 'name' => 'Лид',
                 'code' => 'lead',
-                'handler_class' => TestLeadProxyHandler::class, // credentialType() === null
+                'handler_class' => TestLeadProxyHandler::class,
                 'connection_id' => $connection->id,
             ])
             ->assertUnprocessable()

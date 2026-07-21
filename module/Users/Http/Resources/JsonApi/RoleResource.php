@@ -14,8 +14,6 @@ use Module\Users\Models\Role;
  */
 final class RoleResource extends JsonApiResource
 {
-    // true → ресурс уважает sparse fieldsets (?fields[roles]=name,title),
-    // чтобы во включённых ролях не тянулся весь набор полей.
     protected bool $usesRequestQueryString = true;
 
     public function toId(Request $request): string

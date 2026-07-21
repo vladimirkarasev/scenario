@@ -15,9 +15,6 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref<AuthUser | null>(null)
     const ready = ref(false)
 
-    // Дедуп: параллельные вызовы (глобальный bootstrap в app.ts + страница) делят
-    // один запрос /api/user. После завершения сбрасываем — повторная инициализация
-    // (напр. после логина) снова сходит на сервер.
     let inFlight: Promise<void> | null = null
 
     function initialize(): Promise<void> {

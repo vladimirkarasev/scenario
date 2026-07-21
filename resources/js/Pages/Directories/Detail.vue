@@ -43,18 +43,12 @@ const auth = useAuthStore()
 const canManage = computed(() => auth.hasPermission('directory_create'))
 const canDelete = computed(() => auth.hasPermission('directory_delete'))
 
-// ── Composables ───────────────────────────────────────────────────────────────
-
 const detail = useDirectoryDetail(props.directoryId)
 const itemsCtx = useDirectoryItems(props.directoryId)
 const versCtx = useDirectoryVersions(props.directoryId)
 const impCtx = useDirectoryImport(props.directoryId)
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-
 const activeTab = ref('items')
-
-// ── Proxy picker ──────────────────────────────────────────────────────────────
 
 const proxyPicker = useDirectoryProxyPicker(
     () => detail.meta.proxy_uuid,
@@ -63,12 +57,8 @@ const proxyPicker = useDirectoryProxyPicker(
     },
 )
 
-// ── Computed ──────────────────────────────────────────────────────────────────
-
 const activeVersion = computed(() => versCtx.versions.value.find(v => v.is_active) ?? null)
 const schemaFields = computed(() => detail.meta.fields.filter(f => f.key !== ''))
-
-// ── Load all data on mount ────────────────────────────────────────────────────
 
 onMounted(async () => {
   await detail.load()
@@ -81,8 +71,6 @@ onMounted(async () => {
     impCtx.loadImports(),
   ])
 })
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmtDateTime(iso: string | null): string {
   if (!iso) return '—'

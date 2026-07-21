@@ -23,12 +23,10 @@ const props = defineProps<{ scenarioId: string; versionId: string }>()
 
 const {navigationItems} = useDashboardNavigation()
 
-// ── Types ──────────────────────────────────────────────────────────────────
 type VersionStatus = 'active' | 'draft' | 'archived'
 
 const {launching: playLaunching, launch: launchVersion} = usePlayScenario()
 
-// ── State ──────────────────────────────────────────────────────────────────
 const loading = ref(true)
 const duplicating = ref(false)
 const activeTab = ref<'editor' | 'settings' | 'history'>('editor')
@@ -58,14 +56,12 @@ const {formData: form, errors, formError: saveError, submitting: saving, submit,
       input_fields: [] as ScenarioInputField[],
     })
 
-// ── Config ─────────────────────────────────────────────────────────────────
 const VERSION_STATUS_CONFIG: Record<VersionStatus, { label: string; dot: string; text: string; ring: string }> = {
   active: {label: 'Активная', dot: 'bg-emerald-500', text: 'text-emerald-700', ring: 'ring-emerald-200'},
   draft: {label: 'Черновик', dot: 'bg-amber-400', text: 'text-amber-700', ring: 'ring-amber-200'},
   archived: {label: 'Архив', dot: 'bg-slate-400', text: 'text-slate-500', ring: 'ring-slate-200'},
 }
 
-// ── Load ─────────────────────────────────────────────────────────────────────
 onMounted(async () => {
   loading.value = true
   try {
@@ -92,9 +88,6 @@ onMounted(async () => {
   }
 })
 
-// ── Graph validation ─────────────────────────────────────────────────────────
-// Предупреждаем, если у стартового блока нет исходящих рёбер: после «Начало»
-// сценарию некуда переходить, и прогон сразу завершится.
 const startBlockMissing = computed(
     () => !versionDocument.value.blocks.some((b) => b.type === 'start'),
 )
@@ -104,7 +97,6 @@ const startHasNoOutgoingEdge = computed(() => {
   return !versionDocument.value.connections.some((c) => c.source.blockId === start.id)
 })
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
 function fmtDate(iso: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'})
@@ -115,7 +107,6 @@ function fmtDateTime(iso: string | null) {
   return new Date(iso).toLocaleString('ru-RU', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'})
 }
 
-// ── Actions ──────────────────────────────────────────────────────────────────
 async function save() {
   try {
     await submit(async (data) => {
@@ -138,7 +129,6 @@ async function save() {
   }
 }
 
-// ── Input fields CRUD ───────────────────────────────────────────────────────
 const INPUT_FIELD_TYPE_LABELS: Record<ScenarioInputFieldType, string> = {
   datetime: 'Дата и время',
   json: 'JSON',

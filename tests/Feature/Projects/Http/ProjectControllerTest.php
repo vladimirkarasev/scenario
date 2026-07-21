@@ -12,10 +12,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD проектов.
- * Роуты: GET|POST /api/projects, GET|PUT|DELETE /api/projects/{project}
- */
 final class ProjectControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -26,13 +22,6 @@ final class ProjectControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/projects
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список возвращает все проекты.
-     */
     public function test_index_returns_projects(): void
     {
         $user = $this->makeUser('project_view');
@@ -45,9 +34,6 @@ final class ProjectControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Без пермишена project_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         $user = $this->makeUser();
@@ -57,22 +43,12 @@ final class ProjectControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Без авторизации — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/projects')
             ->assertUnauthorized();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/projects/{project}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующий проект — 200 с name в attributes.
-     */
     public function test_show_returns_project_attributes(): void
     {
         $user = $this->makeUser('project_view');
@@ -84,9 +60,6 @@ final class ProjectControllerTest extends TestCase
             ->assertJsonPath('data.attributes.name', 'Тестовый проект');
     }
 
-    /**
-     * Несуществующий UUID — 404.
-     */
     public function test_show_returns_404_for_nonexistent(): void
     {
         $user = $this->makeUser('project_view');
@@ -96,13 +69,6 @@ final class ProjectControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/projects
-    // -------------------------------------------------------------------------
-
-    /**
-     * Валидные данные — 201, запись появляется в БД.
-     */
     public function test_store_creates_project_and_returns_201(): void
     {
         $user = $this->makeUser('project_create');
@@ -121,9 +87,6 @@ final class ProjectControllerTest extends TestCase
         $this->assertDatabaseHas('projects', ['name' => 'Новый проект', 'sitekey' => 'sk-test001']);
     }
 
-    /**
-     * Пустое тело — 422.
-     */
     public function test_store_returns_422_when_required_fields_missing(): void
     {
         $user = $this->makeUser('project_create');
@@ -133,9 +96,6 @@ final class ProjectControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * shared_secret меньше 32 символов — 422.
-     */
     public function test_store_returns_422_when_shared_secret_too_short(): void
     {
         $user = $this->makeUser('project_create');
@@ -151,9 +111,6 @@ final class ProjectControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена project_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         $user = $this->makeUser('project_view');
@@ -169,13 +126,6 @@ final class ProjectControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/projects/{project}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Переименование проекта сохраняется в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         $user = $this->makeUser('project_create');
@@ -195,13 +145,6 @@ final class ProjectControllerTest extends TestCase
         $this->assertDatabaseHas('projects', ['id' => $project->id, 'name' => 'Новое имя']);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/projects/{project}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление проекта — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_project_and_returns_204(): void
     {
         $user = $this->makeUser('project_delete');
@@ -214,9 +157,6 @@ final class ProjectControllerTest extends TestCase
         $this->assertDatabaseMissing('projects', ['id' => $project->id]);
     }
 
-    /**
-     * Без пермишена project_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         $user = $this->makeUser('project_view');
@@ -226,10 +166,6 @@ final class ProjectControllerTest extends TestCase
             ->deleteJson("/api/projects/{$project->id}")
             ->assertForbidden();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeUser(string ...$permissions): User
     {

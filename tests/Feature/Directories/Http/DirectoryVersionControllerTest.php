@@ -14,11 +14,6 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты контроллера версий справочника.
- * Роуты: GET|POST|DELETE /api/directories/{directory}/versions/{version}
- *        PUT schema, PATCH settings/code/activate
- */
 final class DirectoryVersionControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -29,13 +24,6 @@ final class DirectoryVersionControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/directories/{directory}/versions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список версий справочника возвращается в data.
-     */
     public function test_index_returns_versions(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -49,9 +37,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject();
@@ -62,13 +47,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/directories/{directory}/versions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание версии (clone=false) — 201, новая запись появляется в БД.
-     */
     public function test_store_creates_new_version(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -81,9 +59,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSame(1, DirectoryVersion::query()->where('directory_id', $directory->id)->count());
     }
 
-    /**
-     * Клонирование существующей версии — новая версия содержит ту же схему.
-     */
     public function test_store_clones_existing_version_schema(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -103,9 +78,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSame($original->schema_json, $cloned->schema_json);
     }
 
-    /**
-     * Без пермишена directory_version_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -116,13 +88,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/directories/{directory}/versions/{version}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление неактивной версии — 204, запись soft-deleted.
-     */
     public function test_destroy_deletes_inactive_version(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_delete');
@@ -136,9 +101,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSoftDeleted('directory_versions', ['id' => $version->id]);
     }
 
-    /**
-     * Удаление активной версии — 422 (DirectoryVersionException::cannotDeleteActive).
-     */
     public function test_destroy_fails_for_active_version(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_delete');
@@ -150,13 +112,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertStatus(422);
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/directories/{directory}/versions/{version}/schema
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление схемы — поля сохраняются в schema_json версии.
-     */
     public function test_update_schema_persists_fields(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -174,13 +129,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSame('city', $version->fresh()->schema_json[0]['key']);
     }
 
-    // -------------------------------------------------------------------------
-    // PATCH /api/directories/{directory}/versions/{version}/activate
-    // -------------------------------------------------------------------------
-
-    /**
-     * Активация версии — она становится активной, предыдущая деактивируется.
-     */
     public function test_activate_makes_version_active(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_activate');
@@ -196,9 +144,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertFalse((bool)$v1->fresh()->is_active);
     }
 
-    /**
-     * Без пермишена directory_version_activate — 403.
-     */
     public function test_activate_returns_403_without_permission(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_view');
@@ -210,13 +155,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PATCH /api/directories/{directory}/versions/{version}/settings
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление source_type версии.
-     */
     public function test_update_settings_changes_source_type(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -232,9 +170,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSame('excel', $version->fresh()->source_type);
     }
 
-    /**
-     * Настройки варианта «Другой» сохраняются и возвращаются в ресурсе.
-     */
     public function test_update_settings_persists_other_option(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -259,9 +194,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertSame('other_code', $fresh->other_external_key);
     }
 
-    /**
-     * Пустой other_label очищается в null (откатывается на дефолт «Другой» при отдаче).
-     */
     public function test_update_settings_clears_other_label_when_empty(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -282,9 +214,6 @@ final class DirectoryVersionControllerTest extends TestCase
         $this->assertNull($version->fresh()->other_label);
     }
 
-    /**
-     * Невалидный other_external_key (недопустимые символы) отклоняется.
-     */
     public function test_update_settings_rejects_invalid_other_external_key(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_version_create');
@@ -299,10 +228,6 @@ final class DirectoryVersionControllerTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors('other_external_key');
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

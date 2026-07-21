@@ -10,9 +10,6 @@ use Module\Actions\Jobs\SyncActionToApiJob;
 use Module\Actions\Listeners\SyncActionToApiListener;
 use Tests\TestCase;
 
-/**
- * SyncActionToApiListener на событие ActionSaved диспатчит SyncActionToApiJob.
- */
 final class SyncActionToApiListenerTest extends TestCase
 {
     public function test_handle_dispatches_sync_job(): void

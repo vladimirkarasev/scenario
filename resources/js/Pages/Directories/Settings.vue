@@ -39,7 +39,6 @@ const activeVersion = computed(() => versCtx.versions.value.find(v => v.is_activ
 
 const categories = ref<CategoryOption[]>([])
 
-// Плоское дерево с глубиной для отрисовки чекбоксов с отступами.
 const categoryTree = computed<{ cat: CategoryOption; depth: number }[]>(() => {
   const children = (parentId: string | null) =>
       categories.value.filter(c => (c.parent_id ?? null) === parentId)
@@ -72,7 +71,6 @@ function fmtDateTime(iso: string | null): string {
     minute: '2-digit'
   })
 }
-
 
 </script>
 

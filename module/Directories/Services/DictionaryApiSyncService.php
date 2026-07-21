@@ -98,8 +98,6 @@ final readonly class DictionaryApiSyncService
                 $query->whereNull('next_sync_at')->orWhere('next_sync_at', '<=', now());
             })
             ->each(function (Directory $directory) use (&$count): void {
-                // Справочники с cron-расписанием (через модуль Actions) синхронизируются
-                // командой actions:run-scheduled — пропускаем их в интервальном планировщике.
                 $config = $directory->api_config_json ?? [];
                 if (($config['schedule_mode'] ?? null) === 'cron') {
                     return;
@@ -109,7 +107,6 @@ final readonly class DictionaryApiSyncService
                     $this->queue($directory);
                     $count++;
                 } catch (Throwable) {
-                    // Skip individual failures so others still run
                 }
             });
 
@@ -142,7 +139,6 @@ final readonly class DictionaryApiSyncService
 
         $fields = $version->schema_json !== [] ? $version->schema_json : [];
 
-        // field_mapping: { dir_field: proxy_field } → invert to mapping_json: { proxy_field: dir_field }
         $rawMapping = is_array($config['field_mapping'] ?? null) ? $config['field_mapping'] : [];
         $mappingJson = [];
         foreach ($rawMapping as $dirField => $proxyField) {
@@ -151,7 +147,6 @@ final readonly class DictionaryApiSyncService
             }
         }
 
-        // Fallback: если пользователь не настроил mapping — используем 1:1 по ключам полей справочника.
         if ($mappingJson === []) {
             foreach ($fields as $field) {
                 $key = is_string($field['key'] ?? null) ? $field['key'] : null;

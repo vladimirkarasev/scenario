@@ -9,9 +9,6 @@ use Module\Users\Models\User;
 final readonly class UserGroupVisibility
 {
     /**
-     * Id активных групп пользователя в его проекте для фильтра видимости сценариев.
-     * null — фильтр не применяется (admin с scenario_view_all); [] — ничего не видно.
-     *
      * @return list<string>|null
      */
     public static function groupIds(?User $user): ?array

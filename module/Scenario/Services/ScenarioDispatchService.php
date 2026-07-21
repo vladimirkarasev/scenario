@@ -23,12 +23,6 @@ final readonly class ScenarioDispatchService
     ) {
     }
 
-    /**
-     * Найти сценарий по тегу в проекте сервис-юзера, найти целевого пользователя
-     * по login/external_id в том же проекте, создать ScenarioRun на бэкенде,
-     * опубликовать start_scenario в персональный канал целевого пользователя
-     * и вернуть id созданного прогона.
-     */
     public function dispatch(User $serviceUser, ScenarioDispatchData $data): string
     {
         $projectId = $serviceUser->project_id

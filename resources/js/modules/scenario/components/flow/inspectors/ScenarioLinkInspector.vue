@@ -13,14 +13,11 @@ const props = defineProps({
   node: {type: Object, required: true},
   draft: {type: Object, required: true},
   editable: {type: Boolean, default: false},
-  // ID текущего редактируемого сценария — исключается из picker.
   scenarioId: {type: String, default: null},
 })
 
 const emit = defineEmits(['sync'])
 
-// Пустая версия = динамический указатель: при переходе берётся та версия, что
-// сейчас active. Поставил версию active → на неё автоматически переходят.
 const DYNAMIC_VERSION_LABEL = 'последняя активная версия'
 
 const pickerOpen = ref(false)
@@ -68,7 +65,6 @@ watch(
 function onScenarioPicked(scenario) {
   props.draft.targetScenarioId = scenario.id
   props.draft.targetScenarioName = scenario.name
-  // По умолчанию — динамический указатель на последнюю активную версию.
   props.draft.targetVersionId = null
   props.draft.targetVersionName = DYNAMIC_VERSION_LABEL
   void loadVersionsFor(scenario.id)

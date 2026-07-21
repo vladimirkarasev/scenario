@@ -1,6 +1,5 @@
 import type {WebhookField} from '@/modules/proxy/types/webhook'
 
-/** Запись доступа (connection): «куда + как авторизуемся», переиспользуется эндпоинтами. */
 export interface ProxyConnection {
     id: number
     project_id: string | null
@@ -12,7 +11,6 @@ export interface ProxyConnection {
     updated_at: string | null
 }
 
-/** Тип доступа (драйвер) со схемой полей — для формы и пикера. */
 export interface CredentialType {
     type: string
     label: string

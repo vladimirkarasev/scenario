@@ -26,9 +26,6 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ save: []; 'update:matchBy': [value: string | null] }>()
 
-// Ключевое поле выбирается среди полей прокси, но хранится как ключ поля
-// справочника (match_by), на который это поле прокси сопоставлено — так бэкенд
-// резолвит external_key по подготовленной (смапленной) строке.
 const mappedProxyFields = computed(() => {
   const mappedProxyKeys = Object.values(props.fieldMapping).filter(Boolean)
   return props.proxyPicker.fields.value.filter(pf => mappedProxyKeys.includes(pf.key))

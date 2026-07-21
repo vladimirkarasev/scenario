@@ -22,11 +22,6 @@ final readonly class ApiGatewayConfig
         public array $headers = [],
     ) {}
 
-    /**
-     * Строит конфиг gateway для эндпоинта. Приоритет — привязанный доступ (connection):
-     * драйвер сам мапит свои поля в авторизацию. Если доступа нет — legacy-путь из колонок
-     * самого эндпоинта (до завершения миграции на connections).
-     */
     public static function forEndpoint(ProxyEndpoint $endpoint): self
     {
         $connection = $endpoint->connection;
@@ -42,11 +37,6 @@ final readonly class ApiGatewayConfig
         return self::fromEndpoint($endpoint);
     }
 
-    /**
-     * Legacy: конфиг gateway из колонок доступа самого эндпоинта (`base_uri` + `credentials`).
-     * Тип авторизации выводится из credentials: bearer_token → bearer, username → basic,
-     * headers → headers; иначе none.
-     */
     public static function fromEndpoint(ProxyEndpoint $endpoint): self
     {
         $credentials = $endpoint->credentials ?? [];

@@ -8,9 +8,6 @@ use App\Support\ApiMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Единый JSON:API-конверт ошибки: {"errors": [...], "meta": {...}}.
- */
 final class ApiErrorResponse
 {
     /** @param  list<array<string, mixed>>  $errors */

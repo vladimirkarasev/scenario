@@ -2,10 +2,6 @@ import {computed, ref} from 'vue'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
 import type {WebhookEndpoint} from '@/modules/proxy/types/webhook'
 
-/**
- * Загрузка и выбор proxy-эндпоинтов типа `suggest` для настройки block-поля «Подсказки».
- * Источник списка — webhookRepository.list() с JSON:API-фильтром type.
- */
 export function useSuggestProxyPicker(getProxyUuid: () => string) {
     const proxies = ref<WebhookEndpoint[]>([])
     const loading = ref(false)

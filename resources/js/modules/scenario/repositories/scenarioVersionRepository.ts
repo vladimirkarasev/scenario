@@ -20,7 +20,6 @@ export interface ScenarioVersionPayload {
     input_fields?: ScenarioInputField[]
 }
 
-// JSON:API shape — используется в list/find
 interface RawVersionAttributes {
     scenario_id: string
     name: string | null
@@ -37,7 +36,6 @@ interface RawVersion {
     attributes: RawVersionAttributes
 }
 
-// Flat shape (под конвертом data) — возвращают create/update/duplicate через CatalogService.versionPayload()
 interface RawVersionFlat {
     id: string
     name: string | null

@@ -14,10 +14,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD пользователей.
- * Роуты: GET|POST /api/users, GET|PUT|DELETE /api/users/{user}
- */
 final class UsersControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,13 +24,6 @@ final class UsersControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/users
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список возвращает пользователей текущего проекта.
-     */
     public function test_index_returns_users_in_project(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_view');
@@ -48,9 +37,6 @@ final class UsersControllerTest extends TestCase
             ->assertJsonStructure(['meta' => ['timestamp', 'requestId']]);
     }
 
-    /**
-     * Пользователи другого проекта не попадают в ответ.
-     */
     public function test_index_excludes_users_from_other_project(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
@@ -74,9 +60,6 @@ final class UsersControllerTest extends TestCase
         $this->assertNotSame($first->id, $second->id);
     }
 
-    /**
-     * Без пермишена user_view — 403.
-     */
     public function test_index_returns_403_without_permission(): void
     {
         [$actor] = $this->makeUserWithProject();
@@ -91,9 +74,6 @@ final class UsersControllerTest extends TestCase
             ]);
     }
 
-    /**
-     * Без авторизации — 401 в едином формате errors[] + meta.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/users')
@@ -105,13 +85,6 @@ final class UsersControllerTest extends TestCase
             ]);
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/users/{user}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующий пользователь — 200 с name и email в attributes.
-     */
     public function test_show_returns_user_attributes(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_view');
@@ -123,9 +96,6 @@ final class UsersControllerTest extends TestCase
             ->assertJsonPath('data.attributes.name', 'Иван Иванов');
     }
 
-    /**
-     * Несуществующий ID — 404.
-     */
     public function test_show_returns_404_for_nonexistent(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
@@ -135,10 +105,6 @@ final class UsersControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * ?include=roles,groups — связи отдаются linkage + в top-level included,
-     * а sparse fieldsets ограничивают набор полей групп/ролей.
-     */
     public function test_show_includes_relations_with_sparse_fields(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_view');
@@ -175,13 +141,6 @@ final class UsersControllerTest extends TestCase
         $this->assertSame(['name', 'title'], array_keys($includedRole['attributes']));
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/users
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание пользователя — 201, запись появляется в БД и добавляется в проект.
-     */
     public function test_store_creates_user_and_returns_201(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_create');
@@ -200,9 +159,6 @@ final class UsersControllerTest extends TestCase
         $this->assertDatabaseHas('users', ['name' => 'Новый пользователь', 'email' => $email]);
     }
 
-    /**
-     * Пустое тело — 422.
-     */
     public function test_store_returns_422_when_required_fields_missing(): void
     {
         [$actor] = $this->makeUserWithProject('user_create');
@@ -212,9 +168,6 @@ final class UsersControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Дублирующийся email — 422.
-     */
     public function test_store_returns_422_when_email_already_exists(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_create');
@@ -230,9 +183,6 @@ final class UsersControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Без пермишена user_create — 403.
-     */
     public function test_store_returns_403_without_permission(): void
     {
         [$actor] = $this->makeUserWithProject('user_view');
@@ -246,13 +196,6 @@ final class UsersControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/users/{user}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление name сохраняется в БД.
-     */
     public function test_update_persists_new_name(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_update');
@@ -270,13 +213,6 @@ final class UsersControllerTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Новое имя']);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/users/{user}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление пользователя — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_user_and_returns_204(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_delete');
@@ -291,9 +227,6 @@ final class UsersControllerTest extends TestCase
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->id]);
     }
 
-    /**
-     * Без пермишена user_delete — 403.
-     */
     public function test_destroy_returns_403_without_permission(): void
     {
         [$actor, $project] = $this->makeUserWithProject('user_view');
@@ -551,10 +484,6 @@ final class UsersControllerTest extends TestCase
         $this->assertSame(['user_update'], data_get($included, 'attributes.permissions'));
         $this->assertSame('web', data_get($included, 'attributes.guard_name'));
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

@@ -6,7 +6,6 @@ import type {VariableEntry} from '@/modules/scenario/types/scenario-variable-ent
 
 export interface LinkedScenarioRef {
     scenarioId: string
-    // null — динамический указатель «последняя активная версия».
     versionId: string | null
     scenarioName: string
 }
@@ -24,10 +23,6 @@ interface ResolvedLink {
 
 const EMPTY: ResolvedLink = {entries: [], blocks: []}
 
-/**
- * Извлекает ссылки на связанные сценарии из нод/блоков (scenario_link).
- * Единый источник для редактора графа и редактора блока.
- */
 export function toLinkedScenarioRefs(
     nodes: Array<{ type?: string; data?: Record<string, unknown> }>,
 ): LinkedScenarioRef[] {
@@ -40,13 +35,6 @@ export function toLinkedScenarioRefs(
         }))
 }
 
-/**
- * Переменные связанных сценариев (нод scenario_link) для панели переменных.
- * Для каждого перехода подтягивает блоки целевой версии (для динамики —
- * последней активной) и отдаёт их как переменные + группы, помеченные сценарием.
- * В рантайме плеер мёржит эти переменные при входе в связный сценарий, поэтому
- * на них можно ссылаться `{{ varName }}` из родителя.
- */
 export function useLinkedScenarioVariables(getLinks: () => LinkedScenarioRef[]) {
     const linkedEntries = ref<VariableEntry[]>([])
     const linkedBlocks = ref<LinkedBlockEntry[]>([])
@@ -82,7 +70,6 @@ export function useLinkedScenarioVariables(getLinks: () => LinkedScenarioRef[]) 
 
             const entries: VariableEntry[] = blocksToVariableEntries(doc.blocks).map((entry) => ({
                 ...entry,
-                // Изолируем blockId, чтобы группы не пересекались с текущим графом.
                 blockId: `link:${link.scenarioId}:${entry.blockId}`,
                 blockTitle: `↪ ${prefix} · ${entry.blockTitle}`,
                 isCurrent: false,
@@ -124,8 +111,6 @@ export function useLinkedScenarioVariables(getLinks: () => LinkedScenarioRef[]) 
         linkedBlocks.value = blocks
     }
 
-    // Стабильная сигнатура набора переходов: перезагружаем только когда меняется
-    // состав связанных сценариев/версий (надёжнее deep-watch геттера).
     const signature = computed(() =>
         getLinks()
             .map((link) => `${link.scenarioId}::${link.versionId ?? 'active'}`)

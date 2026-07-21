@@ -22,10 +22,6 @@ final class DevAuthApiController extends Controller
     ) {
     }
 
-    /**
-     * Симулирует прод-флоу: создаёт/обновляет пользователя проекта и выдаёт одноразовый _token.
-     * Origin у dev-токена не ограничивается (в локали Origin ≠ project->host).
-     */
     public function launch(Request $request): JsonResponse
     {
         $request->validate([

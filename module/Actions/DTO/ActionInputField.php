@@ -6,7 +6,6 @@ namespace Module\Actions\DTO;
 
 final readonly class ActionInputField
 {
-    /** Тип: string|number|boolean|uuid|email */
     public function __construct(
         public string $key,
         public string $label,

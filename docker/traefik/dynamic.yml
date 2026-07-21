@@ -14,16 +14,22 @@ http:
       service: scenario
 
     scenario-centrifugo:
-      rule: Host(`centrifugo.test`)
+      rule: Host(`centrifugo.scenario.test`)
       entryPoints:
         - web
       service: scenario-centrifugo
 
     buggregator:
-      rule: Host(`buggregator.test`)
+      rule: Host(`buggregator.scenario.test`)
       entryPoints:
         - web
       service: buggregator
+
+    temporal-ui:
+      rule: Host(`temporal.scenario.test`)
+      entryPoints:
+        - web
+      service: temporal-ui
 
   services:
     scenario:
@@ -40,3 +46,8 @@ http:
       loadBalancer:
         servers:
           - url: http://scenario-buggregator:8000
+
+    temporal-ui:
+      loadBalancer:
+        servers:
+          - url: http://scenario-temporal-ui:8080

@@ -26,13 +26,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->service = app(ScenarioVersionService::class);
     }
 
-    // -------------------------------------------------------------------------
-    // create
-    // -------------------------------------------------------------------------
-
-    /**
-     * Создание версии: запись появляется в БД, payload содержит id и status.
-     */
     public function test_create_persists_version_and_returns_payload(): void
     {
         $scenario = $this->makeScenario();
@@ -47,9 +40,6 @@ final class ScenarioVersionServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * Создание без имени — имя генерируется автоматически (v1, v2, …).
-     */
     public function test_create_auto_generates_name_when_not_provided(): void
     {
         $scenario = $this->makeScenario();
@@ -60,9 +50,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertSame('v2', $result['name']);
     }
 
-    /**
-     * Создание сохраняет ревизию с переданным schema_json.
-     */
     public function test_create_stores_revision_with_schema_json(): void
     {
         $scenario = $this->makeScenario();
@@ -75,13 +62,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertNotEmpty($revision->nodes_json);
     }
 
-    // -------------------------------------------------------------------------
-    // update
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление статуса сохраняется в БД.
-     */
     public function test_update_persists_new_status(): void
     {
         $scenario = $this->makeScenario();
@@ -92,9 +72,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertDatabaseHas('scenario_versions', ['id' => $version->id, 'status' => 'active']);
     }
 
-    /**
-     * Обновление добавляет новую ревизию (старая не удаляется).
-     */
     public function test_update_appends_new_revision(): void
     {
         $scenario = $this->makeScenario();
@@ -106,13 +83,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertSame(2, $count);
     }
 
-    // -------------------------------------------------------------------------
-    // duplicate
-    // -------------------------------------------------------------------------
-
-    /**
-     * Дублирование создаёт копию со статусом draft и суффиксом «(копия)».
-     */
     public function test_duplicate_creates_draft_copy_with_suffix(): void
     {
         $scenario = $this->makeScenario();
@@ -129,9 +99,6 @@ final class ScenarioVersionServiceTest extends TestCase
         ]);
     }
 
-    /**
-     * Дублирование версии без ревизий не бросает исключений.
-     */
     public function test_duplicate_works_when_version_has_no_revision(): void
     {
         $scenario = $this->makeScenario();
@@ -147,13 +114,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertSame('v1 (копия)', $result['name']);
     }
 
-    // -------------------------------------------------------------------------
-    // delete
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление версии — запись исчезает из БД.
-     */
     public function test_delete_removes_version_from_db(): void
     {
         $scenario = $this->makeScenario();
@@ -164,9 +124,6 @@ final class ScenarioVersionServiceTest extends TestCase
         $this->assertDatabaseMissing('scenario_versions', ['id' => $version->id]);
     }
 
-    /**
-     * Удаление версии каскадно удаляет её ревизии.
-     */
     public function test_delete_cascades_to_revisions(): void
     {
         $scenario = $this->makeScenario();
@@ -179,10 +136,6 @@ final class ScenarioVersionServiceTest extends TestCase
 
         $this->assertDatabaseMissing('scenario_version_revisions', ['id' => $revisionId]);
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeScenario(): Scenario
     {

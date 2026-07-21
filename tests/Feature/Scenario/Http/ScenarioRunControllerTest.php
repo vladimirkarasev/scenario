@@ -15,14 +15,6 @@ use RoadRunner\Centrifugo\CentrifugoApiInterface;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты для ScenarioRunController.
- * Роуты: POST /api/scenarios/runner                    (store)
- *        GET  /api/scenarios/runner/{id}               (show)
- *        POST /api/scenarios/runner/{id}/continue      (continue)
- *        POST /api/scenarios/runner/{id}/jump          (jump)
- *        GET  /api/scenarios/runner/{id}/history       (history)
- */
 final class ScenarioRunControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -41,8 +33,6 @@ final class ScenarioRunControllerTest extends TestCase
             'is_active' => true,
         ]);
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private function makeUser(string ...$permissions): User
     {
@@ -110,8 +100,6 @@ final class ScenarioRunControllerTest extends TestCase
 
         return ScenarioRun::query()->findOrFail($response->json('data.run.id'));
     }
-
-    // ------------------------------------------------------------------ POST /api/scenarios/runner
 
     public function test_store_creates_run_and_returns_201(): void
     {
@@ -228,8 +216,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertUnauthorized();
     }
 
-    // ------------------------------------------------------------------ GET /api/scenarios/runner/{id}
-
     public function test_show_returns_run_payload(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block');
@@ -283,9 +269,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertJsonPath('errors.0.code', 'SCENARIO_RUN_NOT_FOUND');
     }
 
-    // ------------------------------------------------------------------ POST /api/scenarios/runner/{id}/continue
-    // — happy paths
-
     public function test_continue_advances_run_with_valid_input(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block', [
@@ -329,8 +312,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertOk();
     }
 
-    // ------------------------------------------------------------------ required
-
     public function test_continue_returns_422_when_required_field_missing(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block', [
@@ -363,8 +344,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonFragment(['pointer' => '/data/attributes/agree']);
     }
-
-    // ------------------------------------------------------------------ email
 
     public function test_continue_returns_422_for_invalid_email(): void
     {
@@ -399,8 +378,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertOk();
     }
 
-    // ------------------------------------------------------------------ number
-
     public function test_continue_returns_422_for_non_numeric_value(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block', [
@@ -417,8 +394,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonFragment(['pointer' => '/data/attributes/age']);
     }
-
-    // ------------------------------------------------------------------ textarea maxLength
 
     public function test_continue_returns_422_when_textarea_exceeds_max_length(): void
     {
@@ -453,8 +428,6 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertOk();
     }
 
-    // ------------------------------------------------------------------ error message locale
-
     public function test_validation_error_messages_are_in_russian(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block', [
@@ -472,8 +445,6 @@ final class ScenarioRunControllerTest extends TestCase
         $this->assertIsString($message);
         $this->assertStringContainsString('обязательно', $message);
     }
-
-    // ------------------------------------------------------------------ POST /api/scenarios/runner/{id}/jump
 
     public function test_jump_moves_run_to_specified_node(): void
     {
@@ -509,15 +480,12 @@ final class ScenarioRunControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // ------------------------------------------------------------------ GET /api/scenarios/runner/{id}/history
-
     public function test_history_returns_transition_for_new_run(): void
     {
         [$scenario] = $this->makeScenarioWithBlock('node_block');
         $run = $this->createRun($scenario);
         $user = $this->makeUser();
 
-        // После создания плеер уже продвинулся до первого блока — одна transition-запись.
         $this->actingAs($user)
             ->getJson("/api/scenarios/runner/{$run->id}/history")
             ->assertOk()

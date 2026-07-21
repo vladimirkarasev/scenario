@@ -26,9 +26,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service = app(DirectoryVersionService::class);
     }
 
-    /**
-     * Версия принадлежит директории B, удаляем через директорию A — ожидаем исключение
-     */
     public function test_delete_throws_when_version_belongs_to_another_directory(): void
     {
         $directoryA = $this->makeDirectory();
@@ -40,9 +37,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->delete($directoryA, $version);
     }
 
-    /**
-     * Попытка удалить активную версию — ожидаем исключение с сообщением о запрете
-     */
     public function test_delete_throws_when_version_is_active(): void
     {
         $directory = $this->makeDirectory();
@@ -54,9 +48,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->delete($directory, $version);
     }
 
-    /**
-     * Неактивная версия той же директории — должна быть удалена из БД
-     */
     public function test_delete_removes_non_active_version(): void
     {
         $directory = $this->makeDirectory();
@@ -67,9 +58,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->assertNull(DirectoryVersion::query()->find($version->id));
     }
 
-    /**
-     * Версия чужой директории — updateSchema должен бросить исключение
-     */
     public function test_update_schema_throws_when_version_belongs_to_another_directory(): void
     {
         $directoryA = $this->makeDirectory();
@@ -81,9 +69,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->updateSchema($directoryA, $version, [], null);
     }
 
-    /**
-     * Передаём поля схемы и match_by — они должны сохраниться в версии и директории
-     */
     public function test_update_schema_persists_fields_and_match_by(): void
     {
         $directory = $this->makeDirectory();
@@ -138,9 +123,6 @@ final class DirectoryVersionServiceTest extends TestCase
         Queue::assertNotPushed(RebuildDirectorySearchTextJob::class);
     }
 
-    /**
-     * Версия чужой директории — activate должен бросить исключение
-     */
     public function test_activate_throws_when_version_belongs_to_another_directory(): void
     {
         $directoryA = $this->makeDirectory();
@@ -152,9 +134,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->activate($directoryA, $version);
     }
 
-    /**
-     * Активируем v2 при уже активном v1 — v1 должен стать неактивным, v2 активным
-     */
     public function test_activate_makes_version_active_and_deactivates_others(): void
     {
         $directory = $this->makeDirectory();
@@ -169,9 +148,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->assertTrue((bool)$v2->is_active);
     }
 
-    /**
-     * Версия чужой директории — updateSettings должен бросить исключение
-     */
     public function test_update_settings_throws_when_version_belongs_to_another_directory(): void
     {
         $directoryA = $this->makeDirectory();
@@ -183,9 +159,6 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->service->updateSettings($directoryA, $version, 'manual');
     }
 
-    /**
-     * Версия чужой директории — updateCode должен бросить исключение
-     */
     public function test_update_code_throws_when_version_belongs_to_another_directory(): void
     {
         $directoryA = $this->makeDirectory();

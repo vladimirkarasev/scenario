@@ -17,8 +17,6 @@ use Module\Scenario\Models\Scenario;
 final readonly class ScenarioFeedService
 {
     /**
-     * Возвращает смешанный поток "папки сверху + сценарии" с единой пагинацией.
-     *
      * @return array{
      *     rows: array<int, array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, from: int|null, to: int|null, folders_total: int, items_total: int},
@@ -44,8 +42,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Единая пагинация union-запроса «папки + сценарии»: папки первыми, внутри — по имени.
-     *
      * @param  list<string>|null  $subtreeIds
      * @return LengthAwarePaginator<int, \stdClass>
      */
@@ -70,8 +66,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Гидрирует страницу union-запроса моделями и собирает строки в порядке страницы.
-     *
      * @param  LengthAwarePaginator<int, \stdClass>  $page
      * @param  array<string, array{name: string, parent_id: string|null}>|null  $map
      * @param  list<string>|null  $subtreeIds
@@ -148,8 +142,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Счётчики сценариев по статусам в текущей категории/поиске (без учёта status фильтра).
-     *
      * @param  list<string>|null  $subtreeIds
      * @return array{all: int, active: int, draft: int, archived: int}
      */
@@ -210,7 +202,6 @@ final readonly class ScenarioFeedService
             ->orderBy('name');
     }
 
-    /** Условие: категория привязана к сценариям (в проекте, если он задан). */
     private function boundToScenarios(?string $projectId): Closure
     {
         return static function (QueryBuilder $q) use ($projectId): void {
@@ -323,8 +314,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Карта scenario-категорий проекта: id => {name, parent_id}. Для построения путей.
-     *
      * @return array<string, array{name: string, parent_id: string|null}>
      */
     private function categoryMap(?string $projectId): array
@@ -339,8 +328,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * id корня и всех его потомков.
-     *
      * @param  array<string, array{name: string, parent_id: string|null}>  $map
      * @return list<string>
      */
@@ -365,8 +352,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Путь категории строкой «A / B / C» по карте.
-     *
      * @param  array<string, array{name: string, parent_id: string|null}>  $map
      */
     private function pathFor(array $map, ?string $catId): string
@@ -384,8 +369,6 @@ final readonly class ScenarioFeedService
     }
 
     /**
-     * Цепочка id предков от корня до категории (включительно) — для разворота дерева.
-     *
      * @param  array<string, array{name: string, parent_id: string|null}>  $map
      * @return list<string>
      */

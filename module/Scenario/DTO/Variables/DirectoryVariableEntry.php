@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Scenario\DTO\Variables;
 
-/** Переменная для полей directory_list и directory_table. */
 final readonly class DirectoryVariableEntry implements VariableEntryInterface
 {
     /**

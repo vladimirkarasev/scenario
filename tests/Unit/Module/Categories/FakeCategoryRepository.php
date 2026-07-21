@@ -8,9 +8,6 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
 use Module\Categories\Repositories\CategoryRepositoryContract;
 
-/**
- * Фейковый внутренний репозиторий со счётчиками вызовов — для тестов кеширующего декоратора.
- */
 final class FakeCategoryRepository implements CategoryRepositoryContract
 {
     public int $forModelCalls = 0;

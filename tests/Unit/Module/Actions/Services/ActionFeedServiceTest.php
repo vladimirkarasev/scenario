@@ -13,9 +13,6 @@ use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionFeedService;
 use Tests\TestCase;
 
-/**
- * Feed отдаёт смешанный поток "разделы + действия" с единой пагинацией, навигация по parent_id.
- */
 final class ActionFeedServiceTest extends TestCase
 {
     use RefreshDatabase;
@@ -40,10 +37,10 @@ final class ActionFeedServiceTest extends TestCase
         ));
 
         $this->assertSame(1, $feed['pagination']['folders_total']);
-        $this->assertSame(1, $feed['pagination']['items_total']); // только uncategorized
+        $this->assertSame(1, $feed['pagination']['items_total']);
 
         $types = array_column($feed['data'], 'type');
-        $this->assertSame(['folder', 'action'], $types); // папки сверху
+        $this->assertSame(['folder', 'action'], $types);
         $this->assertSame('loose', $feed['data'][1]['name']);
     }
 

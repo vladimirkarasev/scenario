@@ -15,11 +15,6 @@ use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\ScenarioPlayerService;
 use Tests\TestCase;
 
-/**
- * Откат прогона (кнопка «Отмена» в таймлайне) должен сбрасывать сохранённое состояние
- * pipeline action-нод. Иначе повторно дошедшая action-нода видит прежний статус Done
- * и проскакивает мимо, не запустив экшены заново.
- */
 final class ScenarioPlayerServiceJumpTest extends TestCase
 {
     use RefreshDatabase;
@@ -57,8 +52,6 @@ final class ScenarioPlayerServiceJumpTest extends TestCase
         $run = $this->createRun();
         $this->assertSame('node_block', $run->current_node_id);
 
-        // Прогон сидит на блоке: вручную сидируем «будущее» состояние action-ноды,
-        // как если бы она уже отработала, а юзер откатился назад на блок.
         $context = $run->context ?? [];
         $context[NodeContextKeys::ACTION_RUNS] = ['node_action' => 'done'];
         $context[NodeContextKeys::ACTION_STAGES] = ['node_action' => ['send' => 'success']];
@@ -78,13 +71,11 @@ final class ScenarioPlayerServiceJumpTest extends TestCase
     {
         $run = $this->createRun();
 
-        // Доводим прогон до action-ноды: без action_items нода помечается done и продвигается.
         $run = $this->player->continueRun($run, new ScenarioRunContinueData([], null));
         $actionRuns = $this->context($run)[NodeContextKeys::ACTION_RUNS] ?? [];
         $this->assertIsArray($actionRuns);
         $this->assertSame('done', $actionRuns['node_action'] ?? null);
 
-        // Откат на блок должен снять статус done, чтобы повторный заход на ноду запустил её заново.
         $run = $this->player->jumpRun($run, new ScenarioRunJumpData('node_block'));
 
         $this->assertSame('node_block', $run->current_node_id);

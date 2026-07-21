@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Scenario\Services\Nodes;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
-use Module\Actions\Jobs\ChainStepJob;
-use Module\Actions\Jobs\DispatchActionBatchJob;
 use Module\Actions\Models\Action;
+use Module\Actions\Temporal\RunActionsWorkflowStarterInterface;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\Nodes\Action\ActionNodeHandler;
+use Tests\Stubs\FakeRunActionsWorkflowStarter;
 use Tests\TestCase;
 
 final class ActionNodeHandlerTest extends TestCase
@@ -34,9 +33,14 @@ final class ActionNodeHandlerTest extends TestCase
 
     private ScenarioRun $run;
 
+    private FakeRunActionsWorkflowStarter $workflowStarter;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->workflowStarter = new FakeRunActionsWorkflowStarter();
+        $this->app->instance(RunActionsWorkflowStarterInterface::class, $this->workflowStarter);
 
         $this->handler = app(ActionNodeHandler::class);
 
@@ -90,8 +94,6 @@ final class ActionNodeHandlerTest extends TestCase
 
     public function test_advance_dispatches_sequential_chain_for_action_items(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',
@@ -99,7 +101,13 @@ final class ActionNodeHandlerTest extends TestCase
                 'skipInSurvey' => true,
                 'execution_mode' => 'sequential',
                 'action_items' => [
-                    ['code' => 'tpl', 'action_id' => self::ACTION_A, 'input' => ['to' => '{{ user.email }}']],
+                    [
+                        'code' => 'tpl',
+                        'action_id' => self::ACTION_A,
+                        'input' => ['to' => '{{ user.email }}'],
+                        'backoff' => [0, 60],
+                        'delay_before' => 30,
+                    ],
                     ['code' => 'send', 'action_id' => self::ACTION_B, 'input' => []],
                 ],
             ],
@@ -108,27 +116,23 @@ final class ActionNodeHandlerTest extends TestCase
         $result = $this->handler->advance($this->run, $node);
 
         $this->assertSame('node_next', $result->nextNodeId);
-        Bus::assertDispatched(ChainStepJob::class, function (ChainStepJob $job) {
-            $reflection = new \ReflectionClass($job);
-            $actionId = $reflection->getProperty('actionId')->getValue($job);
-            $context = $reflection->getProperty('context')->getValue($job);
+        $this->assertCount(1, $this->workflowStarter->sequentialCalls);
 
-            if ($actionId !== self::ACTION_A || ! is_array($context)) {
-                return false;
-            }
+        $call = $this->workflowStarter->sequentialCalls[0];
+        $this->assertSame([self::ACTION_A, self::ACTION_B], $call->actionIds);
 
-            $tpl = $context['tpl'] ?? null;
-
-            return is_array($tpl)
-                && ($tpl['to'] ?? null) === 'a@example.com'
-                && ($context['scenario_run_id'] ?? null) === (string) $this->run->id;
-        });
+        $tpl = $call->context['tpl'] ?? null;
+        $this->assertIsArray($tpl);
+        $this->assertSame('a@example.com', $tpl['to'] ?? null);
+        $this->assertSame((string) $this->run->id, $call->scenarioRunId);
+        $this->assertSame([0, 60], $call->backoffByActionId[self::ACTION_A]);
+        $this->assertSame(30, $call->delayBeforeByActionId[self::ACTION_A]);
+        $this->assertSame([], $call->backoffByActionId[self::ACTION_B]);
+        $this->assertSame(0, $call->delayBeforeByActionId[self::ACTION_B]);
     }
 
     public function test_advance_dispatches_parallel_batch(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',
@@ -143,13 +147,12 @@ final class ActionNodeHandlerTest extends TestCase
 
         $this->handler->advance($this->run, $node);
 
-        Bus::assertDispatched(DispatchActionBatchJob::class);
+        $this->assertCount(1, $this->workflowStarter->parallelCalls);
+        $this->assertSame([self::ACTION_A, self::ACTION_B], $this->workflowStarter->parallelCalls[0]->actionIds);
     }
 
     public function test_advance_dispatches_before_and_on_error_hooks(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',
@@ -169,33 +172,24 @@ final class ActionNodeHandlerTest extends TestCase
 
         $this->handler->advance($this->run, $node);
 
-        Bus::assertDispatched(ChainStepJob::class, function (ChainStepJob $job) {
-            $reflection = new \ReflectionClass($job);
-            $actionId = $reflection->getProperty('actionId')->getValue($job);
-            $remaining = $reflection->getProperty('remainingActionIds')->getValue($job);
-            $failed = $reflection->getProperty('failedActionIds')->getValue($job);
+        $this->assertCount(1, $this->workflowStarter->sequentialCalls);
+        $call = $this->workflowStarter->sequentialCalls[0];
 
-            return $actionId === self::ACTION_BEFORE
-                && $remaining === [self::ACTION_A]
-                && $failed === [self::ACTION_ERROR];
-        });
+        $this->assertSame([self::ACTION_BEFORE, self::ACTION_A], $call->actionIds);
+        $this->assertSame([self::ACTION_ERROR], $call->onErrorActionIds);
     }
 
     public function test_advance_skips_dispatch_when_no_actions(): void
     {
-        Bus::fake();
-
         $node = ['id' => 'node_action', 'type' => 'action', 'data' => ['action_items' => []]];
         $result = $this->handler->advance($this->run, $node);
 
         $this->assertSame('node_next', $result->nextNodeId);
-        Bus::assertNothingDispatched();
+        $this->assertCount(0, $this->workflowStarter->sequentialCalls);
     }
 
     public function test_continue_from_also_dispatches(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',
@@ -213,13 +207,11 @@ final class ActionNodeHandlerTest extends TestCase
         );
 
         $this->assertSame('node_next', $next);
-        Bus::assertDispatched(ChainStepJob::class);
+        $this->assertCount(1, $this->workflowStarter->sequentialCalls);
     }
 
     public function test_wait_for_result_dispatches_async_pipeline_and_pauses(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',
@@ -233,22 +225,15 @@ final class ActionNodeHandlerTest extends TestCase
 
         $result = $this->handler->advance($this->run, $node);
 
-        // Прогон паузится на ноде (ждём завершения цепочки по WS), не продвигается.
         $this->assertNull($result->nextNodeId);
         $this->assertTrue($result->pause);
 
-        // Цепочка задиспатчена с scenario_node_id — это включает pipeline по WS и авто-резюм.
-        Bus::assertDispatched(ChainStepJob::class, function (ChainStepJob $job): bool {
-            $reflection = new \ReflectionClass($job);
-            $nodeId = $reflection->getProperty('scenarioNodeId')->getValue($job);
-            $context = $reflection->getProperty('context')->getValue($job);
+        $this->assertCount(1, $this->workflowStarter->sequentialCalls);
+        $call = $this->workflowStarter->sequentialCalls[0];
 
-            return $nodeId === 'node_action'
-                && is_array($context)
-                && ($context['scenario_node_id'] ?? null) === 'node_action';
-        });
+        $this->assertSame('node_action', $call->scenarioNodeId);
+        $this->assertSame('node_action', $call->context['scenario_node_id'] ?? null);
 
-        // Нода помечена running, синхронно результат НЕ записан.
         $context = $this->run->fresh()->context;
         $this->assertSame('running', $context['_action_runs']['node_action'] ?? null);
         $this->assertArrayNotHasKey('send_email', $context);
@@ -256,8 +241,6 @@ final class ActionNodeHandlerTest extends TestCase
 
     public function test_async_path_does_not_write_result_to_context(): void
     {
-        Bus::fake();
-
         $node = [
             'id' => 'node_action',
             'type' => 'action',

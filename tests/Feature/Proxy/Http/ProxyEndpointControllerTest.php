@@ -11,10 +11,6 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты CRUD-контроллера эндпоинтов.
- * Все роуты защищены auth:sanctum — неаутентифицированный запрос возвращает 401.
- */
 final class ProxyEndpointControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -28,13 +24,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->user = $this->createProxyUser();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/proxy/endpoints
-    // -------------------------------------------------------------------------
-
-    /**
-     * Список эндпоинтов возвращает все записи в ключе data (JSON:API).
-     */
     public function test_index_returns_all_endpoints(): void
     {
         $this->makeEndpoint();
@@ -46,9 +35,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Каждый элемент содержит обязательные поля: id, uuid, name, code, is_active, handler_class.
-     */
     public function test_index_items_contain_expected_fields(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -67,21 +53,15 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertArrayHasKey('handler_class', $attrs);
     }
 
-    /**
-     * Неаутентифицированный запрос к списку — 401.
-     */
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/proxy/endpoints')
             ->assertUnauthorized();
     }
 
-    /**
-     * filter[type]=suggest возвращает только эндпоинты типа suggest.
-     */
     public function test_index_filters_by_type(): void
     {
-        $this->makeEndpoint();                       // type=webhook (дефолт)
+        $this->makeEndpoint();
         $suggest = $this->makeEndpoint(type: 'suggest');
 
         $response = $this->actingAs($this->user)
@@ -109,13 +89,6 @@ final class ProxyEndpointControllerTest extends TestCase
         );
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/proxy/endpoints
-    // -------------------------------------------------------------------------
-
-    /**
-     * Валидные данные — создаётся запись, возвращается 201 с data (JSON:API).
-     */
     public function test_store_creates_endpoint_and_returns_201(): void
     {
         $response = $this->actingAs($this->user)
@@ -133,9 +106,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertDatabaseHas('proxy_endpoints', ['code' => 'test-endpoint']);
     }
 
-    /**
-     * Созданный эндпоинт получает uuid автоматически — он присутствует в ответе.
-     */
     public function test_store_assigns_uuid_automatically(): void
     {
         $response = $this->actingAs($this->user)
@@ -150,9 +120,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertTrue((bool) preg_match('/^[0-9a-f-]{36}$/', $uuid), 'uuid должен быть в формате UUID v4');
     }
 
-    /**
-     * Отсутствуют обязательные поля name, code, handler_class — 422.
-     */
     public function test_store_returns_422_when_required_fields_missing(): void
     {
         $this->actingAs($this->user)
@@ -160,13 +127,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/proxy/endpoints/{proxy}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Существующий эндпоинт — 200 с полными данными в data (JSON:API).
-     */
     public function test_show_returns_endpoint_by_id(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -178,9 +138,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertJsonPath('data.attributes.name', $endpoint->name);
     }
 
-    /**
-     * Несуществующий ID — 404.
-     */
     public function test_show_returns_404_for_nonexistent_id(): void
     {
         $this->actingAs($this->user)
@@ -188,13 +145,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/proxy/endpoints/{proxy}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Обновление полей — 200, данные сохраняются в БД.
-     */
     public function test_update_persists_new_values(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -214,9 +164,6 @@ final class ProxyEndpointControllerTest extends TestCase
         ]);
     }
 
-    /**
-     * Можно отдельно переключить is_active без изменения других полей.
-     */
     public function test_update_can_deactivate_endpoint(): void
     {
         $endpoint = $this->makeEndpoint(isActive: true);
@@ -232,13 +179,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertJsonPath('data.attributes.is_active', false);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE /api/proxy/endpoints/{proxy}
-    // -------------------------------------------------------------------------
-
-    /**
-     * Удаление существующего эндпоинта — 204, запись исчезает из БД.
-     */
     public function test_destroy_deletes_endpoint_and_returns_204(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -250,9 +190,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertDatabaseMissing('proxy_endpoints', ['id' => $endpoint->id]);
     }
 
-    /**
-     * Удаление несуществующего ID — 404.
-     */
     public function test_destroy_returns_404_for_nonexistent_id(): void
     {
         $this->actingAs($this->user)
@@ -260,13 +197,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    // -------------------------------------------------------------------------
-    // Мок-ответ
-    // -------------------------------------------------------------------------
-
-    /**
-     * При создании эндпоинта можно сразу задать is_mocked и список mock_responses.
-     */
     public function test_store_persists_mock_response_fields(): void
     {
         $variants = [
@@ -297,9 +227,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertSame($variants, $endpoint->mock_responses);
     }
 
-    /**
-     * Через update можно переключить is_mocked и заменить mock_responses.
-     */
     public function test_update_can_change_mock_response_fields(): void
     {
         $endpoint = $this->makeEndpoint();
@@ -323,9 +250,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertSame(418, $endpoint->mock_responses[0]['status']);
     }
 
-    /**
-     * Невалидный status (не int / вне диапазона) — 422.
-     */
     public function test_store_rejects_invalid_mock_status(): void
     {
         $this->actingAs($this->user)
@@ -340,13 +264,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    // -------------------------------------------------------------------------
-    // Доступы (интеграция = handler + creds + mock + uuid)
-    // -------------------------------------------------------------------------
-
-    /**
-     * Доступы шифруются в БД, секрет маскируется в ответе, отдаётся receive_url.
-     */
     public function test_store_persists_credentials_encrypted_and_masks_secret(): void
     {
         $response = $this->actingAs($this->user)
@@ -376,9 +293,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertSame('secret-token-123', $endpoint->credentials['bearer_token']);
     }
 
-    /**
-     * Пустой секрет при update = «не менять» — сохранённый токен остаётся.
-     */
     public function test_update_with_blank_secret_preserves_stored_token(): void
     {
         $endpoint = ProxyEndpoint::query()->create([
@@ -401,9 +315,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertSame('original-token', $endpoint->credentials['bearer_token']);
     }
 
-    /**
-     * handler_class вне каталога — 422.
-     */
     public function test_store_rejects_handler_class_not_in_catalog(): void
     {
         $this->actingAs($this->user)
@@ -414,9 +325,6 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertUnprocessable();
     }
 
-    /**
-     * Каталог обработчиков отдаётся в формате JSON:API с пагинацией.
-     */
     public function test_handlers_catalog_is_returned(): void
     {
         $response = $this->actingAs($this->user)
@@ -431,9 +339,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertContains(\Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class, $classes);
     }
 
-    /**
-     * Пагинация и поиск по каталогу обработчиков.
-     */
     public function test_handlers_catalog_paginates_and_searches(): void
     {
         $page1 = $this->actingAs($this->user)
@@ -450,10 +355,6 @@ final class ProxyEndpointControllerTest extends TestCase
         $this->assertNotEmpty($groups);
         $this->assertSame(['AutoCRM'], array_values(array_unique($groups)));
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function makeEndpoint(bool $isActive = true, string $type = 'webhook'): ProxyEndpoint
     {

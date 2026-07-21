@@ -114,7 +114,6 @@ class ProxyField
         return $this;
     }
 
-    /** Помечает поле как секретное: значение шифруется и маскируется в API. */
     public function secret(): static
     {
         $this->secret = true;

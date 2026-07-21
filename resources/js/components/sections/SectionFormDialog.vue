@@ -11,9 +11,7 @@ import type {SectionModalApi} from '@/composables/useSectionModal'
 
 const props = withDefaults(defineProps<{
   modal: SectionModalApi
-  // Опции родительского раздела (обычно tree.allSectionsFlat).
   parentOptions?: { id: string; name: string; depth: number }[]
-  // Id, недоступные как родитель (сам раздел + его потомки) — защита от циклов.
   excludeIds?: string[]
   placeholder?: string
   showParentSelect?: boolean
@@ -24,7 +22,6 @@ const props = withDefaults(defineProps<{
   showParentSelect: true,
 })
 
-// Нельзя сделать раздел родителем самому себе или своему потомку.
 const availableParents = computed(() =>
     props.parentOptions.filter(s =>
         s.id !== props.modal.editingId.value && !props.excludeIds.includes(s.id),

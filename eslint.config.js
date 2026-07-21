@@ -49,6 +49,7 @@ export default tseslint.config(
             // General
             'no-console': ['warn', { allow: ['warn', 'error'] }],
             'prefer-const': 'error',
+            'no-empty': ['error', { allowEmptyCatch: true }],
         },
     },
 )

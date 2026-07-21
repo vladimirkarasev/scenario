@@ -21,6 +21,7 @@ describe('action schemas', () => {
                 required: true,
                 default: null,
             }],
+            default_backoff: [0, 60],
             category_ids: ['category-1'],
         })
 

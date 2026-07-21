@@ -14,8 +14,6 @@ use Illuminate\Http\Resources\JsonApi\JsonApiResource;
  */
 final class CategoryResource extends JsonApiResource
 {
-    // true → ресурс уважает sparse fieldsets из query (?fields[category]=name,parent_id).
-    // Без параметра fields поведение прежнее: возвращаются все атрибуты.
     protected bool $usesRequestQueryString = true;
 
     public function toId(Request $request): string

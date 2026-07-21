@@ -13,10 +13,6 @@ abstract class ProxyHandler
     abstract public function fields(): iterable;
 
     /**
-     * Тип доступа (драйвер {@see \Module\Proxy\Credentials\ProxyCredential}), который требует
-     * этот хендлер. null — доступ не нужен (мок/тестовый хендлер без внешнего вызова).
-     * Привязать к эндпоинту можно только connection этого типа.
-     *
      * @return class-string<\Module\Proxy\Credentials\ProxyCredential>|null
      */
     public function credentialType(): ?string

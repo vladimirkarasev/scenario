@@ -5,21 +5,28 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Actions\Services;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
-use Module\Actions\Jobs\ChainStepJob;
 use Module\Actions\Models\Action;
-use Module\Actions\Models\ActionSchedule;
 use Module\Actions\Services\ActionScheduleService;
+use Module\Actions\Temporal\ActionScheduleSyncerInterface;
+use Tests\Stubs\FakeActionScheduleSyncer;
 use Tests\TestCase;
 
 final class ActionScheduleServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_run_due_dispatches_scheduled_action_and_updates_timestamps(): void
-    {
-        Bus::fake();
+    private FakeActionScheduleSyncer $syncer;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->syncer = new FakeActionScheduleSyncer();
+        $this->app->instance(ActionScheduleSyncerInterface::class, $this->syncer);
+    }
+
+    public function test_upsert_syncs_temporal_schedule(): void
+    {
         $action = Action::query()->create([
             'name' => 'Scheduled action',
             'slug' => 'scheduled-action',
@@ -28,25 +35,24 @@ final class ActionScheduleServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        $schedule = ActionSchedule::query()->create([
-            'action_id' => $action->id,
-            'enabled' => true,
-            'cron' => '30 9 * * *',
-            'timezone' => 'UTC',
-            'input' => ['lead_id' => 15],
-            'options' => [],
-            'next_run_at' => now()->subMinute(),
-        ]);
+        $schedule = app(ActionScheduleService::class)->upsert(
+            action: $action,
+            enabled: true,
+            cron: '30 9 * * *',
+            timezone: 'UTC',
+            input: ['lead_id' => 15],
+            options: [],
+            settings: [],
+        );
 
-        $count = app(ActionScheduleService::class)->runDue();
+        $this->assertCount(1, $this->syncer->syncedSchedules);
+        $synced = $this->syncer->syncedSchedules[0];
+        $this->assertSame($schedule->id, $synced->id);
+        $this->assertTrue($synced->enabled);
+        $this->assertSame('30 9 * * *', $synced->cron);
+        $this->assertSame('UTC', $synced->timezone);
 
-        $this->assertSame(1, $count);
-        Bus::assertDispatched(ChainStepJob::class);
-
-        $schedule->refresh();
-        $this->assertNotNull($schedule->last_run_at);
         $this->assertNotNull($schedule->next_run_at);
-        $this->assertTrue($schedule->next_run_at->greaterThan($schedule->last_run_at));
     }
 
     public function test_upsert_disables_schedule_without_next_run(): void
@@ -71,5 +77,35 @@ final class ActionScheduleServiceTest extends TestCase
 
         $this->assertFalse($schedule->enabled);
         $this->assertNull($schedule->next_run_at);
+
+        $this->assertCount(1, $this->syncer->syncedSchedules);
+        $this->assertFalse($this->syncer->syncedSchedules[0]->enabled);
+    }
+
+    public function test_delete_removes_schedule_and_temporal_schedule(): void
+    {
+        $action = Action::query()->create([
+            'name' => 'Deletable schedule action',
+            'slug' => 'deletable-schedule-action',
+            'code' => 'deletable_schedule_action',
+            'type' => 'email',
+            'is_active' => true,
+        ]);
+
+        $schedule = app(ActionScheduleService::class)->upsert(
+            action: $action,
+            enabled: true,
+            cron: '30 9 * * *',
+            timezone: 'UTC',
+            input: [],
+            options: [],
+            settings: [],
+        );
+        $scheduleId = $schedule->id;
+
+        app(ActionScheduleService::class)->delete($schedule);
+
+        $this->assertNull($action->schedule()->first());
+        $this->assertContains($scheduleId, $this->syncer->deletedScheduleIds);
     }
 }

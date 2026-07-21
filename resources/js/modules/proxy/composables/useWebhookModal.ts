@@ -61,11 +61,9 @@ export function useWebhookModal(onSaved: () => void) {
     const fields = ref<WebhookField[]>([])
     const loadingFields = ref(false)
 
-    // Тип доступа, который требует выбранный обработчик (null — доступ не нужен).
     const requiredCredentialType = computed<string | null>(
         () => handlers.value.find(h => h.class === form.handler_class)?.credential_type ?? null,
     )
-    // Доступы, подходящие выбранному обработчику.
     const availableConnections = computed<ProxyConnection[]>(() =>
         requiredCredentialType.value === null
             ? []

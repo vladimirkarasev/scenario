@@ -27,7 +27,6 @@ export function useUserFilters(params: UserListParams) {
     )
     const hasFilters = computed(() => filterGroups.value.length > 0 || filterRoles.value.length > 0)
 
-    // Resolve display names for URL-restored filters
     onMounted(async () => {
         const groupIds = toArr(params['filter[group_ids][]'])
         if (groupIds.length) {
@@ -50,8 +49,6 @@ export function useUserFilters(params: UserListParams) {
             }
         }
     })
-
-    // ── Dropdown state ─────────────────────────────────────────────────
 
     const filterGroupSearch = ref('')
     const filterRoleSearch = ref('')

@@ -10,10 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Module\Users\Http\Requests\LaunchTokenRequest;
 use Module\Users\Services\LaunchTokenService;
 
-/**
- * Выпуск одноразового launch-токена (_token) для пользователя проекта по external_id.
- * Вызывается системным пользователем; фронт обменивает _token на пару access/refresh.
- */
 final class LaunchTokenController extends Controller
 {
     public function __construct(

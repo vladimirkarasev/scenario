@@ -15,12 +15,6 @@ use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
-/**
- * HTTP-тесты публичного эндпоинта данных справочника.
- * Роут: GET /api/directories/{slug}/data
- *
- * Принимает slug справочника (не UUID), работает только если есть активная версия.
- */
 final class DirectoryDataControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -31,13 +25,6 @@ final class DirectoryDataControllerTest extends TestCase
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
-    // -------------------------------------------------------------------------
-    // Успешные кейсы
-    // -------------------------------------------------------------------------
-
-    /**
-     * Справочник с активной версией и элементами — data содержит все элементы.
-     */
     public function test_returns_items_from_active_version(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -52,9 +39,6 @@ final class DirectoryDataControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    /**
-     * Ответ содержит meta.dictionary с id и code справочника.
-     */
     public function test_response_includes_dictionary_meta(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -69,9 +53,6 @@ final class DirectoryDataControllerTest extends TestCase
         $this->assertSame('meta-catalog', $response->json('meta.dictionary.code'));
     }
 
-    /**
-     * Элементы пустой версии — data пуст, total=0.
-     */
     public function test_returns_empty_data_when_no_items(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -84,13 +65,6 @@ final class DirectoryDataControllerTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    // -------------------------------------------------------------------------
-    // Ошибки
-    // -------------------------------------------------------------------------
-
-    /**
-     * Справочник без активной версии — 404 (whereHas('activeVersion') не проходит).
-     */
     public function test_returns_404_when_no_active_version(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -102,9 +76,6 @@ final class DirectoryDataControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Несуществующий slug — 404.
-     */
     public function test_returns_404_for_unknown_slug(): void
     {
         [$user] = $this->makeUserWithProject('directory_view');
@@ -114,9 +85,6 @@ final class DirectoryDataControllerTest extends TestCase
             ->assertNotFound();
     }
 
-    /**
-     * Без пермишена directory_view — 403.
-     */
     public function test_returns_403_without_permission(): void
     {
         [$user] = $this->makeUserWithProject();
@@ -128,9 +96,6 @@ final class DirectoryDataControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    /**
-     * Без авторизации — 401.
-     */
     public function test_returns_401_without_authentication(): void
     {
         $directory = $this->makeDirectory(slug: 'auth-catalog');
@@ -139,10 +104,6 @@ final class DirectoryDataControllerTest extends TestCase
         $this->getJson('/api/directories/auth-catalog/data')
             ->assertUnauthorized();
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     /** @return array{User, Project} */
     private function makeUserWithProject(string ...$permissions): array

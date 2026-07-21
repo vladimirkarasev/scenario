@@ -9,12 +9,6 @@ export interface StartScenarioMessage {
     url: string
 }
 
-/**
- * Подписывается на личный канал текущего пользователя и вызывает onStart
- * при получении сообщения type=start_scenario. Используется на страницах
- * workspace/scenarios и workspace, чтобы внешние системы могли запустить
- * опрос у пользователя через POST /api/scenarios/dispatch.
- */
 export function useStartScenarioListener(
     onStart: (message: StartScenarioMessage) => void,
 ): void {

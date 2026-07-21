@@ -12,10 +12,6 @@ use Module\Proxy\Credentials\ProxyCredential;
 use Module\Proxy\Services\CredentialCatalog;
 
 /**
- * Доступ к внешнему сервису: переиспользуемая запись с типом (`credential_type` —
- * драйвер {@see ProxyCredential}), несекретным `config` и шифрованными `secrets`.
- * Один доступ может быть привязан к нескольким эндпоинтам ({@see ProxyEndpoint::connection}).
- *
  * @property int                       $id
  * @property string|null               $project_id
  * @property string                    $name
@@ -51,15 +47,12 @@ final class ProxyConnection extends Model
         return $this->hasMany(ProxyEndpoint::class, 'connection_id');
     }
 
-    /** Драйвер доступа. */
     public function driver(): ProxyCredential
     {
         return CredentialCatalog::make($this->credential_type);
     }
 
     /**
-     * Полный набор значений доступа: несекретный config + расшифрованные secrets.
-     *
      * @return array<string, mixed>
      */
     public function values(): array

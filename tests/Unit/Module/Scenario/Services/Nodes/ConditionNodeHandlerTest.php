@@ -221,7 +221,6 @@ final class ConditionNodeHandlerTest extends TestCase
 
     public function test_advance_auto_evaluates_arithmetic_expression(): void
     {
-        // score = 10, выражение score + 5 = 15 → ветка node_a
         $node = [
             'id' => 'node_condition',
             'type' => 'condition',
@@ -242,7 +241,6 @@ final class ConditionNodeHandlerTest extends TestCase
 
     public function test_advance_auto_evaluates_template_formula(): void
     {
-        // {{ a + b }} → синтаксис шаблона, результат тот же что и plain-выражение
         $run = $this->makeRun(['a' => 3, 'b' => 7]);
         $node = [
             'id' => 'node_condition',
@@ -285,7 +283,6 @@ final class ConditionNodeHandlerTest extends TestCase
 
     public function test_advance_auto_formula_selects_branch_by_computed_threshold(): void
     {
-        // score * 2 = 20 попадает в диапазон — equals '20'
         $node = [
             'id' => 'node_condition',
             'type' => 'condition',

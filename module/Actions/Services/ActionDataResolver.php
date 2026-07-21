@@ -14,10 +14,6 @@ final readonly class ActionDataResolver
     ) {}
 
     /**
-     * Контекст для рендера шаблонов action: глобальный context + поля собственного scope
-     * (input[action.code]) поднятые в корень. Так шаблоны видят `{{ client_uuid }}` (своё input-поле)
-     * и `{{ other_action.result }}` (output другого action) одновременно.
-     *
      * @param  array<string, mixed> $context
      * @return array<string, mixed>
      */
@@ -39,8 +35,6 @@ final readonly class ActionDataResolver
     }
 
     /**
-     * Зарезолвить action.config с учётом scoped input этого action.
-     *
      * @param  array<string, mixed> $context
      * @return array<string, mixed>
      */

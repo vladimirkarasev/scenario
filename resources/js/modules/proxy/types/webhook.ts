@@ -5,7 +5,6 @@ export interface MockResponseVariant {
     status: number
     body?: Record<string, unknown> | unknown[] | null
     headers?: Record<string, string> | null
-    // Активный вариант — тот, что отдаётся в режиме мока (он может быть только один).
     is_active?: boolean
 }
 

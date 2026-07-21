@@ -23,9 +23,6 @@ function toArr(v: string | string[] | undefined): string[] {
 
 export type StatusTab = 'all' | 'active' | 'draft' | 'archived'
 
-/**
- * activeFolder: 'all' | uuid — 'all' означает uncategorized (root).
- */
 export function useScenarioFeed(
     activeFolder: Ref<string>,
     options: { excludeScenarioId?: Ref<string | null>; syncUrl?: boolean } = {},
@@ -78,10 +75,8 @@ export function useScenarioFeed(
             qs.set('page[size]', String(PAGE_SIZE))
             const searchTrim = search.value.trim()
             if (searchTrim) {
-                // Глобальный поиск — parent_id не передаём
                 qs.set('filter[search]', searchTrim)
             } else if (activeFolder.value === 'all') {
-                // Корень: uncategorized сценарии + root папки
                 qs.set('filter[parent_id]', 'null')
             } else {
                 qs.set('filter[parent_id]', activeFolder.value)

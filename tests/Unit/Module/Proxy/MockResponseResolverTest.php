@@ -11,9 +11,6 @@ use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Module\Proxy\Services\MockResponseResolver;
 use Tests\TestCase;
 
-/**
- * Юнит-тесты подбора активного мок-варианта.
- */
 final class MockResponseResolverTest extends TestCase
 {
     use RefreshDatabase;

@@ -43,8 +43,8 @@ final class ProxyConnectionResource extends JsonApiResource
             'name' => $this->name,
             'credential_type' => $this->credential_type,
             'credential_label' => $driver?->label() ?? $this->credential_type,
-            'config' => $this->config ?? [], // несекретное
-            'secret_filled' => $secretFilled, // секреты не отдаём, только флаг «заполнено»
+            'config' => $this->config ?? [],
+            'secret_filled' => $secretFilled,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

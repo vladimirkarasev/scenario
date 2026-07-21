@@ -6,10 +6,6 @@ namespace App\Support;
 
 use Illuminate\Http\Request;
 
-/**
- * Формирует блок meta, обязательный для каждого API-ответа:
- * timestamp запроса и сквозной requestId (из SetRequestId middleware).
- */
 final class ApiMeta
 {
     /** @return array{timestamp: string, requestId: string} */

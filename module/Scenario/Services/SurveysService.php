@@ -22,8 +22,6 @@ final readonly class SurveysService
     }
 
     /**
-     * Список прогонов опроса с пагинацией.
-     *
      * @return array{
      *     surveys: list<array<string, mixed>>,
      *     pagination: array{current_page: int, last_page: int, per_page: int, total: int, from: int|null, to: int|null}
@@ -47,8 +45,6 @@ final readonly class SurveysService
     }
 
     /**
-     * Полный payload прогона, продвинутый до ближайшего интерактивного узла.
-     *
      * @return array<string, mixed>
      */
     public function get(string $runId): array

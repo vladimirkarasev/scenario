@@ -15,23 +15,17 @@ import {computed, onMounted, ref, watch} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
 
-// ── Runs ───────────────────────────────────────────────────────────────
-
 const runs = ref<ScenarioRunListItem[]>([])
 const runsTotal = ref(0)
 const runsPage = ref(1)
 const runsLastPage = ref(1)
 const runsLoading = ref(false)
 
-// ── Stats ──────────────────────────────────────────────────────────────
-
 const statsTotal = ref<number | null>(null)
 const statsActive = ref<number | null>(null)
 const statsCompleted = ref<number | null>(null)
 const statsFailed = ref<number | null>(null)
 const statsLoading = ref(false)
-
-// ── Filters ────────────────────────────────────────────────────────────
 
 const statusFilter = ref('')
 const search = ref('')
@@ -41,14 +35,12 @@ const dateTo = ref('')
 const selectedUsers = ref<ScenarioActor[]>([])
 const selectedScenario = ref<Scenario | null>(null)
 
-// User dropdown
 const userDropdownOpen = ref(false)
 const userSearchQuery = ref('')
 const userSearchResults = ref<ScenarioActor[]>([])
 const userSearchLoading = ref(false)
 let userSearchTimer: ReturnType<typeof setTimeout> | null = null
 
-// Scenario dropdown
 const scenarioDropdownOpen = ref(false)
 const scenarioSearchQuery = ref('')
 const scenarioSearchResults = ref<Scenario[]>([])
@@ -63,8 +55,6 @@ const STAT_VALUES = computed(() => ({
   completed: statsCompleted.value,
   failed: statsFailed.value,
 }))
-
-// ── Computed ───────────────────────────────────────────────────────────
 
 const hasActiveFilters = computed(() =>
     !!searchCommitted.value || !!dateFrom.value || !!dateTo.value ||
@@ -100,10 +90,7 @@ function closeUserDropdown() {
   }, 150)
 }
 
-// ── Data loading ───────────────────────────────────────────────────────
-
 function buildQs(includePerPage = true): URLSearchParams {
-  // JSON:API формат: filter[...], page[number], page[size]
   const qs = new URLSearchParams()
   if (runsPage.value > 1) qs.set('page[number]', String(runsPage.value))
   if (includePerPage) qs.set('page[size]', '20')
@@ -133,7 +120,6 @@ async function loadRuns() {
     runsTotal.value = page.meta.total
     runsLastPage.value = page.meta.last_page
 
-    // Статистика приходит в том же ответе — один запрос вместо четырёх
     statsTotal.value = page.meta.stats?.total ?? 0
     statsActive.value = page.meta.stats?.active ?? 0
     statsCompleted.value = page.meta.stats?.completed ?? 0
@@ -156,8 +142,6 @@ function reload() {
   loadRuns()
 }
 
-// ── Search ─────────────────────────────────────────────────────────────
-
 function applySearch() {
   searchCommitted.value = search.value;
   reload()
@@ -168,14 +152,10 @@ function onSearchInput() {
   searchTimer = setTimeout(applySearch, 400)
 }
 
-// ── Status cards ───────────────────────────────────────────────────────
-
 function pickStatus(value: string) {
   statusFilter.value = statusFilter.value === value ? '' : value
   reload()
 }
-
-// ── User filter ────────────────────────────────────────────────────────
 
 async function searchUsers(q: string) {
   userSearchLoading.value = true
@@ -206,8 +186,6 @@ watch(userSearchQuery, val => {
   }
   userSearchTimer = setTimeout(() => searchUsers(val), 300)
 })
-
-// ── Scenario filter ────────────────────────────────────────────────────
 
 async function searchScenarios(q: string) {
   scenarioSearchLoading.value = true
@@ -243,8 +221,6 @@ watch(scenarioSearchQuery, val => {
   scenarioSearchTimer = setTimeout(() => searchScenarios(val), 300)
 })
 
-// ── Date & reset ───────────────────────────────────────────────────────
-
 watch(dateFrom, reload)
 watch(dateTo, reload)
 
@@ -258,8 +234,6 @@ function resetFilters() {
   reload()
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────
-
 const AVATAR_COLORS = ['#2563EB', '#059669', '#7C3AED', '#DC2626', '#D97706', '#0891B2']
 
 function initials(name: string): string {
@@ -271,8 +245,6 @@ function avatarColor(name: string): string {
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % AVATAR_COLORS.length
   return AVATAR_COLORS[Math.abs(h)]
 }
-
-// ── Copy version UUID ───────────────────────────────────────────────────
 
 const copiedVersionId = ref<string | null>(null)
 
@@ -308,7 +280,6 @@ async function initFromUrl(): Promise<void> {
   const ct = qs.get('filter[created_to]')
   if (ct) dateTo.value = ct
 
-  // Восстанавливаем выбранный сценарий (нужен полный объект — подгружаем по id)
   const scenarioId = qs.get('filter[scenario_id]')
   if (scenarioId) {
     try {
@@ -317,7 +288,6 @@ async function initFromUrl(): Promise<void> {
     }
   }
 
-  // Восстанавливаем выбранных пользователей по id
   const userIds = qs.getAll('filter[created_by][]')
   if (userIds.length) {
     try {

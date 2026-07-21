@@ -35,15 +35,12 @@ const items = ref<SuggestItem[]>([])
 const loading = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
 function itemLabel(item: SuggestItem): string {
   if (props.labelField && item[props.labelField] != null) return String(item[props.labelField])
   const firstKey = Object.keys(item)[0]
   return firstKey ? String(item[firstKey] ?? '') : ''
 }
 
-// Идентификатор варианта для сравнения выбора: поле id, иначе сериализованный объект.
 function itemKey(item: SuggestItem): string {
   return item.id != null ? String(item.id) : JSON.stringify(item)
 }
@@ -64,8 +61,6 @@ function isSelected(item: SuggestItem): boolean {
   const key = itemKey(item)
   return currentItems().some((s) => itemKey(s) === key)
 }
-
-// ── Selection ─────────────────────────────────────────────────────────────────
 
 function toggle(item: SuggestItem): void {
   if (props.disabled) return
@@ -97,8 +92,6 @@ function clearAll(e: MouseEvent): void {
   e.stopPropagation()
   emit('update:modelValue', props.multiple ? [] : null)
 }
-
-// ── Backend search (proxy) ──────────────────────────────────────────────────
 
 async function loadItems(query: string): Promise<void> {
   if (!props.proxyUuid) return

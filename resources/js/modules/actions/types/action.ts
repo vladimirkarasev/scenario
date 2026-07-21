@@ -110,6 +110,7 @@ export interface Action {
     schema: Record<string, unknown> | null
     ui_schema: Record<string, unknown> | null
     input_fields: ActionInputField[]
+    default_backoff: number[] | null
     category_ids: string[]
     schedule: ActionSchedule | null
     created_at: string | null
@@ -127,6 +128,7 @@ export interface ActionPayload {
     schema?: Record<string, unknown>
     ui_schema?: Record<string, unknown>
     input_fields: ActionInputField[]
+    default_backoff: number[]
     category_ids: string[]
 }
 
