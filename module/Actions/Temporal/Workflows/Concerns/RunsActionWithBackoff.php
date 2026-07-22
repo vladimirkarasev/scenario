@@ -24,6 +24,7 @@ trait RunsActionWithBackoff
         ?string $scenarioRunId,
         int $delayBefore,
         array $backoff,
+        ?string $actionNodeId = null,
     ): \Generator {
         if ($delayBefore > 0) {
             yield Workflow::timer($delayBefore);
@@ -39,7 +40,7 @@ trait RunsActionWithBackoff
 
             try {
                 /** @var array{status: string, output: array<string, mixed>, error: string|null} $result */
-                $result = yield $activity->execute($actionId, $context, $code, $scenarioRunId, $index + 1);
+                $result = yield $activity->execute($actionId, $context, $code, $scenarioRunId, $index + 1, $actionNodeId);
 
                 return $result;
             } catch (ActivityFailure $exception) {

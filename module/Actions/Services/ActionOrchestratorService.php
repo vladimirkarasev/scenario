@@ -104,6 +104,7 @@ final readonly class ActionOrchestratorService
 
         $scenarioRunId = $this->stringOrNull($data->input['scenario_run_id'] ?? null);
         $scenarioNodeId = $this->stringOrNull($data->input['scenario_node_id'] ?? null);
+        $actionNodeId = $this->stringOrNull($data->input['scenario_action_node_id'] ?? null);
 
         $this->workflowStarter->startSequential(new RunActionsWorkflowInput(
             actionIds: $ordered,
@@ -115,6 +116,7 @@ final readonly class ActionOrchestratorService
             delayBeforeByActionId: $this->delayBeforeByActionId($data),
             scenarioRunId: $scenarioRunId,
             scenarioNodeId: $scenarioNodeId,
+            actionNodeId: $actionNodeId,
         ));
 
         return ['status' => 'queued', 'queued' => count($ordered)];
@@ -128,6 +130,7 @@ final readonly class ActionOrchestratorService
         }
 
         $scenarioRunId = $this->stringOrNull($data->input['scenario_run_id'] ?? null);
+        $actionNodeId = $this->stringOrNull($data->input['scenario_action_node_id'] ?? null);
 
         $this->workflowStarter->startParallel(new RunActionsParallelWorkflowInput(
             beforeIds: $data->beforeIds(),
@@ -139,6 +142,7 @@ final readonly class ActionOrchestratorService
             backoffByActionId: $this->backoffByActionId($data),
             delayBeforeByActionId: $this->delayBeforeByActionId($data),
             scenarioRunId: $scenarioRunId,
+            actionNodeId: $actionNodeId,
         ));
 
         return ['status' => 'queued', 'queued' => count($data->beforeIds()) + count($data->actionIds())];

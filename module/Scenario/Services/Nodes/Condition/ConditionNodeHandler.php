@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\Condition;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use Module\Scenario\DTO\ScenarioRunContinueData;
+use Module\Scenario\Events\ScenarioConditionEvaluated;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ConditionEvaluator;
@@ -33,9 +35,11 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
 
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
     {
-        return NodeAdvanceResult::next(
-            $this->conditionEvaluator->resolveTarget($this->nodeData($node), $run->context ?? []),
-        );
+        $targetNodeId = $this->conditionEvaluator->resolveTarget($this->nodeData($node), $run->context ?? []);
+
+        Event::dispatch(new ScenarioConditionEvaluated($run, $node, 'auto', null, $targetNodeId));
+
+        return NodeAdvanceResult::next($targetNodeId);
     }
 
     public function continueFrom(ScenarioRun $run, array $node, ScenarioRunContinueData $data): ?string
@@ -43,10 +47,20 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
         $nodeData = $this->nodeData($node);
 
         if ($this->strField($nodeData, 'mode', 'manual') === 'manual') {
-            return $this->resolveManualTarget($this->runVersion($run), $node, $data->selectedTargetNodeId);
+            $version = $this->runVersion($run);
+            $targetNodeId = $this->resolveManualTarget($version, $node, $data->selectedTargetNodeId);
+            $label = $this->manualOptionLabel($version, $node, $targetNodeId);
+
+            Event::dispatch(new ScenarioConditionEvaluated($run, $node, 'manual', $label, $targetNodeId));
+
+            return $targetNodeId;
         }
 
-        return $this->conditionEvaluator->resolveTarget($nodeData, $run->context ?? []);
+        $targetNodeId = $this->conditionEvaluator->resolveTarget($nodeData, $run->context ?? []);
+
+        Event::dispatch(new ScenarioConditionEvaluated($run, $node, 'auto', null, $targetNodeId));
+
+        return $targetNodeId;
     }
 
     public function render(ScenarioVersion $version, array $node, array $context): array
@@ -64,6 +78,20 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
             'options' => $this->variableResolver->resolve($this->manualConditionOptions($version, $node), $context),
             'expression' => $data['expression'] ?? null,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private function manualOptionLabel(ScenarioVersion $version, array $node, string $targetNodeId): ?string
+    {
+        foreach ($this->manualConditionOptions($version, $node) as $option) {
+            if ($option['targetNodeId'] === $targetNodeId) {
+                return $option['label'];
+            }
+        }
+
+        return null;
     }
 
     /**

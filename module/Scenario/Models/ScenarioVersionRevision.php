@@ -16,12 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<string, mixed>|null $schema_json
  * @property array<int, array<string, mixed>>|null $nodes_json
  * @property array<int, array<string, mixed>>|null $edges_json
- * @property array<int, array<string, mixed>>|null $input_fields
  * @property int|null $schema_version
  * @property Carbon|null $created_at
  * @property-read ScenarioVersion|null $version
  */
-#[Fillable('scenario_version_id', 'schema_json', 'nodes_json', 'edges_json', 'input_fields', 'schema_version', 'created_at')]
+#[Fillable('scenario_version_id', 'schema_json', 'nodes_json', 'edges_json', 'schema_version', 'created_at')]
 final class ScenarioVersionRevision extends Model
 {
     use HasUuids;
@@ -41,7 +40,6 @@ final class ScenarioVersionRevision extends Model
             'schema_json' => 'array',
             'nodes_json' => 'array',
             'edges_json' => 'array',
-            'input_fields' => 'array',
             'schema_version' => 'integer',
             'created_at' => 'datetime',
         ];

@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
+use Illuminate\Support\Facades\Event;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\DTO\ScenarioRunJumpData;
 use Module\Scenario\DTO\ScenarioStartData;
 use Module\Scenario\Enums\ScenarioNodeType;
 use Module\Scenario\Enums\ScenarioRunStatus;
+use Module\Scenario\Events\ScenarioRunCompleted;
+use Module\Scenario\Events\ScenarioRunFailed;
+use Module\Scenario\Events\ScenarioRunRewound;
+use Module\Scenario\Events\ScenarioRunStarted;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioRunStep;
 use Module\Scenario\Models\ScenarioVersion;
@@ -127,7 +132,11 @@ final readonly class ScenarioPlayerService
             $attributes['operator_id'] = $data->operatorId;
         }
 
-        return $this->progress($this->hydrateRun($this->runs->create($attributes)));
+        $run = $this->hydrateRun($this->runs->create($attributes));
+
+        Event::dispatch(new ScenarioRunStarted($run));
+
+        return $this->progress($run);
     }
 
     public function getRun(ScenarioRun $run): ScenarioRun
@@ -209,6 +218,10 @@ final readonly class ScenarioPlayerService
         }
 
         $node = $this->graphResolver->findNode($this->runVersion($run), $data->nodeId);
+
+        if ($targetStep !== null) {
+            Event::dispatch(new ScenarioRunRewound($run, $node));
+        }
 
         $context[RunContextKeys::PLAYER] = ['total_steps' => 0, 'visited' => []];
 
@@ -447,6 +460,8 @@ final readonly class ScenarioPlayerService
                 'context' => [...$context, RunContextKeys::PLAYER => $updatedPlayer],
             ])->save();
 
+            Event::dispatch(new ScenarioRunFailed($run));
+
             return false;
         }
 
@@ -542,7 +557,11 @@ final readonly class ScenarioPlayerService
             'current_node_id' => $nodeId,
         ])->save();
 
-        return $this->hydrateRun($run);
+        $run = $this->hydrateRun($run);
+
+        Event::dispatch(new ScenarioRunCompleted($run));
+
+        return $run;
     }
 
     private function hydrateRun(ScenarioRun $run): ScenarioRun

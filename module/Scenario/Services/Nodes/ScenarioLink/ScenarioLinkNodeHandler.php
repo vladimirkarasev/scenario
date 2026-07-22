@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\ScenarioLink;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Module\Scenario\DTO\ScenarioRunContinueData;
+use Module\Scenario\Events\ScenarioLinkFollowed;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
@@ -75,7 +77,7 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             ? $this->graphResolver->defaultNextNodeId($parentVersion, $nodeId)
             : null;
 
-        $this->steps->create($run, [
+        $step = $this->steps->create($run, [
             'node_id' => $nodeId,
             'node_type' => $nodeType,
             'entered_at' => now(),
@@ -85,6 +87,16 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
                 'next_node_id' => $startNodeId,
             ],
         ]);
+
+        Event::dispatch(new ScenarioLinkFollowed(
+            $run,
+            $node,
+            $step,
+            $targetScenarioId,
+            $targetVersion->scenario?->name,
+            $targetVersion->id,
+            $startNodeId,
+        ));
 
         $context = is_array($run->context) ? $run->context : [];
         $targetVariableMap = $this->variableMapBuilder->build($targetRevision->schema_json ?? []);

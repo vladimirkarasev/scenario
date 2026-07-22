@@ -15,5 +15,5 @@ interface ExecuteActionActivityInterface
      * @return array{status: string, output: array<string, mixed>, error: string|null}
      */
     #[ActivityMethod(name: 'ExecuteAction')]
-    public function execute(string $actionId, array $context, string $code, ?string $scenarioRunId, int $attemptNumber = 1): array;
+    public function execute(string $actionId, array $context, string $code, ?string $scenarioRunId, int $attemptNumber = 1, ?string $actionNodeId = null): array;
 }

@@ -34,6 +34,7 @@ final readonly class RunActionsWorkflowStarter implements RunActionsWorkflowStar
             $input->delayBeforeByActionId,
             $input->scenarioRunId,
             $input->scenarioNodeId,
+            $input->actionNodeId,
         );
     }
 
@@ -55,6 +56,7 @@ final readonly class RunActionsWorkflowStarter implements RunActionsWorkflowStar
             $input->backoffByActionId,
             $input->delayBeforeByActionId,
             $input->scenarioRunId,
+            $input->actionNodeId,
         );
     }
 }

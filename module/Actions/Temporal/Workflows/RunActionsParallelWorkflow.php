@@ -37,6 +37,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
         array $backoffByActionId,
         array $delayBeforeByActionId,
         ?string $scenarioRunId,
+        ?string $actionNodeId = null,
     ) {
         $activity = Workflow::newActivityStub(
             ExecuteActionActivityInterface::class,
@@ -53,6 +54,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
             $delayBeforeByActionId,
             $context,
             $scenarioRunId,
+            $actionNodeId,
         );
 
         if (!$beforeSucceeded || $actionIds === []) {
@@ -72,6 +74,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
                     $scenarioRunId,
                     $delayBeforeByActionId[$actionId] ?? 0,
                     $backoffByActionId[$actionId] ?? [],
+                    $actionNodeId,
                 ),
             );
         }
@@ -91,6 +94,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
             $delayBeforeByActionId,
             $context,
             $scenarioRunId,
+            $actionNodeId,
         );
 
         return $context;
@@ -113,6 +117,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
         array $delayBeforeByActionId,
         array $context,
         ?string $scenarioRunId,
+        ?string $actionNodeId = null,
     ) {
         foreach ($actionIds as $actionId) {
             $code = $codeMap[$actionId] ?? $actionId;
@@ -126,6 +131,7 @@ final class RunActionsParallelWorkflow implements RunActionsParallelWorkflowInte
                     $scenarioRunId,
                     $delayBeforeByActionId[$actionId] ?? 0,
                     $backoffByActionId[$actionId] ?? [],
+                    $actionNodeId,
                 );
             } catch (ActivityFailure) {
                 return false;

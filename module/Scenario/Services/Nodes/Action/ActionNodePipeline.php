@@ -153,7 +153,7 @@ final readonly class ActionNodePipeline
             $mode = 'sequential';
         }
 
-        $this->run($run, $mode, $actions, $before, $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $scenarioNodeId);
+        $this->run($run, $mode, $actions, $before, $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $scenarioNodeId, $this->nodeId($node));
 
         return true;
     }
@@ -220,7 +220,7 @@ final readonly class ActionNodePipeline
         $this->resetStages($run, $nodeId, $sliceCodes);
         $this->markState($run, $nodeId, ActionStatus::Running);
 
-        $this->run($run, 'sequential', $retryActions, [], $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $nodeId);
+        $this->run($run, 'sequential', $retryActions, [], $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $nodeId, $nodeId);
 
         return true;
     }
@@ -283,8 +283,10 @@ final readonly class ActionNodePipeline
         array $backoffMap,
         array $delayBeforeMap,
         ?string $scenarioNodeId,
+        string $actionNodeId,
     ): void {
         $input['scenario_run_id'] = (string)$run->id;
+        $input['scenario_action_node_id'] = $actionNodeId;
 
         if ($scenarioNodeId !== null) {
             $input['scenario_node_id'] = $scenarioNodeId;

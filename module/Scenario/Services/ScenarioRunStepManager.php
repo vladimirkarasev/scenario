@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services;
 
+use Illuminate\Support\Facades\Event;
+use Module\Scenario\Events\ScenarioNodeEntered;
+use Module\Scenario\Events\ScenarioNodeExited;
 use Module\Scenario\Models\ScenarioRun;
+use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
 
 final readonly class ScenarioRunStepManager
@@ -33,11 +37,13 @@ final readonly class ScenarioRunStepManager
             return;
         }
 
-        $this->steps->create($run, [
+        $step = $this->steps->create($run, [
             'node_id' => $nodeId,
             'node_type' => $nodeType,
             'entered_at' => now(),
         ]);
+
+        Event::dispatch(new ScenarioNodeEntered($run, $node, $step));
     }
 
     /**
@@ -69,23 +75,20 @@ final readonly class ScenarioRunStepManager
     public function closeOpen(ScenarioRun $run, array $input, array $output): void
     {
         $step = $this->steps->latestOpenForCurrentNode($run);
+        $justCreated = false;
 
         if ($step === null) {
             $currentNodeId = $run->current_node_id ?? '';
-            $nodeType = 'unknown';
-            $version = $run->version;
-
-            if ($currentNodeId !== '' && $version !== null) {
-                $foundNode = $this->graphResolver->findNode($version, $currentNodeId);
-                $rawType = $foundNode['type'] ?? null;
-                $nodeType = is_string($rawType) ? $rawType : 'unknown';
-            }
+            $foundNode = $currentNodeId !== '' ? $this->resolveNode($run, $currentNodeId) : null;
+            $nodeType = is_string($foundNode['type'] ?? null) ? $foundNode['type'] : 'unknown';
 
             $step = $this->steps->create($run, [
                 'node_id' => $currentNodeId,
                 'node_type' => $nodeType,
                 'entered_at' => now(),
             ]);
+
+            $justCreated = true;
         }
 
         $this->steps->update($step, [
@@ -93,5 +96,29 @@ final readonly class ScenarioRunStepManager
             'output' => $output,
             'exited_at' => now(),
         ]);
+
+        $node = $this->resolveNode($run, $step->node_id) ?? ['id' => $step->node_id, 'type' => $step->node_type->value];
+
+        if ($justCreated) {
+            Event::dispatch(new ScenarioNodeEntered($run, $node, $step));
+        }
+
+        Event::dispatch(new ScenarioNodeExited($run, $node, $step, $input, $output));
+    }
+
+    /** @return array<string, mixed>|null */
+    private function resolveNode(ScenarioRun $run, string $nodeId): ?array
+    {
+        $version = $run->version;
+
+        if (!$version instanceof ScenarioVersion) {
+            return null;
+        }
+
+        try {
+            return $this->graphResolver->findNode($version, $nodeId);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -25,5 +25,6 @@ final readonly class RunActionsWorkflowInput
         public array $delayBeforeByActionId,
         public ?string $scenarioRunId,
         public ?string $scenarioNodeId,
+        public ?string $actionNodeId = null,
     ) {}
 }

@@ -169,7 +169,6 @@ final readonly class CatalogService
             'name' => $version->name,
             'status' => $version->status,
             'schema_json' => $version->latestRevision->schema_json ?? new \stdClass,
-            'input_fields' => $version->latestRevision->input_fields ?? [],
             'created_at' => $version->created_at?->toIso8601String(),
             'updated_at' => $version->updated_at?->toIso8601String(),
             'revisions' => $version->relationLoaded('revisions')

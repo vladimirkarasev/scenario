@@ -44,10 +44,6 @@ final class ScenarioVersionRequest extends FormRequest
             ],
             'status' => ['nullable', 'string', Rule::in(['draft', 'active', 'archived'])],
             'schema_json' => ['required', 'array'],
-            'input_fields' => ['nullable', 'array'],
-            'input_fields.*.key' => ['required', 'string', 'regex:/^[a-z][a-z0-9_]*$/'],
-            'input_fields.*.label' => ['nullable', 'string', 'max:255'],
-            'input_fields.*.type' => ['required', 'string', Rule::in(['datetime', 'json', 'text', 'boolean'])],
         ];
     }
 
