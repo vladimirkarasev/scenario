@@ -32,5 +32,6 @@ interface RunActionsParallelWorkflowInterface
         array $backoffByActionId,
         array $delayBeforeByActionId,
         ?string $scenarioRunId,
+        ?string $actionNodeId = null,
     );
 }

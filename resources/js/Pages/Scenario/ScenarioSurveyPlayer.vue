@@ -2,16 +2,12 @@
 import AppShell from '@/layouts/AppShell.vue'
 import ScenarioPlayer from '@/modules/scenario/components/player/ScenarioPlayer.vue'
 import RunHistory from '@/modules/scenario/components/player/RunHistory.vue'
-import Drawer from '@/components/ui/drawer/Drawer.vue'
-import DrawerContent from '@/components/ui/drawer/DrawerContent.vue'
-import DrawerHeader from '@/components/ui/drawer/DrawerHeader.vue'
-import DrawerTitle from '@/components/ui/drawer/DrawerTitle.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
 import {formatDateTime} from '@/lib/formatters'
 import {Head} from '@inertiajs/vue3'
 import {ref} from 'vue'
-import {History} from 'lucide-vue-next'
+import {History, X} from 'lucide-vue-next'
 import type {RunHistoryEvent, ScenarioRunPayload} from '@/modules/scenario/lib/scenario-player-types'
 
 defineProps<{ runId?: string | null }>()
@@ -35,11 +31,22 @@ const historyOpen = ref(false)
 const historyEvents = ref<RunHistoryEvent[]>([])
 const historyLoading = ref(false)
 
-function onRunUpdate(run: ScenarioRunPayload | null) {
+async function onRunUpdate(run: ScenarioRunPayload | null) {
   activeRun.value = run
+  if (historyOpen.value && run) {
+    try {
+      historyEvents.value = await scenarioRunRepository.history(run.id)
+    } catch {
+      // История обновится при следующем открытии панели
+    }
+  }
 }
 
-async function openHistory() {
+async function toggleHistory() {
+  if (historyOpen.value) {
+    historyOpen.value = false
+    return
+  }
   if (!activeRun.value) return
   historyOpen.value = true
   historyLoading.value = true
@@ -91,43 +98,65 @@ async function openHistory() {
           <button
               v-if="activeRun"
               type="button"
-              class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-600 shadow-sm transition hover:bg-slate-50"
-              @click="openHistory"
+              class="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-medium shadow-sm transition"
+              :class="historyOpen
+                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+              @click="toggleHistory"
           >
             <History class="size-3.5"/>
             История
             <span
                 v-if="historyEvents.length"
-                class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500"
+                class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+                :class="historyOpen ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'"
             >{{ historyEvents.length }}</span>
           </button>
         </div>
       </div>
 
-      <!-- Player -->
-      <div class="min-h-0 flex-1 overflow-y-auto p-6">
-        <div class="mx-auto max-w-2xl">
-          <ScenarioPlayer
-              :run-id="runId"
-              @update:run="onRunUpdate"
-          />
+      <!-- Player + История бок о бок -->
+      <div class="flex min-h-0 flex-1">
+        <div class="min-h-0 flex-1 overflow-y-auto p-6">
+          <div class="mx-auto max-w-2xl">
+            <ScenarioPlayer
+                :run-id="runId"
+                @update:run="onRunUpdate"
+            />
+          </div>
         </div>
+
+        <Transition
+            enter-active-class="transition-opacity duration-150 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-100 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+          <aside
+              v-if="historyOpen"
+              class="flex h-full w-[23.75rem] flex-none flex-col overflow-hidden border-l border-slate-200 bg-white"
+          >
+            <div class="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3">
+              <span class="text-sm font-semibold text-slate-900">История прохождения</span>
+              <button
+                  type="button"
+                  class="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                  @click="historyOpen = false"
+              >
+                <X class="size-4"/>
+              </button>
+            </div>
+            <div class="flex-1 overflow-y-auto px-4 py-4">
+              <div v-if="historyLoading" class="flex items-center justify-center py-10">
+                <div class="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"/>
+              </div>
+              <RunHistory v-else :events="historyEvents"/>
+            </div>
+          </aside>
+        </Transition>
       </div>
     </div>
   </AppShell>
-
-  <!-- Drawer истории -->
-  <Drawer direction="right" v-model:open="historyOpen">
-    <DrawerContent class="flex flex-col overflow-hidden">
-      <DrawerHeader class="shrink-0 border-b border-slate-100">
-        <DrawerTitle>История прохождения</DrawerTitle>
-      </DrawerHeader>
-      <div class="flex-1 overflow-y-auto px-4 py-4">
-        <div v-if="historyLoading" class="flex items-center justify-center py-10">
-          <div class="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"/>
-        </div>
-        <RunHistory v-else :events="historyEvents"/>
-      </div>
-    </DrawerContent>
-  </Drawer>
 </template>

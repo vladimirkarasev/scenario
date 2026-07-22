@@ -37,6 +37,7 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
         array $delayBeforeByActionId,
         ?string $scenarioRunId,
         ?string $scenarioNodeId,
+        ?string $actionNodeId = null,
     ) {
         $activity = Workflow::newActivityStub(
             ExecuteActionActivityInterface::class,
@@ -54,6 +55,7 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
             $delayBeforeByActionId,
             $context,
             $scenarioRunId,
+            $actionNodeId,
         );
         $context = $chain['context'];
         $success = $chain['failedActionId'] === null;
@@ -75,6 +77,7 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
                     $delayBeforeByActionId,
                     $context,
                     $scenarioRunId,
+                    $actionNodeId,
                 );
                 $context = $errorChain['context'];
             }
@@ -111,6 +114,7 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
         array $delayBeforeByActionId,
         array $context,
         ?string $scenarioRunId,
+        ?string $actionNodeId = null,
     ) {
         foreach ($actionIds as $actionId) {
             $code = $codeMap[$actionId] ?? $actionId;
@@ -124,6 +128,7 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
                     $scenarioRunId,
                     $delayBeforeByActionId[$actionId] ?? 0,
                     $backoffByActionId[$actionId] ?? [],
+                    $actionNodeId,
                 );
             } catch (ActivityFailure $exception) {
                 $previous = $exception->getPrevious();

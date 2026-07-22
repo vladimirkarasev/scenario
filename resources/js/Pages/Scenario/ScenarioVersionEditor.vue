@@ -3,7 +3,6 @@ import AppShell from '@/layouts/AppShell.vue'
 import ScenarioFlowEditor from '@/modules/scenario/components/flow/ScenarioFlowEditor.vue'
 import VersionSettingsTab from './version-editor/VersionSettingsTab.vue'
 import VersionHistoryTab from './version-editor/VersionHistoryTab.vue'
-import VersionInputFieldDialog from './version-editor/VersionInputFieldDialog.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {type ScenarioFlowDocument} from '@/modules/scenario/lib/scenario-flow-document'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
@@ -13,11 +12,10 @@ import {Button} from '@/components/ui/button'
 import {Head, Link, router} from '@inertiajs/vue3'
 import {usePlayScenario} from '@/modules/scenario/composables/usePlayScenario'
 import {AlertTriangle, ArrowLeft, Copy, Loader2, Play, Save} from 'lucide-vue-next'
-import {computed, onMounted, reactive, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {toast} from 'vue-sonner'
 import {useZodForm} from '@/composables/useZodForm'
 import {scenarioVersionSchema} from '@/modules/scenario/schemas/scenarioSchema'
-import type {ScenarioInputField, ScenarioInputFieldType} from '@/modules/scenario/types/scenario'
 
 const props = defineProps<{ scenarioId: string; versionId: string }>()
 
@@ -53,7 +51,6 @@ const {formData: form, errors, formError: saveError, submitting: saving, submit,
     useZodForm(scenarioVersionSchema, {
       name: '',
       status: 'draft' as VersionStatus,
-      input_fields: [] as ScenarioInputField[],
     })
 
 const VERSION_STATUS_CONFIG: Record<VersionStatus, { label: string; dot: string; text: string; ring: string }> = {
@@ -73,7 +70,6 @@ onMounted(async () => {
     reset({
       name: version.name ?? '',
       status: (version.status as VersionStatus) ?? 'draft',
-      input_fields: version.input_fields ?? [],
     })
     revisions.value = version.revisions
     versionCreatedAt.value = version.created_at
@@ -114,12 +110,10 @@ async function save() {
         name: data.name || null,
         status: data.status,
         schema_json: versionDocument.value as unknown as Record<string, unknown>,
-        input_fields: data.input_fields,
       })
       reset({
         name: updated.name ?? '',
         status: (updated.status as VersionStatus) ?? 'draft',
-        input_fields: updated.input_fields ?? [],
       })
       revisions.value = updated.revisions
     })
@@ -127,76 +121,6 @@ async function save() {
   } catch (e: unknown) {
     toast.error(e instanceof Error ? e.message : 'Ошибка сохранения')
   }
-}
-
-const INPUT_FIELD_TYPE_LABELS: Record<ScenarioInputFieldType, string> = {
-  datetime: 'Дата и время',
-  json: 'JSON',
-  text: 'Текст',
-  boolean: 'Boolean',
-}
-
-const fieldDialogOpen = ref(false)
-const fieldDialogIdx = ref<number | null>(null)
-const fieldDialogError = ref<string | null>(null)
-const fieldDialogDraft = reactive<ScenarioInputField>({
-  key: '',
-  label: '',
-  type: 'text',
-})
-
-function openFieldDialog(idx: number | null = null) {
-  fieldDialogIdx.value = idx
-  fieldDialogError.value = null
-  if (idx === null) {
-    fieldDialogDraft.key = ''
-    fieldDialogDraft.label = ''
-    fieldDialogDraft.type = 'text'
-  } else {
-    const f = form.input_fields[idx]
-    fieldDialogDraft.key = f.key
-    fieldDialogDraft.label = f.label
-    fieldDialogDraft.type = f.type
-  }
-  fieldDialogOpen.value = true
-}
-
-function saveFieldDialog() {
-  const key = fieldDialogDraft.key.trim()
-  if (!key) {
-    fieldDialogError.value = 'Ключ обязателен'
-    return
-  }
-  if (!/^[a-z][a-z0-9_]*$/.test(key)) {
-    fieldDialogError.value = 'Только латиница, цифры и _, первый символ — буква'
-    return
-  }
-  if (form.input_fields.some((f, i) => f.key === key && i !== fieldDialogIdx.value)) {
-    fieldDialogError.value = 'Ключ уже используется'
-    return
-  }
-  const next: ScenarioInputField = {
-    key,
-    label: fieldDialogDraft.label.trim() || key,
-    type: fieldDialogDraft.type,
-  }
-  if (fieldDialogIdx.value === null) {
-    form.input_fields.push(next)
-  } else {
-    form.input_fields[fieldDialogIdx.value] = next
-  }
-  fieldDialogOpen.value = false
-}
-
-function removeInputField(idx: number) {
-  form.input_fields.splice(idx, 1)
-}
-
-function moveInputField(idx: number, delta: number) {
-  const target = idx + delta
-  if (target < 0 || target >= form.input_fields.length) return
-  const [item] = form.input_fields.splice(idx, 1)
-  form.input_fields.splice(target, 0, item)
 }
 
 async function duplicate() {
@@ -322,12 +246,8 @@ async function duplicate() {
               :version-created-at="versionCreatedAt"
               :version-updated-at="versionUpdatedAt"
               :status-config="VERSION_STATUS_CONFIG"
-              :field-type-labels="INPUT_FIELD_TYPE_LABELS"
               :format-date="fmtDate"
               @save="save"
-              @open-field="openFieldDialog"
-              @move-field="(idx, delta) => moveInputField(idx, delta)"
-              @remove-field="removeInputField"
           />
 
           <VersionHistoryTab
@@ -339,12 +259,4 @@ async function duplicate() {
       </div>
     </div>
   </AppShell>
-
-  <VersionInputFieldDialog
-      v-model:open="fieldDialogOpen"
-      :is-editing="fieldDialogIdx !== null"
-      :draft="fieldDialogDraft"
-      :error="fieldDialogError"
-      @submit="saveFieldDialog"
-  />
 </template>

@@ -43,7 +43,6 @@ async function submit() {
       name: trimmed,
       status: 'draft',
       schema_json: {format: 'scenario-flow', version: 1, viewport: {x: 0, y: 0, zoom: 1}, blocks: [], connections: []},
-      input_fields: [],
     })
     emit('update:open', false)
     toast.success('Версия создана')

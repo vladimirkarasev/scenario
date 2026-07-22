@@ -31,5 +31,6 @@ interface RunActionsWorkflowInterface
         array $delayBeforeByActionId,
         ?string $scenarioRunId,
         ?string $scenarioNodeId,
+        ?string $actionNodeId = null,
     );
 }

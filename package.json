@@ -45,7 +45,7 @@
         "yaml": "^2.9.0"
     },
     "dependencies": {
-        "@lucide/vue": "^1.17.0",
+        "@lucide/vue": "^1.25.0",
         "@sentry/vue": "^10.63.0",
         "@tailwindcss/typography": "^0.5.19",
         "@tanstack/vue-table": "^8.21.3",
@@ -77,7 +77,7 @@
         "maska": "^3.2.0",
         "pinia": "^3.0.4",
         "primevue": "^4.5.5",
-        "reka-ui": "^2.9.10",
+        "reka-ui": "^2.10.1",
         "shadcn-vue": "^2.6.2",
         "slugify": "^1.6.9",
         "speakingurl": "^14.0.1",

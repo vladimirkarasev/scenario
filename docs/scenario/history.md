@@ -2,15 +2,19 @@
 
 ## Назначение
 
-История прохождения сценария хранится в `ScenarioRunStep`.
+`ScenarioRunStep` — это таблица движка выполнения (стек шагов для `jump`/rollback, call
+stack для связанных сценариев), а не история для отображения оператору. Отображаемая
+история (таймлайн переходов, заполнения полей, выбора условий, результатов action,
+переходов по связанным сценариям, старта/завершения прогона) хранится отдельно, в
+`scenario_run_history_events` — см. раздел [«Отображаемая история»](#отображаемая-история-scenario_run_history_events)
+ниже.
 
-Она нужна для:
+`ScenarioRunStep` нужен для:
 
-- аудита прохождения;
-- отладки переходов;
-- восстановления input/output по узлам;
-- будущей логики defaults/history для полей;
-- понимания, где пользователь вошел в узел и когда вышел.
+- восстановления input/output по узлам во время выполнения;
+- `jump`/rollback (мягкая отмена шагов через `cancelled_at`);
+- call stack для возврата из связанных сценариев;
+- будущей логики defaults для полей.
 
 ## Где Хранится
 
@@ -173,5 +177,41 @@ output = ...
 - Не перезаписывать историю задним числом без отдельной причины.
 - Не смешивать input пользователя и системный output.
 - Для повторяющихся полей всегда учитывать `node_id`.
-- Runtime context хранить в `ScenarioRun.context`, а историю прохождения - в `ScenarioRunStep`.
+- Runtime context хранить в `ScenarioRun.context`, а служебное состояние прохождения - в `ScenarioRunStep`.
 - Если нужно логировать auto-узлы, использовать `createAuto()` или эквивалентную закрытую запись.
+
+## Отображаемая история (`scenario_run_history_events`)
+
+Таблица `scenario_run_history_events` — append-only лог для UI (`RunHistory.vue`,
+`GET /api/scenarios/runner/{id}/history`). В отличие от `scenario_run_steps`, строки в ней
+никогда не обновляются и не отменяются: `jump` продолжает писать новые события, старые
+остаются как есть (при отображении "отменённость" резолвится через связанный
+`scenario_run_steps.cancelled_at`, если событие с ним связано).
+
+Модель: `Module\Scenario\Models\ScenarioRunHistoryEvent`.
+Типы событий: `Module\Scenario\Enums\ScenarioRunHistoryEventType` (`transition`,
+`field_filled`, `field_changed`, `condition_evaluated`, `action_completed`, `action_failed`,
+`scenario_link_followed`, `run_started`, `run_completed`, `run_failed`).
+
+Запись идёт через доменные события Laravel (Event/Listener), а не напрямую из
+`ScenarioPlayerService`/хендлеров — это позволяет добавлять новые типы событий, не трогая
+существующий код:
+
+- `ScenarioRunStarted`/`ScenarioRunCompleted`/`ScenarioRunFailed` — `ScenarioPlayerService`;
+- `ScenarioNodeEntered`/`ScenarioNodeExited` — `ScenarioRunStepManager` (ensureOpen/closeOpen);
+  диффинг полей для `field_filled`/`field_changed` делает листенер, сравнивая с последним
+  сохранённым значением поля в самой таблице истории;
+- `ScenarioConditionEvaluated` — `ConditionNodeHandler` (auto и manual режимы);
+- `ScenarioLinkFollowed` — `ScenarioLinkNodeHandler`;
+- `Module\Actions\Events\ScenarioActionStageFinished` — `ExecuteActionActivity` (Actions
+  module), когда экшен запущен из Action-ноды сценария (`scenarioRunId`/`actionNodeId`
+  непустые). Слушает его Scenario module, а не наоборот — Actions ничего не знает о
+  таблице истории Scenario.
+
+Все слушатели собраны в `Module\Scenario\Listeners\RecordScenarioRunHistoryEvent` и
+зарегистрированы явно в `ScenarioServiceProvider::boot()` (event auto-discovery в проекте
+выключена).
+
+`ScenarioRunHistoryService::buildHistory()` читает таблицу как есть, без пересчёта на
+лету, и резолвит `node_title` через `ScenarioGraphResolver` по сохранённым
+`scenario_version_id`/`node_id` (как и раньше).

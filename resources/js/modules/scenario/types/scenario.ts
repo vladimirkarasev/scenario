@@ -72,14 +72,6 @@ export interface ScenarioPayload {
     group_ids?: string[]
 }
 
-export type ScenarioInputFieldType = 'datetime' | 'json' | 'text' | 'boolean'
-
-export interface ScenarioInputField {
-    key: string
-    label: string
-    type: ScenarioInputFieldType
-}
-
 export interface ScenarioRunListItem {
     id: string
     number: number | null

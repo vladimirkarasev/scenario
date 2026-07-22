@@ -26,5 +26,6 @@ final readonly class RunActionsParallelWorkflowInput
         public array $backoffByActionId,
         public array $delayBeforeByActionId,
         public ?string $scenarioRunId,
+        public ?string $actionNodeId = null,
     ) {}
 }

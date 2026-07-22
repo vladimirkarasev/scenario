@@ -8,6 +8,8 @@ use App\Events\CentrifugoMessagePublished;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Module\Actions\Enums\ActionRunStatus;
+use Module\Actions\Events\ScenarioActionStageFinished;
 use Module\Actions\Models\Action;
 use Module\Actions\Models\ActionRun;
 use Module\Actions\Temporal\Activities\ExecuteActionActivity;
@@ -36,7 +38,7 @@ final class ExecuteActionActivityTest extends TestCase
             ],
         ]);
 
-        $result = app(ExecuteActionActivity::class)->execute($action->id, [], 'template', 'run-1');
+        $result = app(ExecuteActionActivity::class)->execute($action->id, [], 'template', 'run-1', 1, 'node-1');
 
         $this->assertSame('success', $result['status']);
         $this->assertSame('greeting.txt', $result['output']['file_name'] ?? null);
@@ -52,6 +54,35 @@ final class ExecuteActionActivityTest extends TestCase
             fn (CentrifugoMessagePublished $event) => $event->channel === 'scenario-run:run-1'
                 && $event->payload['type'] === 'action_completed',
         );
+        Event::assertDispatched(
+            ScenarioActionStageFinished::class,
+            fn (ScenarioActionStageFinished $event) => $event->scenarioRunId === 'run-1'
+                && $event->actionNodeId === 'node-1'
+                && $event->status === ActionRunStatus::Success,
+        );
+    }
+
+    public function test_execute_without_action_node_id_does_not_dispatch_scenario_action_stage_finished(): void
+    {
+        Storage::fake('local');
+        Event::fake();
+
+        $action = Action::query()->create([
+            'name' => 'Template',
+            'slug' => 'template',
+            'code' => 'template',
+            'type' => 'template_file',
+            'is_active' => true,
+            'config' => [
+                'format' => 'txt',
+                'template' => 'hello',
+                'file_name' => 'greeting.txt',
+            ],
+        ]);
+
+        app(ExecuteActionActivity::class)->execute($action->id, [], 'template', 'run-1');
+
+        Event::assertNotDispatched(ScenarioActionStageFinished::class);
     }
 
     public function test_execute_passes_attempt_number_to_action_run(): void
@@ -116,7 +147,7 @@ final class ExecuteActionActivityTest extends TestCase
         ]);
 
         try {
-            app(ExecuteActionActivity::class)->execute($action->id, [], 'template', 'run-1');
+            app(ExecuteActionActivity::class)->execute($action->id, [], 'template', 'run-1', 1, 'node-1');
             $this->fail('Expected ApplicationFailure was not thrown.');
         } catch (ApplicationFailure $exception) {
             $this->assertSame(
@@ -128,6 +159,11 @@ final class ExecuteActionActivityTest extends TestCase
         Event::assertDispatched(
             CentrifugoMessagePublished::class,
             fn (CentrifugoMessagePublished $event) => $event->payload['type'] === 'action_failed',
+        );
+        Event::assertDispatched(
+            ScenarioActionStageFinished::class,
+            fn (ScenarioActionStageFinished $event) => $event->status === ActionRunStatus::Failed
+                && $event->error === 'Template action requires `template` in config.',
         );
     }
 }

@@ -1,5 +1,4 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-import type {ScenarioInputField} from '@/modules/scenario/types/scenario'
 
 export interface ScenarioVersion {
     id: string
@@ -7,7 +6,6 @@ export interface ScenarioVersion {
     name: string | null
     status: string
     schema_json: Record<string, unknown>
-    input_fields: ScenarioInputField[]
     created_at: string | null
     updated_at: string | null
     revisions: { id: string; created_at: string | null }[]
@@ -17,7 +15,6 @@ export interface ScenarioVersionPayload {
     name?: string | null
     status?: string
     schema_json: Record<string, unknown>
-    input_fields?: ScenarioInputField[]
 }
 
 interface RawVersionAttributes {
@@ -25,7 +22,6 @@ interface RawVersionAttributes {
     name: string | null
     status: string
     schema_json?: Record<string, unknown>
-    input_fields?: ScenarioInputField[]
     created_at: string | null
     updated_at: string | null
     revisions?: { id: string; created_at: string | null }[]
@@ -41,7 +37,6 @@ interface RawVersionFlat {
     name: string | null
     status: string
     schema_json?: Record<string, unknown>
-    input_fields?: ScenarioInputField[]
     created_at: string | null
     updated_at: string | null
     revisions?: { id: string; created_at: string | null }[]
@@ -55,7 +50,6 @@ function normalizeVersion(raw: RawVersion): ScenarioVersion {
         name: a.name,
         status: a.status,
         schema_json: a.schema_json ?? {},
-        input_fields: a.input_fields ?? [],
         created_at: a.created_at,
         updated_at: a.updated_at,
         revisions: a.revisions ?? [],
@@ -69,7 +63,6 @@ function normalizeVersionFlat(raw: RawVersionFlat, scenarioId: string): Scenario
         name: raw.name,
         status: raw.status,
         schema_json: raw.schema_json ?? {},
-        input_fields: raw.input_fields ?? [],
         created_at: raw.created_at,
         updated_at: raw.updated_at,
         revisions: raw.revisions ?? [],

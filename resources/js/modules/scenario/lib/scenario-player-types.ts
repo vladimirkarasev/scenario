@@ -72,19 +72,40 @@ export interface ScenarioRunStep {
     exited_at: string | null
 }
 
-export type RunHistoryEventType = 'transition' | 'field_filled' | 'field_changed'
+export type RunHistoryEventType =
+    | 'transition'
+    | 'field_filled'
+    | 'field_changed'
+    | 'condition_evaluated'
+    | 'action_completed'
+    | 'action_failed'
+    | 'scenario_link_followed'
+    | 'run_started'
+    | 'run_completed'
+    | 'run_failed'
+    | 'cancelled'
 
 export interface RunHistoryEvent {
     at: string | null
     actor: string | null
     type: RunHistoryEventType
-    node_type: string
+    node_id: string | null
+    node_type: string | null
     node_title: string | null
-    cancelled: boolean
     field_label?: string
     field_id?: string
     old_value?: unknown
     new_value?: unknown
+    condition_mode?: 'manual' | 'auto'
+    condition_label?: string | null
+    target_node_id?: string | null
+    action_id?: string
+    action_name?: string | null
+    code?: string
+    output?: Record<string, unknown> | null
+    error?: string | null
+    target_scenario_id?: string
+    target_scenario_name?: string | null
 }
 
 export interface ScenarioRunPayload {

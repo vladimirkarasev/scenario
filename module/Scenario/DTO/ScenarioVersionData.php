@@ -14,14 +14,12 @@ final readonly class ScenarioVersionData
      * @param  array<mixed>  $schemaJson
      * @param  array<int, array<string, mixed>>  $nodesJson
      * @param  array<int, array<string, mixed>>  $edgesJson
-     * @param  array<int, array<string, mixed>>  $inputFields
      */
     public function __construct(
         public array $schemaJson,
         public array $nodesJson,
         public array $edgesJson,
         public int $schemaVersion,
-        public array $inputFields = [],
         public ?string $name = null,
         public bool $hasName = false,
         public ?string $status = null,
@@ -39,33 +37,11 @@ final readonly class ScenarioVersionData
             nodesJson: $snapshot['nodes_json'],
             edgesJson: $snapshot['edges_json'],
             schemaVersion: $snapshot['schema_version'],
-            inputFields: self::normalizeInputFields($request->input('input_fields')),
             name: $request->filled('name') ? trim($request->string('name')->toString()) : null,
             hasName: $request->has('name'),
             status: $request->filled('status') ? $request->string('status')->toString() : null,
             hasStatus: $request->has('status'),
         );
-    }
-
-    /** @return array<int, array<string, mixed>> */
-    private static function normalizeInputFields(mixed $raw): array
-    {
-        if (!is_array($raw)) {
-            return [];
-        }
-        $result = [];
-        foreach (array_values($raw) as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-            $result[] = [
-                'key' => is_scalar($item['key'] ?? null) ? (string)$item['key'] : '',
-                'label' => is_scalar($item['label'] ?? null) ? (string)$item['label'] : '',
-                'type' => is_scalar($item['type'] ?? null) ? (string)$item['type'] : 'text',
-            ];
-        }
-
-        return $result;
     }
 
     /** @return array<string, mixed> */
@@ -91,7 +67,6 @@ final readonly class ScenarioVersionData
             'schema_json' => $this->schemaJson,
             'nodes_json' => $this->nodesJson,
             'edges_json' => $this->edgesJson,
-            'input_fields' => $this->inputFields,
             'schema_version' => $this->schemaVersion,
         ];
     }
