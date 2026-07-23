@@ -102,21 +102,6 @@ export interface DirectoryImport {
     created_at: string | null
 }
 
-export interface DirectoryImportSchedule {
-    enabled: boolean
-    frequency: string | null
-    run_at: string | null
-    day_of_week: number | null
-    day_of_month: number | null
-    timezone: string
-    mode?: string | null
-    match_by?: string | null
-    chunk_size?: number | null
-    mapping_json?: Record<string, string> | null
-    remote_config_json?: Record<string, unknown> | null
-    next_run_at?: string | null
-}
-
 export interface Directory {
     id: string
     project_id: string
@@ -137,7 +122,6 @@ export interface Directory {
     latest_version: (Pick<DirectoryVersion, 'id' | 'version_number' | 'status' | 'is_active' | 'schema_json' | 'created_at'>) | null
     sample_items: DirectoryItem[]
     imports: DirectoryImport[]
-    import_schedule: DirectoryImportSchedule | null
     import_settings: {
         mode?: string
         chunk_size?: number

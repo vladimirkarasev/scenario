@@ -98,6 +98,8 @@ tags:
     description: Управление ролями (Spatie Permission). Роли назначаются пользователям и используются для авторизации (`project_admin` и др.).
   - name: Actions
     description: CRUD, выполнение и оркестрация actions через jobs, chain и batch.
+  - name: Directories
+    description: Справочники — импорт (Excel/remote/proxy, через Temporal), версии, элементы, cron-расписание синхронизации.
   - name: Группы
     description: Управление группами доступа. Группы привязываются к категориям и сценариям для ограничения видимости.
   - name: Proxy
@@ -257,7 +259,7 @@ paths:
     $ref: './paths/action-runs.yaml#/failed'
   /actions/schedules:
     $ref: './paths/action-schedules.yaml#/collection'
-  /actions/directories/{directory}/sync-schedule:
+  /directories/{directory}/sync-schedule:
     $ref: './paths/directory-sync-schedules.yaml#/item'
 
   /embed/auth/exchange:

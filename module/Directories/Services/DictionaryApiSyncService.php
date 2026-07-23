@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services;
 
-use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -13,22 +12,20 @@ use Module\Directories\Enums\DirectoryImportMode;
 use Module\Directories\Enums\DirectoryImportSourceType;
 use Module\Directories\Enums\DirectoryImportStatus;
 use Module\Directories\Exceptions\DictionaryApiSyncException;
-use Module\Directories\Jobs\SyncDictionaryFromApiJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Repositories\DirectoryImportRepository;
 use Module\Directories\Repositories\DirectoryVersionRepository;
 use Module\Proxy\Models\ProxyEndpoint;
+use Module\Schedule\Models\Schedule;
 use Throwable;
 
 final readonly class DictionaryApiSyncService
 {
     public function __construct(
-        private Dispatcher $dispatcher,
         private DirectoryImportRepository $imports,
         private DirectoryVersionRepository $versions,
         private ImportService $importService,
-        private DirectoryVersionService $versionService,
     ) {
     }
 
@@ -51,6 +48,12 @@ final readonly class DictionaryApiSyncService
         return $this->queueDirectApiSync($directory, $config, $userId, $options);
     }
 
+    /**
+     * Kicks off the (Temporal-orchestrated, async) import. The eventual completion/failure —
+     * version activation, `Directory.sync_status/last_sync_at/next_sync_at` — is handled by
+     * {@see \Module\Directories\Listeners\SyncDirectoryStatusOnImportFinished}, reacting to
+     * {@see \Module\Directories\Events\DirectoryImportStatusUpdated} once the import actually finishes.
+     */
     public function runImport(int $importId): void
     {
         $import = $this->imports->findOrFail($importId);
@@ -60,22 +63,6 @@ final readonly class DictionaryApiSyncService
             $directory->forceFill(['sync_status' => 'processing', 'sync_error' => null])->save();
 
             $this->importService->start($importId);
-
-            $completed = $import->fresh();
-
-            if ($completed?->status !== DirectoryImportStatus::Completed->value) {
-                throw new \RuntimeException($completed?->error_message ?: 'Sync finished with errors.');
-            }
-
-            $version = $completed->version()->firstOrFail();
-            $this->versionService->activate($directory, $version);
-
-            $directory->forceFill([
-                'last_sync_at' => now(),
-                'next_sync_at' => $this->nextSyncAt($directory),
-                'sync_status' => 'success',
-                'sync_error' => null,
-            ])->save();
         } catch (Throwable $exception) {
             $directory->forceFill([
                 'sync_status' => 'failed',
@@ -87,9 +74,20 @@ final readonly class DictionaryApiSyncService
         }
     }
 
+    /**
+     * Queues due interval-based syncs. Directories with an enabled cron schedule (a
+     * {@see \Module\Schedule\Models\Schedule} row, scope `directory-sync`) are skipped here —
+     * they're triggered independently by their own native Temporal Schedule instead.
+     */
     public function queueDue(): int
     {
         $count = 0;
+
+        $scheduledDirectoryIds = Schedule::query()
+            ->where('scope', DirectorySyncScheduleService::scope())
+            ->where('enabled', true)
+            ->whereNotNull('cron')
+            ->pluck('subject_id');
 
         Directory::query()
             ->where('source_type', 'api')
@@ -97,12 +95,8 @@ final readonly class DictionaryApiSyncService
             ->where(function ($query): void {
                 $query->whereNull('next_sync_at')->orWhere('next_sync_at', '<=', now());
             })
+            ->whereNotIn('id', $scheduledDirectoryIds)
             ->each(function (Directory $directory) use (&$count): void {
-                $config = $directory->api_config_json ?? [];
-                if (($config['schedule_mode'] ?? null) === 'cron') {
-                    return;
-                }
-
                 try {
                     $this->queue($directory);
                     $count++;
@@ -180,7 +174,7 @@ final readonly class DictionaryApiSyncService
 
         $directory->forceFill(['sync_status' => 'queued', 'sync_error' => null])->save();
 
-        $this->dispatcher->dispatch(new SyncDictionaryFromApiJob($import->id));
+        $this->runImport($import->id);
 
         return $import;
     }
@@ -226,7 +220,7 @@ final readonly class DictionaryApiSyncService
 
         $directory->forceFill(['sync_status' => 'queued', 'sync_error' => null])->save();
 
-        $this->dispatcher->dispatch(new SyncDictionaryFromApiJob($import->id));
+        $this->runImport($import->id);
 
         return $import;
     }
@@ -256,7 +250,7 @@ final readonly class DictionaryApiSyncService
         ];
     }
 
-    private function nextSyncAt(Directory $directory): Carbon
+    public function nextSyncAt(Directory $directory): Carbon
     {
         $apiConfig = $directory->api_config_json ?? [];
         $refreshInterval = $apiConfig['refresh_interval'] ?? null;

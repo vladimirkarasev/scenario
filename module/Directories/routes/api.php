@@ -12,11 +12,11 @@ use Module\Directories\Http\Controllers\DirectoryDetailController;
 use Module\Directories\Http\Controllers\DirectoryFeedController;
 use Module\Directories\Http\Controllers\DirectoryImportController;
 use Module\Directories\Http\Controllers\DirectoryImportPreviewController;
-use Module\Directories\Http\Controllers\DirectoryImportScheduleController;
 use Module\Directories\Http\Controllers\DirectoryImportSettingsController;
 use Module\Directories\Http\Controllers\DirectoryItemController;
 use Module\Directories\Http\Controllers\DirectoryListController;
 use Module\Directories\Http\Controllers\DirectoryManualItemController;
+use Module\Directories\Http\Controllers\DirectorySyncScheduleController;
 use Module\Directories\Http\Controllers\DirectoryVersionController;
 
 Route::prefix('api/directories/categories')
@@ -49,6 +49,9 @@ Route::prefix('api/directories')
             Route::get('/{directory}/versions', [DirectoryVersionController::class, 'index'])->name('versions.index');
             Route::get('/{directory}/imports', [DirectoryImportController::class, 'index'])->name('imports.index');
             Route::get('/{directory}/items', [DirectoryItemController::class, 'index'])->name('items.index');
+            Route::get('/{directory}/sync-schedule', [DirectorySyncScheduleController::class, 'show'])->name(
+                'sync-schedule.show'
+            );
         });
 
         Route::middleware('permission:directory_create')->group(static function (): void {
@@ -66,8 +69,11 @@ Route::prefix('api/directories')
             Route::patch('/{directory}/import-settings', [DirectoryImportSettingsController::class, 'update'])->name(
                 'import-settings.update'
             );
-            Route::put('/{directory}/import-schedule', [DirectoryImportScheduleController::class, 'upsert'])->name(
-                'import-schedule.upsert'
+            Route::put('/{directory}/sync-schedule', [DirectorySyncScheduleController::class, 'upsert'])->name(
+                'sync-schedule.upsert'
+            );
+            Route::delete('/{directory}/sync-schedule', [DirectorySyncScheduleController::class, 'destroy'])->name(
+                'sync-schedule.destroy'
             );
             Route::post('/{directory}/items', [DirectoryManualItemController::class, 'store'])->name('items.store');
             Route::put('/{directory}/items/{item}', [DirectoryItemController::class, 'update'])->name('items.update');

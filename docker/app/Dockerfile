@@ -1,13 +1,4 @@
-FROM ghcr.io/roadrunner-server/velox:latest AS velox
-
-COPY ./docker/app/velox.toml velox.toml
-
-ENV CGO_ENABLED=0
-
-# --mount=type=secret keeps RT_TOKEN out of the image layers/history (unlike ARG/ENV, which would
-# bake it in permanently) — only visible to this one RUN step.
-RUN --mount=type=secret,id=rt_token \
-    RT_TOKEN="$(cat /run/secrets/rt_token)" vx build -c velox.toml -o /usr/bin/
+FROM ghcr.io/roadrunner-server/roadrunner:2025.1.5 AS roadrunner
 
 FROM php:8.5-cli
 
@@ -38,7 +29,7 @@ RUN apt-get update \
 RUN pecl install grpc protobuf \
     && docker-php-ext-enable grpc protobuf
 
-COPY --from=velox /usr/bin/rr /usr/local/bin/rr
+COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
 
 COPY ./docker/app/bin/ /usr/local/bin/
 

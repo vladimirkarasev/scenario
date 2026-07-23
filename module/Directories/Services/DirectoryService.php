@@ -19,7 +19,6 @@ use Module\Projects\Repositories\ProjectRepository;
 final readonly class DirectoryService
 {
     public function __construct(
-        private DirectoryImportScheduleService $scheduleService,
         private DirectoryVersionService $versionService,
         private DirectoryRepository $directories,
         private DirectoryItemRepository $items,
@@ -157,9 +156,6 @@ final readonly class DirectoryService
                 ->map(fn(DirectoryImport $import): array => $this->importPayload($import))
                 ->values()
                 ->all(),
-            'import_schedule' => $directory->relationLoaded('importSchedule')
-                ? $this->scheduleService->payload($directory->importSchedule)
-                : null,
             'import_settings' => $directory->import_settings_json ?? [],
             'created_at' => $directory->created_at?->toIso8601String(),
             'updated_at' => $directory->updated_at?->toIso8601String(),
@@ -214,9 +210,6 @@ final readonly class DirectoryService
                 ->map(fn(DirectoryImport $import): array => $this->importPayload($import))
                 ->values()
                 ->all(),
-            'import_schedule' => $directory->relationLoaded('importSchedule')
-                ? $this->scheduleService->payload($directory->importSchedule)
-                : null,
             'import_settings' => $directory->import_settings_json ?? [],
         ];
     }

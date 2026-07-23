@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Actions\Services\Handlers;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Module\Actions\Enums\ActionRunStatus;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\Handlers\DirectoryImportActionHandler;
-use Module\Directories\Jobs\ImportDirectoryJob;
 use Module\Directories\Models\Directory;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
+use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
 use Tests\TestCase;
 
 final class DirectoryImportActionHandlerTest extends TestCase
@@ -19,7 +19,8 @@ final class DirectoryImportActionHandlerTest extends TestCase
 
     public function test_handle_queues_directory_import_from_existing_file(): void
     {
-        Bus::fake();
+        $starter = new FakeRunDirectoryImportWorkflowStarter();
+        $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         $directory = Directory::query()->create([
             'name' => 'Leads',
@@ -53,6 +54,6 @@ final class DirectoryImportActionHandlerTest extends TestCase
         $this->assertSame('file', $result->output['source_type'] ?? null);
         $this->assertSame('actions/leads/leads.xlsx', $result->output['file_path'] ?? null);
 
-        Bus::assertDispatched(ImportDirectoryJob::class);
+        $this->assertCount(1, $starter->calls);
     }
 }

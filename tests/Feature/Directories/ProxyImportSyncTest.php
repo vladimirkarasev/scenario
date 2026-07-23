@@ -11,10 +11,12 @@ use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryItem;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Services\DictionaryApiSyncService;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Models\ProxyRequest;
 use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
 use Tests\TestCase;
 
 final class ProxyImportSyncTest extends TestCase
@@ -23,6 +25,11 @@ final class ProxyImportSyncTest extends TestCase
 
     public function test_proxy_import_with_mock_creates_items_with_data(): void
     {
+        $this->app->instance(
+            RunDirectoryImportWorkflowStarterInterface::class,
+            new FakeRunDirectoryImportWorkflowStarter(runInline: true),
+        );
+
         $project = $this->makeProject();
         $user = User::factory()->create([
             'sitekey' => $project->sitekey,
@@ -79,7 +86,6 @@ final class ProxyImportSyncTest extends TestCase
         /** @var DictionaryApiSyncService $sync */
         $sync = app(DictionaryApiSyncService::class);
         $import = $sync->queue($directory, $user->id);
-        $sync->runImport($import->id);
 
         $import->refresh();
 

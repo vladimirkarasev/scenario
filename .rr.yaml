@@ -48,14 +48,6 @@ jobs:
         queue: ${RR_JOBS_DEFAULT_QUEUE:-default}
   consume: [ "imports", "default" ]
 
-cron:
-  timezone: "UTC"
-  jobs:
-    - name: "laravel-schedule"
-      command: "php artisan schedule:run"
-      schedule: "* * * * *"
-      timeout: "50s"
-
 centrifuge:
   proxy_address: tcp://0.0.0.0:${RR_CENTRIFUGE_PROXY_PORT:-30001}
   grpc_api_address: ${CENTRIFUGO_GRPC_API_HOST:-centrifugo}:${CENTRIFUGO_GRPC_API_PORT:-10000}
