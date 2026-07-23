@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services;
 
-use Illuminate\Contracts\Bus\Dispatcher as BusDispatcher;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Module\Directories\Cache\DirectoryCache;
@@ -17,7 +17,6 @@ use Module\Directories\DTO\DirectoryImportOptions;
 use Module\Directories\Enums\DirectoryImportStatus;
 use Module\Directories\Events\DirectoryImportStatusUpdated;
 use Module\Directories\Exceptions\DirectoryImportException;
-use Module\Directories\Jobs\ImportDirectoryJob;
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryImportRepository;
@@ -25,15 +24,17 @@ use Module\Directories\Repositories\DirectoryItemRepository;
 use Module\Directories\Repositories\DirectoryVersionRepository;
 use Module\Directories\Services\Importing\DirectoryImportPayloadNormalizer;
 use Module\Directories\Services\Importing\DirectoryImportRowProcessor;
-use Module\Directories\Services\ImportSources\DirectoryImportSource;
 use Module\Directories\Services\ImportSources\DirectoryImportSourceResolver;
+use Module\Directories\Services\ImportSources\PagedDirectoryImportSource;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowInput;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Throwable;
 
 final readonly class ImportService
 {
     public function __construct(
         private DirectoryImport $directoryImportModel,
-        private BusDispatcher $bus,
         private EventDispatcher $events,
         private DirectoryImportSourceResolver $sourceResolver,
         private DirectoryImportRepository $imports,
@@ -72,7 +73,7 @@ final readonly class ImportService
 
         $this->rememberImportSource($targetVersion, $import, $source->type()->value);
 
-        $this->bus->dispatch(new ImportDirectoryJob($import->id));
+        $this->start($import->id);
 
         return $import;
     }
@@ -88,13 +89,44 @@ final readonly class ImportService
 
         $this->publishStatus($import);
 
-        if ($source->runsInline()) {
-            $this->runInlineSource($directoryImportId, $import, $source);
+        $starter = $this->container->make(RunDirectoryImportWorkflowStarterInterface::class);
+        $input = new RunDirectoryImportWorkflowInput($import->id);
+
+        if ($source instanceof PagedDirectoryImportSource) {
+            $starter->startPaged($input);
 
             return;
         }
 
-        $source->start($import, $this->importChunkCallback());
+        $starter->start($input);
+    }
+
+    /**
+     * Computes the Excel chunking plan for a Temporal-orchestrated import and marks it
+     * ready for chunk processing. Called once by {@see \Module\Directories\Temporal\Activities\PrepareDirectoryImportActivity}
+     * before any chunk activity runs.
+     *
+     * @return array{headingRow: int, firstDataRow: int, chunkSize: int, totalRows: int, chunkTimeoutSeconds: int}
+     */
+    public function prepareExcelImport(int $directoryImportId): array
+    {
+        $import = $this->imports->findOrFail($directoryImportId);
+
+        $fullPath = Storage::disk($import->file_disk)->path($import->file_path);
+
+        $reader = IOFactory::createReaderForFile($fullPath);
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($fullPath);
+
+        $headingRow = 1;
+
+        return [
+            'headingRow' => $headingRow,
+            'firstDataRow' => $headingRow + 1,
+            'chunkSize' => max(1, $import->chunk_size),
+            'totalRows' => $spreadsheet->getActiveSheet()->getHighestDataRow(),
+            'chunkTimeoutSeconds' => is_int($chunkTimeout = config('import.temporal_chunk_timeout_seconds', 120)) ? $chunkTimeout : 120,
+        ];
     }
 
     /** @param  Collection<int, array<string, mixed>>  $rows */
@@ -363,26 +395,6 @@ final readonly class ImportService
 
             return true;
         });
-    }
-
-    private function runInlineSource(
-        int $directoryImportId,
-        DirectoryImport $import,
-        DirectoryImportSource $source,
-    ): void {
-        try {
-            $source->start($import, $this->importChunkCallback());
-            $this->complete($directoryImportId);
-        } catch (Throwable $exception) {
-            $this->fail($directoryImportId, $exception);
-        }
-    }
-
-    private function importChunkCallback(): callable
-    {
-        return function (int $importId, Collection $rows, int $baseRowNumber): void {
-            $this->importChunk($importId, $rows, $baseRowNumber);
-        };
     }
 
     private function isFinished(DirectoryImport $import): bool

@@ -20,12 +20,16 @@ use Module\Directories\Exceptions\DirectoryItemException;
 use Module\Directories\Exceptions\DirectoryVersionException;
 use Module\Directories\Listeners\LogDirectoryImportStatusUpdate;
 use Module\Directories\Listeners\PublishDirectoryImportStatusUpdate;
+use Module\Directories\Listeners\SyncDirectoryStatusOnImportFinished;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarter;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 
 final class DirectoriesServiceProvider extends ServiceProvider
 {
     #[\Override]
     public function register(): void
     {
+        $this->app->bind(RunDirectoryImportWorkflowStarterInterface::class, RunDirectoryImportWorkflowStarter::class);
     }
 
     public function boot(): void
@@ -39,6 +43,7 @@ final class DirectoriesServiceProvider extends ServiceProvider
 
         Event::listen(DirectoryImportStatusUpdated::class, [PublishDirectoryImportStatusUpdate::class, 'handle']);
         Event::listen(DirectoryImportStatusUpdated::class, [LogDirectoryImportStatusUpdate::class, 'handle']);
+        Event::listen(DirectoryImportStatusUpdated::class, [SyncDirectoryStatusOnImportFinished::class, 'handle']);
 
         $this->registerExceptionHandlers();
     }

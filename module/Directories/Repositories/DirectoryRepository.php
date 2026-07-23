@@ -65,7 +65,6 @@ final class DirectoryRepository
             'versions' => fn(Relation $q) => $q->withCount(['items', 'imports'])->orderByDesc('version_number'),
             'latestVersion',
             'imports' => fn(Relation $q) => $q->latest()->limit(20),
-            'importSchedule',
         ]);
     }
 
@@ -133,7 +132,6 @@ final class DirectoryRepository
                 'activeVersion',
                 'latestVersion',
                 'imports' => fn(Relation $q) => $q->latest()->limit(5),
-                'importSchedule',
             ])
             ->withCount('versions')
             ->orderBy('name');

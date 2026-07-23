@@ -7,12 +7,12 @@ namespace Tests\Feature\Directories\Http;
 use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
-use Module\Directories\Jobs\SyncDictionaryFromApiJob;
 use Module\Directories\Models\Directory;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use Spatie\Permission\Models\Permission;
+use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
 use Tests\TestCase;
 
 final class DirectoryApiSyncControllerTest extends TestCase
@@ -27,7 +27,8 @@ final class DirectoryApiSyncControllerTest extends TestCase
 
     public function test_store_queues_sync_for_api_directory_and_returns_202(): void
     {
-        Bus::fake([SyncDictionaryFromApiJob::class]);
+        $starter = new FakeRunDirectoryImportWorkflowStarter();
+        $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         [$user, $project] = $this->makeUserWithProject('directory_create');
         $directory = $this->makeDirectory($project, sourceType: 'api', apiConfig: [
@@ -41,10 +42,10 @@ final class DirectoryApiSyncControllerTest extends TestCase
         $this->assertDatabaseHas('directory_imports', [
             'directory_id' => $directory->id,
             'source_type' => 'remote',
-            'status' => 'pending',
+            'status' => 'processing',
         ]);
 
-        Bus::assertDispatched(SyncDictionaryFromApiJob::class);
+        $this->assertCount(1, $starter->pagedCalls);
     }
 
     public function test_store_returns_422_for_non_api_directory(): void
@@ -59,7 +60,8 @@ final class DirectoryApiSyncControllerTest extends TestCase
 
     public function test_store_accepts_sync_options(): void
     {
-        Bus::fake([SyncDictionaryFromApiJob::class]);
+        $starter = new FakeRunDirectoryImportWorkflowStarter();
+        $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         [$user, $project] = $this->makeUserWithProject('directory_create');
         $directory = $this->makeDirectory($project, sourceType: 'api', apiConfig: [
@@ -74,7 +76,7 @@ final class DirectoryApiSyncControllerTest extends TestCase
             ])
             ->assertStatus(202);
 
-        Bus::assertDispatched(SyncDictionaryFromApiJob::class);
+        $this->assertCount(1, $starter->pagedCalls);
     }
 
     public function test_store_returns_403_without_permission(): void

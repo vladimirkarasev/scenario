@@ -37,7 +37,7 @@ task up                     # docker compose up -d
 task up:dev                 # + Traefik & Buggregator (--profile dev)
 task down                   # stop & remove containers
 task down:dev               # stop including dev-profile services
-task build                  # rebuild images (needs RT_TOKEN env — GitHub token, public-repo read-only — for the Velox rr build, see docker/app/velox.toml)
+task build                  # rebuild images
 task restart                # restart containers
 
 task shell                  # bash into the laravel container
@@ -54,7 +54,7 @@ task npm:dev                # Vite dev server inside the node service (--profile
 
 ## Architecture
 
-The app is a Laravel 13 SPA (Inertia.js + Vue 3) — a visual workflow engine where users build and run node-graph scenarios. Served via **RoadRunner** directly (`roadrunner-php/laravel-bridge`, config in `.rr.yaml`; Laravel Octane is used only as an internal worker library, not as a separate server/CLI). The queue (`imports`/`default`) runs on the RoadRunner **Jobs** plugin — driver picked via `RR_JOBS_DRIVER` env (`boltdb` locally, broker of choice in prod). The container runs a single process (`rr serve`, no supervisord, no cron daemon) — `rr` is a custom Velox build (`docker/app/velox.toml`) that bundles the community **cron** plugin, which runs `php artisan schedule:run` every minute natively inside the RoadRunner process (`.rr.yaml`'s `cron:` section). Locally `RR_DEBUG=true` (`compose.yaml`) sets `pool.debug` on the http/jobs pools — a fresh worker per request/job, so PHP changes are picked up immediately, no `task reload` needed (never enable in prod — kills worker reuse). Real-time via **Centrifugo** WebSockets.
+The app is a Laravel 13 SPA (Inertia.js + Vue 3) — a visual workflow engine where users build and run node-graph scenarios. Served via **RoadRunner** directly (`roadrunner-php/laravel-bridge`, config in `.rr.yaml`; Laravel Octane is used only as an internal worker library, not as a separate server/CLI). The queue (`imports`/`default`) runs on the RoadRunner **Jobs** plugin — driver picked via `RR_JOBS_DRIVER` env (`boltdb` locally, broker of choice in prod). The container runs a single process (`rr serve`, no supervisord, no cron daemon, no Laravel scheduler). Periodic system maintenance commands (directory imports, dictionary sync/cache warmup, embed-auth token pruning) run via **Temporal Schedules** instead (`app/Temporal/SystemScheduleSyncer.php`, synced with `php artisan schedules:sync`) — same mechanism as user-defined Action schedules (`module/Actions/Temporal/ActionScheduleSyncer.php`). Locally `RR_DEBUG=true` (`compose.yaml`) sets `pool.debug` on the http/jobs pools — a fresh worker per request/job, so PHP changes are picked up immediately, no `task reload` needed (never enable in prod — kills worker reuse); note this does **not** apply to the Temporal worker pool — after changing `config/roadrunner.php`'s Temporal `declarations`, a full container restart is required (`task reload`/`rr reset` only recycles HTTP/Jobs workers). Real-time via **Centrifugo** WebSockets.
 
 ### Module system
 

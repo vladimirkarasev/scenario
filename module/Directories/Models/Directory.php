@@ -95,12 +95,6 @@ final class Directory extends Model
             ->latest();
     }
 
-    /** @return HasOne<DirectoryImportSchedule, $this> */
-    public function importSchedule(): HasOne
-    {
-        return $this->hasOne(DirectoryImportSchedule::class);
-    }
-
     #[\Override]
     protected function casts(): array
     {

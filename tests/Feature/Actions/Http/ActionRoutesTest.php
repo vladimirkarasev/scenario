@@ -20,7 +20,6 @@ final class ActionRoutesTest extends TestCase
             'actions.credentials.index' => 'api/actions/credentials',
             'actions.runs.index' => 'api/actions/runs',
             'actions.schedules.index' => 'api/actions/schedules',
-            'actions.directories.sync-schedule.show' => 'api/actions/directories/{directory}/sync-schedule',
             'actions.show' => 'api/actions/{action}',
             'actions.schedule.show' => 'api/actions/{action}/schedule',
         ];

@@ -8,16 +8,16 @@ use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Str;
-use Module\Directories\Jobs\ImportDirectoryJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Models\DirectoryVersion;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Permission\Models\Permission;
+use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
 use Tests\TestCase;
 
 final class DirectoryImportControllerTest extends TestCase
@@ -58,7 +58,8 @@ final class DirectoryImportControllerTest extends TestCase
 
     public function test_store_queues_excel_import_and_returns_202(): void
     {
-        Bus::fake([ImportDirectoryJob::class]);
+        $starter = new FakeRunDirectoryImportWorkflowStarter();
+        $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         [$user, $project] = $this->makeUserWithProject('directory_create');
         $directory = $this->makeDirectory($project);
@@ -83,11 +84,11 @@ final class DirectoryImportControllerTest extends TestCase
             'directory_id' => $directory->id,
             'source_type' => 'file',
             'mode' => 'create',
-            'status' => 'pending',
+            'status' => 'processing',
             'processed_keys_json' => '[]',
         ]);
 
-        Bus::assertDispatched(ImportDirectoryJob::class);
+        $this->assertCount(1, $starter->calls);
     }
 
     public function test_store_returns_422_when_file_missing_for_file_source(): void
@@ -154,8 +155,6 @@ final class DirectoryImportControllerTest extends TestCase
 
     public function test_store_returns_404_when_directory_from_other_project(): void
     {
-        Bus::fake([ImportDirectoryJob::class]);
-
         [$user] = $this->makeUserWithProject('directory_create');
         $other = $this->makeDirectory($this->makeProject());
         $file = $this->makeExcelFile([['name'], ['Item 1']]);

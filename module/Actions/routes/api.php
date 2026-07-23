@@ -13,7 +13,6 @@ use Module\Actions\Http\Controllers\ActionScheduleController;
 use Module\Actions\Http\Controllers\ActionScheduleListController;
 use Module\Actions\Http\Controllers\ActionsRunController;
 use Module\Actions\Http\Controllers\ActionTypeController;
-use Module\Actions\Http\Controllers\DirectorySyncScheduleController;
 
 Route::prefix('api/actions')
     ->name('actions.')
@@ -45,14 +44,6 @@ Route::prefix('api/actions')
         });
 
         Route::get('/schedules', ActionScheduleListController::class)->name('schedules.index');
-
-        Route::prefix('directories/{directory}/sync-schedule')
-            ->name('directories.sync-schedule.')
-            ->group(function (): void {
-                Route::get('/', [DirectorySyncScheduleController::class, 'show'])->name('show');
-                Route::put('/', [DirectorySyncScheduleController::class, 'upsert'])->name('upsert');
-                Route::delete('/', [DirectorySyncScheduleController::class, 'destroy'])->name('destroy');
-            });
 
         Route::get('/{action}', [ActionController::class, 'show'])->name('show');
         Route::put('/{action}', [ActionController::class, 'update'])->name('update');

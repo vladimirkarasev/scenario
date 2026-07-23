@@ -7,6 +7,7 @@ namespace Module\Actions\Temporal;
 use Illuminate\Support\Str;
 use Module\Actions\Temporal\Workflows\RunActionsParallelWorkflowInterface;
 use Module\Actions\Temporal\Workflows\RunActionsWorkflowInterface;
+use Module\Schedule\Support\TemporalTaskQueue;
 use Temporal\Client\WorkflowClientInterface;
 use Temporal\Client\WorkflowOptions;
 
@@ -14,13 +15,16 @@ final readonly class RunActionsWorkflowStarter implements RunActionsWorkflowStar
 {
     public function __construct(
         private WorkflowClientInterface $client,
+        private TemporalTaskQueue $taskQueue,
     ) {}
 
     public function startSequential(RunActionsWorkflowInput $input): void
     {
         $workflow = $this->client->newWorkflowStub(
             RunActionsWorkflowInterface::class,
-            WorkflowOptions::new()->withWorkflowId('run-actions-'.Str::uuid()->toString()),
+            WorkflowOptions::new()
+                ->withWorkflowId('run-actions-'.Str::uuid()->toString())
+                ->withTaskQueue($this->taskQueue->value()),
         );
 
         $this->client->start(
@@ -42,7 +46,9 @@ final readonly class RunActionsWorkflowStarter implements RunActionsWorkflowStar
     {
         $workflow = $this->client->newWorkflowStub(
             RunActionsParallelWorkflowInterface::class,
-            WorkflowOptions::new()->withWorkflowId('run-actions-parallel-'.Str::uuid()->toString()),
+            WorkflowOptions::new()
+                ->withWorkflowId('run-actions-parallel-'.Str::uuid()->toString())
+                ->withTaskQueue($this->taskQueue->value()),
         );
 
         $this->client->start(

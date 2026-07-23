@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: ./docker/app/Dockerfile
-      secrets:
-        - rt_token
     container_name: scenario-laravel
     restart: unless-stopped
     user: "1000:1000"
@@ -213,7 +211,8 @@ services:
       - temporal
     environment:
       TEMPORAL_ADDRESS: temporal:7233
-      TEMPORAL_CORS_ORIGINS: "http://localhost:8003 http://${LOCAL_IP:-127.0.0.3}:8003 http://temporal.scenario.test"
+      TEMPORAL_CORS_ORIGINS: "http://localhost:8003,http://${LOCAL_IP:-127.0.0.3}:8003,http://temporal.scenario.test"
+      TEMPORAL_CSRF_COOKIE_INSECURE: "true"
     ports:
       - "${LOCAL_IP:-127.0.0.3}:8003:8080"
     labels:
@@ -245,9 +244,3 @@ volumes:
 networks:
   scenario:
     driver: bridge
-
-secrets:
-  # GitHub token for the Velox custom-RoadRunner build step (docker/app/Dockerfile) — needs no
-  # scopes beyond public-repo read. Export RT_TOKEN in the shell before `task build`.
-  rt_token:
-    environment: RT_TOKEN

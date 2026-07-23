@@ -13,7 +13,7 @@ use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Services\ProxyContextFactory;
 use Module\Proxy\Services\ProxyExecutor;
 
-final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
+final readonly class ProxyDirectoryImportSource implements PagedDirectoryImportSource
 {
     public function __construct(
         private ProxyExecutor $proxyExecutor,
@@ -24,11 +24,6 @@ final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
     public function type(): DirectoryImportSourceType
     {
         return DirectoryImportSourceType::Proxy;
-    }
-
-    public function runsInline(): bool
-    {
-        return true;
     }
 
     /** @return array<string, mixed> */
@@ -45,7 +40,8 @@ final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
         ];
     }
 
-    public function start(DirectoryImport $import, callable $importChunk): void
+    /** @return array{rows: Collection<int, array<string, mixed>>, hasMore: bool} */
+    public function fetchPage(DirectoryImport $import, int $page): array
     {
         $config = $import->remote_config_json;
         $proxyEndpointId = $config['proxy_endpoint_id'] ?? null;
@@ -61,36 +57,28 @@ final readonly class ProxyDirectoryImportSource implements DirectoryImportSource
         }
 
         $perPage = max(1, $import->chunk_size ?? 500);
-        $page = 1;
-        $baseRowNumber = 2;
+        $query = ['page' => $page, 'per_page' => $perPage];
 
-        while (true) {
-            $query = ['page' => $page, 'per_page' => $perPage];
-            $response = $this->proxyExecutor->executeLogged(
-                $endpoint,
-                $this->contextFactory->forQuery($endpoint, $query),
-                $query,
-                ['caller' => 'directory-import', 'directory_import_id' => $import->id],
-            );
+        $response = $this->proxyExecutor->executeLogged(
+            $endpoint,
+            $this->contextFactory->forQuery($endpoint, $query),
+            $query,
+            ['caller' => 'directory-import', 'directory_import_id' => $import->id],
+        );
 
-            $items = $this->extractItems($response->body);
+        $items = $this->extractItems($response->body);
 
-            if ($items === []) {
-                break;
-            }
+        if ($items === []) {
+            /** @var Collection<int, array<string, mixed>> $empty */
+            $empty = collect();
 
-            /** @var Collection<int, array<string, mixed>> $rows */
-            $rows = collect($items)->map(static fn(mixed $item): array => is_array($item) ? $item : []);
-
-            $importChunk($import->id, $rows, $baseRowNumber);
-            $baseRowNumber += $rows->count();
-
-            if ($rows->count() < $perPage) {
-                break;
-            }
-
-            $page++;
+            return ['rows' => $empty, 'hasMore' => false];
         }
+
+        /** @var Collection<int, array<string, mixed>> $rows */
+        $rows = collect($items)->map(static fn(mixed $item): array => is_array($item) ? $item : []);
+
+        return ['rows' => $rows, 'hasMore' => $rows->count() >= $perPage];
     }
 
     /**

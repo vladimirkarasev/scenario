@@ -8,6 +8,7 @@ use Module\Groups\Providers\GroupsServiceProvider;
 use Module\Projects\Providers\ProjectsServiceProvider;
 use Module\Proxy\Providers\ProxyServiceProvider;
 use Module\Scenario\Providers\ScenarioServiceProvider;
+use Module\Schedule\Providers\ScheduleServiceProvider;
 use Module\Users\Providers\UsersServiceProvider;
 
 return [
@@ -19,5 +20,6 @@ return [
     ProxyServiceProvider::class,
     ProjectsServiceProvider::class,
     ScenarioServiceProvider::class,
+    ScheduleServiceProvider::class,
     UsersServiceProvider::class,
 ];

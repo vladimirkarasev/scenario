@@ -12,16 +12,11 @@ use Module\Directories\Enums\DirectoryImportSourceType;
 use Module\Directories\Exceptions\DirectoryImportException;
 use Module\Directories\Models\DirectoryImport;
 
-final class RemoteDirectoryImportSource implements DirectoryImportSource
+final class RemoteDirectoryImportSource implements PagedDirectoryImportSource
 {
     public function type(): DirectoryImportSourceType
     {
         return DirectoryImportSourceType::Remote;
-    }
-
-    public function runsInline(): bool
-    {
-        return true;
     }
 
     public function buildPayload(DirectoryImportData $data): array
@@ -35,88 +30,81 @@ final class RemoteDirectoryImportSource implements DirectoryImportSource
         ];
     }
 
-    public function start(DirectoryImport $import, callable $importChunk): void
+    /** @return array{rows: Collection<int, array<string, mixed>>, hasMore: bool} */
+    public function fetchPage(DirectoryImport $import, int $page): array
     {
         $config = $import->remote_config_json;
         $startPageRaw = $config['start_page'] ?? null;
-        $page = max(1, is_int($startPageRaw) ? $startPageRaw : (is_numeric($startPageRaw) ? (int)$startPageRaw : 1));
+        $startPage = max(1, is_int($startPageRaw) ? $startPageRaw : (is_numeric($startPageRaw) ? (int)$startPageRaw : 1));
+        $actualPage = $startPage - 1 + $page;
+
         $perPageRaw = $config['per_page'] ?? null;
         $perPage = max(
             1,
             is_int($perPageRaw) ? $perPageRaw : (is_numeric($perPageRaw) ? (int)$perPageRaw : $import->chunk_size),
         );
-        $baseRowNumber = 2;
 
-        while (true) {
-            $headers = is_array($config['headers'] ?? null) ? $config['headers'] : [];
-            $client = Http::acceptJson()
-                ->withHeaders($headers)
-                ->timeout(30);
+        $headers = is_array($config['headers'] ?? null) ? $config['headers'] : [];
+        $client = Http::acceptJson()
+            ->withHeaders($headers)
+            ->timeout(30);
 
-            $authType = is_string($config['auth_type'] ?? null) ? $config['auth_type'] : 'none';
-            $client = match ($authType) {
-                'bearer' => $client->withToken(is_scalar($t = data_get($config, 'auth.token')) ? (string)$t : ''),
-                'basic' => $client->withBasicAuth(
-                    is_scalar($u = data_get($config, 'auth.username')) ? (string)$u : '',
-                    is_scalar($p = data_get($config, 'auth.password')) ? (string)$p : '',
-                ),
-                default => $client,
-            };
+        $authType = is_string($config['auth_type'] ?? null) ? $config['auth_type'] : 'none';
+        $client = match ($authType) {
+            'bearer' => $client->withToken(is_scalar($t = data_get($config, 'auth.token')) ? (string)$t : ''),
+            'basic' => $client->withBasicAuth(
+                is_scalar($u = data_get($config, 'auth.username')) ? (string)$u : '',
+                is_scalar($p = data_get($config, 'auth.password')) ? (string)$p : '',
+            ),
+            default => $client,
+        };
 
-            $configQuery = is_array($config['query'] ?? null) ? $config['query'] : [];
-            $pageParam = is_string($config['page_param'] ?? null) ? $config['page_param'] : 'page';
-            $perPageParam = is_string($config['per_page_param'] ?? null) ? $config['per_page_param'] : 'per_page';
-            /** @var array<string, mixed> $query */
-            $query = array_filter([
-                ...$configQuery,
-                $pageParam => $page,
-                $perPageParam => $perPage,
-            ], static fn(mixed $value): bool => $value !== null);
+        $configQuery = is_array($config['query'] ?? null) ? $config['query'] : [];
+        $pageParam = is_string($config['page_param'] ?? null) ? $config['page_param'] : 'page';
+        $perPageParam = is_string($config['per_page_param'] ?? null) ? $config['per_page_param'] : 'per_page';
+        /** @var array<string, mixed> $query */
+        $query = array_filter([
+            ...$configQuery,
+            $pageParam => $actualPage,
+            $perPageParam => $perPage,
+        ], static fn(mixed $value): bool => $value !== null);
 
-            if ($authType === 'api_key' && filled(data_get($config, 'auth.key'))) {
-                $authKey = data_get($config, 'auth.key');
-                $authValue = data_get($config, 'auth.value');
-                $query[is_scalar($authKey) ? (string)$authKey : ''] = is_scalar($authValue) ? (string)$authValue : '';
-            }
-
-            $method = strtoupper(is_string($config['method'] ?? null) ? $config['method'] : 'GET');
-            $url = is_string($config['url'] ?? null) ? $config['url'] : '';
-            $body = is_array($config['body'] ?? null) ? $config['body'] : [];
-            $response = in_array($method, ['POST', 'PUT', 'PATCH'], true)
-                ? $client->send($method, $url, ['query' => $query, 'json' => $body])->throw()
-                : $client->get($url, $query)->throw();
-
-            $payload = $response->json();
-
-            if (!is_array($payload)) {
-                throw new DirectoryImportException('Remote API must return a JSON object or array.');
-            }
-
-            $itemsPath = is_string($config['items_path'] ?? null) ? $config['items_path'] : 'data';
-            $perPagePath = is_string($config['per_page_path'] ?? null) ? $config['per_page_path'] : '';
-            $items = $this->extractRemoteItems($payload, $itemsPath);
-            $resolvedPerPage = $this->resolveResponseValue($response, $payload, $perPagePath);
-            $effectivePerPage = is_numeric($resolvedPerPage) ? max(1, (int)$resolvedPerPage) : $perPage;
-
-            if ($items->isEmpty()) {
-                break;
-            }
-
-            $importChunk($import->id, $items, $baseRowNumber);
-
-            if (!$this->hasRemoteNextPage($payload, $items->count(), $page, $effectivePerPage)) {
-                break;
-            }
-
-            $baseRowNumber += $items->count();
-            $page++;
+        if ($authType === 'api_key' && filled(data_get($config, 'auth.key'))) {
+            $authKey = data_get($config, 'auth.key');
+            $authValue = data_get($config, 'auth.value');
+            $query[is_scalar($authKey) ? (string)$authKey : ''] = is_scalar($authValue) ? (string)$authValue : '';
         }
+
+        $method = strtoupper(is_string($config['method'] ?? null) ? $config['method'] : 'GET');
+        $url = is_string($config['url'] ?? null) ? $config['url'] : '';
+        $body = is_array($config['body'] ?? null) ? $config['body'] : [];
+        $response = in_array($method, ['POST', 'PUT', 'PATCH'], true)
+            ? $client->send($method, $url, ['query' => $query, 'json' => $body])->throw()
+            : $client->get($url, $query)->throw();
+
+        $payload = $response->json();
+
+        if (!is_array($payload)) {
+            throw new DirectoryImportException('Remote API must return a JSON object or array.');
+        }
+
+        $itemsPath = is_string($config['items_path'] ?? null) ? $config['items_path'] : 'data';
+        $perPagePath = is_string($config['per_page_path'] ?? null) ? $config['per_page_path'] : '';
+        $items = $this->extractRemoteItems($payload, $itemsPath);
+
+        if ($items->isEmpty()) {
+            return ['rows' => $items, 'hasMore' => false];
+        }
+
+        $resolvedPerPage = $this->resolveResponseValue($response, $payload, $perPagePath);
+        $effectivePerPage = is_numeric($resolvedPerPage) ? max(1, (int)$resolvedPerPage) : $perPage;
+
+        return [
+            'rows' => $items,
+            'hasMore' => $this->hasRemoteNextPage($payload, $items->count(), $actualPage, $effectivePerPage),
+        ];
     }
 
-    /**
-     * @param  array<string, mixed>  $remote
-     * @return array<string, mixed>
-     */
     /**
      * @param  array<string, mixed>  $remote
      * @return array<string, mixed>
