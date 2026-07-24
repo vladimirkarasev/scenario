@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Module\Proxy\Proxies\DaData\Suggest;
+
+use Module\Proxy\DTO\ProxyFieldString;
+use Module\Proxy\Gateway\DaData\DaDataSuggestGateway;
+use Module\Proxy\Proxies\DaData\DaDataSuggestEndpointHandler;
+
+final class FmsUnitSuggestProxyHandler extends DaDataSuggestEndpointHandler
+{
+    /** @throws \Throwable */
+    #[\Override]
+    protected function suggest(DaDataSuggestGateway $gateway, string $query, int $count, array $options): array
+    {
+        return $gateway->suggestFmsUnit($query, $count, $options);
+    }
+
+    /** @return iterable<mixed> */
+    #[\Override]
+    public function resultFields(): iterable
+    {
+        yield ProxyFieldString::make('value')->label('Значение');
+        yield ProxyFieldString::make('data.code')->label('Код подразделения');
+        yield ProxyFieldString::make('data.name')->label('Наименование');
+        yield ProxyFieldString::make('data.region')->label('Регион');
+    }
+}

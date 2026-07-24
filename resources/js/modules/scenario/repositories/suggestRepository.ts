@@ -1,10 +1,10 @@
 import {sendJson} from '@/lib/http'
 
 export const suggestRepository = {
-    async suggest(uuid: string, query: string): Promise<Record<string, unknown>[]> {
+    async suggest(uuid: string, query: string, extraParams: Record<string, unknown> = {}): Promise<Record<string, unknown>[]> {
         const raw = await sendJson(`/api/proxies/${uuid}`, {
             method: 'POST',
-            body: {query},
+            body: {query, ...extraParams},
             fallbackMessage: 'Не удалось загрузить подсказки.',
         })
 

@@ -50,6 +50,12 @@ interface FieldConfig {
   filterable: boolean
 }
 
+interface SuggestFieldConfig {
+  key: string
+  defaultValue: string
+  filterKey: string
+}
+
 const resolvedProps = computed(() => (props.block.props ?? {}) as Record<string, unknown>)
 const labelStyle = computed(() => {
   const {labelFontSize, labelColor, labelHighlight} = resolvedProps.value
@@ -100,6 +106,7 @@ function resolveDepDropValue(blockProps: Record<string, unknown>, data: Record<s
 const resolvedChildren = computed(() => ((props.block.children ?? []) as SurveyBlock[]).filter(Boolean))
 const selectOptions = computed(() => Array.isArray(resolvedProps.value.options) ? resolvedProps.value.options as SelectOption[] : [])
 const directoryFields = computed(() => Array.isArray(resolvedProps.value.fields) ? resolvedProps.value.fields as FieldConfig[] : [])
+const suggestFields = computed(() => Array.isArray(resolvedProps.value.fields) ? resolvedProps.value.fields as SuggestFieldConfig[] : [])
 
 const isCollapseOpen = ref(!(props.block.props?.defaultCollapsed ?? false))
 
@@ -297,6 +304,7 @@ watch(
         :label-template="String(resolvedProps.labelTemplate ?? '')"
         :multiple="Boolean(resolvedProps.multiple)"
         :allow-root-selection="Boolean(resolvedProps.allowRootSelection ?? true)"
+        :fields="directoryFields"
         :default-search="String(resolvedProps.defaultSearch ?? '')"
         :disabled="disabled"
         :error="hasError"
@@ -334,11 +342,12 @@ watch(
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySuggestField
-        :model-value="(formData[fieldName] as Record<string, unknown> | Record<string, unknown>[] | null) ?? (Boolean(resolvedProps.multiple) ? [] : null)"
+        :model-value="(formData[fieldName] as Record<string, unknown> | null) ?? null"
         :proxy-uuid="String(resolvedProps.proxyUuid ?? '')"
-        :label-field="String(resolvedProps.labelField ?? '')"
+        :label-template="String(resolvedProps.labelTemplate ?? '')"
+        :fields="suggestFields"
         :placeholder="String(resolvedProps.placeholder ?? '')"
-        :multiple="Boolean(resolvedProps.multiple)"
+        :count="Number(resolvedProps.count ?? 5)"
         :disabled="disabled"
         :error="hasError"
         @update:model-value="formData[fieldName] = $event"

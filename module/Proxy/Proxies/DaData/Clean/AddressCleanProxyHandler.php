@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Proxies\Base\DaData\Clean;
+namespace Module\Proxy\Proxies\DaData\Clean;
 
 use Module\Proxy\Gateway\DaData\DaDataCleanGateway;
 use Module\Proxy\Gateway\DaData\DTO\DaDataCleanResult;
-use Module\Proxy\Proxies\Base\DaData\DaDataCleanEndpointHandler;
+use Module\Proxy\Proxies\DaData\DaDataCleanEndpointHandler;
 
-final class NameCleanProxyHandler extends DaDataCleanEndpointHandler
+final class AddressCleanProxyHandler extends DaDataCleanEndpointHandler
 {
     /** @throws \Throwable */
     #[\Override]
     protected function clean(DaDataCleanGateway $gateway, string $value): DaDataCleanResult
     {
-        return $gateway->cleanName($value);
+        return $gateway->cleanAddress($value);
     }
 }

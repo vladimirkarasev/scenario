@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import {Input} from '@/components/ui/input'
-import type {DirectorySchemaField} from '@/modules/directories/types/directory'
 
 const props = withDefaults(defineProps<{
   modelValue: string
   label?: string
-  fields?: DirectorySchemaField[]
+  fields?: { key: string }[]
   disabled?: boolean
 }>(), {
   label: 'Шаблон отображения',

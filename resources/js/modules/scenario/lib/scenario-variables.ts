@@ -27,6 +27,9 @@ export function fieldsToVariableEntries(
             base.options = (f.options ?? []).map((o) => ({value: o.value, label: o.label}))
             base.multiple = f.multiple
         }
+        if (f.type === 'suggest') {
+            base.proxyUuid = f.proxyUuid
+        }
         return [base]
     })
 }

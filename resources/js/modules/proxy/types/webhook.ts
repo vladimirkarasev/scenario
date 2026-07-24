@@ -61,6 +61,9 @@ export interface WebhookField {
     example: string | null
     description: string | null
     secret?: boolean
+    filterable?: boolean
+    filter_key?: string | null
+    values?: string[]
 }
 
 export interface WebhookPayload {

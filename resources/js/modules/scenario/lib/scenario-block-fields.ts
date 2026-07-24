@@ -163,6 +163,7 @@ export interface DirectoryListBlockField extends BaseBlockField {
     labelTemplate: string
     multiple: boolean
     allowRootSelection: boolean
+    fields: DirectoryTableFieldConfig[]
     defaultSearch: string
     depDrop: DirectoryListDepDrop | null
 }
@@ -188,12 +189,19 @@ export interface DirectoryTableBlockField extends BaseBlockField {
     defaultSearch: string
 }
 
+export interface SuggestFieldConfig {
+    key: string
+    defaultValue: string
+    filterKey: string
+}
+
 export interface SuggestBlockField extends BaseBlockField {
     type: 'suggest'
     proxyUuid: string
-    labelField: string
+    fields: SuggestFieldConfig[]
+    labelTemplate: string
     placeholder: string
-    multiple: boolean
+    count: number
 }
 
 export type BlockField =
@@ -397,6 +405,7 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             labelTemplate: '',
             multiple: false,
             allowRootSelection: true,
+            fields: [],
             defaultSearch: '',
             depDrop: null,
             varName: labelToVarName('Справочник')
@@ -423,14 +432,34 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             label: 'Подсказки',
             required: false,
             proxyUuid: '',
-            labelField: '',
+            fields: [],
+            labelTemplate: '',
             placeholder: '',
-            multiple: false,
+            count: 5,
             varName: labelToVarName('Подсказки')
         },
     }
 
     return structuredClone(byType[type] ?? byType.input)
+}
+
+function parseDirectoryTableFieldConfigs(raw: unknown): DirectoryTableFieldConfig[] {
+    return Array.isArray(raw)
+        ? raw.map((c: Record<string, unknown>) => ({
+            key: String(c.key ?? ''),
+            visible: Boolean(c.visible ?? true),
+            defaultValue: String(c.defaultValue ?? c.default_value ?? ''),
+            filterable: Boolean(c.filterable ?? false),
+            lockFilter: Boolean(c.lockFilter ?? c.lock_filter ?? false),
+            filterMode: (c.filterMode ?? c.filter_mode) === 'template' ? 'template' : 'literal',
+            filterValues: (() => {
+                const values = c.filterValues ?? c.filter_values
+                return Array.isArray(values)
+                    ? values.filter((v): v is string => typeof v === 'string')
+                    : []
+            })(),
+        }))
+        : []
 }
 
 const VALID_RULE_TYPES = new Set<ValidationRuleType>(['minLength', 'maxLength', 'pattern', 'min', 'max'])
@@ -671,28 +700,14 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
                 labelTemplate,
                 multiple: Boolean(f.multiple ?? false),
                 allowRootSelection: rawAllow !== undefined ? Boolean(rawAllow) : true,
+                fields: parseDirectoryTableFieldConfigs(f.fields),
                 defaultSearch: String(f.defaultSearch ?? f.default_search ?? ''),
                 depDrop,
             } as DirectoryListBlockField
         }
 
         case 'directory_table': {
-            const fields: DirectoryTableFieldConfig[] = Array.isArray(f.fields)
-                ? f.fields.map((c: Record<string, unknown>) => ({
-                    key: String(c.key ?? ''),
-                    visible: Boolean(c.visible ?? true),
-                    defaultValue: String(c.defaultValue ?? c.default_value ?? ''),
-                    filterable: Boolean(c.filterable ?? false),
-                    lockFilter: Boolean(c.lockFilter ?? c.lock_filter ?? false),
-                    filterMode: (c.filterMode ?? c.filter_mode) === 'template' ? 'template' : 'literal',
-                    filterValues: (() => {
-                        const raw = c.filterValues ?? c.filter_values
-                        return Array.isArray(raw)
-                            ? raw.filter((v): v is string => typeof v === 'string')
-                            : []
-                    })(),
-                }))
-                : []
+            const fields: DirectoryTableFieldConfig[] = parseDirectoryTableFieldConfigs(f.fields)
             return {
                 ...nb,
                 directoryId: String(f.directoryId ?? f.directory_id ?? ''),
@@ -705,14 +720,23 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
             } as DirectoryTableBlockField
         }
 
-        case 'suggest':
+        case 'suggest': {
+            const fields: SuggestFieldConfig[] = Array.isArray(f.fields)
+                ? f.fields.map((c: Record<string, unknown>) => ({
+                    key: String(c.key ?? ''),
+                    defaultValue: String(c.defaultValue ?? c.default_value ?? ''),
+                    filterKey: String(c.filterKey ?? c.filter_key ?? ''),
+                }))
+                : []
             return {
                 ...nb,
                 proxyUuid: String(f.proxyUuid ?? f.proxy_uuid ?? ''),
-                labelField: String(f.labelField ?? f.label_field ?? ''),
+                fields,
+                labelTemplate: String(f.labelTemplate ?? f.label_template ?? ''),
                 placeholder: String(f.placeholder ?? (base as SuggestBlockField).placeholder),
-                multiple: Boolean(f.multiple ?? false),
+                count: Number(f.count ?? (base as SuggestBlockField).count ?? 5) || 5,
             } as SuggestBlockField
+        }
 
         default:
             return nb as BlockField

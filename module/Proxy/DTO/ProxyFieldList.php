@@ -42,4 +42,11 @@ final class ProxyFieldList extends ProxyField
 
         return $rules;
     }
+
+    /** @return array<string, mixed> */
+    #[\Override]
+    public function toArray(): array
+    {
+        return [...parent::toArray(), 'values' => $this->values];
+    }
 }
