@@ -11,6 +11,7 @@ export interface VarLike {
     versionId?: string
     options?: { value: string; label: string }[]
     multiple?: boolean
+    proxyUuid?: string
 }
 
 export interface StructureItem {
@@ -46,6 +47,7 @@ export const DIRECTORY_FIELD_TYPES = new Set(['directory_list', 'directory_table
 export const DATE_FIELD_TYPES = new Set(['date', 'datetime'])
 export const SELECT_FIELD_TYPE = 'select'
 export const PHONE_FIELD_TYPE = 'phone'
+export const SUGGEST_FIELD_TYPE = 'suggest'
 
 export const PHONE_ACCESSORS: StructureItem[] = [
     {suffix: 'formatted', name: 'Форматированный', description: '+7 (999) 999-99-99'},
@@ -184,8 +186,12 @@ export function isPhoneVar(v: VarLike): boolean {
     return !v.isAccessor && v.fieldType === PHONE_FIELD_TYPE
 }
 
+export function isSuggestVar(v: VarLike): boolean {
+    return !v.isAccessor && v.fieldType === SUGGEST_FIELD_TYPE
+}
+
 export function hasHints(v: VarLike): boolean {
-    return isDirectoryVar(v) || isDateVar(v) || isSelectVar(v) || isPhoneVar(v)
+    return isDirectoryVar(v) || isDateVar(v) || isSelectVar(v) || isPhoneVar(v) || isSuggestVar(v)
 }
 
 export function dateFormatsFor(v: VarLike): DateFormatItem[] {

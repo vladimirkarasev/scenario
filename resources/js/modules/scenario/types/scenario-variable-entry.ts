@@ -17,6 +17,7 @@ export interface MainVariableEntry extends BaseVariableEntry {
     versionId?: string
     options?: { value: string; label: string }[]
     multiple?: boolean
+    proxyUuid?: string
 }
 
 export interface AccessorVariableEntry extends BaseVariableEntry {

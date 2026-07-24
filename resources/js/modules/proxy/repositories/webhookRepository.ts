@@ -81,4 +81,12 @@ export const webhookRepository = {
         ) as { data: RawField[] }
         return raw.data.map(item => item.attributes)
     },
+
+    async resultFields(webhookUuid: string): Promise<WebhookField[]> {
+        const raw = await getJson(
+            `/api/proxies/${webhookUuid}/result-fields`,
+            'Не удалось загрузить поля результата интеграции.',
+        ) as { data: RawField[] }
+        return raw.data.map(item => item.attributes)
+    },
 }

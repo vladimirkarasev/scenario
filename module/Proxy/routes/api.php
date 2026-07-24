@@ -9,8 +9,11 @@ use Module\Proxy\Http\Controllers\ProxyEndpointController;
 use Module\Proxy\Http\Controllers\ProxyFeedController;
 use Module\Proxy\Http\Controllers\ProxyFieldsController;
 use Module\Proxy\Http\Controllers\ProxyRequestLogController;
+use Module\Proxy\Http\Controllers\ProxyResultFieldsController;
 Route::get('/proxies/{uuid}/fields', ProxyFieldsController::class)
     ->name('proxy.proxies.fields');
+Route::get('/proxies/{uuid}/result-fields', ProxyResultFieldsController::class)
+    ->name('proxy.proxies.result-fields');
 
 Route::prefix('proxy')->name('api.proxy.')->group(static function (): void {
     Route::get('/handlers', [ProxyEndpointController::class, 'handlers'])->name('handlers');

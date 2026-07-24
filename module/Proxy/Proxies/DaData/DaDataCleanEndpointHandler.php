@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Proxies\Base\DaData;
+namespace Module\Proxy\Proxies\DaData;
 
 use Module\Proxy\Credentials\DaData\DaDataCredential;
 use Module\Proxy\DTO\ProxyContext;

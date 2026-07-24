@@ -16,6 +16,13 @@ type IncomingModelValue =
     | string[]
     | null
 
+interface FieldConfig {
+  key: string
+  defaultValue: string
+  filterMode?: 'literal' | 'template'
+  filterValues?: string[]
+}
+
 const props = withDefaults(defineProps<{
   modelValue: IncomingModelValue
   directoryId: string
@@ -23,6 +30,7 @@ const props = withDefaults(defineProps<{
   labelTemplate?: string
   multiple?: boolean
   allowRootSelection?: boolean
+  fields?: FieldConfig[]
   defaultSearch?: string
   disabled?: boolean
   error?: boolean
@@ -34,6 +42,7 @@ const props = withDefaults(defineProps<{
   labelTemplate: '',
   multiple: false,
   allowRootSelection: true,
+  fields: () => [],
   defaultSearch: '',
   disabled: false,
   error: false,
@@ -235,6 +244,17 @@ async function loadItems(q?: string): Promise<void> {
     if (effectiveQ) qs.set('filter[search]', effectiveQ)
     if (props.versionId) qs.set('filter[version_id]', props.versionId)
     if (props.filterKey && props.filterValue) qs.set(`filter[${props.filterKey}]`, props.filterValue)
+
+    for (const cfg of props.fields) {
+      const values = cfg.filterValues ?? []
+      if (cfg.filterMode === 'literal' && values.length > 0) {
+        values.forEach((v) => qs.append(`filter[${cfg.key}][]`, v))
+        continue
+      }
+      if (cfg.defaultValue && cfg.defaultValue.trim() !== '') {
+        qs.set(`filter[${cfg.key}]`, cfg.defaultValue)
+      }
+    }
 
     const dataFields = extractTemplateKeys(props.labelTemplate)
     if (dataFields.length > 0) qs.set('fields[items]', dataFields.join(','))

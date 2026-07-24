@@ -72,6 +72,7 @@ function buildSurveyBlock(field: BlockField): SurveyBlock {
                     labelTemplate: field.labelTemplate,
                     multiple: field.multiple,
                     allowRootSelection: field.allowRootSelection,
+                    fields: field.fields,
                     defaultSearch: field.defaultSearch,
                     depDrop: field.depDrop ?? null,
                 }
@@ -91,6 +92,21 @@ function buildSurveyBlock(field: BlockField): SurveyBlock {
                     multiple: field.multiple,
                     fields: field.fields,
                     defaultSearch: field.defaultSearch
+                }
+            }
+
+        case 'suggest':
+            return {
+                ...base,
+                props: {
+                    name: field.name,
+                    label: field.label,
+                    required: field.required,
+                    proxyUuid: field.proxyUuid,
+                    fields: field.fields,
+                    labelTemplate: field.labelTemplate,
+                    placeholder: field.placeholder,
+                    count: field.count
                 }
             }
 

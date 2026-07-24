@@ -32,6 +32,15 @@ final class TestSuggestProxyHandler extends ProxyHandler
             ->example('мос');
     }
 
+    /** @return iterable<mixed> */
+    #[\Override]
+    public function resultFields(): iterable
+    {
+        yield ProxyFieldString::make('id')->label('ID');
+        yield ProxyFieldString::make('address')->label('Город');
+        yield ProxyFieldString::make('region')->label('Регион');
+    }
+
     #[\Override]
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {

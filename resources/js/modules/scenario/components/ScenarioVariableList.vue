@@ -6,12 +6,15 @@ import DateVariableHints from './variable-hints/DateVariableHints.vue'
 import SelectVariableHints from './variable-hints/SelectVariableHints.vue'
 import DirectoryVariableHints from './variable-hints/DirectoryVariableHints.vue'
 import PhoneVariableHints from './variable-hints/PhoneVariableHints.vue'
+import SuggestVariableHints from './variable-hints/SuggestVariableHints.vue'
 import SystemVariableHints from './variable-hints/SystemVariableHints.vue'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
+import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
 import type {DirectorySchemaField} from '@/modules/directories/types/directory'
+import type {WebhookField} from '@/modules/proxy/types/webhook'
 import {
   type VarLike, type SystemVariableGroup, SYSTEM_VARIABLE_GROUPS,
-  systemGroupRef, hasHints, isDateVar, isSelectVar, isPhoneVar, extractVarName,
+  systemGroupRef, hasHints, isDateVar, isSelectVar, isPhoneVar, isSuggestVar, extractVarName,
 } from '@/modules/scenario/lib/scenario-variable-hints'
 
 interface BlockEntry {
@@ -95,11 +98,35 @@ function isLoadingSchema(v: VarLike): boolean {
   return Boolean(schemaLoading[cacheKey(v.directoryId, v.versionId ?? '')])
 }
 
+const suggestFieldsCache = reactive<Record<string, WebhookField[]>>({})
+const suggestFieldsLoading = reactive<Record<string, boolean>>({})
+
+async function loadSuggestFields(proxyUuid: string): Promise<void> {
+  if (suggestFieldsCache[proxyUuid] || suggestFieldsLoading[proxyUuid]) return
+  suggestFieldsLoading[proxyUuid] = true
+  try {
+    suggestFieldsCache[proxyUuid] = await webhookRepository.resultFields(proxyUuid)
+  } catch {
+    suggestFieldsCache[proxyUuid] = []
+  } finally {
+    suggestFieldsLoading[proxyUuid] = false
+  }
+}
+
+function suggestFieldsForVar(v: VarLike): WebhookField[] {
+  return v.proxyUuid ? suggestFieldsCache[v.proxyUuid] ?? [] : []
+}
+
+function isLoadingSuggestFields(v: VarLike): boolean {
+  return v.proxyUuid ? Boolean(suggestFieldsLoading[v.proxyUuid]) : false
+}
+
 const openVarId = ref<string | null>(null)
 
 function onPopoverOpen(v: VarLike, open: boolean): void {
   openVarId.value = open ? v.fieldId : null
   if (open && v.directoryId) void loadSchema(v.directoryId, v.versionId ?? '')
+  if (open && v.proxyUuid) void loadSuggestFields(v.proxyUuid)
 }
 
 const openSysGroup = ref<string | null>(null)
@@ -225,7 +252,7 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
                 <PopoverTrigger as-child>
                   <button
                       type="button"
-                      :title="isDateVar(v) ? 'Подсказки по форматам даты' : isSelectVar(v) ? 'Подсказки по опциям' : isPhoneVar(v) ? 'Подсказки по частям телефона' : 'Подсказки по полям справочника'"
+                      :title="isDateVar(v) ? 'Подсказки по форматам даты' : isSelectVar(v) ? 'Подсказки по опциям' : isPhoneVar(v) ? 'Подсказки по частям телефона' : isSuggestVar(v) ? 'Подсказки по полям интеграции' : 'Подсказки по полям справочника'"
                       class="flex size-5 items-center justify-center rounded-md text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"
                       :class="openVarId === v.fieldId ? 'bg-blue-50 text-blue-600' : ''"
                       @click.stop
@@ -272,6 +299,14 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
                       v-else-if="isPhoneVar(v)"
                       :v="v"
                       :copied-id="copiedId"
+                      @copy="copy"
+                  />
+                  <SuggestVariableHints
+                      v-else-if="isSuggestVar(v)"
+                      :v="v"
+                      :copied-id="copiedId"
+                      :fields="suggestFieldsForVar(v)"
+                      :loading="isLoadingSuggestFields(v)"
                       @copy="copy"
                   />
                   <DirectoryVariableHints

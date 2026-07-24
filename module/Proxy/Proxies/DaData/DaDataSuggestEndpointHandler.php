@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Module\Proxy\Proxies\Base\DaData;
+namespace Module\Proxy\Proxies\DaData;
 
 use Module\Proxy\Credentials\DaData\DaDataCredential;
 use Module\Proxy\DTO\ProxyContext;
+use Module\Proxy\DTO\ProxyField;
 use Module\Proxy\DTO\ProxyFieldInteger;
 use Module\Proxy\DTO\ProxyFieldString;
 use Module\Proxy\DTO\ProxyResponse;
@@ -39,8 +40,11 @@ abstract class DaDataSuggestEndpointHandler extends ProxyHandler
             ->rules(['nullable', 'integer', 'min:1', 'max:20']);
     }
 
-    /** @return array<int, DaDataSuggestion> */
-    abstract protected function suggest(DaDataSuggestGateway $gateway, string $query, int $count): array;
+    /**
+     * @param  array<string, mixed>  $options
+     * @return array<int, DaDataSuggestion>
+     */
+    abstract protected function suggest(DaDataSuggestGateway $gateway, string $query, int $count, array $options): array;
 
     /** @throws \Throwable */
     #[\Override]
@@ -49,7 +53,7 @@ abstract class DaDataSuggestEndpointHandler extends ProxyHandler
         $query = is_string($proxyContext->data('query')) ? $proxyContext->data('query') : '';
         $count = is_int($proxyContext->data('count')) ? $proxyContext->data('count') : 5;
 
-        $items = $this->suggest($this->gateway($proxyContext), $query, $count);
+        $items = $this->suggest($this->gateway($proxyContext), $query, $count, $this->requestOptions($proxyContext));
 
         return ProxyResponse::ok([
             'request_id' => $proxyContext->requestId(),
@@ -59,6 +63,26 @@ abstract class DaDataSuggestEndpointHandler extends ProxyHandler
                 'data' => $s->data,
             ], $items),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function requestOptions(ProxyContext $proxyContext): array
+    {
+        $options = [];
+
+        foreach ($this->fields() as $field) {
+            if (! $field instanceof ProxyField || in_array($field->key(), ['query', 'count'], true)) {
+                continue;
+            }
+
+            $value = $proxyContext->data($field->key());
+
+            if ($value !== null) {
+                $options[$field->key()] = $value;
+            }
+        }
+
+        return $options;
     }
 
     private function gateway(ProxyContext $proxyContext): DaDataSuggestGateway

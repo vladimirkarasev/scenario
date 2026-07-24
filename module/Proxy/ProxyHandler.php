@@ -13,6 +13,16 @@ abstract class ProxyHandler
     abstract public function fields(): iterable;
 
     /**
+     * Схема полей результата (для хендлеров без структурированного результата — пусто).
+     *
+     * @return iterable<mixed>
+     */
+    public function resultFields(): iterable
+    {
+        return [];
+    }
+
+    /**
      * @return class-string<\Module\Proxy\Credentials\ProxyCredential>|null
      */
     public function credentialType(): ?string
