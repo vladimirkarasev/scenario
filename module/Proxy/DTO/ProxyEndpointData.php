@@ -25,7 +25,6 @@ final readonly class ProxyEndpointData
         public bool $isMocked,
         public string $handlerClass,
         public ?int $connectionId,
-        public string $method,
         public array $categoryIds,
         public array $credentials,
         public array $config,
@@ -40,7 +39,6 @@ final readonly class ProxyEndpointData
         $currentType = $current instanceof ProxyEndpoint ? $current->type->value : ProxyEndpointType::Webhook->value;
         $currentActive = $current instanceof ProxyEndpoint ? $current->is_active : true;
         $currentMocked = $current instanceof ProxyEndpoint ? $current->is_mocked : false;
-        $currentMethod = $current instanceof ProxyEndpoint ? $current->method : 'POST';
         $currentConfig = $current instanceof ProxyEndpoint ? $current->config : [];
         $currentResponses = $current instanceof ProxyEndpoint ? $current->mock_responses : [];
 
@@ -53,7 +51,6 @@ final readonly class ProxyEndpointData
             isMocked: $request->boolean('is_mocked', $currentMocked),
             handlerClass: $request->string('handler_class')->toString(),
             connectionId: $request->filled('connection_id') ? $request->integer('connection_id') : null,
-            method: $request->string('method', $currentMethod ?? 'POST')->toString(),
             categoryIds: self::strings($request->input('category_ids', [])),
             credentials: self::map($request->input('credentials', [])),
             config: self::map($request->input('config', $currentConfig ?? [])),

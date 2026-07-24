@@ -1,5 +1,5 @@
 <script setup>
-import {onBeforeUnmount, watch} from 'vue'
+import {onBeforeUnmount, toRef, watch} from 'vue'
 import {useEditor} from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -17,6 +17,8 @@ import {Details} from '@/lib/tiptap-details'
 import TiptapFormattingToolbar from '@/modules/scenario/components/tiptap/TiptapFormattingToolbar.vue'
 import TiptapFormattingBubbleMenu from '@/modules/scenario/components/tiptap/TiptapFormattingBubbleMenu.vue'
 import TiptapEditorContentArea from '@/modules/scenario/components/tiptap/TiptapEditorContentArea.vue'
+import TiptapLinkDialog from '@/modules/scenario/components/tiptap/TiptapLinkDialog.vue'
+import {useTiptapLinkDialog} from '@/modules/scenario/composables/useTiptapLinkDialog'
 
 const props = defineProps({
   modelValue: {
@@ -147,12 +149,24 @@ watch(
 onBeforeUnmount(() => {
   editor.value?.destroy()
 })
+
+const linkDialog = useTiptapLinkDialog(editor, toRef(props, 'editable'))
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-    <TiptapFormattingBubbleMenu :editor="editor" :editable="editable" plugin-key="textSelectionBubbleMenu"/>
-    <TiptapFormattingToolbar :editor="editor" :editable="editable"/>
+  <div class="rounded-2xl border border-slate-200 bg-white">
+    <TiptapFormattingBubbleMenu :editor="editor" :editable="editable" plugin-key="textSelectionBubbleMenu"
+                                 @open-link="linkDialog.openDialog"/>
+    <TiptapFormattingToolbar :editor="editor" :editable="editable" @open-link="linkDialog.openDialog"/>
     <TiptapEditorContentArea :editor="editor" :editable="editable" :content-class="minHeight"/>
   </div>
+
+  <TiptapLinkDialog
+      v-model:open="linkDialog.open.value"
+      :initial-url="linkDialog.url.value"
+      :initial-target="linkDialog.target.value"
+      :has-link="linkDialog.hasLink.value"
+      @submit="linkDialog.apply"
+      @remove="linkDialog.remove"
+  />
 </template>

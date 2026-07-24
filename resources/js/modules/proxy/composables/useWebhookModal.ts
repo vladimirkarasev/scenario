@@ -34,7 +34,7 @@ function emptyForm(): WebhookFormValues {
         name: '',
         code: '',
         handler_class: '',
-        method: 'POST',
+        type: 'webhook',
         description: '',
         is_active: true,
         is_mocked: false,
@@ -61,6 +61,9 @@ export function useWebhookModal(onSaved: () => void) {
     const fields = ref<WebhookField[]>([])
     const loadingFields = ref(false)
 
+    const selectedHandlerMethod = computed<string | null>(
+        () => handlers.value.find(h => h.class === form.handler_class)?.method ?? null,
+    )
     const requiredCredentialType = computed<string | null>(
         () => handlers.value.find(h => h.class === form.handler_class)?.credential_type ?? null,
     )
@@ -78,16 +81,7 @@ export function useWebhookModal(onSaved: () => void) {
 
     async function loadHandlers(): Promise<void> {
         try {
-            const acc: HandlerOption[] = []
-            let page = 1
-            for (; ;) {
-                const qs = new URLSearchParams({'page[number]': String(page), 'page[size]': '100'})
-                const {items, meta} = await webhookRepository.handlers(qs)
-                acc.push(...items)
-                if (page >= meta.last_page || items.length === 0) break
-                page++
-            }
-            handlers.value = acc
+            handlers.value = await webhookRepository.handlers()
         } catch {
             handlers.value = []
         }
@@ -137,7 +131,7 @@ export function useWebhookModal(onSaved: () => void) {
             name: ep.name,
             code: ep.code,
             handler_class: ep.handler_class,
-            method: ep.method ?? 'POST',
+            type: ep.type ?? 'webhook',
             description: ep.description ?? '',
             is_active: ep.is_active,
             is_mocked: ep.is_mocked,
@@ -164,7 +158,7 @@ export function useWebhookModal(onSaved: () => void) {
                     name: data.name,
                     code: data.code,
                     handler_class: data.handler_class,
-                    method: data.method || 'POST',
+                    type: data.type,
                     description: data.description || null,
                     is_active: data.is_active,
                     is_mocked: data.is_mocked,
@@ -203,7 +197,7 @@ export function useWebhookModal(onSaved: () => void) {
                 name: ep.name,
                 code: ep.code,
                 handler_class: ep.handler_class,
-                method: ep.method ?? 'POST',
+                type: ep.type,
                 description: ep.description,
                 is_active: !ep.is_active,
                 is_mocked: ep.is_mocked,
@@ -222,7 +216,7 @@ export function useWebhookModal(onSaved: () => void) {
         editing, showModal,
         saving: submitting, editError: formError, errors, form,
         handlers, fields, loadingFields, secretFilled, receiveUrl,
-        requiredCredentialType, availableConnections, loadConnections,
+        selectedHandlerMethod, requiredCredentialType, availableConnections, loadConnections,
         openCreate, openEdit, close, save, remove, toggleActive,
     }
 }

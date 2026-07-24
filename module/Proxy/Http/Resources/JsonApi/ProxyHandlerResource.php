@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 
 /**
- * @property array{class: string, label: string, group: string, credential_type: string|null} $resource
+ * @property array{class: string, label: string, group: string, credential_type: string|null, method: string} $resource
  */
 final class ProxyHandlerResource extends JsonApiResource
 {
@@ -30,6 +30,7 @@ final class ProxyHandlerResource extends JsonApiResource
             'label' => $this->resource['label'],
             'group' => $this->resource['group'],
             'credential_type' => $this->resource['credential_type'],
+            'method' => $this->resource['method'],
         ];
     }
 }

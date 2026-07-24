@@ -143,6 +143,23 @@ final class ProxyCategoryControllerTest extends TestCase
             ->assertJsonPath('data.attributes.category_ids', [$second->id]);
     }
 
+    public function test_update_endpoint_keeps_already_assigned_category(): void
+    {
+        $section = $this->makeSection('CRM');
+        $endpoint = $this->makeEndpoint();
+        $endpoint->categories()->sync([$section->id]);
+
+        $this->actingAs($this->user)
+            ->putJson("/api/proxy/endpoints/{$endpoint->id}", [
+                'name' => $endpoint->name,
+                'code' => $endpoint->code,
+                'handler_class' => $endpoint->handler_class,
+                'category_ids' => [$section->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.attributes.category_ids', [$section->id]);
+    }
+
     public function test_index_filters_endpoints_by_category(): void
     {
         $section = $this->makeSection('CRM');

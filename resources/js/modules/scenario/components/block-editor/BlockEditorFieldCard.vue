@@ -41,7 +41,7 @@ function isActionUnselected(): boolean {
 
 <template>
   <div
-      class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all"
+      class="rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)] transition-all"
       :class="isDragOver ? 'ring-2 ring-blue-300 ring-offset-2' : ''"
       @dragenter.prevent="emit('dragenter')"
       @dragover.prevent

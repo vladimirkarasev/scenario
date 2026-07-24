@@ -152,7 +152,6 @@ final class DemoProxySeeder extends Seeder
             code: 'test-suggest-cities',
             name: 'Подсказки городов',
             handler: TestSuggestProxyHandler::class,
-            type: ProxyEndpointType::Suggest,
             sections: [$test->id],
             mocks: [
                 $this->mock('Города', 200, [
@@ -163,6 +162,7 @@ final class DemoProxySeeder extends Seeder
                     ],
                 ]),
             ],
+            type: ProxyEndpointType::Suggest,
         );
     }
 

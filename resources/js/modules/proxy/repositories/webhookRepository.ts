@@ -1,10 +1,9 @@
 import {getJson, sendJson} from '@/lib/http'
-import type {PaginationMeta} from '@/types/pagination'
 import type {HandlerOption, WebhookEndpoint, WebhookField, WebhookPayload} from '@/modules/proxy/types/webhook'
 
 interface RawHandler {
     id: string
-    attributes: { label: string, group: string, credential_type: string | null }
+    attributes: { label: string, group: string, credential_type: string | null, method: string }
 }
 
 interface JsonApiResource {
@@ -62,20 +61,17 @@ export const webhookRepository = {
         })
     },
 
-    async handlers(qs: URLSearchParams): Promise<{ items: HandlerOption[], meta: PaginationMeta }> {
-        const raw = await getJson(`/api/proxy/handlers?${qs}`, 'Не удалось загрузить обработчики.') as {
+    async handlers(): Promise<HandlerOption[]> {
+        const raw = await getJson('/api/proxy/handlers', 'Не удалось загрузить обработчики.') as {
             data: RawHandler[]
-            meta: PaginationMeta
         }
-        return {
-            items: raw.data.map(h => ({
-                class: h.id,
-                label: h.attributes.label,
-                group: h.attributes.group,
-                credential_type: h.attributes.credential_type,
-            })),
-            meta: raw.meta,
-        }
+        return raw.data.map(h => ({
+            class: h.id,
+            label: h.attributes.label,
+            group: h.attributes.group,
+            credential_type: h.attributes.credential_type,
+            method: h.attributes.method,
+        }))
     },
 
     async fields(webhookUuid: string): Promise<WebhookField[]> {

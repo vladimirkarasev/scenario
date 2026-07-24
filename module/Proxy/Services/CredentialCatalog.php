@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Module\Proxy\Credentials\AutoCrm\AutoCrmCredential;
 use Module\Proxy\Credentials\BasicCredential;
 use Module\Proxy\Credentials\BearerCredential;
+use Module\Proxy\Credentials\DaData\DaDataCredential;
 use Module\Proxy\Credentials\ProxyCredential;
 
 final class CredentialCatalog
@@ -21,6 +22,7 @@ final class CredentialCatalog
             AutoCrmCredential::class,
             BearerCredential::class,
             BasicCredential::class,
+            DaDataCredential::class,
         ];
     }
 

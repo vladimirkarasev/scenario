@@ -34,6 +34,10 @@ const props = defineProps<{
   editable: boolean
 }>()
 
+const emit = defineEmits<{
+  'open-link': []
+}>()
+
 const {
   isActive,
   run,
@@ -44,12 +48,11 @@ const {
   setColor,
   currentHighlightColor,
   setHighlightColor,
-  setLink,
 } = useTiptapFormatting(toRef(props, 'editor'), toRef(props, 'editable'))
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-0 border-b border-slate-200 bg-white px-1.5 py-1">
+  <div class="sticky top-0 z-10 flex flex-wrap items-center gap-0 rounded-t-2xl border-b border-slate-200 bg-white px-1.5 py-1">
     <Button type="button" variant="ghost" size="icon-sm" class="size-7 shrink-0" :class="toolbarButtonClass(false)"
             :disabled="!editable || !editor?.can().undo()" title="Отменить" @click="run((chain) => chain.undo().run())">
       <Undo2 class="size-4"/>
@@ -150,7 +153,8 @@ const {
     </label>
 
     <Button type="button" variant="ghost" size="icon-sm" class="size-7 shrink-0"
-            :class="toolbarButtonClass(isActive('link'))" :disabled="!editable" title="Ссылка" @click="setLink">
+            :class="toolbarButtonClass(isActive('link'))" :disabled="!editable" title="Ссылка"
+            @click="emit('open-link')">
       <Link2 class="size-4"/>
     </Button>
     <Button type="button" variant="ghost" size="icon-sm" class="size-7 shrink-0" :class="toolbarButtonClass(false)"

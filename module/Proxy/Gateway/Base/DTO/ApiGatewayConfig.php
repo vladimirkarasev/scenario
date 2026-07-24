@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Gateway\Base\DTO;
 
+use Module\Proxy\Models\ProxyConnection;
 use Module\Proxy\Models\ProxyEndpoint;
 
 final readonly class ApiGatewayConfig
@@ -35,6 +36,11 @@ final readonly class ApiGatewayConfig
         }
 
         return self::fromEndpoint($endpoint);
+    }
+
+    public static function forConnection(ProxyConnection $connection, string $name, bool $mock = false): self
+    {
+        return $connection->driver()->gatewayConfig($name, $connection->values(), $mock);
     }
 
     public static function fromEndpoint(ProxyEndpoint $endpoint): self

@@ -20,7 +20,7 @@ export function webhookSchema(credentialTypeByHandler: Record<string, string | n
         name: z.string().min(1, 'Название обязательно'),
         code: z.string().min(1, 'Code обязателен'),
         handler_class: z.string().min(1, 'Обработчик обязателен'),
-        method: z.string(),
+        type: z.string().min(1, 'Тип обязателен'),
         description: z.string(),
         is_active: z.boolean(),
         is_mocked: z.boolean(),

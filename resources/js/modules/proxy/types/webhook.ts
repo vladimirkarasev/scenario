@@ -47,6 +47,7 @@ export interface HandlerOption {
     label: string
     group: string
     credential_type: string | null
+    method: string
 }
 
 export interface WebhookField {
@@ -65,7 +66,7 @@ export interface WebhookField {
 export interface WebhookPayload {
     name: string
     code: string
-    method?: string | null
+    type: string
     description: string | null
     is_active: boolean
     is_mocked: boolean

@@ -20,6 +20,12 @@ abstract class ProxyHandler
         return null;
     }
 
+    /** HTTP-метод, который принимает публичный endpoint этого обработчика. */
+    public function method(): string
+    {
+        return 'POST';
+    }
+
     public function handle(ProxyContext $proxyContext): ProxyResponse
     {
         return ProxyResponse::accepted(['request_id' => $proxyContext->requestId()]);

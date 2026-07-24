@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest'
 import {extractTemplateKeys, renderLabelTemplate} from '@/modules/scenario/lib/directory-template'
 import {
+    blockVariableFromId,
     createEmptyScenarioFlowDocument,
     duplicateScenarioFlowBlocks,
     normalizeScenarioFlowDocument,
@@ -59,8 +60,8 @@ describe('scenario library', () => {
 
     it('дублирует блоки с новыми id и сдвигом позиции, ремапит только внутренние connections', () => {
         const blocks = [
-            {id: 'a', type: 'block', position: {x: 0, y: 0}, data: {title: 'A'}},
-            {id: 'b', type: 'block', position: {x: 10, y: 10}, data: {title: 'B'}},
+            {id: 'a', type: 'block', position: {x: 0, y: 0}, data: {title: 'A', variable: 'block_a'}},
+            {id: 'b', type: 'block', position: {x: 10, y: 10}, data: {title: 'B', variable: 'block_b'}},
         ]
         const connections = [
             {id: 'a-b', source: {blockId: 'a', port: null}, target: {blockId: 'b', port: null}, label: null, data: {}},
@@ -79,6 +80,12 @@ describe('scenario library', () => {
         expect(result.connections[0].source.blockId).toBe(result.blocks[0].id)
         expect(result.connections[0].target.blockId).toBe(result.blocks[1].id)
         expect(result.connections[0].id).not.toBe('a-b')
+
+        expect(result.blocks[0].data.variable).not.toBe('block_a')
+        expect(result.blocks[1].data.variable).not.toBe('block_b')
+        expect(result.blocks[0].data.variable).not.toBe(result.blocks[1].data.variable)
+        expect(result.blocks[0].data.variable).toBe(blockVariableFromId(result.blocks[0].id))
+        expect(result.blocks[1].data.variable).toBe(blockVariableFromId(result.blocks[1].id))
     })
 
     it('дублирует блоки: регенерирует id вложенных полей, опций select (с ремапом parentId) и action_items', () => {

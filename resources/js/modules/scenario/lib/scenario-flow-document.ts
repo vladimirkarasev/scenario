@@ -379,6 +379,10 @@ function duplicateBlockData(data: ScenarioBlockData): ScenarioBlockData {
     return cloned
 }
 
+export function blockVariableFromId(id: string): string {
+    return `block_${id.slice(id.indexOf('_') + 1)}`
+}
+
 export function duplicateScenarioFlowBlocks(
     blocks: ScenarioBlock[],
     connections: ScenarioConnection[],
@@ -389,12 +393,17 @@ export function duplicateScenarioFlowBlocks(
     const duplicatedBlocks = blocks.map((block) => {
         const newId = uid(block.type)
         idMap.set(block.id, newId)
+        const data = duplicateBlockData(block.data)
+
+        if (block.type === 'block') {
+            data.variable = blockVariableFromId(newId)
+        }
 
         return {
             ...block,
             id: newId,
             position: {x: block.position.x + offset.x, y: block.position.y + offset.y},
-            data: duplicateBlockData(block.data),
+            data,
         }
     })
 

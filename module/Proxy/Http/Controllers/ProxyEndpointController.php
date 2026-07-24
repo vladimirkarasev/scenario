@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Proxy\DTO\ProxyEndpointData;
 use Module\Proxy\DTO\ProxyEndpointIndexData;
 use Module\Proxy\DTO\ProxyField;
@@ -78,29 +77,21 @@ final readonly class ProxyEndpointController
         return ProxyFieldResource::collection($fields);
     }
 
-    public function handlers(Request $request): AnonymousResourceCollection
+    public function handlers(): AnonymousResourceCollection
     {
-        $filter = $request->array('filter');
-        $search = isset($filter['search']) && is_string($filter['search']) && trim($filter['search']) !== ''
-            ? trim($filter['search'])
-            : null;
-        $page = max(1, $request->integer('page.number', 1));
-        $perPage = max(1, min(100, $request->integer('page.size', 20)));
-        $result = HandlerCatalog::search($search, $page, $perPage);
-        $items = array_map(fn (array $handler): array => [
-            'class' => $handler['class'],
-            'label' => $handler['label'],
-            'group' => $handler['group'],
-            'credential_type' => $this->handlers->resolveClass($handler['class'])->credentialType(),
-        ], $result['items']);
+        $items = array_map(function (array $handler): array {
+            $resolved = $this->handlers->resolveClass($handler['class']);
 
-        return ProxyHandlerResource::collection(new LengthAwarePaginator(
-            $items,
-            $result['total'],
-            $perPage,
-            $page,
-            ['path' => $request->url(), 'pageName' => 'page[number]'],
-        ));
+            return [
+                'class' => $handler['class'],
+                'label' => $handler['label'],
+                'group' => $handler['group'],
+                'credential_type' => $resolved->credentialType(),
+                'method' => $resolved->method(),
+            ];
+        }, HandlerCatalog::options());
+
+        return ProxyHandlerResource::collection($items);
     }
 
     public function credentialSchema(): AnonymousResourceCollection
