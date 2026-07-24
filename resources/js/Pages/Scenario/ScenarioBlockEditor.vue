@@ -286,7 +286,7 @@ watch(
 
         <main class="flex-1 overflow-y-auto bg-slate-50 py-8">
           <div class="mx-auto max-w-2xl space-y-2.5 px-6">
-            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div class="px-6 pt-6 pb-4">
                 <input
                     :value="blockDraft.data.title"
@@ -318,7 +318,7 @@ watch(
             <div
                 v-for="(field, index) in blockDraft.data.fields"
                 :key="field.id"
-                class="overflow-hidden rounded-2xl border bg-white shadow-sm transition-all cursor-pointer select-none"
+                class="rounded-2xl border bg-white shadow-sm transition-all cursor-pointer select-none"
                 :class="[
                                 selectedFieldId === field.id
                                     ? 'border-cyan-300 ring-2 ring-cyan-200 ring-offset-1'

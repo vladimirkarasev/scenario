@@ -5,20 +5,27 @@ import {
     type ScenarioConnection,
 } from '@/modules/scenario/lib/scenario-flow-document'
 
+let fallbackClipboard: string | null = null
+
 export function useNodeClipboard() {
     async function copyToClipboard(blocks: ScenarioBlock[], connections: ScenarioConnection[]): Promise<void> {
+        const payload = serializeScenarioFlowClipboard(blocks, connections)
+        fallbackClipboard = payload
+
         try {
-            await navigator.clipboard.writeText(serializeScenarioFlowClipboard(blocks, connections))
+            await navigator.clipboard?.writeText(payload)
         } catch {
         }
     }
 
     async function readFromClipboard(): Promise<{ blocks: ScenarioBlock[]; connections: ScenarioConnection[] } | null> {
         try {
-            return parseScenarioFlowClipboard(await navigator.clipboard.readText())
+            const parsed = parseScenarioFlowClipboard(await navigator.clipboard.readText())
+            if (parsed) return parsed
         } catch {
-            return null
         }
+
+        return fallbackClipboard ? parseScenarioFlowClipboard(fallbackClipboard) : null
     }
 
     return {copyToClipboard, readFromClipboard}

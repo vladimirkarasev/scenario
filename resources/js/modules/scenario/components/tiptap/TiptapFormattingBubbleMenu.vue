@@ -12,6 +12,10 @@ const props = defineProps<{
   pluginKey: string
 }>()
 
+const emit = defineEmits<{
+  'open-link': []
+}>()
+
 const {
   isActive,
   run,
@@ -22,7 +26,6 @@ const {
   setColor,
   currentHighlightColor,
   setHighlightColor,
-  setLink,
 } = useTiptapFormatting(toRef(props, 'editor'), toRef(props, 'editable'))
 
 function shouldShow({editor: bubbleEditor, from, to}: { editor: CoreEditor, from: number, to: number }) {
@@ -106,7 +109,7 @@ const bubbleMenuOptions = {
         <input class="sr-only" type="color" :value="currentColor()" @input="setColor"/>
       </label>
       <button type="button" class="inline-flex size-8 items-center justify-center rounded-md transition"
-              :class="bubbleButtonClass(isActive('link'))" @click="setLink">
+              :class="bubbleButtonClass(isActive('link'))" @click="emit('open-link')">
         <Link2 class="size-4"/>
       </button>
     </div>

@@ -55,22 +55,6 @@ export function useTiptapFormatting(editor: Ref<Editor | undefined> | ComputedRe
         run((chain) => chain.setHighlight({color: (e.target as HTMLInputElement).value}).run())
     }
 
-    function setLink() {
-        if (!editor.value || !editable.value) return
-
-        const previousUrl = editor.value.getAttributes('link').href ?? ''
-        const url = window.prompt('URL', previousUrl)
-
-        if (url === null) return
-
-        if (url.trim() === '') {
-            editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
-            return
-        }
-
-        editor.value.chain().focus().extendMarkRange('link').setLink({href: url.trim()}).run()
-    }
-
     return {
         isActive,
         run,
@@ -82,6 +66,5 @@ export function useTiptapFormatting(editor: Ref<Editor | undefined> | ComputedRe
         setColor,
         currentHighlightColor,
         setHighlightColor,
-        setLink,
     }
 }

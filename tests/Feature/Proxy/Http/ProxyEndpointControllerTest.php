@@ -332,28 +332,23 @@ final class ProxyEndpointControllerTest extends TestCase
             ->assertOk()
             ->assertJsonStructure([
                 'data' => [['type', 'id', 'attributes' => ['label', 'group']]],
-                'meta' => ['current_page', 'last_page', 'per_page', 'total'],
             ]);
 
         $classes = array_column($response->json('data'), 'id');
         $this->assertContains(\Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class, $classes);
     }
 
-    public function test_handlers_catalog_paginates_and_searches(): void
+    public function test_handlers_catalog_returns_full_list_without_pagination(): void
     {
-        $page1 = $this->actingAs($this->user)
-            ->getJson('/api/proxy/handlers?page[number]=1&page[size]=2')
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/proxy/handlers')
             ->assertOk();
-        $this->assertCount(2, $page1->json('data'));
-        $this->assertSame(2, $page1->json('meta.per_page'));
-        $this->assertGreaterThanOrEqual(2, $page1->json('meta.total'));
 
-        $search = $this->actingAs($this->user)
-            ->getJson('/api/proxy/handlers?filter[search]=AutoCRM')
-            ->assertOk();
-        $groups = array_column(array_column($search->json('data'), 'attributes'), 'group');
-        $this->assertNotEmpty($groups);
-        $this->assertSame(['AutoCRM'], array_values(array_unique($groups)));
+        $this->assertSame(\Module\Proxy\Services\HandlerCatalog::classes(), array_column($response->json('data'), 'id'));
+
+        $groups = array_column(array_column($response->json('data'), 'attributes'), 'group');
+        $this->assertContains('AutoCRM', $groups);
+        $this->assertContains('DaData / Подсказки', $groups);
     }
 
     private function makeEndpoint(bool $isActive = true, string $type = 'webhook'): ProxyEndpoint

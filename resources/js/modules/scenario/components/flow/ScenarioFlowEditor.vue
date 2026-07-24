@@ -30,6 +30,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer'
 import {
+  blockVariableFromId,
   cloneScenarioFlowDocument,
   createEmptyScenarioFlowDocument,
   createScenarioFlowNode,
@@ -429,8 +430,7 @@ function addNode(type) {
   const block = createScenarioFlowNode(type, {x: cx, y: cy})
 
   if (type === 'block') {
-    const suffix = block.id.slice(block.id.indexOf('_') + 1)
-    block.data.variable = `block_${suffix}`
+    block.data.variable = blockVariableFromId(block.id)
   }
 
   nodes.value = [
@@ -908,7 +908,7 @@ function applyJsonEdit(parsed) {
           />
         </Transition>
 
-        <div ref="flowContainerRef" class="h-full">
+        <div ref="flowContainerRef" class="h-full select-none">
           <VueFlow
               v-model:nodes="nodes"
               v-model:edges="edges"

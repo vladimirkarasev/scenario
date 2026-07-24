@@ -16,9 +16,11 @@ import {FontSize} from '@/lib/tiptap-font-size'
 import {Details} from '@/lib/tiptap-details'
 import {ScenarioField} from '@/lib/tiptap-scenario-field'
 import {useTiptapFormatting} from '@/modules/scenario/composables/useTiptapFormatting'
+import {useTiptapLinkDialog} from '@/modules/scenario/composables/useTiptapLinkDialog'
 import TiptapFormattingToolbar from '@/modules/scenario/components/tiptap/TiptapFormattingToolbar.vue'
 import TiptapFormattingBubbleMenu from '@/modules/scenario/components/tiptap/TiptapFormattingBubbleMenu.vue'
 import TiptapEditorContentArea from '@/modules/scenario/components/tiptap/TiptapEditorContentArea.vue'
+import TiptapLinkDialog from '@/modules/scenario/components/tiptap/TiptapLinkDialog.vue'
 import type {BlockField, BlockFieldType} from '@/modules/scenario/lib/scenario-block-fields'
 import type {Component} from 'vue'
 
@@ -221,6 +223,7 @@ watch(
 )
 
 const formatting = useTiptapFormatting(editor, toRef(props, 'canEdit'))
+const linkDialog = useTiptapLinkDialog(editor, toRef(props, 'canEdit'))
 
 function currentFontSizeNumber(): string {
   const raw = String(editor.value?.getAttributes('textStyle')?.fontSize ?? '')
@@ -244,8 +247,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-    <TiptapFormattingBubbleMenu :editor="editor" :editable="canEdit" plugin-key="gutenbergTextSelectionBubbleMenu">
+  <div class="rounded-2xl border border-slate-200 bg-white">
+    <TiptapFormattingBubbleMenu :editor="editor" :editable="canEdit" plugin-key="gutenbergTextSelectionBubbleMenu"
+                                 @open-link="linkDialog.openDialog">
       <template #extra>
         <label class="relative inline-flex h-8 w-16 items-center" title="Размер текста, px">
           <input
@@ -271,8 +275,17 @@ onBeforeUnmount(() => {
       </template>
     </TiptapFormattingBubbleMenu>
 
-    <TiptapFormattingToolbar :editor="editor" :editable="canEdit"/>
+    <TiptapFormattingToolbar :editor="editor" :editable="canEdit" @open-link="linkDialog.openDialog"/>
 
     <TiptapEditorContentArea :editor="editor" :editable="canEdit"/>
   </div>
+
+  <TiptapLinkDialog
+      v-model:open="linkDialog.open.value"
+      :initial-url="linkDialog.url.value"
+      :initial-target="linkDialog.target.value"
+      :has-link="linkDialog.hasLink.value"
+      @submit="linkDialog.apply"
+      @remove="linkDialog.remove"
+  />
 </template>

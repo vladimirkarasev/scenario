@@ -23,15 +23,12 @@ final class ProxyEndpointRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255'],
             'type' => ['sometimes', Rule::enum(ProxyEndpointType::class)],
-            'method' => ['sometimes', 'nullable', Rule::in(['GET', 'POST'])],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
             'handler_class' => [
                 'required',
                 'string',
-                HandlerCatalog::all()
-                    |> array_keys(...)
-                    |> Rule::in(...)
+                HandlerCatalog::classes() |> Rule::in(...),
             ],
             'connection_id' => ['nullable', 'integer', 'exists:proxy_connections,id'],
             'category_ids' => ['sometimes', 'array'],

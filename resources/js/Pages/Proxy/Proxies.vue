@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import AppShell from '@/layouts/AppShell.vue'
+import AppEditorDrawer from '@/components/AppEditorDrawer.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import {
-  FormActions, FormBody, FormError, FormField, FormInput, FormJsonInput, FormMockVariants,
+  FormAutoSlug, FormBody, FormError, FormField, FormInput, FormJsonInput, FormMockVariants,
   FormSection, FormSelect, FormTextarea, FormToggle,
 } from '@/components/form'
-import Combobox from '@/components/ui/combobox/Combobox.vue'
 import SectionSidebar from '@/components/sections/SectionSidebar.vue'
 import SectionFormDialog from '@/components/sections/SectionFormDialog.vue'
 import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
@@ -19,16 +19,17 @@ import {useProxySectionTree} from '@/modules/proxy/composables/useProxySectionTr
 import {useProxySectionModal} from '@/modules/proxy/composables/useProxySectionModal'
 import {proxyCategoryRepository} from '@/modules/proxy/repositories/proxyCategoryRepository'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
+import HandlerPickerDialog from '@/modules/proxy/components/HandlerPickerDialog.vue'
 import type {FeedEndpointRow, FeedFolderRow} from '@/modules/proxy/types/feed'
-import type {ProxyCategory, WebhookEndpoint} from '@/modules/proxy/types/webhook'
+import type {HandlerOption, ProxyCategory, WebhookEndpoint} from '@/modules/proxy/types/webhook'
 import {Head, router} from '@inertiajs/vue3'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Check, ChevronRight, Copy, FlaskConical, Folder, FolderPlus, FolderTree, KeyRound, List, Loader2, MoreHorizontal,
-  Pencil, Plus, RefreshCw, Shield, ShieldOff, Trash2, X, Zap,
+  Check, ChevronRight, ChevronsUpDown, Copy, FlaskConical, Folder, FolderPlus, FolderTree, KeyRound, List, Loader2,
+  MoreHorizontal, Pencil, Plus, RefreshCw, Shield, ShieldOff, Trash2, Zap,
 } from 'lucide-vue-next'
 import {computed, ref} from 'vue'
 
@@ -39,7 +40,7 @@ const feed = useProxyFeed(tree.activeSection)
 const {
   editing, showModal, saving, editError, errors, form,
   handlers, fields, loadingFields, receiveUrl,
-  requiredCredentialType, availableConnections,
+  selectedHandlerMethod, requiredCredentialType, availableConnections,
   openCreate, openEdit, close, save, remove, toggleActive,
 } = useWebhookModal(() => feed.load())
 
@@ -106,9 +107,15 @@ async function copyText(text: string, key: string) {
   }, 1500)
 }
 
-const handlerItems = computed(() =>
-  handlers.value.map(h => ({value: h.class, label: `${h.group}: ${h.label}`})),
+const showHandlerPicker = ref(false)
+
+const selectedHandler = computed<HandlerOption | null>(
+    () => handlers.value.find(h => h.class === form.handler_class) ?? null,
 )
+
+function onHandlerSelected(handler: HandlerOption): void {
+  form.handler_class = handler.class
+}
 </script>
 
 <template>
@@ -347,156 +354,163 @@ const handlerItems = computed(() =>
     </div>
   </AppShell>
 
-  <!-- ── Modal ──────────────────────────────────────────────────── -->
-  <Teleport to="body">
-    <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
-        @click.self="close"
-    >
-      <div
-          class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_64px_-12px_rgba(15,23,42,0.2)]">
-        <div class="flex shrink-0 items-start justify-between border-b border-slate-100 px-6 py-4">
-          <div class="min-w-0">
-            <div class="text-[15px] font-bold text-slate-900">{{ editing ? editing.name : 'Новая интеграция' }}</div>
-            <div class="mt-0.5 font-mono text-[11px] text-slate-400">{{ editing?.code ?? 'обработчик + доступы + mock' }}</div>
+  <!-- ── Drawer ─────────────────────────────────────────────────── -->
+  <AppEditorDrawer
+      :open="showModal"
+      :title="editing ? editing.name : 'Новая интеграция'"
+      :subtitle="editing?.code ?? 'обработчик + доступы + mock'"
+      icon-bg-class="bg-blue-100"
+      :saving="saving"
+      :can-save="Boolean(form.name.trim() && form.code.trim() && form.handler_class)"
+      @update:open="(v: boolean) => !v && close()"
+      @cancel="close"
+      @save="save"
+  >
+    <template #icon>
+      <Zap class="size-3.5 text-blue-600" />
+    </template>
+
+    <FormBody>
+      <FormError :message="editError" />
+      <FormSection>
+        <FormInput v-model="form.name" label="Название" required :error="errors.name" />
+        <FormAutoSlug v-model="form.code" :source="form.name" label="Code" required :error="errors.code"
+                      hint="Уникальный код интеграции" />
+        <FormField label="Обработчик" required :error="errors.handler_class">
+          <button
+              type="button"
+              class="flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 text-left text-[13px] transition hover:border-slate-300"
+              @click="showHandlerPicker = true"
+          >
+            <span class="truncate" :class="selectedHandler ? 'text-slate-800' : 'text-slate-400'">
+              {{ selectedHandler ? `${selectedHandler.group}: ${selectedHandler.label}` : '— выберите обработчик —' }}
+            </span>
+            <ChevronsUpDown class="size-3.5 shrink-0 text-slate-400" />
+          </button>
+        </FormField>
+        <FormSelect v-model="form.type" label="Тип" :error="errors.type">
+          <option value="webhook">Вебхук</option>
+          <option value="suggest">Подсказки</option>
+        </FormSelect>
+        <FormField label="HTTP-метод" hint="Определяется выбранным обработчиком">
+          <div class="flex h-9 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[13px] text-slate-600">
+            {{ selectedHandlerMethod ?? '—' }}
           </div>
-          <button class="ml-4 shrink-0 text-slate-400 transition hover:text-slate-700" @click="close">
-            <X :size="18" />
+        </FormField>
+        <FormTextarea v-model="form.description" label="Описание" :rows="2" :error="errors.description" />
+        <FormToggle v-model="form.is_active" label="Активна"
+                    description="Интеграция принимает входящие запросы" />
+      </FormSection>
+
+      <template v-if="editing">
+        <div class="border-t border-slate-100" />
+
+        <div>
+          <div class="mb-2.5 flex items-center gap-2 text-[12px] font-semibold text-slate-700">
+            <FolderTree :size="13" class="text-blue-600" />
+            Разделы
+          </div>
+          <SectionTreeSelect
+              v-model="form.category_ids"
+              :load-all="() => proxyCategoryRepository.all()"
+              :open="showModal"
+          />
+        </div>
+      </template>
+
+      <template v-if="requiredCredentialType">
+        <div class="border-t border-slate-100" />
+        <div>
+          <div class="mb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-[12px] font-semibold text-slate-700">
+              <KeyRound :size="13" class="text-violet-600" />
+              Доступ
+            </div>
+            <a href="/proxy/connections" target="_blank"
+               class="text-[11px] font-medium text-blue-600 transition hover:text-blue-700">
+              Управление доступами →
+            </a>
+          </div>
+          <FormSelect
+              :model-value="form.connection_id === null ? '' : String(form.connection_id)"
+              label="Доступ к сервису"
+              :error="errors.connection_id"
+              @update:model-value="(v: string) => form.connection_id = v === '' ? null : Number(v)"
+          >
+            <option value="">— без доступа</option>
+            <option v-for="c in availableConnections" :key="c.id" :value="String(c.id)">{{ c.name }}</option>
+          </FormSelect>
+          <p v-if="!availableConnections.length" class="mt-1.5 text-[11px] text-slate-400">
+            Подходящих доступов нет.
+            <a href="/proxy/connections" target="_blank" class="text-blue-600 hover:text-blue-700">Создайте доступ</a>
+            и обновите страницу.
+          </p>
+        </div>
+      </template>
+
+      <template v-if="editing && receiveUrl">
+        <div class="border-t border-slate-100" />
+        <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px]">
+          <span class="w-24 shrink-0 text-slate-400">Приёмник</span>
+          <span class="min-w-0 flex-1 truncate font-mono text-slate-700">{{ receiveUrl }}</span>
+          <button type="button" class="shrink-0 text-slate-400 transition hover:text-slate-700"
+                  @click="copyText(receiveUrl, 'receive')">
+            <Check v-if="copied === 'receive'" :size="13" class="text-emerald-500" />
+            <Copy v-else :size="13" />
           </button>
         </div>
+      </template>
 
-        <form class="flex-1 overflow-y-auto" novalidate @submit.prevent="save">
-          <FormBody>
-            <FormError :message="editError" />
-            <FormSection>
-              <FormInput v-model="form.name" label="Название" required :error="errors.name" />
-              <FormInput v-model="form.code" label="Code" required :error="errors.code"
-                         hint="Уникальный код интеграции" />
-              <FormField label="Обработчик" required :error="errors.handler_class">
-                <Combobox v-model="form.handler_class" :items="handlerItems"
-                          placeholder="— выберите обработчик —" />
-              </FormField>
-              <FormSelect v-model="form.method" label="HTTP-метод" :error="errors.method">
-                <option value="POST">POST</option>
-                <option value="GET">GET</option>
-              </FormSelect>
-              <FormTextarea v-model="form.description" label="Описание" :rows="2" :error="errors.description" />
-              <FormToggle v-model="form.is_active" label="Активна"
-                          description="Интеграция принимает входящие запросы" />
-            </FormSection>
-
-            <template v-if="editing">
-              <div class="border-t border-slate-100" />
-
+      <template v-if="loadingFields || fields.length">
+        <div class="border-t border-slate-100" />
+        <div>
+          <div class="mb-2.5 text-[12px] font-semibold text-slate-700">Входные поля</div>
+          <div v-if="loadingFields" class="flex items-center gap-2 py-2 text-[12px] text-slate-400">
+            <Loader2 :size="13" class="animate-spin" />
+            Загружаем поля…
+          </div>
+          <div v-else class="overflow-hidden rounded-xl border border-slate-200">
+            <div
+                v-for="(f, i) in fields"
+                :key="f.key"
+                class="grid items-center px-4 py-2 text-[12px]"
+                :class="i !== fields.length - 1 ? 'border-b border-slate-100' : ''"
+                style="grid-template-columns: 160px 1fr 80px"
+            >
+              <div class="flex items-center gap-1.5 font-mono text-slate-700">
+                {{ f.key }}
+                <span v-if="f.required"
+                      class="rounded bg-blue-50 px-1 text-[10px] font-bold text-blue-600">req</span>
+              </div>
+              <div class="text-slate-600">{{ f.label }}</div>
               <div>
-                <div class="mb-2.5 flex items-center gap-2 text-[12px] font-semibold text-slate-700">
-                  <FolderTree :size="13" class="text-blue-600" />
-                  Разделы
-                </div>
-                <SectionTreeSelect
-                    v-model="form.category_ids"
-                    :load-all="() => proxyCategoryRepository.all()"
-                    :open="showModal"
-                />
+                <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">{{ f.type }}</span>
               </div>
-            </template>
-
-            <template v-if="requiredCredentialType">
-              <div class="border-t border-slate-100" />
-              <div>
-                <div class="mb-2.5 flex items-center justify-between">
-                  <div class="flex items-center gap-2 text-[12px] font-semibold text-slate-700">
-                    <KeyRound :size="13" class="text-violet-600" />
-                    Доступ
-                  </div>
-                  <a href="/proxy/connections" target="_blank"
-                     class="text-[11px] font-medium text-blue-600 transition hover:text-blue-700">
-                    Управление доступами →
-                  </a>
-                </div>
-                <FormSelect
-                    :model-value="form.connection_id === null ? '' : String(form.connection_id)"
-                    label="Доступ к сервису"
-                    :error="errors.connection_id"
-                    @update:model-value="(v: string) => form.connection_id = v === '' ? null : Number(v)"
-                >
-                  <option value="">— без доступа</option>
-                  <option v-for="c in availableConnections" :key="c.id" :value="String(c.id)">{{ c.name }}</option>
-                </FormSelect>
-                <p v-if="!availableConnections.length" class="mt-1.5 text-[11px] text-slate-400">
-                  Подходящих доступов нет.
-                  <a href="/proxy/connections" target="_blank" class="text-blue-600 hover:text-blue-700">Создайте доступ</a>
-                  и обновите страницу.
-                </p>
-              </div>
-            </template>
-
-            <template v-if="editing && receiveUrl">
-              <div class="border-t border-slate-100" />
-              <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px]">
-                <span class="w-24 shrink-0 text-slate-400">Приёмник</span>
-                <span class="min-w-0 flex-1 truncate font-mono text-slate-700">{{ receiveUrl }}</span>
-                <button type="button" class="shrink-0 text-slate-400 transition hover:text-slate-700"
-                        @click="copyText(receiveUrl, 'receive')">
-                  <Check v-if="copied === 'receive'" :size="13" class="text-emerald-500" />
-                  <Copy v-else :size="13" />
-                </button>
-              </div>
-            </template>
-
-            <template v-if="loadingFields || fields.length">
-              <div class="border-t border-slate-100" />
-              <div>
-                <div class="mb-2.5 text-[12px] font-semibold text-slate-700">Входные поля</div>
-                <div v-if="loadingFields" class="flex items-center gap-2 py-2 text-[12px] text-slate-400">
-                  <Loader2 :size="13" class="animate-spin" />
-                  Загружаем поля…
-                </div>
-                <div v-else class="overflow-hidden rounded-xl border border-slate-200">
-                  <div
-                      v-for="(f, i) in fields"
-                      :key="f.key"
-                      class="grid items-center px-4 py-2 text-[12px]"
-                      :class="i !== fields.length - 1 ? 'border-b border-slate-100' : ''"
-                      style="grid-template-columns: 160px 1fr 80px"
-                  >
-                    <div class="flex items-center gap-1.5 font-mono text-slate-700">
-                      {{ f.key }}
-                      <span v-if="f.required"
-                            class="rounded bg-blue-50 px-1 text-[10px] font-bold text-blue-600">req</span>
-                    </div>
-                    <div class="text-slate-600">{{ f.label }}</div>
-                    <div>
-                      <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">{{ f.type }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <div class="border-t border-slate-100" />
-            <FormJsonInput v-model="form.config" label="Config (JSON)" :rows="4" :error="errors.config" />
-
-            <div class="border-t border-slate-100" />
-            <div class="mb-2.5 flex items-center gap-2 text-[12px] font-semibold text-slate-700">
-              <FlaskConical :size="13" class="text-amber-600" />
-              Мок-ответы
             </div>
-            <FormToggle v-model="form.is_mocked" label="Использовать мок-ответ"
-                        description="При включении обработчик не вызывается — возвращается выбранный ответ." />
-            <FormMockVariants v-model="form.mocks" :error="errors.mocks" />
-          </FormBody>
-        </form>
-        <FormActions
-            :submitting="saving"
-            :submit-label="saving ? 'Сохраняем…' : 'Сохранить'"
-            @cancel="close"
-            @submit="save"
-        />
+          </div>
+        </div>
+      </template>
+
+      <div class="border-t border-slate-100" />
+      <FormJsonInput v-model="form.config" label="Config (JSON)" :rows="4" :error="errors.config" />
+
+      <div class="border-t border-slate-100" />
+      <div class="mb-2.5 flex items-center gap-2 text-[12px] font-semibold text-slate-700">
+        <FlaskConical :size="13" class="text-amber-600" />
+        Мок-ответы
       </div>
-    </div>
-  </Teleport>
+      <FormToggle v-model="form.is_mocked" label="Использовать мок-ответ"
+                  description="При включении обработчик не вызывается — возвращается выбранный ответ." />
+      <FormMockVariants v-model="form.mocks" :error="errors.mocks" />
+    </FormBody>
+  </AppEditorDrawer>
+
+  <HandlerPickerDialog
+      v-model:open="showHandlerPicker"
+      :items="handlers"
+      :selected-class="form.handler_class"
+      @select="onHandlerSelected"
+  />
 
   <SectionFormDialog
       :modal="sectionModal"

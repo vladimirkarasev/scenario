@@ -56,7 +56,7 @@ final readonly class ProxyEndpointService
                 'is_mocked' => $data->isMocked,
                 'handler_class' => $data->handlerClass,
                 'connection_id' => $connectionId,
-                'method' => $data->method,
+                'method' => $this->resolveMethod($data),
                 'base_uri' => $credentials['base_uri'],
                 'credentials' => $credentials['credentials'],
                 'config' => $data->config,
@@ -87,7 +87,7 @@ final readonly class ProxyEndpointService
                 'is_mocked' => $data->isMocked,
                 'handler_class' => $data->handlerClass,
                 'connection_id' => $connectionId,
-                'method' => $data->method,
+                'method' => $this->resolveMethod($data),
                 'base_uri' => $credentials['base_uri'],
                 'credentials' => $credentials['credentials'],
                 'config' => $data->config,
@@ -106,6 +106,11 @@ final readonly class ProxyEndpointService
     {
         $this->assertInCurrentProject($endpoint);
         $this->endpoints->delete($endpoint);
+    }
+
+    private function resolveMethod(ProxyEndpointData $data): string
+    {
+        return $this->handlers->resolveClass($data->handlerClass)->method();
     }
 
     private function resolveConnectionId(ProxyEndpointData $data): ?int
@@ -167,6 +172,7 @@ final readonly class ProxyEndpointService
             ->where('model_type', ProxyEndpoint::class)
             ->where('project_id', $this->projectId())
             ->whereIn('category_id', $categoryIds)
+            ->distinct()
             ->pluck('category_id')
             ->filter(static fn (mixed $id): bool => is_string($id))
             ->values()

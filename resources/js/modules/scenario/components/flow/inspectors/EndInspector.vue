@@ -58,7 +58,7 @@ const activeTab = ref('editor')
             <p class="mt-1 select-all font-mono text-[12px] text-slate-700">{{ node.id }}</p>
           </div>
 
-          <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
             <TiptapTextEditor
                 v-model="draft.description"
                 format="html"
