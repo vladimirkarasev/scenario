@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Module\Directories\Services;
 
 use Module\Directories\Exceptions\DirectoryExternalException;
+use Module\Directories\DTO\DirectoryPage;
+use Module\Directories\DTO\DirectoryPagination;
+use Module\Directories\DTO\DirectoryQuery;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Proxy\Models\ProxyEndpoint;
@@ -20,11 +23,11 @@ final readonly class DirectoryExternalDataService
     }
 
     /**
-     * @param  array<string, mixed>  $query
-     * @return array<string, mixed>
+     * @throws \Throwable
      */
-    public function activeData(Directory $directory, array $query = []): array
+    public function activeData(Directory $directory, ?DirectoryQuery $query = null): DirectoryPage
     {
+        $query ??= new DirectoryQuery();
         $version = $this->resolveVersion($directory);
         $endpoint = $this->resolveEndpoint($directory);
 
@@ -32,16 +35,27 @@ final readonly class DirectoryExternalDataService
 
         $response = $this->proxyExecutor->executeLogged(
             $endpoint,
-            $this->contextFactory->forQuery($endpoint, $query),
-            $query,
+            $this->contextFactory->forQuery($endpoint, $query->all()),
+            $query->all(),
             ['caller' => 'directory-external', 'directory_id' => $directory->id],
         );
 
-        return [
-            'dictionary' => $this->dictionaryPayload($directory, $version),
-            'data' => $this->applyMapping($response->body['data'] ?? [], $fieldMapping),
-            'meta' => is_array($response->body['meta'] ?? null) ? $response->body['meta'] : [],
-        ];
+        $pagination = [];
+        $rawPagination = $response->body['meta'] ?? null;
+
+        if (is_array($rawPagination)) {
+            foreach ($rawPagination as $key => $value) {
+                if (is_string($key)) {
+                    $pagination[$key] = $value;
+                }
+            }
+        }
+
+        return new DirectoryPage(
+            dictionary: $this->dictionaryPayload($directory, $version),
+            items: array_values($this->applyMapping($response->body['data'] ?? [], $fieldMapping)),
+            pagination: DirectoryPagination::fromArray($pagination),
+        );
     }
 
     private function resolveVersion(Directory $directory): DirectoryVersion

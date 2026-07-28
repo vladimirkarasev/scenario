@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {computed, watch} from 'vue'
+import {computed, nextTick, watch} from 'vue'
 import {NodeViewContent, NodeViewWrapper} from '@tiptap/vue-3'
-import {GripVertical, Settings} from 'lucide-vue-next'
+import {GripVertical, Settings, Trash2} from 'lucide-vue-next'
 import TiptapTextEditor from '@/modules/scenario/components/tiptap/TiptapTextEditor.vue'
 import {Input} from '@/components/ui/input'
 import {Textarea} from '@/components/ui/textarea'
 import {NativeSelect} from '@/components/ui/native-select'
+import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from '@/components/ui/context-menu'
 import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 import type {ScenarioFieldOptions} from '@/lib/tiptap-scenario-field'
 import type {NodeViewProps} from '@tiptap/core'
@@ -22,7 +23,13 @@ const hasLabel = computed(() => Boolean(field.value?.label?.trim()))
 const inertProps = {class: 'pointer-events-none', tabindex: -1, readonly: true} as const
 
 watch(field, (value) => {
-  if (!value) props.deleteNode()
+  if (value) return
+
+  // Только что вставленная нода: свежесозданное поле ещё не долетело в props.fields
+  // (реактивность родителя асинхронна) — даём один тик, прежде чем считать ноду сиротой.
+  nextTick(() => {
+    if (!options.value.getField(fieldId.value)) props.deleteNode()
+  })
 }, {immediate: true})
 
 function onValueUpdate(value: unknown) {
@@ -33,6 +40,11 @@ function openFieldSettings() {
   if (!canEdit.value) return
   options.value.onOpenSettings(fieldId.value)
 }
+
+function deleteField() {
+  if (!canEdit.value) return
+  options.value.onDeleteField(fieldId.value)
+}
 </script>
 
 <template>
@@ -42,12 +54,15 @@ function openFieldSettings() {
       class="tiptap-scenario-field-node group relative my-3 rounded-lg"
       :data-field-id="fieldId"
   >
+  <ContextMenu>
+  <ContextMenuTrigger as-child :disabled="!canEdit">
+  <div>
     <span
         data-drag-handle
         class="absolute top-0.5 -left-5 hidden size-4 cursor-grab items-center justify-center text-slate-300 transition hover:text-slate-500 group-hover:flex active:cursor-grabbing"
         title="Перетащить"
     >
-      <GripVertical class="size-3.5"/>
+      <GripVertical class="size-3.5" />
     </span>
 
     <!-- Пустой заголовок полностью схлопывается (не занимает места) и
@@ -60,7 +75,7 @@ function openFieldSettings() {
                 ? 'mb-1 min-h-[1em]'
                 : 'h-0 overflow-hidden group-hover:h-[1em] group-hover:mb-1 group-hover:overflow-visible'"
     >
-      <NodeViewContent as="span"/>
+      <NodeViewContent as="span" />
     </div>
 
     <!-- rich_text/collapse: значение — это реальный контент, редактируется прямо здесь.
@@ -173,5 +188,18 @@ function openFieldSettings() {
           :placeholder="options.fieldTypeLabel(field.type) + ' — настраивается через ⚙'"
       />
     </div>
+  </div>
+  </ContextMenuTrigger>
+  <ContextMenuContent class="w-48">
+    <ContextMenuItem @select="openFieldSettings">
+      <Settings class="mr-2 size-4" />
+      Настройки
+    </ContextMenuItem>
+    <ContextMenuItem class="text-red-600 focus:bg-red-50 focus:text-red-600" @select="deleteField">
+      <Trash2 class="mr-2 size-4" />
+      Удалить поле
+    </ContextMenuItem>
+  </ContextMenuContent>
+  </ContextMenu>
   </NodeViewWrapper>
 </template>

@@ -4,26 +4,27 @@ declare(strict_types=1);
 
 namespace Module\Proxy;
 
+use Module\Proxy\Credentials\ProxyCredential;
 use Module\Proxy\DTO\ProxyContext;
 use Module\Proxy\DTO\ProxyResponse;
 
 abstract class ProxyHandler
 {
     /** @return iterable<mixed> */
-    abstract public function fields(): iterable;
+    abstract public function requestFields(): iterable;
 
     /**
      * Схема полей результата (для хендлеров без структурированного результата — пусто).
      *
      * @return iterable<mixed>
      */
-    public function resultFields(): iterable
+    public function responseFields(): iterable
     {
         return [];
     }
 
     /**
-     * @return class-string<\Module\Proxy\Credentials\ProxyCredential>|null
+     * @return class-string<ProxyCredential>|null
      */
     public function credentialType(): ?string
     {

@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Module\Proxy\Enums\ProxyRequestStatus;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Models\ProxyRequest;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class PublicProxyControllerTest extends TestCase

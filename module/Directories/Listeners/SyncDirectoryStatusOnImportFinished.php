@@ -7,14 +7,11 @@ namespace Module\Directories\Listeners;
 use Module\Directories\Enums\DirectoryImportStatus;
 use Module\Directories\Events\DirectoryImportStatusUpdated;
 use Module\Directories\Models\Directory;
-use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Services\DictionaryApiSyncService;
-use Module\Directories\Services\DirectoryVersionService;
 
 final readonly class SyncDirectoryStatusOnImportFinished
 {
     public function __construct(
-        private DirectoryVersionService $versionService,
         private DictionaryApiSyncService $apiSync,
     ) {}
 
@@ -38,14 +35,6 @@ final readonly class SyncDirectoryStatusOnImportFinished
             ])->save();
 
             return;
-        }
-
-        if ($event->directoryVersionId !== null) {
-            $version = DirectoryVersion::query()->find($event->directoryVersionId);
-
-            if ($version !== null) {
-                $this->versionService->activate($directory, $version);
-            }
         }
 
         $directory->forceFill([

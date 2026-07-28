@@ -13,7 +13,7 @@ import {useActionRunList} from '@/modules/actions/composables/useActionRunList'
 import type {ActionRun} from '@/modules/actions/types/action'
 import {Head} from '@inertiajs/vue3'
 import {CalendarClock, CheckCircle2, ChevronRight, Clock3, Loader2, Play, RefreshCw, Zap} from 'lucide-vue-next'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
 
@@ -54,6 +54,13 @@ function pretty(value: unknown): string {
     return String(value)
   }
 }
+
+const messageBox = computed<{request: unknown; response: unknown} | null>(() => {
+  const output = selected.value?.output
+  if (!output || typeof output !== 'object' || !('request' in output)) return null
+  const {request, ...response} = output as Record<string, unknown>
+  return {request, response}
+})
 </script>
 
 <template>
@@ -244,7 +251,25 @@ function pretty(value: unknown): string {
           }}</pre>
       </div>
 
-      <div>
+      <template v-if="messageBox">
+        <div>
+          <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Отправлено</div>
+          <pre
+              class="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-700">{{
+              pretty(messageBox.request)
+            }}</pre>
+        </div>
+
+        <div>
+          <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Получено</div>
+          <pre
+              class="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-700">{{
+              pretty(messageBox.response)
+            }}</pre>
+        </div>
+      </template>
+
+      <div v-else>
         <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Output</div>
         <pre
             class="max-h-72 overflow-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-700">{{

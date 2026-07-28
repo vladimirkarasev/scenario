@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Proxy\Http;
 
-use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Module\Users\Models\User;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class ProxyEndpointControllerTest extends TestCase
@@ -270,7 +270,7 @@ final class ProxyEndpointControllerTest extends TestCase
             ->postJson('/api/proxy/endpoints', [
                 'name' => 'Интеграция AutoCRM',
                 'code' => 'autocrm-models',
-                'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+                'handler_class' => \Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler::class,
                 'credentials' => [
                     'base_uri' => 'https://crm.example.com',
                     'bearer_token' => 'secret-token-123',
@@ -299,14 +299,14 @@ final class ProxyEndpointControllerTest extends TestCase
             'project_id' => $this->proxyProject->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'AutoCRM', 'code' => 'autocrm-1',
-            'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+            'handler_class' => \Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler::class,
             'credentials' => ['bearer_token' => 'original-token'],
         ]);
 
         $this->actingAs($this->user)
             ->putJson("/api/proxy/endpoints/{$endpoint->id}", [
                 'name' => 'AutoCRM ren', 'code' => 'autocrm-1',
-                'handler_class' => \Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class,
+                'handler_class' => \Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler::class,
                 'credentials' => ['base_uri' => 'https://x.example.com', 'bearer_token' => ''],
             ])
             ->assertOk();
@@ -335,7 +335,7 @@ final class ProxyEndpointControllerTest extends TestCase
             ]);
 
         $classes = array_column($response->json('data'), 'id');
-        $this->assertContains(\Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler::class, $classes);
+        $this->assertContains(\Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler::class, $classes);
     }
 
     public function test_handlers_catalog_returns_full_list_without_pagination(): void
@@ -344,7 +344,7 @@ final class ProxyEndpointControllerTest extends TestCase
             ->getJson('/api/proxy/handlers')
             ->assertOk();
 
-        $this->assertSame(\Module\Proxy\Services\HandlerCatalog::classes(), array_column($response->json('data'), 'id'));
+        $this->assertSame(\Module\Proxy\Proxies\HandlerCatalog::classes(), array_column($response->json('data'), 'id'));
 
         $groups = array_column(array_column($response->json('data'), 'attributes'), 'group');
         $this->assertContains('AutoCRM', $groups);

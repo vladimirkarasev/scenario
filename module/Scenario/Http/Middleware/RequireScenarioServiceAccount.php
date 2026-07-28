@@ -8,26 +8,37 @@ use App\Exceptions\ForbiddenException;
 use Closure;
 use Illuminate\Http\Request;
 use Module\Scenario\Enums\ScenarioErrorCode;
+use Module\Scenario\Enums\ScenarioPermission;
 use Module\Users\Models\User;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class RequireScenarioServiceAccount
 {
-    /** @param  Closure(Request): Response  $next */
+    /**
+     * Разрешает либо сервисный аккаунт проекта (внешние интеграции, Bearer-токен),
+     * либо CMS-пользователя с правом на создание/редактирование сценариев (превью из редактора).
+     *
+     * @param  Closure(Request): Response  $next
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        $bearer = $request->bearerToken();
 
-        if (
-            !$user instanceof User
-            || !$user->is_system
-            || !is_string($bearer)
-            || $bearer === ''
-        ) {
-            throw ForbiddenException::from(ScenarioErrorCode::ServiceAccountRequired);
+        if ($user instanceof User && $user->is_system && $this->hasBearerToken($request)) {
+            return $next($request);
         }
 
-        return $next($request);
+        if ($user instanceof User && $user->can(ScenarioPermission::Create->value)) {
+            return $next($request);
+        }
+
+        throw ForbiddenException::from(ScenarioErrorCode::ServiceAccountRequired);
+    }
+
+    private function hasBearerToken(Request $request): bool
+    {
+        $bearer = $request->bearerToken();
+
+        return is_string($bearer) && $bearer !== '';
     }
 }

@@ -33,6 +33,37 @@ final readonly class DirectorySyncScheduleService
         return $this->schedules->upsert($definition);
     }
 
+    public function ensureDefault(Directory $directory): void
+    {
+        if ($this->findForDirectory($directory) !== null) {
+            return;
+        }
+
+        $refreshInterval = $directory->api_config_json['refresh_interval'] ?? null;
+        $seconds = is_int($refreshInterval) ? $refreshInterval : 3600;
+
+        $this->upsert($directory, enabled: true, cron: $this->cronForInterval($seconds), timezone: null);
+    }
+
+    private function cronForInterval(int $seconds): string
+    {
+        $minutes = max(1, (int)round($seconds / 60));
+
+        if ($minutes < 60) {
+            return "*/{$minutes} * * * *";
+        }
+
+        $hours = max(1, (int)round($minutes / 60));
+
+        if ($hours < 24) {
+            return "0 */{$hours} * * *";
+        }
+
+        $days = max(1, (int)round($hours / 24));
+
+        return "0 0 */{$days} * *";
+    }
+
     public function disable(Directory $directory): void
     {
         $this->schedules->disable(self::SCOPE, $directory->id);

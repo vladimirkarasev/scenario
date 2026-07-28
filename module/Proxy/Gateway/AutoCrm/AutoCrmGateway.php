@@ -34,21 +34,18 @@ use Module\Proxy\Gateway\Base\DTO\ApiGatewayResponse;
 use Module\Proxy\Gateway\Base\Services\BaseApiGateway;
 use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
-use Psr\Log\LoggerInterface;
 
-class AutoCrmGateway extends BaseApiGateway
+final class AutoCrmGateway extends BaseApiGateway
 {
     public function __construct(
         ApiGatewayConfig $config,
         GuzzleApiTransport $transport,
         MockApiTransport $mockTransport,
-        LoggerInterface $logger,
     ) {
         parent::__construct(
             config: $config,
             transport: $transport,
             mockTransport: $mockTransport,
-            logger: $logger,
         );
     }
 

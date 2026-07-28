@@ -12,24 +12,75 @@ import {
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {NativeSelect} from '@/components/ui/native-select'
+import {Combobox} from '@/components/ui/combobox'
 import {Separator} from '@/components/ui/separator'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import {Check, GripVertical, Loader2, Pencil, Plus, Trash2} from 'lucide-vue-next'
+import {BookOpen, Check, GripVertical, Loader2, Pencil, Plus, Trash2, X} from 'lucide-vue-next'
 import {FILTER_OPERATORS} from '@/modules/directories/types/directory'
-import {ref} from 'vue'
+import type {Directory} from '@/modules/directories/types/directory'
+import {useRelatedDirectoryOptions} from '@/modules/directories/composables/useRelatedDirectoryOptions'
+import DirectoryPickerDialog from '@/modules/directories/components/DirectoryPickerDialog.vue'
+import DirectoryLabelTemplateField from '@/modules/directories/components/DirectoryLabelTemplateField.vue'
+import {computed, ref, watch} from 'vue'
 
 const props = defineProps<{
   versCtx: ReturnType<typeof useDirectoryVersions>
   canManage: boolean
   versionNumber: number | string
+  directoryId: string
 }>()
 
 const emit = defineEmits<{ save: [] }>()
 
 const draggingIdx = ref<number | null>(null)
 const dragOverIdx = ref<number | null>(null)
+
+const relatedOptions = useRelatedDirectoryOptions()
+const relatedPickerOpen = ref(false)
+
+watch(() => props.versCtx.fieldModalDraft.value.related_directory_id, (id) => {
+  void relatedOptions.loadTargetSchema(id ?? '')
+})
+
+function onRelatedDirectorySelect(directory: Directory): void {
+  props.versCtx.fieldModalDraft.value.related_directory_id = directory.id
+  props.versCtx.fieldModalDraft.value.related_match_key = null
+  relatedOptions.targetDirectoryName.value = directory.name
+}
+
+function clearRelatedDirectory(): void {
+  props.versCtx.fieldModalDraft.value.related_directory_id = null
+  props.versCtx.fieldModalDraft.value.related_match_key = null
+}
+
+const matchKeyOptions = computed(() => [
+  {value: 'id', label: 'ID записи'},
+  {value: 'external_key', label: 'Внешний ключ (external_key)'},
+  ...relatedOptions.targetSchemaFields.value.map((f) => ({
+    value: f.key,
+    label: `${f.name || f.key} (${f.key})`,
+  })),
+])
+
+const templateFields = computed(() => {
+  const ownKey = props.versCtx.fieldModalDraft.value.key
+  const seen = new Set<string>()
+  const result: { key: string }[] = []
+  const candidates = ownKey ? [{key: ownKey}, ...relatedOptions.targetSchemaFields.value] : relatedOptions.targetSchemaFields.value
+  for (const f of candidates) {
+    if (!seen.has(f.key)) {
+      seen.add(f.key)
+      result.push({key: f.key})
+    }
+  }
+  return result
+})
+
+function onFieldModalTypeChangeLocal(): void {
+  props.versCtx.onFieldModalTypeChange()
+}
 
 function onDragStart(e: DragEvent, idx: number): void {
   draggingIdx.value = idx
@@ -215,12 +266,12 @@ function onDragEnd(): void {
 
   <!-- Field settings modal -->
   <Dialog v-model:open="props.versCtx.fieldModalOpen.value">
-    <DialogContent class="sm:max-w-md">
-      <DialogHeader>
+    <DialogContent class="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-md">
+      <DialogHeader class="shrink-0 border-b border-border/60 px-6 py-4">
         <DialogTitle>Настройка поля</DialogTitle>
         <DialogDescription>Укажите ключ, название и параметры фильтрации.</DialogDescription>
       </DialogHeader>
-      <div class="grid gap-4 py-2">
+      <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto px-6 py-4">
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5">
             <Label>Название</Label>
@@ -243,14 +294,71 @@ function onDragEnd(): void {
         <div class="space-y-1.5">
           <Label>Тип поля</Label>
           <NativeSelect v-model="props.versCtx.fieldModalDraft.value.type"
-                        @change="props.versCtx.onFieldModalTypeChange()">
+                        @change="onFieldModalTypeChangeLocal()">
             <option value="string">Текст</option>
             <option value="integer">Число</option>
             <option value="boolean">Булево</option>
             <option value="date">Дата</option>
             <option value="datetime">Дата и время</option>
+            <option value="related_directory">Связанный справочник</option>
           </NativeSelect>
         </div>
+
+        <template v-if="props.versCtx.fieldModalDraft.value.type === 'related_directory'">
+          <Separator/>
+          <div class="space-y-1.5">
+            <Label>Целевой справочник</Label>
+            <div
+                v-if="props.versCtx.fieldModalDraft.value.related_directory_id"
+                class="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3"
+            >
+              <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <BookOpen class="size-4 text-primary"/>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-sm font-medium">
+                  {{ relatedOptions.targetDirectoryName.value || 'Загрузка...' }}
+                </div>
+              </div>
+              <Button type="button" variant="ghost" size="sm" class="shrink-0 text-xs"
+                      @click="relatedPickerOpen = true">Изменить
+              </Button>
+              <Button type="button" variant="ghost" size="icon" class="size-7 shrink-0 text-muted-foreground"
+                      @click="clearRelatedDirectory">
+                <X class="size-3.5"/>
+              </Button>
+            </div>
+            <button
+                v-else
+                type="button"
+                class="flex w-full items-center gap-3 rounded-xl border border-dashed border-border/60 p-3 text-left transition hover:border-primary/40 hover:bg-muted/20"
+                @click="relatedPickerOpen = true"
+            >
+              <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted/40">
+                <Plus class="size-4 text-muted-foreground"/>
+              </div>
+              <div class="text-sm font-medium text-muted-foreground">Выбрать справочник</div>
+            </button>
+          </div>
+          <div class="space-y-1.5">
+            <Label>Поле сопоставления в целевом справочнике</Label>
+            <Combobox
+                :model-value="props.versCtx.fieldModalDraft.value.related_match_key ?? ''"
+                :items="matchKeyOptions"
+                placeholder="— Не выбрано —"
+                :disabled="!props.versCtx.fieldModalDraft.value.related_directory_id"
+                @update:model-value="props.versCtx.fieldModalDraft.value.related_match_key = $event || null"
+            />
+            <p v-if="relatedOptions.targetSchemaLoading.value" class="text-xs text-muted-foreground">Загрузка полей
+              справочника...</p>
+          </div>
+          <DirectoryLabelTemplateField
+              :model-value="props.versCtx.fieldModalDraft.value.related_template ?? ''"
+              label="Шаблон отображения"
+              :fields="templateFields"
+              @update:model-value="props.versCtx.fieldModalDraft.value.related_template = $event"
+          />
+        </template>
         <div class="flex flex-wrap items-center gap-6">
           <label class="flex cursor-pointer items-center gap-2 text-sm">
             <input
@@ -358,10 +466,18 @@ function onDragEnd(): void {
           </template>
         </template>
       </div>
-      <DialogFooter>
+      <DialogFooter class="shrink-0 border-t border-border/60 px-6 py-4">
         <Button variant="outline" @click="props.versCtx.fieldModalOpen.value = false">Отмена</Button>
         <Button @click="props.versCtx.saveFieldModal()">Сохранить</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
+  <DirectoryPickerDialog
+      :open="relatedPickerOpen"
+      :selected-id="props.versCtx.fieldModalDraft.value.related_directory_id || undefined"
+      :exclude-id="props.directoryId"
+      @update:open="relatedPickerOpen = $event"
+      @select="onRelatedDirectorySelect"
+  />
 </template>

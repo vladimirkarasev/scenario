@@ -32,7 +32,7 @@ export function useDirectoryProxyPicker(
             if (!proxies.value.length) await loadProxies()
             const proxy = proxies.value.find(p => p.uuid === uuid)
             if (!proxy) return
-            fields.value = await webhookRepository.fields(proxy.uuid)
+            fields.value = await webhookRepository.responseFields(proxy.uuid)
         } catch {
             fields.value = []
         } finally {

@@ -59,7 +59,7 @@ final readonly class ProxyReceiverService
         $headers = $this->normalizeHeaders($request->headers->all());
         $files = $request->allFiles();
         $system = $this->system($requestId, $request->ip());
-        $fields = $this->fields($handler->fields());
+        $fields = $this->fields($handler->requestFields());
         $normalizedData = $this->fieldResolver->resolve($fields, $payload, $query, $headers, $system, $files);
 
         $proxyRequest = $this->requestLogger->createFromHttp(

@@ -6,6 +6,7 @@ namespace Tests\Unit\Module\Directories;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Directories\DTO\DirectoryItemUpdateData;
+use Module\Directories\DTO\DirectoryItemQuery;
 use Module\Directories\DTO\DirectoryManualItemData;
 use Module\Directories\Exceptions\DirectoryItemException;
 use Module\Directories\Models\Directory;
@@ -122,8 +123,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string)$version->id,
-            withOther: true,
+            query: new DirectoryItemQuery(versionId: (string)$version->id, withOther: true),
         );
 
         $this->assertCount(2, $items);
@@ -147,8 +147,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string)$version->id,
-            withOther: true,
+            query: new DirectoryItemQuery(versionId: (string)$version->id, withOther: true),
         );
 
         $this->assertCount(1, $items);
@@ -166,8 +165,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string)$version->id,
-            withOther: false,
+            query: new DirectoryItemQuery(versionId: (string)$version->id),
         );
 
         $this->assertCount(1, $items);
@@ -183,8 +181,7 @@ final class DirectoryItemServiceTest extends TestCase
 
         $items = $this->service->items(
             directory: $directory,
-            versionId: (string)$version->id,
-            withOther: true,
+            query: new DirectoryItemQuery(versionId: (string)$version->id, withOther: true),
         );
 
         $this->assertCount(1, $items);

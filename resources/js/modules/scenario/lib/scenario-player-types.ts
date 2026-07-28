@@ -4,7 +4,7 @@ export type ConditionMode = 'manual' | 'auto'
 
 export interface SurveyBlock {
     id: string
-    type: 'paragraph' | 'rich_text' | 'heading' | 'image' | 'button' | 'input' | 'email' | 'phone' | 'textarea' | 'number' | 'select' | 'date' | 'datetime' | 'checkbox' | 'hidden' | 'variable' | 'collapse' | 'container' | 'group' | 'directory_list' | 'directory_table' | 'suggest'
+    type: 'paragraph' | 'rich_text' | 'heading' | 'image' | 'button' | 'input' | 'email' | 'phone' | 'vin' | 'grz' | 'textarea' | 'number' | 'select' | 'date' | 'datetime' | 'checkbox' | 'hidden' | 'variable' | 'collapse' | 'container' | 'group' | 'directory_list' | 'directory_table' | 'suggest'
     props?: Record<string, unknown>
     children?: SurveyBlock[]
 }

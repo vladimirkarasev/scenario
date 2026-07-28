@@ -10,7 +10,7 @@ import {Input} from '@/components/ui/input'
 import {Separator} from '@/components/ui/separator'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
 import {Badge} from '@/components/ui/badge'
-import {Check, Globe, Loader2, Plus, Search} from 'lucide-vue-next'
+import {Check, Globe, KeyRound, Loader2, Plus, Search} from 'lucide-vue-next'
 import {computed} from 'vue'
 
 const props = defineProps<{
@@ -18,30 +18,29 @@ const props = defineProps<{
   fieldMapping: Record<string, string>
   proxyPicker: DirectoryProxyPickerContext
   syncOpts: DirectoryVersionSyncOptions
-  matchBy: string | null
+  externalKeyField?: string | null
+  matchBy?: string | null
   saving: boolean
   saveError: string | null
   canManage: boolean
   showSyncOptions?: boolean
 }>()
-const emit = defineEmits<{ save: []; 'update:matchBy': [value: string | null] }>()
+const emit = defineEmits<{ save: []; 'update:externalKeyField': [value: string | null] }>()
 
-const mappedProxyFields = computed(() => {
-  const mappedProxyKeys = Object.values(props.fieldMapping).filter(Boolean)
-  return props.proxyPicker.fields.value.filter(pf => mappedProxyKeys.includes(pf.key))
+const selectedExternalKeyField = computed<string>({
+  get: () => props.externalKeyField
+      ?? (props.matchBy ? props.fieldMapping[props.matchBy] ?? '' : ''),
+  set: value => emit('update:externalKeyField', value || null),
 })
 
-const matchByProxyField = computed<string>({
-  get: () => (props.matchBy ? props.fieldMapping[props.matchBy] ?? '' : ''),
-  set: (proxyKey: string) => {
-    if (!proxyKey) {
-      emit('update:matchBy', null)
-      return
-    }
-    const dirKey = Object.keys(props.fieldMapping).find(k => props.fieldMapping[k] === proxyKey)
-    emit('update:matchBy', dirKey ?? null)
-  },
-})
+const recommendedMatchByProxyField = computed(() =>
+    props.proxyPicker.fields.value.find(field => field.identity) ?? null,
+)
+
+function useRecommendedExternalKey(): void {
+  const field = recommendedMatchByProxyField.value
+  if (field) selectedExternalKeyField.value = field.key
+}
 </script>
 
 <template>
@@ -135,23 +134,41 @@ const matchByProxyField = computed<string>({
     <Separator/>
     <div class="space-y-3">
       <div>
-        <div class="text-sm font-medium">Ключевое поле (external key)</div>
-        <div class="text-xs text-muted-foreground">Поле прокси-идентификатор для идемпотентности импорта. Если не задано
-          — записи сопоставляются по хэшу содержимого строки.
+        <div class="text-sm font-medium">Внешний ключ (external_key)</div>
+        <div class="text-xs text-muted-foreground">Уникальное поле Proxy, по которому существующие записи обновляются,
+          а отсутствующие определяются при синхронизации.
         </div>
       </div>
-      <select
-          v-model="matchByProxyField"
-          class="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm sm:max-w-xs"
-          :disabled="!canManage"
-      >
-        <option value="">Не задано (по хэшу строки)</option>
-        <option v-for="pf in mappedProxyFields" :key="pf.key" :value="pf.key">
-          {{ pf.label }}
-        </option>
-      </select>
-      <p v-if="!mappedProxyFields.length" class="text-xs text-muted-foreground">
-        Сначала сопоставьте поля выше — ключ выбирается среди сопоставленных полей прокси.
+      <div class="flex flex-wrap items-center gap-2">
+        <select
+            v-model="selectedExternalKeyField"
+            class="flex h-10 w-full rounded-lg border border-input bg-background px-3 text-sm sm:max-w-xs"
+            :disabled="!canManage"
+        >
+          <option value="">Не задано (по хэшу строки)</option>
+          <option v-for="pf in proxyPicker.fields.value" :key="pf.key" :value="pf.key">
+            {{ pf.label }}{{ pf.identity ? ' · рекомендуется' : '' }}
+          </option>
+        </select>
+        <Button
+            v-if="recommendedMatchByProxyField && selectedExternalKeyField !== recommendedMatchByProxyField.key"
+            type="button"
+            variant="outline"
+            size="sm"
+            class="gap-1.5"
+            :disabled="!canManage"
+            @click="useRecommendedExternalKey"
+        >
+          <KeyRound class="size-3.5"/>
+          Выбрать рекомендуемое
+        </Button>
+      </div>
+      <p v-if="!proxyPicker.fields.value.length" class="text-xs text-muted-foreground">
+        Выберите Proxy, чтобы загрузить доступные поля ответа.
+      </p>
+      <p v-else-if="selectedExternalKeyField" class="text-xs text-muted-foreground">
+        Поле не обязательно добавлять в схему: значение сохранится только в
+        <code>DirectoryItem.external_key</code>.
       </p>
     </div>
     <Separator/>

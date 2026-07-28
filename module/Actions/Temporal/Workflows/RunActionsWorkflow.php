@@ -39,6 +39,8 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
         ?string $scenarioNodeId,
         ?string $actionNodeId = null,
     ) {
+        Workflow::setCurrentDetails($this->chainStartedDetails(count($actionIds)));
+
         $activity = Workflow::newActivityStub(
             ExecuteActionActivityInterface::class,
             ActivityOptions::new()
@@ -66,6 +68,12 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
                 'failed_action_id' => $chain['failedActionId'],
                 'failed_error' => $chain['failedError'],
             ];
+
+            Workflow::setCurrentDetails($this->chainFailedDetails(
+                $chain['failedActionId'],
+                $chain['failedError'],
+                runningErrorChain: $onErrorActionIds !== [],
+            ));
 
             if ($onErrorActionIds !== []) {
                 $errorChain = yield from $this->runChain(
@@ -149,5 +157,24 @@ final class RunActionsWorkflow implements RunActionsWorkflowInterface
         }
 
         return ['context' => $context, 'failedActionId' => null, 'failedError' => null];
+    }
+
+    private function chainStartedDetails(int $totalSteps): string
+    {
+        return "### Запуск цепочки экшенов\nШагов: {$totalSteps}";
+    }
+
+    private function chainFailedDetails(?string $failedActionId, ?string $failedError, bool $runningErrorChain): string
+    {
+        $lines = [
+            "### Экшен `{$failedActionId}` провалился",
+            "**Ошибка:** {$failedError}",
+        ];
+
+        if ($runningErrorChain) {
+            $lines[] = 'Выполняется error-цепочка…';
+        }
+
+        return implode("\n", $lines);
     }
 }

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Directories;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Module\Directories\Exceptions\DirectoryVersionException;
-use Module\Directories\Jobs\RebuildDirectorySearchTextJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Services\DirectoryVersionService;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
 use Module\Projects\Models\Project;
+use Tests\Stubs\FakeRebuildDirectorySearchTextWorkflowStarter;
 use Tests\TestCase;
 
 final class DirectoryVersionServiceTest extends TestCase
@@ -20,9 +20,13 @@ final class DirectoryVersionServiceTest extends TestCase
 
     private DirectoryVersionService $service;
 
+    private FakeRebuildDirectorySearchTextWorkflowStarter $searchTextRebuilder;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->searchTextRebuilder = new FakeRebuildDirectorySearchTextWorkflowStarter();
+        $this->app->instance(RebuildDirectorySearchTextWorkflowStarterInterface::class, $this->searchTextRebuilder);
         $this->service = app(DirectoryVersionService::class);
     }
 
@@ -83,9 +87,8 @@ final class DirectoryVersionServiceTest extends TestCase
         $this->assertSame('name', $directory->match_by);
     }
 
-    public function test_update_schema_dispatches_search_index_job_when_searchable_fields_change(): void
+    public function test_update_schema_starts_search_index_workflow_when_searchable_fields_change(): void
     {
-        Queue::fake();
         $directory = $this->makeDirectory();
         $version = $this->makeVersion($directory);
         $version->forceFill([
@@ -98,16 +101,11 @@ final class DirectoryVersionServiceTest extends TestCase
             ['key' => 'name', 'name' => 'Name', 'type' => 'string', 'searchable' => true],
         ], null);
 
-        Queue::assertPushed(
-            RebuildDirectorySearchTextJob::class,
-            static fn(RebuildDirectorySearchTextJob $job): bool => $job->directoryVersionId === $version->id
-                && $job->queue === 'imports',
-        );
+        $this->assertSame([$version->id], $this->searchTextRebuilder->calls);
     }
 
-    public function test_update_schema_does_not_dispatch_search_index_job_when_searchable_fields_stay_same(): void
+    public function test_update_schema_does_not_start_search_index_workflow_when_searchable_fields_stay_same(): void
     {
-        Queue::fake();
         $directory = $this->makeDirectory();
         $version = $this->makeVersion($directory);
         $version->forceFill([
@@ -120,7 +118,48 @@ final class DirectoryVersionServiceTest extends TestCase
             ['key' => 'name', 'name' => 'New name', 'type' => 'string', 'searchable' => true],
         ], null);
 
-        Queue::assertNotPushed(RebuildDirectorySearchTextJob::class);
+        $this->assertSame([], $this->searchTextRebuilder->calls);
+    }
+
+    public function test_update_schema_throws_when_related_directory_is_self(): void
+    {
+        $directory = $this->makeDirectory();
+        $version = $this->makeVersion($directory);
+
+        $this->expectException(DirectoryVersionException::class);
+        $this->expectExceptionMessage('Справочник не может ссылаться сам на себя.');
+
+        $this->service->updateSchema($directory, $version, [
+            [
+                'key' => 'self_ref',
+                'name' => 'Self ref',
+                'type' => 'related_directory',
+                'related_directory_id' => $directory->id,
+                'related_match_key' => 'id',
+                'related_template' => '{{ name }}',
+            ],
+        ], null);
+    }
+
+    public function test_update_schema_throws_when_related_directory_belongs_to_another_project(): void
+    {
+        $directory = $this->makeDirectory();
+        $otherProjectDirectory = $this->makeDirectory();
+        $version = $this->makeVersion($directory);
+
+        $this->expectException(DirectoryVersionException::class);
+        $this->expectExceptionMessage('Связанный справочник не найден.');
+
+        $this->service->updateSchema($directory, $version, [
+            [
+                'key' => 'city_id',
+                'name' => 'City',
+                'type' => 'related_directory',
+                'related_directory_id' => $otherProjectDirectory->id,
+                'related_match_key' => 'id',
+                'related_template' => '{{ name }}',
+            ],
+        ], null);
     }
 
     public function test_activate_throws_when_version_belongs_to_another_directory(): void

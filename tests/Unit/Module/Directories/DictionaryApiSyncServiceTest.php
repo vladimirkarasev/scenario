@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Directories;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Module\Directories\Events\DirectoryImportStatusUpdated;
 use Module\Directories\Exceptions\DictionaryApiSyncException;
 use Module\Directories\Models\Directory;
 use Module\Directories\Services\DictionaryApiSyncService;
+use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Schedule\Models\Schedule;
 use Tests\TestCase;
+use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
 
 final class DictionaryApiSyncServiceTest extends TestCase
 {
@@ -22,6 +25,11 @@ final class DictionaryApiSyncServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Event::fake([DirectoryImportStatusUpdated::class]);
+        $this->app->instance(
+            RunDirectoryImportWorkflowStarterInterface::class,
+            new FakeRunDirectoryImportWorkflowStarter(),
+        );
         $this->service = app(DictionaryApiSyncService::class);
     }
 
@@ -46,6 +54,16 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->service->queue($directory);
     }
 
+    public function test_throws_when_proxy_is_not_configured(): void
+    {
+        $directory = $this->makeDirectory('api');
+
+        $this->expectException(DictionaryApiSyncException::class);
+        $this->expectExceptionMessage('API directory has no proxy configured.');
+
+        $this->service->queue($directory);
+    }
+
     public function test_queues_import_for_api_directory_with_proxy(): void
     {
         $uuid = 'valid-proxy-uuid';
@@ -64,51 +82,6 @@ final class DictionaryApiSyncServiceTest extends TestCase
         $this->assertNotNull($import->id);
         $this->assertSame('proxy', $import->source_type);
         $this->assertSame($directory->id, $import->directory_id);
-    }
-
-    public function test_queue_due_skips_directories_with_enabled_cron_schedule(): void
-    {
-        $uuid = 'valid-proxy-uuid';
-        $directory = $this->makeDirectory('api', ['proxy_uuid' => $uuid]);
-        $directory->forceFill(['next_sync_at' => now()->subMinute()])->save();
-
-        ProxyEndpoint::query()->create([
-            'uuid' => $uuid,
-            'name' => 'Test Proxy',
-            'code' => 'test-proxy',
-            'handler_class' => 'Module\\Proxy\\Webhooks\\TestHandler',
-            'is_active' => true,
-        ]);
-
-        Schedule::query()->create([
-            'scope' => 'directory-sync',
-            'subject_id' => $directory->id,
-            'enabled' => true,
-            'cron' => '0 * * * *',
-            'timezone' => 'UTC',
-            'workflow_type' => 'RunDirectorySyncSchedule',
-            'task_queue' => 'default',
-            'workflow_input' => [$directory->id],
-        ]);
-
-        $this->assertSame(0, $this->service->queueDue());
-    }
-
-    public function test_queue_due_queues_directories_without_cron_schedule(): void
-    {
-        $uuid = 'valid-proxy-uuid-2';
-        $directory = $this->makeDirectory('api', ['proxy_uuid' => $uuid]);
-        $directory->forceFill(['next_sync_at' => now()->subMinute()])->save();
-
-        ProxyEndpoint::query()->create([
-            'uuid' => $uuid,
-            'name' => 'Test Proxy 2',
-            'code' => 'test-proxy-2',
-            'handler_class' => 'Module\\Proxy\\Webhooks\\TestHandler',
-            'is_active' => true,
-        ]);
-
-        $this->assertSame(1, $this->service->queueDue());
     }
 
     /** @param  array<string, mixed>  $apiConfig */

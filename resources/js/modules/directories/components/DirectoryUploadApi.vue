@@ -14,9 +14,9 @@ const emit = defineEmits<{ openSync: [] }>()
         <Globe class="size-7 text-primary"/>
       </div>
       <div class="space-y-1">
-        <div class="font-semibold">Источник — Remote API</div>
+        <div class="font-semibold">Источник — Proxy API</div>
         <div class="text-sm text-muted-foreground">
-          Для этого справочника настроен Remote API.<br>
+          Для этого справочника настроен proxy endpoint.<br>
           Используйте синхронизацию вместо ручного импорта файлов.
         </div>
       </div>

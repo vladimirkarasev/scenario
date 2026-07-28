@@ -2,6 +2,8 @@ export type BlockFieldType =
     'input'
     | 'email'
     | 'phone'
+    | 'vin'
+    | 'grz'
     | 'textarea'
     | 'rich_text'
     | 'number'
@@ -57,6 +59,18 @@ export interface EmailBlockField extends BaseBlockField {
 
 export interface PhoneBlockField extends BaseBlockField {
     type: 'phone'
+    placeholder: string
+    value: string
+}
+
+export interface VinBlockField extends BaseBlockField {
+    type: 'vin'
+    placeholder: string
+    value: string
+}
+
+export interface GrzBlockField extends BaseBlockField {
+    type: 'grz'
     placeholder: string
     value: string
 }
@@ -208,6 +222,8 @@ export type BlockField =
     | InputBlockField
     | EmailBlockField
     | PhoneBlockField
+    | VinBlockField
+    | GrzBlockField
     | TextareaBlockField
     | RichTextBlockField
     | NumberBlockField
@@ -275,6 +291,26 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             placeholder: '',
             value: '',
             varName: labelToVarName('Телефон')
+        },
+        vin: {
+            id,
+            type: 'vin',
+            name: id,
+            label: 'VIN',
+            required: false,
+            placeholder: '',
+            value: '',
+            varName: labelToVarName('VIN')
+        },
+        grz: {
+            id,
+            type: 'grz',
+            name: id,
+            label: 'ГРЗ',
+            required: false,
+            placeholder: '',
+            value: '',
+            varName: labelToVarName('ГРЗ')
         },
         textarea: {
             id,
@@ -559,11 +595,13 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
         case 'input':
         case 'email':
         case 'phone':
+        case 'vin':
+        case 'grz':
             return {
                 ...nb,
                 placeholder: String(f.placeholder ?? (base as InputBlockField).placeholder),
                 value: String(f.value ?? (base as InputBlockField).value)
-            } as InputBlockField | EmailBlockField | PhoneBlockField
+            } as InputBlockField | EmailBlockField | PhoneBlockField | VinBlockField | GrzBlockField
 
         case 'textarea': {
             const maxLen = f.maxLength !== undefined ? Number(f.maxLength) : (base as TextareaBlockField).maxLength

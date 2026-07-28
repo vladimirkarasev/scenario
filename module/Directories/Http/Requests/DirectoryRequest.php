@@ -41,15 +41,19 @@ final class DirectoryRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'source_type' => ['nullable', Rule::in(['manual', 'excel', 'api', 'external'])],
             'match_by' => ['nullable', 'string'],
+            'cache_ttl_seconds' => ['nullable', 'integer', 'min:1800', 'max:86400'],
             'api_config' => ['nullable', 'array'],
-            'api_config.endpoint' => ['nullable', 'url'],
-            'api_config.method' => ['nullable', Rule::in(['GET', 'POST', 'PUT', 'PATCH'])],
-            'api_config.headers' => ['nullable', 'array'],
-            'api_config.auth_type' => ['nullable', Rule::in(['none', 'bearer', 'basic', 'api_key'])],
-            'api_config.auth' => ['nullable', 'array'],
-            'api_config.query' => ['nullable', 'array'],
-            'api_config.body' => ['nullable', 'array'],
-            'api_config.response_mapping' => ['nullable', 'array'],
+            'api_config.proxy_uuid' => [
+                'nullable',
+                'uuid',
+                Rule::exists('proxy_endpoints', 'uuid')
+                    ->where(fn(Builder $query) => $query
+                        ->where('project_id', $projectId)
+                        ->where('is_active', true)),
+            ],
+            'api_config.field_mapping' => ['nullable', 'array'],
+            'api_config.field_mapping.*' => ['nullable', 'string'],
+            'api_config.external_key_field' => ['nullable', 'string', 'max:255'],
             'api_config.refresh_interval' => ['nullable', 'integer', 'min:60'],
             'fields' => $this->isMethod('post') ? ['sometimes', 'array'] : ['required', 'array', 'min:1'],
             'fields.*.key' => ['required', 'string', 'distinct'],

@@ -78,7 +78,7 @@ final class FinalizeDirectoryImportActivityTest extends TestCase
             'file_path' => 'test/path.xlsx',
             'mapping_json' => [],
             'fields_json' => [],
-            'remote_config_json' => [],
+            'source_config_json' => [],
             'processed_keys_json' => [],
         ]);
     }

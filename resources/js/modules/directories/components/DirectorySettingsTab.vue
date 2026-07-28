@@ -91,6 +91,20 @@ function setSourceType(id: SourceType): void {
           </option>
         </select>
       </div>
+      <div class="space-y-2">
+        <Label for="s-cache-ttl">Время жизни кеша данных (сек)</Label>
+        <Input
+            id="s-cache-ttl"
+            type="number"
+            min="1800"
+            max="86400"
+            placeholder="По умолчанию 3600 (1 час)"
+            :model-value="detail.meta.cache_ttl_seconds ?? ''"
+            :disabled="!canManage"
+            @update:model-value="detail.meta.cache_ttl_seconds = $event === '' ? null : Number($event)"
+        />
+        <p class="text-xs text-muted-foreground">От 1800 (30 минут) до 86400 (1 сутки). Пусто — берётся дефолт.</p>
+      </div>
 
       <template v-if="detail.meta.source_type === 'api' || detail.meta.source_type === 'external'">
         <Separator/>

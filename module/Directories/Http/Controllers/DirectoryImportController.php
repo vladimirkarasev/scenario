@@ -8,18 +8,19 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Module\Directories\DTO\DirectoryImportData;
+use Module\Directories\DTO\ExcelImportData;
+use Module\Directories\DTO\ExcelDirectoryImportCommand;
 use Module\Directories\Http\Requests\StoreDirectoryImportRequest;
 use Module\Directories\Http\Resources\JsonApi\DirectoryImportResource;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Services\DirectoryService;
-use Module\Directories\Services\ImportService;
+use Module\Directories\Services\DirectoryManager;
 
 final class DirectoryImportController extends Controller
 {
     public function __construct(
-        private readonly ImportService $importService,
+        private readonly DirectoryManager $directories,
         private readonly DirectoryService $directoryService,
     ) {
     }
@@ -60,8 +61,10 @@ final class DirectoryImportController extends Controller
             $this->directoryService->currentProjectForUser($request->user()),
         );
 
-        $import = $this->importService->queue(
-            DirectoryImportData::fromRequest($request, $directory),
+        $import = $this->directories->import(
+            new ExcelDirectoryImportCommand(
+                ExcelImportData::fromRequest($request, $directory),
+            ),
         );
 
         return new DirectoryImportResource($this->directoryService->importPayload($import))

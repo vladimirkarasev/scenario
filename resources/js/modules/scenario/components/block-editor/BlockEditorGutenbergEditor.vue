@@ -15,6 +15,7 @@ import {TableCell} from '@tiptap/extension-table-cell'
 import {FontSize} from '@/lib/tiptap-font-size'
 import {Details} from '@/lib/tiptap-details'
 import {ScenarioField} from '@/lib/tiptap-scenario-field'
+import {computeFieldInsertPosition, insertBeforeTrailingEmptyParagraph} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
 import {useTiptapFormatting} from '@/modules/scenario/composables/useTiptapFormatting'
 import {useTiptapLinkDialog} from '@/modules/scenario/composables/useTiptapLinkDialog'
 import TiptapFormattingToolbar from '@/modules/scenario/components/tiptap/TiptapFormattingToolbar.vue'
@@ -120,7 +121,7 @@ function buildInitialContent(): TiptapDoc {
   const present = new Set(docFieldIds(base))
   const missing = props.fields.filter((f) => !present.has(f.id))
   if (missing.length) {
-    base.content = [...base.content, ...missing.map(fieldNode)]
+    base.content = insertBeforeTrailingEmptyParagraph(base.content, missing.map(fieldNode))
   }
   if (!base.content.length) {
     base.content = [{type: 'paragraph'}]
@@ -128,6 +129,8 @@ function buildInitialContent(): TiptapDoc {
 
   return base
 }
+
+let hasFocusedOnce = false
 
 const editor = useEditor({
   content: buildInitialContent(),
@@ -169,6 +172,9 @@ const editor = useEditor({
       class: 'prose prose-sm max-w-none focus:outline-none',
     },
   },
+  onFocus: () => {
+    hasFocusedOnce = true
+  },
   onUpdate: ({editor: nextEditor}) => {
     const json = nextEditor.getJSON() as TiptapDoc
     emit('update:modelValue', json)
@@ -202,6 +208,28 @@ const editor = useEditor({
   },
 })
 
+const pendingInsertPositions = new Map<string, number>()
+
+function reserveInsertPosition(): number {
+  if (!editor.value) return 0
+
+  const doc = editor.value.state.doc
+  return hasFocusedOnce
+      ? editor.value.state.selection.from
+      : computeFieldInsertPosition({
+        contentSize: doc.content.size,
+        lastChild: doc.lastChild
+            ? {typeName: doc.lastChild.type.name, contentSize: doc.lastChild.content.size, nodeSize: doc.lastChild.nodeSize}
+            : null,
+      })
+}
+
+function assignReservedPosition(fieldId: string, pos: number): void {
+  pendingInsertPositions.set(fieldId, pos)
+}
+
+defineExpose({reserveInsertPosition, assignReservedPosition})
+
 watch(
     () => props.fields.map((f) => f.id).join(','),
     () => {
@@ -210,8 +238,20 @@ watch(
       const missing = props.fields.filter((f) => !currentIds.has(f.id))
       if (!missing.length) return
 
-      const endPos = editor.value.state.doc.content.size
-      editor.value.chain().insertContentAt(endPos, missing.map(fieldNode)).run()
+      missing.forEach((f) => {
+        const reservedPos = pendingInsertPositions.get(f.id)
+        pendingInsertPositions.delete(f.id)
+
+        const doc = editor.value!.state.doc
+        const insertPos = reservedPos ?? computeFieldInsertPosition({
+          contentSize: doc.content.size,
+          lastChild: doc.lastChild
+              ? {typeName: doc.lastChild.type.name, contentSize: doc.lastChild.content.size, nodeSize: doc.lastChild.nodeSize}
+              : null,
+        })
+
+        editor.value!.chain().insertContentAt(insertPos, fieldNode(f)).run()
+      })
     },
 )
 

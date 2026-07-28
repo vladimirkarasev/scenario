@@ -21,8 +21,10 @@ final class StoreDirectoryImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'source_type' => ['required', Rule::in(DirectoryImportSourceType::values())],
+            'source_type' => ['required', Rule::in([DirectoryImportSourceType::File->value])],
             'file' => ['nullable', 'file', 'mimes:xlsx,csv,ods,xls'],
+            'files' => ['nullable', 'array', 'min:1'],
+            'files.*' => ['file', 'mimes:xlsx,csv,ods,xls'],
             'mode' => ['required', Rule::in(DirectoryImportMode::values())],
             'add_new' => ['nullable', 'boolean'],
             'update_existing' => ['nullable', 'boolean'],
@@ -37,17 +39,6 @@ final class StoreDirectoryImportRequest extends FormRequest
             'columns.*.sort_order' => ['nullable', 'integer', 'min:0'],
             'columns.*.rules' => ['sometimes', 'array'],
             'columns.*.rules.*' => ['string'],
-            'remote' => ['nullable', 'array'],
-            'remote.url' => ['nullable', 'url'],
-            'remote.items_path' => ['nullable', 'string'],
-            'remote.page_param' => ['nullable', 'string'],
-            'remote.per_page_param' => ['nullable', 'string'],
-            'remote.per_page' => ['nullable', 'integer', 'min:1', 'max:5000'],
-            'remote.per_page_path' => ['nullable', 'string'],
-            'remote.start_page' => ['nullable', 'integer', 'min:1'],
-            'remote.headers' => ['nullable', 'array'],
-            'remote.headers.*' => ['nullable', 'string'],
-            'remote.query' => ['nullable', 'array'],
             'match_by' => ['nullable', 'string'],
             'parent_key_field' => ['nullable', 'string'],
             'version_id' => ['nullable', 'integer', 'exists:directory_versions,id'],
@@ -69,12 +60,12 @@ final class StoreDirectoryImportRequest extends FormRequest
 
                 $sourceType = $this->input('source_type');
 
-                if ($sourceType === DirectoryImportSourceType::File->value && !$this->hasFile('file')) {
-                    $validator->errors()->add('file', 'Файл обязателен для импорта из Excel.');
-                }
-
-                if ($sourceType === DirectoryImportSourceType::Remote->value && blank($this->input('remote.url'))) {
-                    $validator->errors()->add('remote.url', 'URL обязателен для удалённого импорта.');
+                if (
+                    $sourceType === DirectoryImportSourceType::File->value
+                    && !$this->hasFile('file')
+                    && !$this->hasFile('files')
+                ) {
+                    $validator->errors()->add('files', 'Нужен хотя бы один файл для импорта из Excel.');
                 }
 
                 $mapping = $this->input('mapping');

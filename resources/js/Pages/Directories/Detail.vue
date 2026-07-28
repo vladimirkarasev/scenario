@@ -19,11 +19,9 @@ import {
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {NativeSelect} from '@/components/ui/native-select'
-import {Separator} from '@/components/ui/separator'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import {Textarea} from '@/components/ui/textarea'
 import {Head, Link} from '@inertiajs/vue3'
 import {useAuthStore} from '@/stores/auth'
 import {
@@ -115,6 +113,9 @@ function addSchemaField(): void {
     sort_order: 0,
     rules: [],
     options: [],
+    related_directory_id: null,
+    related_match_key: null,
+    related_template: null,
   })
 }
 
@@ -638,7 +639,7 @@ async function doApiSync(): Promise<void> {
 
               <div class="space-y-2">
                 <Label>Файл (.xlsx, .csv, .ods)</Label>
-                <Input type="file" accept=".xlsx,.csv,.ods,.xls" @change="impCtx.onFileSelect"/>
+                <Input type="file" multiple accept=".xlsx,.csv,.ods,.xls" @change="impCtx.onFileSelect"/>
               </div>
 
               <div v-if="impCtx.importError.value"

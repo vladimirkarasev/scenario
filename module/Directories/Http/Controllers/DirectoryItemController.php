@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Directories\DTO\DirectoryItemUpdateData;
+use Module\Directories\DTO\DirectoryItemQuery;
 use Module\Directories\Http\Requests\UpdateDirectoryItemRequest;
 use Module\Directories\Http\Resources\JsonApi\DirectoryItemResource;
 use Module\Directories\Models\Directory;
@@ -28,72 +29,10 @@ final class DirectoryItemController extends Controller
     {
         $this->ensureProjectAccess($request, $directory);
 
-        $rawFilter = (array)$request->input('filter', []);
-
-        $versionId = isset($rawFilter['version_id']) && is_string($rawFilter['version_id'])
-            ? $rawFilter['version_id']
-            : null;
-
-        $searchRaw = $rawFilter['search'] ?? $rawFilter['q'] ?? null;
-        $search = is_string($searchRaw) && $searchRaw !== '' ? trim($searchRaw) : null;
-
-        $withOther = filter_var($rawFilter['with_other'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-        $filters = [];
-        foreach ($rawFilter as $key => $value) {
-            if (in_array($key, ['version_id', 'q', 'search', 'with_other'], true)) {
-                continue;
-            }
-            if (!is_string($key)) {
-                continue;
-            }
-            if (is_string($value) && $value !== '') {
-                $filters[$key] = $value;
-            } elseif (is_array($value)) {
-                $cleaned = array_values(
-                    array_filter(
-                        array_map(static fn(mixed $v): string => is_string($v) ? $v : '', $value),
-                        static fn(string $v): bool => $v !== ''
-                    )
-                );
-                if ($cleaned !== []) {
-                    $filters[$key] = $cleaned;
-                }
-            }
-        }
-
-        $filtersTo = [];
-        foreach ((array)$request->input('filter_to', []) as $key => $value) {
-            if (is_string($key) && is_string($value) && $value !== '') {
-                $filtersTo[$key] = $value;
-            }
-        }
-
-        $sortKey = null;
-        $sortDir = 'asc';
-        $rawSort = $request->input('sort');
-        if (!is_string($rawSort) || $rawSort === '') {
-            $rawSort = is_string($directory->default_sort) ? $directory->default_sort : '';
-        }
-        if ($rawSort !== '') {
-            if (str_starts_with($rawSort, '-')) {
-                $sortKey = substr($rawSort, 1);
-                $sortDir = 'desc';
-            } else {
-                $sortKey = $rawSort;
-            }
-        }
-
         return DirectoryItemResource::collection(
             $this->directoryItemService->items(
                 $directory,
-                $versionId,
-                $filters,
-                $filtersTo,
-                $search,
-                $sortKey,
-                $sortDir,
-                $withOther
+                DirectoryItemQuery::fromRequest($request, $directory),
             ),
         );
     }

@@ -137,20 +137,28 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         return `${varName}`
     }
 
-    function addField(type: BlockFieldType): void {
-        if (!blockDraft.value) return
-
-        const existingFields = blockDraft.value.data.fields ?? []
+    function createField(type: BlockFieldType): BlockField {
+        const existingFields = blockDraft.value?.data.fields ?? []
         const newField = createScenarioBlockField(type, existingFields.length)
         newField.varName = ensureUniqueVarName(newField.varName, existingFields)
+
+        return newField
+    }
+
+    function addField(type: BlockFieldType): BlockField | null {
+        if (!blockDraft.value) return null
+
+        const newField = createField(type)
 
         blockDraft.value = {
             ...blockDraft.value,
             data: {
                 ...blockDraft.value.data,
-                fields: [...existingFields, newField],
+                fields: [...blockDraft.value.data.fields, newField],
             },
         }
+
+        return newField
     }
 
     function removeField(fieldId: string): void {

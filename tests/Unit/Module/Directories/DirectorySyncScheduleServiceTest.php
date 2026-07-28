@@ -72,6 +72,39 @@ final class DirectorySyncScheduleServiceTest extends TestCase
         $this->assertContains("directory-sync-{$directory->id}", $this->syncer->deletedScheduleIds);
     }
 
+    public function test_ensure_default_provisions_schedule_from_refresh_interval(): void
+    {
+        $directory = $this->makeDirectory();
+        $directory->forceFill(['api_config_json' => ['refresh_interval' => 1800]])->save();
+
+        app(DirectorySyncScheduleService::class)->ensureDefault($directory);
+
+        $schedule = app(DirectorySyncScheduleService::class)->findForDirectory($directory);
+        $this->assertNotNull($schedule);
+        $this->assertSame('*/30 * * * *', $schedule->cron);
+    }
+
+    public function test_ensure_default_uses_hourly_fallback_without_refresh_interval(): void
+    {
+        $directory = $this->makeDirectory();
+
+        app(DirectorySyncScheduleService::class)->ensureDefault($directory);
+
+        $schedule = app(DirectorySyncScheduleService::class)->findForDirectory($directory);
+        $this->assertSame('0 */1 * * *', $schedule->cron);
+    }
+
+    public function test_ensure_default_does_not_overwrite_existing_schedule(): void
+    {
+        $directory = $this->makeDirectory();
+        $service = app(DirectorySyncScheduleService::class);
+
+        $service->upsert($directory, enabled: true, cron: '0 9 * * *', timezone: 'UTC');
+        $service->ensureDefault($directory);
+
+        $this->assertSame('0 9 * * *', $service->findForDirectory($directory)->cron);
+    }
+
     private function makeDirectory(): Directory
     {
         $project = Project::query()->create([

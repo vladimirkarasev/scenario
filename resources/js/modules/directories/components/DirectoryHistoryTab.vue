@@ -47,7 +47,7 @@ defineProps<{
                 <Badge :variant="impCtx.importVariant(imp.status)">{{ impCtx.importLabel(imp.status) }}</Badge>
               </TableCell>
               <TableCell class="text-sm">
-                {{ imp.source_type === 'proxy' ? 'Proxy' : imp.source_type === 'remote' ? 'Remote API' : 'Excel' }}
+                {{ imp.source_type === 'proxy' ? 'Proxy' : 'Excel' }}
               </TableCell>
               <TableCell>
                 <Badge variant="outline">{{ imp.mode }}</Badge>

@@ -30,7 +30,7 @@ final class ProxyFieldsController extends Controller
         $handler = $this->handlers->resolve($endpoint);
         $fields = [];
 
-        foreach ($handler->fields() as $field) {
+        foreach ($handler->requestFields() as $field) {
             if ($field instanceof ProxyField) {
                 $fields[] = $field->toArray();
             }

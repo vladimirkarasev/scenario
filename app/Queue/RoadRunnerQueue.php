@@ -110,6 +110,7 @@ final class RoadRunnerQueue extends QueueBase implements QueueContract
     /**
      * @return int<0, max>
      */
+    #[\Override]
     protected function availableAt($delay = 0): int
     {
         $delay = $this->parseDateInterval($delay);

@@ -7,6 +7,9 @@ import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
 import DatePicker from '@/components/ui/date-picker/DatePicker.vue'
 import PhoneInput, {type PhoneValue} from '@/components/ui/phone-input/PhoneInput.vue'
+import VinInput from '@/components/ui/vin-input/VinInput.vue'
+import type {VinShape} from '@/lib/vin-shape'
+import GrzInput, {type GrzValue} from '@/components/ui/grz-input/GrzInput.vue'
 import type {DirectoryListShape} from '@/lib/directory-list-shape'
 import type {SelectShape} from '@/lib/select-shape'
 import NumberInput from '@/components/ui/number-input/NumberInput.vue'
@@ -191,6 +194,32 @@ watch(
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <PhoneInput
         :model-value="(formData[fieldName] as PhoneValue | string | null) ?? null"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'vin'" class="grid gap-1.5">
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <VinInput
+        :model-value="(formData[fieldName] as VinShape | string | null) ?? null"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'grz'" class="grid gap-1.5">
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <GrzInput
+        :model-value="(formData[fieldName] as GrzValue | string | null) ?? null"
         :disabled="disabled"
         :error="hasError"
         @update:model-value="formData[fieldName] = $event"

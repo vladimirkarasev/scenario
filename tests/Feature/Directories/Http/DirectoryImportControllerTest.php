@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Directories\Http;
 
+use App\Http\Middleware\LogHttpRequest;
 use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,12 +14,19 @@ use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Permission\Models\Permission;
 use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
+use Tests\Stubs\FakeRebuildDirectorySearchTextWorkflowStarter;
+use Tests\Stubs\FakeTemporalScheduleSyncer;
+use Module\Schedule\Services\TemporalScheduleSyncerInterface;
 use Tests\TestCase;
+use RoadRunner\Centrifugo\CentrifugoApiInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class DirectoryImportControllerTest extends TestCase
 {
@@ -27,6 +35,14 @@ final class DirectoryImportControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(LogHttpRequest::class);
+        $this->instance(CentrifugoApiInterface::class, $this->createMock(CentrifugoApiInterface::class));
+        $this->instance(LoggerInterface::class, new NullLogger());
+        $this->instance(
+            RebuildDirectorySearchTextWorkflowStarterInterface::class,
+            new FakeRebuildDirectorySearchTextWorkflowStarter(),
+        );
+        $this->instance(TemporalScheduleSyncerInterface::class, new FakeTemporalScheduleSyncer());
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
@@ -88,6 +104,43 @@ final class DirectoryImportControllerTest extends TestCase
             'processed_keys_json' => '[]',
         ]);
 
+        $this->assertCount(1, $starter->calls);
+    }
+
+    public function test_store_queues_multiple_excel_files_as_one_paged_import(): void
+    {
+        $starter = new FakeRunDirectoryImportWorkflowStarter();
+        $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
+
+        [$user, $project] = $this->makeUserWithProject('directory_create');
+        $directory = $this->makeDirectory($project);
+        $files = [
+            $this->makeExcelFile([['name'], ['First']]),
+            $this->makeExcelFile([['name'], ['Second']]),
+        ];
+
+        $this
+            ->actingAs($user)
+            ->post(
+                "/api/directories/{$directory->id}/imports",
+                [
+                    'source_type' => 'file',
+                    'mode' => 'create',
+                    'columns' => [['key' => 'name', 'name' => 'Название']],
+                    'mapping' => ['0' => 'name'],
+                    'files' => $files,
+                ],
+                ['Accept' => 'application/json'],
+            )
+            ->assertStatus(202);
+
+        $import = DirectoryImport::query()
+            ->where('directory_id', $directory->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertCount(2, $import->source_config_json['files']);
+        $this->assertSame(2, $import->source_config_json['totalChunks']);
         $this->assertCount(1, $starter->calls);
     }
 
@@ -209,7 +262,7 @@ final class DirectoryImportControllerTest extends TestCase
             'project_id' => $project->id,
             'name' => 'Directory '.Str::random(4),
             'slug' => 'dir-'.Str::random(6),
-            'source_type' => 'manual',
+            'source_type' => 'excel',
         ]);
     }
 
@@ -237,7 +290,7 @@ final class DirectoryImportControllerTest extends TestCase
             'file_path' => 'test/path.xlsx',
             'mapping_json' => [],
             'fields_json' => [],
-            'remote_config_json' => [],
+            'source_config_json' => [],
             'processed_keys_json' => [],
         ]);
     }

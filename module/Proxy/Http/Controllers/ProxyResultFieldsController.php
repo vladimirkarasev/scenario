@@ -7,15 +7,14 @@ namespace Module\Proxy\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Projects\CurrentProject;
-use Module\Proxy\DTO\ProxyField;
 use Module\Proxy\Http\Resources\JsonApi\ProxyFieldResource;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Services\HandlerResolver;
+use Module\Proxy\Services\ProxyResponseFieldCatalog;
 
 final class ProxyResultFieldsController extends Controller
 {
     public function __construct(
-        private readonly HandlerResolver $handlers,
+        private readonly ProxyResponseFieldCatalog $fields,
         private readonly CurrentProject $currentProject,
     ) {}
 
@@ -27,13 +26,10 @@ final class ProxyResultFieldsController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $handler = $this->handlers->resolve($endpoint);
         $fields = [];
 
-        foreach ($handler->resultFields() as $field) {
-            if ($field instanceof ProxyField) {
-                $fields[] = $field->toArray();
-            }
+        foreach ($this->fields->forEndpoint($endpoint) as $field) {
+            $fields[] = $field->toArray();
         }
 
         return ProxyFieldResource::collection($fields);

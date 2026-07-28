@@ -88,3 +88,11 @@ tasks:
     desc: Run PHPUnit test suite
     cmds:
       - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan test {{.CLI_ARGS}}"
+
+  skills:link:
+    desc: Symlink .claude/skills and .codex/skills to the shared skills/ directory (single source for Claude Code + Codex CLI, both read the Agent Skills SKILL.md format)
+    cmds:
+      - mkdir -p .claude .codex
+      - rm -rf .claude/skills .codex/skills
+      - ln -s ../skills .claude/skills
+      - ln -s ../skills .codex/skills

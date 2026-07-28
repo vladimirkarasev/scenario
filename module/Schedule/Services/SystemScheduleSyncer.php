@@ -32,26 +32,10 @@ final readonly class SystemScheduleSyncer
     {
         yield ScheduleDefinition::new(
             scope: self::SCOPE,
-            subjectId: 'directories-run-scheduled-imports',
-            workflowType: RunScheduledArtisanCommandWorkflowInterface::WORKFLOW_TYPE
-        )
-            ->everyMinute()
-            ->withWorkflowInput(['directories:run-scheduled-imports']);
-
-        yield ScheduleDefinition::new(
-            scope: self::SCOPE,
-            subjectId: 'dictionaries-sync',
-            workflowType: RunScheduledArtisanCommandWorkflowInterface::WORKFLOW_TYPE
-        )
-            ->everyMinute()
-            ->withWorkflowInput(['dictionaries:sync']);
-
-        yield ScheduleDefinition::new(
-            scope: self::SCOPE,
             subjectId: 'dictionaries-warmup-cache',
             workflowType: RunScheduledArtisanCommandWorkflowInterface::WORKFLOW_TYPE
         )
-            ->hourly()
+            ->withCronString('*/15 * * * *')
             ->withWorkflowInput(['dictionaries:warmup-cache']);
 
         yield ScheduleDefinition::new(

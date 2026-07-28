@@ -11,7 +11,6 @@ use Module\Proxy\Gateway\Base\Methods\GetJsonMethod;
 use Module\Proxy\Gateway\Base\Services\BaseApiGateway;
 use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
-use Psr\Log\LoggerInterface;
 
 final class DaDataProfileGateway extends BaseApiGateway
 {
@@ -19,13 +18,11 @@ final class DaDataProfileGateway extends BaseApiGateway
         ApiGatewayConfig $config,
         GuzzleApiTransport $transport,
         MockApiTransport $mockTransport,
-        LoggerInterface $logger,
     ) {
         parent::__construct(
             config: $config,
             transport: $transport,
             mockTransport: $mockTransport,
-            logger: $logger,
         );
     }
 

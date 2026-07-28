@@ -6,31 +6,20 @@ namespace Tests\Unit\Module\Directories;
 
 use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Repositories\DirectoryItemRepository;
-use Module\Directories\Services\Importing\DirectoryImportPayloadNormalizer;
-use Module\Directories\Services\Importing\DirectoryImportRowProcessor;
+use Module\Directories\Services\Importing\DirectoryImportRowWriter;
 use Tests\TestCase;
 
 final class DirectoryImportRowProcessorHashTest extends TestCase
 {
-    private \ReflectionMethod $computeRowHash;
-
-    private \ReflectionMethod $resolveExternalKey;
-
-    private DirectoryImportRowProcessor $processor;
+    private DirectoryImportRowWriter $writer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->processor = new DirectoryImportRowProcessor(
-            app(DirectoryImport::class),
+        $this->writer = new DirectoryImportRowWriter(
             app(DirectoryItemRepository::class),
-            app(DirectoryImportPayloadNormalizer::class),
         );
-
-        $ref = new \ReflectionClass($this->processor);
-        $this->computeRowHash = $ref->getMethod('computeRowHash');
-        $this->resolveExternalKey = $ref->getMethod('resolveExternalKey');
     }
 
     public function test_resolve_external_key_uses_match_by(): void
@@ -38,8 +27,7 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
         $import = (new DirectoryImport)->forceFill(['match_by' => 'id', 'source_type' => 'proxy']);
         $prepared = ['id' => '42', 'name' => 'Belgee'];
 
-        $key = $this->resolveExternalKey->invoke(
-            $this->processor,
+        $key = $this->writer->externalKey(
             $import,
             $prepared,
             collect(array_keys($prepared)),
@@ -55,8 +43,7 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
         $prepared = ['id' => '1', 'name' => 'Belgee'];
 
         /** @var string|null $key */
-        $key = $this->resolveExternalKey->invoke(
-            $this->processor,
+        $key = $this->writer->externalKey(
             $import,
             $prepared,
             collect(array_keys($prepared)),
@@ -134,9 +121,6 @@ final class DirectoryImportRowProcessorHashTest extends TestCase
     /** @param  array<string, string|null>  $row */
     private function hash(array $row, int $rowNumber = 2): string
     {
-        return $row
-                |> array_keys(...)
-                |> collect(...)
-                |> (fn($x) => $this->computeRowHash->invoke($this->processor, $row, $x, $rowNumber));
+        return $this->writer->rowHash($row, collect(array_keys($row)), $rowNumber);
     }
 }

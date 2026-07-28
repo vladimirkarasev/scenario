@@ -7,8 +7,8 @@ namespace Tests\Unit\Module\Proxy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Module\Proxy\Services\MockResponseResolver;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class MockResponseResolverTest extends TestCase

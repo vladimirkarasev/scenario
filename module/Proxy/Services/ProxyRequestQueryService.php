@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Services;
 
+use Illuminate\Database\Eloquent\Builder;
 use App\Exceptions\NotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Module\Projects\CurrentProject;
@@ -49,10 +50,10 @@ final readonly class ProxyRequestQueryService
     }
 
     /**
-     * @param \Illuminate\Database\Eloquent\Builder<ProxyRequest> $query
+     * @param Builder<ProxyRequest> $query
      * @param list<string> $sort
      */
-    private function applySort(\Illuminate\Database\Eloquent\Builder $query, array $sort): void
+    private function applySort(Builder $query, array $sort): void
     {
         $allowed = ['status', 'request_id', 'received_at', 'processed_at', 'created_at'];
         foreach ($sort as $field) {

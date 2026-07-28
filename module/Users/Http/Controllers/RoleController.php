@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Controllers;
 
+use Module\Users\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ final class RoleController extends Controller
 
     public function store(RoleRequest $request): JsonResponse
     {
-        /** @var \Module\Users\Models\User $actor */
+        /** @var User $actor */
         $actor = $request->user();
 
         return new JsonResponse(
@@ -42,7 +43,7 @@ final class RoleController extends Controller
 
     public function update(RoleRequest $request, Role $role): JsonResponse
     {
-        /** @var \Module\Users\Models\User $actor */
+        /** @var User $actor */
         $actor = $request->user();
 
         return new JsonResponse(
@@ -52,7 +53,7 @@ final class RoleController extends Controller
 
     public function destroy(Request $request, Role $role): JsonResponse
     {
-        /** @var \Module\Users\Models\User $actor */
+        /** @var User $actor */
         $actor = $request->user();
         $this->roleService->delete($actor, $role);
 

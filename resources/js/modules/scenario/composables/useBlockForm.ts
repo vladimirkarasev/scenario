@@ -53,9 +53,12 @@ z.setErrorMap((issue, ctx) => {
 })
 
 const FIELD_TYPES = new Set([
-    'input', 'email', 'phone', 'textarea', 'number', 'select',
+    'input', 'email', 'phone', 'vin', 'grz', 'textarea', 'number', 'select',
     'date', 'datetime', 'checkbox', 'directory_list', 'directory_table',
 ])
+
+const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/
+const GRZ_CHARSET_PATTERN = /^[A-ZА-Я0-9]+$/
 
 function fieldName(block: SurveyBlock): string {
     return String(block.props?.name ?? block.props?.key ?? block.id)
@@ -216,6 +219,38 @@ function buildFieldSchema(block: SurveyBlock): z.ZodTypeAny {
             ])
         }
         return z.union([z.string(), phoneObject]).or(z.literal('')).nullable().optional()
+    }
+
+    if (type === 'vin') {
+        const vinMessage = 'Введите корректный VIN: 17 символов, заглавные латинские буквы (без I, O, Q) и цифры'
+        const vinObject = z.object({value: z.string()})
+        if (required) {
+            return z.union([
+                z.string().min(1, 'Поле обязательно для заполнения').regex(VIN_PATTERN, vinMessage),
+                vinObject.refine((v) => VIN_PATTERN.test(v.value), vinMessage),
+            ])
+        }
+        return z.union([
+            z.literal(''),
+            z.string().regex(VIN_PATTERN, vinMessage),
+            vinObject.refine((v) => v.value === '' || VIN_PATTERN.test(v.value), vinMessage),
+        ]).nullable().optional()
+    }
+
+    if (type === 'grz') {
+        const grzMessage = 'Номер ГРЗ должен быть в верхнем регистре (буквы и цифры)'
+        const grzObject = z.object({country: z.string(), formatted: z.string(), original: z.string()})
+        if (required) {
+            return z.union([
+                z.string().min(1, 'Поле обязательно для заполнения').regex(GRZ_CHARSET_PATTERN, grzMessage),
+                grzObject.refine((v) => v.original.length > 0 && GRZ_CHARSET_PATTERN.test(v.original), grzMessage),
+            ])
+        }
+        return z.union([
+            z.literal(''),
+            z.string().regex(GRZ_CHARSET_PATTERN, grzMessage),
+            grzObject.refine((v) => v.original === '' || GRZ_CHARSET_PATTERN.test(v.original), grzMessage),
+        ]).nullable().optional()
     }
 
     const base = applyStringRules(z.string(), rules)

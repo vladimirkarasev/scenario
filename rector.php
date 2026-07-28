@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\Privatization\Rector\Class_\FinalizeTestCaseClassRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -21,4 +22,7 @@ return RectorConfig::configure()
     ->withPhpSets()
     // Безопасные базовые наборы; уровни можно повышать постепенно.
     ->withDeadCodeLevel(0)
-    ->withCodeQualityLevel(0);
+    ->withCodeQualityLevel(0)
+    ->withRules([
+        FinalizeTestCaseClassRector::class
+    ]);

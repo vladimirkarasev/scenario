@@ -9,14 +9,15 @@ use Module\Actions\DTO\ActionResult;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
-use Module\Directories\DTO\DirectoryImportData;
+use Module\Directories\DTO\ApiDirectoryImportCommand;
+use Module\Directories\DTO\ExcelDirectoryImportCommand;
+use Module\Directories\DTO\ExcelImportData;
 use Module\Directories\DTO\DirectoryImportOptions;
+use Module\Directories\DTO\StoredExcelFile;
 use Module\Directories\Enums\DirectoryImportMode;
-use Module\Directories\Enums\DirectoryImportSourceType;
+use Module\Directories\Enums\DirectorySourceType;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DictionaryApiSyncService;
-use Module\Directories\Services\ImportService;
-use Module\Proxy\Models\ProxyEndpoint;
+use Module\Directories\Services\DirectoryManager;
 use Throwable;
 
 final readonly class DirectoryImportActionHandler implements ActionHandlerInterface
@@ -25,8 +26,7 @@ final readonly class DirectoryImportActionHandler implements ActionHandlerInterf
 
     public function __construct(
         private ActionDataResolver $dataResolver,
-        private ImportService $importService,
-        private DictionaryApiSyncService $apiSync,
+        private DirectoryManager $directories,
     ) {}
 
     /** @param  array<string, mixed>  $input */
@@ -39,9 +39,11 @@ final readonly class DirectoryImportActionHandler implements ActionHandlerInterf
         $config = is_array($resolvedConfig) ? $this->stringKeyed($resolvedConfig) : [];
 
         try {
-            $import = $this->stringValue($config['source_type'] ?? null, '') === DirectoryImportSourceType::Proxy->value
-                ? $this->apiSync->queue($this->directory($config))
-                : $this->importService->queue($this->data($config));
+            $directory = $this->directory($config);
+            $command = $directory->sourceType() === DirectorySourceType::Api
+                ? new ApiDirectoryImportCommand($directory)
+                : new ExcelDirectoryImportCommand($this->data($config, $directory));
+            $import = $this->directories->import($command);
         } catch (Throwable $exception) {
             return ActionResult::failed($exception->getMessage());
         }
@@ -58,25 +60,20 @@ final readonly class DirectoryImportActionHandler implements ActionHandlerInterf
     }
 
     /** @param  array<string, mixed>  $config */
-    private function data(array $config): DirectoryImportData
+    private function data(array $config, Directory $directory): ExcelImportData
     {
-        $directory = $this->directory($config);
         $mode = DirectoryImportMode::from(
             $this->stringValue($config['mode'] ?? null, DirectoryImportMode::Replace->value)
         );
-        $sourceType = DirectoryImportSourceType::from(
-            $this->stringValue($config['source_type'] ?? null, DirectoryImportSourceType::File->value)
-        );
-        $remote = $this->remoteConfig($config, $sourceType);
-
-        return new DirectoryImportData(
+        return new ExcelImportData(
             directory: $directory,
-            file: null,
+            files: new StoredExcelFile(
+                disk: $this->stringValue($config['file_disk'] ?? null, 'local'),
+                path: $this->stringValue($config['file_path'] ?? null, ''),
+            ),
             mode: $mode,
-            sourceType: $sourceType,
             mapping: $this->stringMap($config['mapping'] ?? []),
             fields: $this->fields($config['columns'] ?? []),
-            remote: $remote,
             matchBy: $this->nullableString($config['match_by'] ?? $directory->match_by),
             parentKeyField: $this->nullableString($config['parent_key_field'] ?? null),
             chunkSize: max(1, $this->intValue($config['chunk_size'] ?? 500, 500)),
@@ -97,50 +94,6 @@ final readonly class DirectoryImportActionHandler implements ActionHandlerInterf
         }
 
         return Directory::query()->findOrFail((string) $directoryId);
-    }
-
-    /**
-     * @param  array<string, mixed> $config
-     * @return array<string, mixed>
-     */
-    private function remoteConfig(array $config, DirectoryImportSourceType $sourceType): array
-    {
-        $remote = is_array($config['remote'] ?? null) ? $this->stringKeyed($config['remote']) : [];
-
-        if ($sourceType === DirectoryImportSourceType::File) {
-            $remote['file_disk'] = $this->stringValue($config['file_disk'] ?? ($remote['file_disk'] ?? null), 'local');
-            $remote['file_path'] = $this->stringValue($config['file_path'] ?? ($remote['file_path'] ?? null), '');
-        }
-
-        if ($sourceType === DirectoryImportSourceType::Proxy) {
-            $remote['proxy_endpoint_id'] = $this->proxyEndpointId($config, $remote);
-        }
-
-        return $remote;
-    }
-
-    /**
-     * @param array<string, mixed> $config
-     * @param array<string, mixed> $remote
-     */
-    private function proxyEndpointId(array $config, array $remote): ?int
-    {
-        $rawId = $config['proxy_endpoint_id'] ?? ($remote['proxy_endpoint_id'] ?? null);
-        $id = $this->nullableInt($rawId);
-
-        if ($id !== null) {
-            return $id;
-        }
-
-        $uuid = $this->nullableString($config['proxy_endpoint_uuid'] ?? ($remote['proxy_endpoint_uuid'] ?? null));
-
-        if ($uuid === null) {
-            return null;
-        }
-
-        $value = ProxyEndpoint::query()->where('uuid', $uuid)->value('id');
-
-        return is_int($value) ? $value : (is_numeric($value) ? (int) $value : null);
     }
 
     /**

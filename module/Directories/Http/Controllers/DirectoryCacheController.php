@@ -8,13 +8,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DirectoryCacheService;
+use Module\Directories\Repositories\DirectoryCacheRepository;
 use Module\Directories\Services\DirectoryService;
 
 final class DirectoryCacheController extends Controller
 {
     public function __construct(
-        private readonly DirectoryCacheService $cacheService,
+        private readonly DirectoryCacheRepository $cacheService,
         private readonly DirectoryService $directoryService,
     ) {
     }

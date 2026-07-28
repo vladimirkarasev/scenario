@@ -105,7 +105,7 @@ async function loadSuggestFields(proxyUuid: string): Promise<void> {
   if (suggestFieldsCache[proxyUuid] || suggestFieldsLoading[proxyUuid]) return
   suggestFieldsLoading[proxyUuid] = true
   try {
-    suggestFieldsCache[proxyUuid] = await webhookRepository.resultFields(proxyUuid)
+    suggestFieldsCache[proxyUuid] = await webhookRepository.responseFields(proxyUuid)
   } catch {
     suggestFieldsCache[proxyUuid] = []
   } finally {

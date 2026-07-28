@@ -12,12 +12,9 @@ use Module\Proxy\Credentials\AutoCrm\AutoCrmCredential;
 use Module\Proxy\Enums\ProxyEndpointType;
 use Module\Proxy\Models\ProxyConnection;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Base\AutoCrm\BrandsProxyHandler;
-use Module\Proxy\Proxies\Base\AutoCrm\DealersProxyHandler;
-use Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler;
-use Module\Proxy\Proxies\Test\TestEchoProxyHandler;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
-use Module\Proxy\Proxies\Test\TestSuggestProxyHandler;
+use Module\Proxy\Proxies\AutoCrm\BrandsProxyHandler;
+use Module\Proxy\Proxies\AutoCrm\DealersProxyHandler;
+use Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler;
 
 /**
  * Demo-интеграции с разделами и мок-ответами. Идемпотентен: разделы и эндпоинты
@@ -31,7 +28,6 @@ final class DemoProxySeeder extends Seeder
     // Разделы (фиксированные UUID, чтобы эндпоинты могли на них ссылаться).
     private const string SECTION_AUTOCRM = '019e6100-0000-7000-8000-000000000001';
     private const string SECTION_AUTOCRM_CATALOG = '019e6100-0000-7000-8000-000000000002';
-    private const string SECTION_TEST = '019e6100-0000-7000-8000-000000000003';
 
     private ?string $projectId = null;
 
@@ -45,7 +41,6 @@ final class DemoProxySeeder extends Seeder
 
         $autocrm = $this->section(self::SECTION_AUTOCRM, 'AutoCRM', null);
         $catalog = $this->section(self::SECTION_AUTOCRM_CATALOG, 'Каталог', self::SECTION_AUTOCRM);
-        $test = $this->section(self::SECTION_TEST, 'Тестовые', null);
 
         // Общий доступ для всех AutoCRM-эндпоинтов (URL + токен в одном месте).
         $autocrmConn = $this->connection('AutoCRM (demo)', AutoCrmCredential::class, [
@@ -60,7 +55,6 @@ final class DemoProxySeeder extends Seeder
             code: 'autocrm-models',
             name: 'Список моделей',
             handler: ModelsProxyHandler::class,
-            connectionId: $autocrmConn->id,
             sections: [$catalog->id],
             mocks: [
                 $this->mock('Каталог моделей', 200, [
@@ -72,6 +66,7 @@ final class DemoProxySeeder extends Seeder
                     ],
                 ]),
             ],
+            connectionId: $autocrmConn->id,
         );
 
         $this->endpoint(
@@ -79,7 +74,6 @@ final class DemoProxySeeder extends Seeder
             code: 'autocrm-brands',
             name: 'Список брендов',
             handler: BrandsProxyHandler::class,
-            connectionId: $autocrmConn->id,
             sections: [$catalog->id],
             mocks: [
                 $this->mock('Каталог брендов', 200, [
@@ -91,6 +85,7 @@ final class DemoProxySeeder extends Seeder
                     ],
                 ]),
             ],
+            connectionId: $autocrmConn->id,
         );
 
         $this->endpoint(
@@ -98,7 +93,6 @@ final class DemoProxySeeder extends Seeder
             code: 'autocrm-dealers',
             name: 'Список дилеров',
             handler: DealersProxyHandler::class,
-            connectionId: $autocrmConn->id,
             sections: [$catalog->id],
             mocks: [
                 $this->mock('Каталог дилеров', 200, [
@@ -109,60 +103,7 @@ final class DemoProxySeeder extends Seeder
                     ],
                 ]),
             ],
-        );
-
-        // ── Тестовые ─────────────────────────────────────────────────────────
-        $this->endpoint(
-            uuid: '019e6100-1000-7000-8000-000000000004',
-            code: 'test-lead',
-            name: 'Тестовый лид',
-            handler: TestLeadProxyHandler::class,
-            sections: [$test->id],
-            mocks: [
-                // Несколько заготовленных ответов; показывается отмеченный активным.
-                $this->mock('VIP-клиент', 200, [
-                    'status' => 'created',
-                    'lead_id' => 90001,
-                    'message' => 'VIP-заявка принята в приоритетную очередь',
-                ]),
-                $this->mock('Успешно принято', 200, [
-                    'status' => 'created',
-                    'lead_id' => 10001,
-                    'message' => 'Тестовая заявка успешно принята',
-                ], active: true),
-            ],
-        );
-
-        $this->endpoint(
-            uuid: '019e6100-1000-7000-8000-000000000005',
-            code: 'test-echo',
-            name: 'Echo',
-            handler: TestEchoProxyHandler::class,
-            sections: [$test->id],
-            mocks: [
-                $this->mock('Echo', 200, [
-                    'echo' => true,
-                    'message' => 'Мок Echo-обработчика',
-                ]),
-            ],
-        );
-
-        $this->endpoint(
-            uuid: '019e6100-1000-7000-8000-000000000006',
-            code: 'test-suggest-cities',
-            name: 'Подсказки городов',
-            handler: TestSuggestProxyHandler::class,
-            sections: [$test->id],
-            mocks: [
-                $this->mock('Города', 200, [
-                    'items' => [
-                        ['id' => '77', 'address' => 'Москва', 'region' => 'Москва'],
-                        ['id' => '78', 'address' => 'Санкт-Петербург', 'region' => 'Санкт-Петербург'],
-                        ['id' => '16', 'address' => 'Казань', 'region' => 'Татарстан'],
-                    ],
-                ]),
-            ],
-            type: ProxyEndpointType::Suggest,
+            connectionId: $autocrmConn->id,
         );
     }
 
@@ -205,9 +146,9 @@ final class DemoProxySeeder extends Seeder
     }
 
     /**
-     * @param  class-string                          $handler
-     * @param  list<string>                          $sections  id разделов
-     * @param  list<array<string, mixed>>            $mocks
+     * @param  class-string  $handler
+     * @param  list<string>  $sections  id разделов
+     * @param  list<array<string, mixed>>  $mocks
      */
     private function endpoint(
         string $uuid,

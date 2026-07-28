@@ -215,6 +215,80 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertStringContainsString('100', $e->errors()['note'][0]);
     }
 
+    public function test_vin_field_passes_valid_vin(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => 'X4XCM1950L0000001'],
+        );
+    }
+
+    public function test_vin_field_fails_lowercase_vin(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => 'x4xcm1950l0000001'],
+        );
+
+        $this->assertArrayHasKey('vin', $e->errors());
+        $this->assertStringContainsString('VIN', $e->errors()['vin'][0]);
+    }
+
+    public function test_vin_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('vin', $e->errors());
+    }
+
+    public function test_vin_field_passes_shape_value(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => ['value' => 'X4XCM1950L0000001']],
+        );
+    }
+
+    public function test_grz_field_passes_uppercase_grz(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => 'А123ВС777'],
+        );
+    }
+
+    public function test_grz_field_fails_lowercase_grz(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => 'а123вс777'],
+        );
+
+        $this->assertArrayHasKey('grz', $e->errors());
+        $this->assertStringContainsString('регистре', $e->errors()['grz'][0]);
+    }
+
+    public function test_grz_field_passes_shape_original(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => ['country' => 'RU', 'formatted' => 'А123ВС 777', 'original' => 'А123ВС777']],
+        );
+    }
+
+    public function test_grz_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('grz', $e->errors());
+    }
+
     public function test_multiple_fields_all_pass(): void
     {
         $this->assertPasses(

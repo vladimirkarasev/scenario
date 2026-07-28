@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace Module\Directories\Temporal\Activities;
 
-use Module\Directories\Services\ImportService;
+use Module\Directories\Services\Importing\DirectoryImportCoordinator;
 use RuntimeException;
 
 final readonly class FinalizeDirectoryImportActivity implements FinalizeDirectoryImportActivityInterface
 {
     public function __construct(
-        private ImportService $importService,
+        private DirectoryImportCoordinator $importService,
     ) {}
 
-    public function complete(int $directoryImportId): void
+    /** @return array{deleted: int} */
+    public function complete(int $directoryImportId): array
     {
-        $this->importService->complete($directoryImportId);
+        return ['deleted' => $this->importService->complete($directoryImportId)];
     }
 
     public function fail(int $directoryImportId, string $errorMessage): void

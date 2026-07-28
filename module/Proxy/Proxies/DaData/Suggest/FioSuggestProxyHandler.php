@@ -12,9 +12,9 @@ use Module\Proxy\Proxies\DaData\DaDataSuggestEndpointHandler;
 final class FioSuggestProxyHandler extends DaDataSuggestEndpointHandler
 {
     #[\Override]
-    public function fields(): iterable
+    public function requestFields(): iterable
     {
-        yield from parent::fields();
+        yield from parent::requestFields();
 
         yield ProxyFieldList::make('gender')
             ->label('Пол')
@@ -32,7 +32,7 @@ final class FioSuggestProxyHandler extends DaDataSuggestEndpointHandler
 
     /** @return iterable<mixed> */
     #[\Override]
-    public function resultFields(): iterable
+    public function responseFields(): iterable
     {
         yield ProxyFieldString::make('value')->label('Значение');
         yield ProxyFieldString::make('data.surname')->label('Фамилия');

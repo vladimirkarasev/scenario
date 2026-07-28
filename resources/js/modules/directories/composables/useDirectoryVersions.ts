@@ -27,7 +27,10 @@ function emptyField(): DirectorySchemaField {
         default: null,
         sort_order: 0,
         rules: [],
-        options: []
+        options: [],
+        related_directory_id: null,
+        related_match_key: null,
+        related_template: null,
     }
 }
 

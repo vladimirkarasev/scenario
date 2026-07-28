@@ -144,7 +144,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
         }
 
         $blockType = match ($type) {
-            'textarea', 'number', 'select', 'date', 'datetime', 'hidden', 'email', 'phone',
+            'textarea', 'number', 'select', 'date', 'datetime', 'hidden', 'email', 'phone', 'vin', 'grz',
             'checkbox', 'directory_list', 'directory_tree', 'directory_table', 'suggest' => $type,
             default => 'input',
         };

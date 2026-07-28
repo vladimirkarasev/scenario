@@ -22,6 +22,12 @@ import EmailFieldSettings, {
 import PhoneFieldSettings, {
   fieldMeta as phoneMeta
 } from '@/modules/scenario/components/block-editor/field-settings/PhoneFieldSettings.vue'
+import VinFieldSettings, {
+  fieldMeta as vinMeta
+} from '@/modules/scenario/components/block-editor/field-settings/VinFieldSettings.vue'
+import GrzFieldSettings, {
+  fieldMeta as grzMeta
+} from '@/modules/scenario/components/block-editor/field-settings/GrzFieldSettings.vue'
 import TextareaFieldSettings, {
   fieldMeta as textareaMeta
 } from '@/modules/scenario/components/block-editor/field-settings/TextareaFieldSettings.vue'
@@ -84,12 +90,15 @@ const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   },
   {title: 'Удалённые справочники', items: [directoryListMeta, directoryTableMeta] as FieldPaletteItem[]},
   {title: 'Подсказки', items: [suggestMeta] as FieldPaletteItem[]},
+  {title: 'Тех. помощь', items: [vinMeta, grzMeta] as FieldPaletteItem[]},
 ]
 
 const fieldSettingsComponents: Record<string, Component> = {
   input: markRaw(InputFieldSettings),
   email: markRaw(EmailFieldSettings),
   phone: markRaw(PhoneFieldSettings),
+  vin: markRaw(VinFieldSettings),
+  grz: markRaw(GrzFieldSettings),
   textarea: markRaw(TextareaFieldSettings),
   number: markRaw(NumberFieldSettings),
   hidden: markRaw(HiddenFieldSettings),
@@ -140,13 +149,19 @@ async function copyFieldVarName(field: BlockField) {
   }, 1500)
 }
 
+const gutenbergEditorRef = ref<InstanceType<typeof BlockEditorGutenbergEditor> | null>(null)
+
 function addFieldAndScroll(type: BlockFieldType) {
-  blockEditorStore.addField(type)
+  const reservedPos = gutenbergEditorRef.value?.reserveInsertPosition()
+  const newField = blockEditorStore.addField(type)
+  if (!newField) return
+
+  if (reservedPos !== undefined) {
+    gutenbergEditorRef.value?.assignReservedPosition(newField.id, reservedPos)
+  }
+
   nextTick(() => {
-    const fields = blockDraft.value?.data.fields ?? []
-    if (!fields.length) return
-    const lastId = fields[fields.length - 1].id
-    document.querySelector(`[data-field-id="${lastId}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'})
+    document.querySelector(`[data-field-id="${newField.id}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'})
   })
 }
 
@@ -334,7 +349,7 @@ function cancelChanges() {
     <div v-else-if="blockDraft" class="flex min-h-0 flex-1">
       <!-- Sidebar: field palette + variables -->
       <aside class="flex w-52 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white">
-        <div class="flex-1 overflow-y-auto">
+        <div class="max-h-[45%] shrink-0 overflow-y-auto">
           <div class="space-y-4 p-3">
             <div v-for="group in fieldGroups" :key="group.title" class="space-y-1.5">
               <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ group.title }}</div>
@@ -353,9 +368,11 @@ function cancelChanges() {
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="border-t border-slate-100 p-3 space-y-3">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Переменные</div>
+        <div class="flex min-h-0 flex-1 flex-col border-t border-slate-100">
+          <div class="shrink-0 px-3 pt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Переменные</div>
+          <div class="min-h-0 flex-1 overflow-y-auto p-3 pt-2">
             <ScenarioVariableList
                 :variables="allVariables"
                 :blocks="variableListBlocks"
@@ -433,6 +450,7 @@ function cancelChanges() {
                  edited inline (Gutenberg-style), full configuration stays behind
                  the settings gear. -->
             <BlockEditorGutenbergEditor
+                ref="gutenbergEditorRef"
                 :model-value="blockDraft.data.layoutDocument"
                 :fields="blockDraft.data.fields"
                 :can-edit="canManageCatalog"

@@ -11,7 +11,7 @@ use Temporal\Activity\ActivityMethod;
 interface FetchDirectoryImportPageActivityInterface
 {
     /**
-     * @return array{hasMore: bool}
+     * @return array{hasMore: bool, endpoint?: ?string, requestId?: ?string, received?: int, added?: int, updated?: int, failed?: int}
      */
     #[ActivityMethod(name: 'FetchDirectoryImportPage')]
     public function fetchPage(int $directoryImportId, int $page): array;

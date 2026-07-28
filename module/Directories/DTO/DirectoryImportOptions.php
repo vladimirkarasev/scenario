@@ -6,6 +6,7 @@ namespace Module\Directories\DTO;
 
 use Module\Directories\Enums\DirectoryImportMode;
 use Module\Directories\Models\DirectoryImport;
+use Module\Directories\Models\DirectoryVersion;
 
 final readonly class DirectoryImportOptions
 {
@@ -46,7 +47,7 @@ final readonly class DirectoryImportOptions
 
     public static function fromImport(DirectoryImport $import): self
     {
-        $config = $import->remote_config_json;
+        $config = $import->source_config_json;
         $defaults = self::forMode((string)$import->mode);
 
         return new self(
@@ -59,6 +60,17 @@ final readonly class DirectoryImportOptions
                 'delete_unused',
                 $config
             ) ? (bool)$config['delete_unused'] : $defaults->deleteUnused,
+        );
+    }
+
+    public static function fromVersion(DirectoryVersion $version): self
+    {
+        $options = $version->sync_options ?? [];
+
+        return new self(
+            addNew: array_key_exists('add_new', $options) ? (bool)$options['add_new'] : true,
+            updateExisting: array_key_exists('update_existing', $options) ? (bool)$options['update_existing'] : true,
+            deleteUnused: array_key_exists('delete_unused', $options) ? (bool)$options['delete_unused'] : false,
         );
     }
 

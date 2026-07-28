@@ -1,7 +1,7 @@
 export type SourceType = 'manual' | 'excel' | 'api' | 'external'
 export type SyncStatus = 'idle' | 'syncing' | 'error' | 'pending'
 
-export type FieldType = 'string' | 'integer' | 'boolean' | 'date' | 'datetime'
+export type FieldType = 'string' | 'integer' | 'boolean' | 'date' | 'datetime' | 'related_directory'
 
 export type FilterDisplayType = FieldType | 'list'
 
@@ -28,6 +28,7 @@ export const FILTER_OPERATORS: Record<FilterDisplayType, { value: FilterOperator
         {value: 'between', label: 'Диапазон'}],
     boolean: [],
     list: [],
+    related_directory: [],
 }
 
 export function defaultOperator(filterType: FilterDisplayType): FilterOperator {
@@ -49,6 +50,9 @@ export interface DirectorySchemaField {
     sort_order: number
     rules: string[]
     options: string[]
+    related_directory_id: string | null
+    related_match_key: string | null
+    related_template: string | null
 }
 
 export interface DirectoryVersionSyncOptions {
@@ -90,6 +94,7 @@ export interface DirectoryImport {
     source_type: string
     source_label: string
     match_by: string | null
+    external_key_field: string | null
     parent_key_field: string | null
     chunk_size: number | null
     remote_url: string | null
@@ -112,6 +117,7 @@ export interface Directory {
     source_type: SourceType
     match_by: string | null
     default_sort: string | null
+    cache_ttl_seconds: number | null
     last_sync_at: string | null
     next_sync_at: string | null
     sync_status: SyncStatus
@@ -141,6 +147,7 @@ export interface DirectoryItem {
     parent_id: number | null
     external_key: string
     data: Record<string, string | null>
+    related?: Record<string, Record<string, unknown> & {label: string}>
     created_at: string | null
 }
 
@@ -158,6 +165,7 @@ export interface DirectoryPayload {
     category_ids: string[]
     source_type: SourceType
     match_by: string | null
+    cache_ttl_seconds: number | null
     fields: DirectorySchemaField[]
     api_config?: Record<string, unknown> | null
 }

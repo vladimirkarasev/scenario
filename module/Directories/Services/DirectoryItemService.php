@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services;
 
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Module\Directories\Cache\DirectoryCache;
 use Module\Directories\DTO\DirectoryItemUpdateData;
+use Module\Directories\DTO\DirectoryItemQuery;
 use Module\Directories\DTO\DirectoryManualItemData;
 use Module\Directories\Exceptions\DirectoryItemException;
 use Module\Directories\Models\Directory;
@@ -18,6 +15,7 @@ use Module\Directories\Models\DirectoryItem;
 use Module\Directories\Models\DirectoryVersion;
 use Module\Directories\Repositories\DirectoryItemRepository;
 use Module\Directories\Repositories\DirectoryRepository;
+use Module\Directories\Services\Items\DirectoryItemValues;
 
 final readonly class DirectoryItemService
 {
@@ -30,27 +28,20 @@ final readonly class DirectoryItemService
     public function __construct(
         private DirectoryItemRepository $items,
         private DirectoryRepository $directories,
-        private Container $container,
+        private RelatedDirectoryFieldResolver $relatedFieldResolver,
+        private DirectoryItemValues $values,
     ) {
     }
 
     /**
-     * @param  array<string, string|list<string>>  $filters
-     * @param  array<string, string>  $filtersTo
      * @return array<int, array<string, mixed>>
      */
-    public function items(
-        Directory $directory,
-        ?string $versionId = null,
-        array $filters = [],
-        array $filtersTo = [],
-        ?string $search = null,
-        ?string $sortKey = null,
-        string $sortDir = 'asc',
-        bool $withOther = false,
-    ): array {
-        if ($versionId !== null && ctype_digit($versionId)) {
-            $version = $this->directories->findVersion($directory, $versionId);
+    public function items(Directory $directory, ?DirectoryItemQuery $query = null): array
+    {
+        $query ??= new DirectoryItemQuery();
+
+        if ($query->versionId !== null && ctype_digit($query->versionId)) {
+            $version = $this->directories->findVersion($directory, $query->versionId);
         } else {
             $version = $this->resolveViewVersion($directory);
         }
@@ -59,9 +50,16 @@ final readonly class DirectoryItemService
             return [];
         }
 
-        $items = $this->payloadItems($version, $filters, $filtersTo, $search, $sortKey, $sortDir);
+        $items = $this->payloadItems(
+            $version,
+            $query->filters,
+            $query->filtersTo,
+            $query->search,
+            $query->sortKey,
+            $query->sortDirection,
+        );
 
-        if ($withOther) {
+        if ($query->withOther) {
             $other = $this->otherItem($version);
             if ($other !== null) {
                 $items[] = $other;
@@ -72,31 +70,29 @@ final readonly class DirectoryItemService
     }
 
     /** @return array<string, mixed> */
-    /** @return array<string, mixed> */
     public function create(Directory $directory, DirectoryManualItemData $data): array
     {
         $version = $this->resolveEditableVersion($directory);
+        $matchBy = $data->matchBy ?? $directory->match_by;
         /** @var Collection<string, array<string, mixed>> $fields */
         $fields = collect($version->schema_json)->keyBy('key');
-        $values = $this->normalizeValues($data->data, $fields);
+        $values = $this->values->normalize($data->data, $fields);
 
-        $this->validateValues($values, $fields, $version, $data->matchBy);
-
-        $searchableKeys = $this->searchableKeys($fields);
+        $this->values->validate($values, $fields, $version, $matchBy);
 
         $item = $directory->getConnection()->transaction(
             fn(): DirectoryItem => $this->items->create([
                 'directory_version_id' => $version->id,
                 'parent_id' => $data->parentId,
-                'external_key' => $data->matchBy !== null ? ($values[$data->matchBy] ?? null) : null,
-                'search_text' => $this->buildSearchText($values, $searchableKeys),
+                'external_key' => $data->externalKey ?? ($matchBy !== null ? ($values[$matchBy] ?? null) : null),
+                'search_text' => $this->values->searchText($values, $fields),
                 'data_json' => $values,
             ]),
         );
 
         DirectoryCache::forgetDirectory($directory->id);
 
-        return $this->payloadItem($item);
+        return $this->withRelated([$this->payloadItem($item)], $version)[0];
     }
 
     /** @return array<string, mixed> */
@@ -107,9 +103,9 @@ final readonly class DirectoryItemService
         $version = $item->version()->firstOrFail();
         /** @var Collection<string, array<string, mixed>> $fields */
         $fields = collect($version->schema_json)->keyBy('key');
-        $values = $this->normalizeValues($data->data, $fields);
+        $values = $this->values->normalize($data->data, $fields);
 
-        $this->validateValues($values, $fields, $version, $data->matchBy, $item);
+        $this->values->validate($values, $fields, $version, $data->matchBy, $item);
 
         $externalKey = $data->externalKeyProvided
             ? $data->externalKey
@@ -118,13 +114,13 @@ final readonly class DirectoryItemService
         $this->items->update($item, [
             'parent_id' => $data->parentId,
             'external_key' => $externalKey,
-            'search_text' => $this->buildSearchText($values, $this->searchableKeys($fields)),
+            'search_text' => $this->values->searchText($values, $fields),
             'data_json' => $values,
         ]);
 
         DirectoryCache::forgetDirectory($directory->id);
 
-        return $this->payloadItem($item->fresh() ?? $item);
+        return $this->withRelated([$this->payloadItem($item->fresh() ?? $item)], $version)[0];
     }
 
     public function delete(Directory $directory, DirectoryItem $item): void
@@ -161,17 +157,13 @@ final readonly class DirectoryItemService
 
     public function rebuildSearchTextForVersion(DirectoryVersion $version): void
     {
-        $searchableKeys = [];
-        foreach ($version->schema_json as $f) {
-            if (($f['searchable'] ?? false) === true && isset($f['key']) && is_string($f['key'])) {
-                $searchableKeys[] = $f['key'];
-            }
-        }
+        /** @var Collection<string, array<string, mixed>> $fields */
+        $fields = collect($version->schema_json)->keyBy('key');
 
         DirectoryItem::query()
             ->where('directory_version_id', $version->id)
-            ->each(function (DirectoryItem $item) use ($searchableKeys): void {
-                $item->search_text = $this->buildSearchText($item->data_json ?? [], $searchableKeys);
+            ->each(function (DirectoryItem $item) use ($fields): void {
+                $item->search_text = $this->values->searchText($item->data_json ?? [], $fields);
                 $item->save();
             });
     }
@@ -256,10 +248,53 @@ final readonly class DirectoryItemService
             $items = $this->withAncestors($version, $items);
         }
 
-        return $items
+        $payloads = $items
             ->map(fn(DirectoryItem $item): array => $this->payloadItem($item))
             ->values()
             ->all();
+
+        return $this->withRelated($payloads, $version);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, array<string, mixed>>
+     */
+    private function withRelated(array $items, DirectoryVersion $version): array
+    {
+        $flatRows = array_map($this->flattenPayloadItem(...), $items);
+
+        $related = $this->relatedFieldResolver->resolve($flatRows, $version->schema_json);
+
+        foreach ($items as $index => $item) {
+            $items[$index]['related'] = $related[$index] ?? [];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private function flattenPayloadItem(array $item): array
+    {
+        $row = [
+            'id' => $item['id'],
+            'external_key' => $item['external_key'],
+        ];
+
+        $data = $item['data'] ?? [];
+
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (is_string($key)) {
+                    $row[$key] = $value;
+                }
+            }
+        }
+
+        return $row;
     }
 
     /**
@@ -298,117 +333,7 @@ final readonly class DirectoryItemService
 
     private function resolveEditableVersion(Directory $directory): DirectoryVersion
     {
-        return $this->container->make(DirectoryService::class)->resolveEditableVersion($directory);
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     * @param  Collection<string, array<string, mixed>>  $fields
-     * @return array<string, mixed>
-     */
-    private function normalizeValues(array $values, Collection $fields): array
-    {
-        $normalized = [];
-
-        foreach ($fields as $fieldKey => $field) {
-            $value = $values[$fieldKey] ?? null;
-
-            if ($value === null) {
-                $normalized[$fieldKey] = null;
-
-                continue;
-            }
-
-            if (is_scalar($value)) {
-                $trimmed = trim((string)$value);
-                $normalized[$fieldKey] = $trimmed !== '' ? $trimmed : null;
-            } else {
-                $normalized[$fieldKey] = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-            }
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     * @param  Collection<string, array<string, mixed>>  $fields
-     */
-    private function validateValues(
-        array $values,
-        Collection $fields,
-        DirectoryVersion $version,
-        ?string $matchBy,
-        ?DirectoryItem $ignoreItem = null,
-    ): void {
-        $rules = $fields
-            ->mapWithKeys(static fn(array $field, string $fieldKey): array => [
-                $fieldKey => is_array($field['rules'] ?? null) ? $field['rules'] : ['nullable', 'string'],
-            ])
-            ->all();
-
-        $validator = Validator::make($values, $rules);
-
-        if ($matchBy !== null) {
-            $validator->after(
-                function (\Illuminate\Validation\Validator $validator) use (
-                    $values,
-                    $version,
-                    $matchBy,
-                    $ignoreItem,
-                ): void {
-                    $rawKey = $values[$matchBy] ?? null;
-                    $externalKey = is_string($rawKey) ? $rawKey : null;
-
-                    if ($externalKey === null) {
-                        return;
-                    }
-
-                    if ($this->items->externalKeyExists($version, $externalKey, $ignoreItem)) {
-                        $validator->errors()->add(
-                            $matchBy,
-                            'Item with this match key already exists in current version.',
-                        );
-                    }
-                },
-            );
-        }
-
-        if ($validator->fails()) {
-            throw ValidationException::withMessages($validator->errors()->toArray());
-        }
-    }
-
-    /**
-     * @param  Collection<string, array<string, mixed>>  $fields
-     * @return array<int, string>
-     */
-    private function searchableKeys(Collection $fields): array
-    {
-        $keys = [];
-        foreach ($fields as $key => $field) {
-            if (($field['searchable'] ?? false) === true) {
-                $keys[] = $key;
-            }
-        }
-
-        return $keys;
-    }
-
-    /**
-     * @param  array<string, mixed>  $values
-     * @param  array<int, string>  $searchableKeys
-     */
-    private function buildSearchText(array $values, array $searchableKeys = []): string
-    {
-        if ($searchableKeys !== []) {
-            $values = array_intersect_key($values, array_fill_keys($searchableKeys, true));
-        }
-
-        return collect($values)
-            ->filter(static fn(mixed $value): bool => is_scalar($value) && filled((string)$value))
-            ->map(static fn(mixed $value): string => Str::lower(trim((string)$value)))
-            ->implode(' ');
+        return $this->directories->resolveEditableVersion($directory);
     }
 
     private function ensureItemBelongsToDirectory(Directory $directory, DirectoryItem $item): void

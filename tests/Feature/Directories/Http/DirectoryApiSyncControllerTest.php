@@ -4,16 +4,26 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Directories\Http;
 
+use App\Http\Middleware\LogHttpRequest;
 use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Directories\Models\Directory;
+use Module\Directories\Models\DirectoryImport;
 use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
 use Module\Projects\Models\Project;
+use Module\Proxy\Models\ProxyEndpoint;
 use Spatie\Permission\Models\Permission;
 use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
+use Tests\Stubs\FakeRebuildDirectorySearchTextWorkflowStarter;
+use Tests\Stubs\FakeTemporalScheduleSyncer;
+use Module\Schedule\Services\TemporalScheduleSyncerInterface;
 use Tests\TestCase;
+use RoadRunner\Centrifugo\CentrifugoApiInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class DirectoryApiSyncControllerTest extends TestCase
 {
@@ -22,6 +32,14 @@ final class DirectoryApiSyncControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(LogHttpRequest::class);
+        $this->instance(CentrifugoApiInterface::class, $this->createMock(CentrifugoApiInterface::class));
+        $this->instance(LoggerInterface::class, new NullLogger());
+        $this->instance(
+            RebuildDirectorySearchTextWorkflowStarterInterface::class,
+            new FakeRebuildDirectorySearchTextWorkflowStarter(),
+        );
+        $this->instance(TemporalScheduleSyncerInterface::class, new FakeTemporalScheduleSyncer());
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
@@ -31,8 +49,9 @@ final class DirectoryApiSyncControllerTest extends TestCase
         $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         [$user, $project] = $this->makeUserWithProject('directory_create');
+        $proxy = $this->makeProxyEndpoint();
         $directory = $this->makeDirectory($project, sourceType: 'api', apiConfig: [
-            'endpoint' => 'https://example.com/api/data',
+            'proxy_uuid' => $proxy->uuid,
         ]);
 
         $this->actingAs($user)
@@ -41,11 +60,16 @@ final class DirectoryApiSyncControllerTest extends TestCase
 
         $this->assertDatabaseHas('directory_imports', [
             'directory_id' => $directory->id,
-            'source_type' => 'remote',
+            'source_type' => 'proxy',
             'status' => 'processing',
         ]);
 
-        $this->assertCount(1, $starter->pagedCalls);
+        $import = DirectoryImport::query()->where('directory_id', $directory->id)->sole();
+        $this->assertTrue($import->source_config_json['add_new']);
+        $this->assertTrue($import->source_config_json['update_existing']);
+        $this->assertFalse($import->source_config_json['delete_unused']);
+
+        $this->assertCount(1, $starter->calls);
     }
 
     public function test_store_returns_422_for_non_api_directory(): void
@@ -64,8 +88,9 @@ final class DirectoryApiSyncControllerTest extends TestCase
         $this->app->instance(RunDirectoryImportWorkflowStarterInterface::class, $starter);
 
         [$user, $project] = $this->makeUserWithProject('directory_create');
+        $proxy = $this->makeProxyEndpoint();
         $directory = $this->makeDirectory($project, sourceType: 'api', apiConfig: [
-            'endpoint' => 'https://example.com/api/data',
+            'proxy_uuid' => $proxy->uuid,
         ]);
 
         $this->actingAs($user)
@@ -76,7 +101,12 @@ final class DirectoryApiSyncControllerTest extends TestCase
             ])
             ->assertStatus(202);
 
-        $this->assertCount(1, $starter->pagedCalls);
+        $import = DirectoryImport::query()->where('directory_id', $directory->id)->sole();
+        $this->assertTrue($import->source_config_json['add_new']);
+        $this->assertFalse($import->source_config_json['update_existing']);
+        $this->assertFalse($import->source_config_json['delete_unused']);
+
+        $this->assertCount(1, $starter->calls);
     }
 
     public function test_store_returns_403_without_permission(): void
@@ -136,6 +166,17 @@ final class DirectoryApiSyncControllerTest extends TestCase
             'slug' => 'dir-'.Str::random(6),
             'source_type' => $sourceType,
             'api_config_json' => $apiConfig ?: null,
+        ]);
+    }
+
+    private function makeProxyEndpoint(): ProxyEndpoint
+    {
+        return ProxyEndpoint::query()->create([
+            'uuid' => (string)Str::uuid(),
+            'name' => 'Directory proxy',
+            'code' => 'directory-proxy-'.Str::random(6),
+            'handler_class' => 'Tests\\Stubs\\StubProxyHandler',
+            'is_active' => true,
         ]);
     }
 }

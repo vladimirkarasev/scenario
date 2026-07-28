@@ -11,16 +11,20 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithLimit;
 use Maatwebsite\Excel\Concerns\WithStartRow;
-use Module\Directories\Services\ImportService;
 
-final readonly class DirectoryExcelChunkImport implements SkipsEmptyRows, ToCollection, WithChunkReading, WithHeadingRow, WithLimit,
+final class DirectoryExcelChunkImport implements SkipsEmptyRows, ToCollection, WithChunkReading, WithHeadingRow, WithLimit,
                                                   WithStartRow
 {
+    /** @var Collection<int, array<string, mixed>> */
+    public Collection $rows;
+
     public function __construct(
-        private int $directoryImportId,
-        private int $startRow,
-        private int $chunkSize,
+        private readonly int $startRow,
+        private readonly int $chunkSize,
     ) {
+        /** @var Collection<int, array<string, mixed>> $empty */
+        $empty = collect();
+        $this->rows = $empty;
     }
 
     /** @param  Collection<int, mixed>  $collection */
@@ -29,11 +33,7 @@ final readonly class DirectoryExcelChunkImport implements SkipsEmptyRows, ToColl
         /** @var Collection<int, array<string, mixed>> $typedRows */
         $typedRows = $collection;
 
-        app(ImportService::class)->importChunk(
-            directoryImportId: $this->directoryImportId,
-            rows: $typedRows,
-            baseRowNumber: $this->startRow,
-        );
+        $this->rows = $this->rows->concat($typedRows);
     }
 
     public function chunkSize(): int

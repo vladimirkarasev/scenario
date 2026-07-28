@@ -18,6 +18,8 @@ final readonly class DirectoryImportStatusUpdated
         public int $importedRows,
         public int $failedRows,
         public ?string $errorMessage,
+        public string $sourceType,
+        public int $sourcesTotal,
     ) {
     }
 
@@ -32,6 +34,8 @@ final readonly class DirectoryImportStatusUpdated
             importedRows: (int)$import->imported_rows,
             failedRows: (int)$import->failed_rows,
             errorMessage: $import->error_message,
+            sourceType: (string)$import->source_type,
+            sourcesTotal: self::sourcesTotal($import),
         );
     }
 
@@ -52,6 +56,8 @@ final readonly class DirectoryImportStatusUpdated
             'imported_rows' => $this->importedRows,
             'failed_rows' => $this->failedRows,
             'error_message' => $this->errorMessage === null ? null : Str::limit($this->errorMessage, 500),
+            'source_type' => $this->sourceType,
+            'sources_total' => $this->sourcesTotal,
         ];
     }
 
@@ -66,6 +72,15 @@ final readonly class DirectoryImportStatusUpdated
             'processed_rows' => $this->processedRows,
             'imported_rows' => $this->importedRows,
             'failed_rows' => $this->failedRows,
+            'source_type' => $this->sourceType,
+            'sources_total' => $this->sourcesTotal,
         ];
+    }
+
+    private static function sourcesTotal(DirectoryImport $import): int
+    {
+        $files = $import->source_config_json['files'] ?? null;
+
+        return is_array($files) && $files !== [] ? count($files) : 1;
     }
 }

@@ -293,6 +293,7 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
 
     function formatFieldValue(item: DirectoryItem, field: DirectorySchemaField): string {
         const raw = item.data[field.key] ?? null
+        if (field.type === 'related_directory') return item.related?.[field.key]?.label ?? raw ?? '—'
         if (raw === null || raw === '') return '—'
         switch (field.type) {
             case 'boolean':
