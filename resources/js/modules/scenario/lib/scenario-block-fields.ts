@@ -18,6 +18,9 @@ export type BlockFieldType =
     | 'directory_list'
     | 'directory_table'
     | 'suggest'
+    | 'map_point'
+    | 'route'
+    | 'directory_map'
 
 export type ValidationRuleType = 'minLength' | 'maxLength' | 'pattern' | 'min' | 'max'
 
@@ -218,6 +221,43 @@ export interface SuggestBlockField extends BaseBlockField {
     count: number
 }
 
+export interface MapPointBlockField extends BaseBlockField {
+    type: 'map_point'
+    lat: number | null
+    lng: number | null
+    address: string
+    defaultZoom: number
+}
+
+export interface RouteWaypoint {
+    id: string
+    lat: number
+    lng: number
+    address: string
+}
+
+export type RoutingMode = 'auto' | 'pedestrian' | 'masstransit'
+
+export interface RouteBlockField extends BaseBlockField {
+    type: 'route'
+    waypoints: RouteWaypoint[]
+    routingMode: RoutingMode
+    showAlternatives: boolean
+    maxWaypoints: number
+}
+
+export interface DirectoryMapBlockField extends BaseBlockField {
+    type: 'directory_map'
+    directoryId: string
+    versionId: string
+    latKey: string
+    lngKey: string
+    detailDocument: unknown
+    fields: DirectoryTableFieldConfig[]
+    defaultSearch: string
+    defaultZoom: number
+}
+
 export type BlockField =
     | InputBlockField
     | EmailBlockField
@@ -238,6 +278,9 @@ export type BlockField =
     | DirectoryListBlockField
     | DirectoryTableBlockField
     | SuggestBlockField
+    | MapPointBlockField
+    | RouteBlockField
+    | DirectoryMapBlockField
 
 function uid(prefix: string): string {
     return `${prefix}_${Math.random().toString(36).slice(2, 10)}`
@@ -473,6 +516,46 @@ export function createScenarioBlockField(type: BlockFieldType, index = 0): Block
             placeholder: '',
             count: 5,
             varName: labelToVarName('Подсказки')
+        },
+        map_point: {
+            id,
+            type: 'map_point',
+            name: id,
+            label: 'Карта',
+            required: false,
+            lat: null,
+            lng: null,
+            address: '',
+            defaultZoom: 15,
+            varName: labelToVarName('Карта')
+        },
+        route: {
+            id,
+            type: 'route',
+            name: id,
+            label: 'Маршрут',
+            required: false,
+            waypoints: [],
+            routingMode: 'auto',
+            showAlternatives: true,
+            maxWaypoints: 10,
+            varName: labelToVarName('Маршрут')
+        },
+        directory_map: {
+            id,
+            type: 'directory_map',
+            name: id,
+            label: 'Карта',
+            required: false,
+            directoryId: '',
+            versionId: '',
+            latKey: '',
+            lngKey: '',
+            detailDocument: {type: 'doc', content: [{type: 'paragraph'}]},
+            fields: [],
+            defaultSearch: '',
+            defaultZoom: 12,
+            varName: ''
         },
     }
 
@@ -774,6 +857,56 @@ export function normalizeScenarioBlockField(field: unknown, index = 0): BlockFie
                 placeholder: String(f.placeholder ?? (base as SuggestBlockField).placeholder),
                 count: Number(f.count ?? (base as SuggestBlockField).count ?? 5) || 5,
             } as SuggestBlockField
+        }
+
+        case 'map_point':
+            return {
+                ...nb,
+                lat: toNullableNum(f.lat),
+                lng: toNullableNum(f.lng),
+                address: String(f.address ?? (base as MapPointBlockField).address),
+                defaultZoom: Number(f.defaultZoom ?? f.default_zoom ?? (base as MapPointBlockField).defaultZoom) || 15,
+            } as MapPointBlockField
+
+        case 'route': {
+            const rawWaypoints = Array.isArray(f.waypoints) ? f.waypoints : []
+            const waypoints: RouteWaypoint[] = rawWaypoints.map((w: unknown) => {
+                const wp = (w && typeof w === 'object') ? w as Record<string, unknown> : {}
+                return {
+                    id: String(wp.id ?? uid('wp')),
+                    lat: Number(wp.lat ?? 0),
+                    lng: Number(wp.lng ?? 0),
+                    address: String(wp.address ?? ''),
+                }
+            })
+            const rawMode = f.routingMode ?? f.routing_mode
+            const routingMode: RoutingMode = ['auto', 'pedestrian', 'masstransit'].includes(String(rawMode))
+                ? rawMode as RoutingMode
+                : 'auto'
+            return {
+                ...nb,
+                waypoints,
+                routingMode,
+                showAlternatives: Boolean(f.showAlternatives ?? f.show_alternatives ?? true),
+                maxWaypoints: Number(f.maxWaypoints ?? f.max_waypoints ?? (base as RouteBlockField).maxWaypoints) || 10,
+            } as RouteBlockField
+        }
+
+        case 'directory_map': {
+            const fields: DirectoryTableFieldConfig[] = parseDirectoryTableFieldConfigs(f.fields)
+            return {
+                ...nb,
+                required: false,
+                directoryId: String(f.directoryId ?? f.directory_id ?? ''),
+                versionId: String(f.versionId ?? f.version_id ?? ''),
+                latKey: String(f.latKey ?? f.lat_key ?? ''),
+                lngKey: String(f.lngKey ?? f.lng_key ?? ''),
+                detailDocument: f.detailDocument ?? f.detail_document ?? (base as DirectoryMapBlockField).detailDocument,
+                fields,
+                defaultSearch: String(f.defaultSearch ?? f.default_search ?? ''),
+                defaultZoom: Number(f.defaultZoom ?? f.default_zoom ?? (base as DirectoryMapBlockField).defaultZoom) || 12,
+                varName: '',
+            } as DirectoryMapBlockField
         }
 
         default:

@@ -275,6 +275,151 @@ final class BlockNodeHandlerTest extends TestCase
         $this->assertArrayNotHasKey('labelHighlight', $field['props']);
     }
 
+    public function test_render_includes_map_point_field(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'map_point',
+                        'name' => 'point',
+                        'label' => 'Точка',
+                        'required' => true,
+                        'lat' => 55.75,
+                        'lng' => 37.62,
+                        'address' => 'Москва',
+                        'defaultZoom' => 14,
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertSame('map_point', $field['type']);
+        $this->assertSame(55.75, $field['props']['lat']);
+        $this->assertSame(37.62, $field['props']['lng']);
+        $this->assertSame('Москва', $field['props']['address']);
+        $this->assertSame(14, $field['props']['defaultZoom']);
+    }
+
+    public function test_render_includes_route_field(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'route',
+                        'name' => 'trip',
+                        'label' => 'Маршрут',
+                        'routingMode' => 'pedestrian',
+                        'showAlternatives' => false,
+                        'maxWaypoints' => 5,
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertSame('route', $field['type']);
+        $this->assertSame('pedestrian', $field['props']['routingMode']);
+        $this->assertFalse($field['props']['showAlternatives']);
+        $this->assertSame(5, $field['props']['maxWaypoints']);
+    }
+
+    public function test_render_includes_directory_map_field(): void
+    {
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'directory_map',
+                        'name' => 'dealers',
+                        'label' => 'Дилерские центры',
+                        'directoryId' => 'dir-1',
+                        'versionId' => 'v-1',
+                        'latKey' => 'lat',
+                        'lngKey' => 'lng',
+                        'defaultZoom' => 10,
+                        'detailDocument' => [
+                            'type' => 'doc',
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Тел: {{ phone }}']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $field = $result['blocks'][0];
+        $this->assertSame('directory_map', $field['type']);
+        $this->assertSame('dir-1', $field['props']['directoryId']);
+        $this->assertSame('lat', $field['props']['latKey']);
+        $this->assertSame('lng', $field['props']['lngKey']);
+        $this->assertSame(10, $field['props']['defaultZoom']);
+        $this->assertSame(
+            'Тел: {{ phone }}',
+            $field['props']['detailDocument']['content'][0]['content'][0]['text'],
+        );
+    }
+
+    public function test_render_keeps_directory_map_detail_document_tokens_raw_when_unresolved(): void
+    {
+        // Регрессия: до фикса VariableResolver тихо заменял {{ phone }} на ''
+        // (нет такой scenario-переменной), т.к. detailDocument не был исключён
+        // из резолвинга наравне с labelTemplate.
+        $node = [
+            'id' => 'node_block',
+            'type' => 'block',
+            'data' => [
+                'title' => 'Form',
+                'fields' => [
+                    [
+                        'id' => 'f1',
+                        'type' => 'directory_map',
+                        'name' => 'dealers',
+                        'label' => 'Дилерские центры',
+                        'directoryId' => 'dir-1',
+                        'latKey' => 'lat',
+                        'lngKey' => 'lng',
+                        'detailDocument' => [
+                            'type' => 'doc',
+                            'content' => [
+                                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => '{{ phone }} / {{ name }}']]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, ['name' => 'Vladimir']);
+
+        $field = $result['blocks'][0];
+        $this->assertSame(
+            '{{ phone }} / {{ name }}',
+            $field['props']['detailDocument']['content'][0]['content'][0]['text'],
+        );
+    }
+
     public function test_continue_from_merges_input_into_context(): void
     {
         $run = $this->createRun();

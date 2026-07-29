@@ -88,6 +88,7 @@
         "vee-validate": "^4.15.1",
         "vue-imask": "^7.6.1",
         "vue-sonner": "^2.0.9",
+        "vue-yandex-maps": "^3.0.4",
         "xlsx": "^0.18.5",
         "zod": "^3.25.76"
     }

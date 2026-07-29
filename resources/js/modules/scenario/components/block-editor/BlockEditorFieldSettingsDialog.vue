@@ -58,7 +58,7 @@ const emit = defineEmits<{
 }>()
 
 const requiredToggleVisible = computed(() =>
-    !['rich_text', 'collapse', 'hidden'].includes(props.field?.type ?? ''),
+    !['rich_text', 'collapse', 'hidden', 'directory_map'].includes(props.field?.type ?? ''),
 )
 </script>
 

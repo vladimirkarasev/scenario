@@ -289,6 +289,73 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertArrayHasKey('grz', $e->errors());
     }
 
+    public function test_map_point_field_passes_with_coordinates(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            ['place' => ['lat' => 55.75, 'lng' => 37.62]],
+        );
+    }
+
+    public function test_map_point_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('place', $e->errors());
+    }
+
+    public function test_map_point_field_fails_when_coordinates_incomplete(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            ['place' => ['lat' => 55.75]],
+        );
+
+        $this->assertArrayHasKey('place', $e->errors());
+    }
+
+    public function test_map_point_field_passes_when_nullable_and_absent(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('place', 'map_point', required: false)]),
+            [],
+        );
+    }
+
+    public function test_route_field_passes_with_two_waypoints(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            ['trip' => ['waypoints' => [
+                ['lat' => 55.75, 'lng' => 37.62],
+                ['lat' => 59.93, 'lng' => 30.33],
+            ]]],
+        );
+    }
+
+    public function test_route_field_fails_with_single_waypoint(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            ['trip' => ['waypoints' => [['lat' => 55.75, 'lng' => 37.62]]]],
+        );
+
+        $this->assertArrayHasKey('trip', $e->errors());
+    }
+
+    public function test_route_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('trip', $e->errors());
+    }
+
     public function test_multiple_fields_all_pass(): void
     {
         $this->assertPasses(

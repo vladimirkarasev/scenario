@@ -11,7 +11,7 @@
         "paths": {
             "@/*": ["./resources/js/*"]
         },
-        "types": ["node", "vite/client", "vitest/globals"],
+        "types": ["node", "vite/client", "vitest/globals", "@yandex/ymaps3-types"],
         "allowArbitraryExtensions": true
     },
     "include": [

@@ -19,8 +19,10 @@ import AuthForbidden from '@/components/AuthForbidden.vue';
 import PrimeVue from 'primevue/config';
 import * as Sentry from '@sentry/vue';
 import {makeFetchTransport} from '@sentry/browser';
+import {createYmaps} from 'vue-yandex-maps';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const yandexMapsRouterApiKey = import.meta.env.VITE_YANDEX_MAPS_ROUTER_API_KEY?.trim();
 
 const publicPaths = ['/auth'];
 
@@ -77,6 +79,12 @@ createInertiaApp({
             .use(plugin)
             .use(pinia)
             .use(ZiggyVue)
+            .use(createYmaps({
+                apikey: import.meta.env.VITE_YANDEX_MAPS_API_KEY || '',
+                servicesApikeys: yandexMapsRouterApiKey
+                    ? {router: yandexMapsRouterApiKey}
+                    : null,
+            }))
             .use(PrimeVue, {
                 unstyled: true,
                 locale: {

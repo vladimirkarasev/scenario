@@ -91,6 +91,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
     private function resolveBlocksKeepingRawTemplates(array $blocks, array $context): mixed
     {
         $rawLabelTemplates = [];
+        $rawDetailDocuments = [];
         foreach ($blocks as $i => $block) {
             if (! is_array($block)) {
                 continue;
@@ -98,6 +99,12 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             $props = is_array($block['props'] ?? null) ? $block['props'] : [];
             if (isset($props['labelTemplate']) && is_string($props['labelTemplate'])) {
                 $rawLabelTemplates[$i] = $props['labelTemplate'];
+            }
+            // Токены detailDocument ({{ key }} на колонки справочника) резолвятся
+            // на клиенте по данным конкретной строки, а не VariableResolver'ом —
+            // иначе несуществующая scenario-переменная тихо превратится в ''.
+            if (isset($props['detailDocument']) && is_array($props['detailDocument'])) {
+                $rawDetailDocuments[$i] = $props['detailDocument'];
             }
         }
 
@@ -113,6 +120,15 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             }
             $props = is_array($resolved[$i]['props'] ?? null) ? $resolved[$i]['props'] : [];
             $props['labelTemplate'] = $template;
+            $resolved[$i]['props'] = $props;
+        }
+
+        foreach ($rawDetailDocuments as $i => $document) {
+            if (! isset($resolved[$i]) || ! is_array($resolved[$i])) {
+                continue;
+            }
+            $props = is_array($resolved[$i]['props'] ?? null) ? $resolved[$i]['props'] : [];
+            $props['detailDocument'] = $document;
             $resolved[$i]['props'] = $props;
         }
 
@@ -145,7 +161,8 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
 
         $blockType = match ($type) {
             'textarea', 'number', 'select', 'date', 'datetime', 'hidden', 'email', 'phone', 'vin', 'grz',
-            'checkbox', 'directory_list', 'directory_tree', 'directory_table', 'suggest' => $type,
+            'checkbox', 'directory_list', 'directory_tree', 'directory_table', 'suggest',
+            'map_point', 'route', 'directory_map' => $type,
             default => 'input',
         };
 
@@ -160,6 +177,9 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             'select' => $this->selectProps($field, $name, $hasDefault, $defaultValue),
             'date', 'datetime' => $this->dateProps($field, $name, $hasDefault, $defaultValue),
             'hidden' => $this->hiddenProps($name, $defaultValue),
+            'map_point' => $this->mapPointProps($field, $name),
+            'route' => $this->routeProps($field, $name),
+            'directory_map' => $this->directoryMapProps($field, $name),
             default => $this->textProps($field, $name, $hasDefault, $defaultValue),
         };
 
@@ -352,6 +372,54 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
             'allowSelection' => $this->boolField($field, 'allowSelection', true),
             'defaultSearch' => $this->strField($field, 'defaultSearch'),
             'fields' => is_array($field['fields'] ?? null) ? $field['fields'] : [],
+        ];
+    }
+
+    /**
+     * @param  array<array-key, mixed> $field
+     * @return array<string, mixed>
+     */
+    private function mapPointProps(array $field, string $name): array
+    {
+        return [
+            ...$this->baseProps($field, $name),
+            'lat' => $this->numericField($field, 'lat'),
+            'lng' => $this->numericField($field, 'lng'),
+            'address' => $this->strField($field, 'address'),
+            'defaultZoom' => $this->intField($field, 'defaultZoom', 15),
+        ];
+    }
+
+    /**
+     * @param  array<array-key, mixed> $field
+     * @return array<string, mixed>
+     */
+    private function routeProps(array $field, string $name): array
+    {
+        return [
+            ...$this->baseProps($field, $name),
+            'routingMode' => $this->strField($field, 'routingMode', 'auto'),
+            'showAlternatives' => $this->boolField($field, 'showAlternatives', true),
+            'maxWaypoints' => $this->intField($field, 'maxWaypoints', 10),
+        ];
+    }
+
+    /**
+     * @param  array<array-key, mixed> $field
+     * @return array<string, mixed>
+     */
+    private function directoryMapProps(array $field, string $name): array
+    {
+        return [
+            ...$this->baseProps($field, $name),
+            'directoryId' => $this->strField($field, 'directoryId'),
+            'versionId' => $this->strField($field, 'versionId'),
+            'latKey' => $this->strField($field, 'latKey'),
+            'lngKey' => $this->strField($field, 'lngKey'),
+            'detailDocument' => is_array($field['detailDocument'] ?? null) ? $field['detailDocument'] : null,
+            'fields' => is_array($field['fields'] ?? null) ? $field['fields'] : [],
+            'defaultSearch' => $this->strField($field, 'defaultSearch'),
+            'defaultZoom' => $this->intField($field, 'defaultZoom', 12),
         ];
     }
 

@@ -55,6 +55,15 @@ import DirectoryTableFieldSettings, {
 import SuggestFieldSettings, {
   fieldMeta as suggestMeta
 } from '@/modules/scenario/components/block-editor/field-settings/SuggestFieldSettings.vue'
+import MapPointFieldSettings, {
+  fieldMeta as mapPointMeta
+} from '@/modules/scenario/components/block-editor/field-settings/MapPointFieldSettings.vue'
+import RouteFieldSettings, {
+  fieldMeta as routeMeta
+} from '@/modules/scenario/components/block-editor/field-settings/RouteFieldSettings.vue'
+import DirectoryMapFieldSettings, {
+  fieldMeta as directoryMapMeta
+} from '@/modules/scenario/components/block-editor/field-settings/DirectoryMapFieldSettings.vue'
 import {useScenarioBlockEditorStore} from '@/modules/scenario/stores/scenarioBlockEditor'
 import {storeToRefs} from 'pinia'
 import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
@@ -93,6 +102,12 @@ const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   {title: 'Тех. помощь', items: [vinMeta, grzMeta] as FieldPaletteItem[]},
 ]
 
+const temporarilyHiddenFieldItems = [
+  mapPointMeta,
+  routeMeta,
+  directoryMapMeta,
+] as FieldPaletteItem[]
+
 const fieldSettingsComponents: Record<string, Component> = {
   input: markRaw(InputFieldSettings),
   email: markRaw(EmailFieldSettings),
@@ -108,12 +123,19 @@ const fieldSettingsComponents: Record<string, Component> = {
   directory_list: markRaw(DirectoryListFieldSettings),
   directory_table: markRaw(DirectoryTableFieldSettings),
   suggest: markRaw(SuggestFieldSettings),
+  map_point: markRaw(MapPointFieldSettings),
+  route: markRaw(RouteFieldSettings),
+  directory_map: markRaw(DirectoryMapFieldSettings),
 }
 
 const fieldTypeMap: Partial<Record<BlockFieldType, { type: BlockFieldType; label: string; icon: Component }>> = {}
-fieldGroups.forEach((g) => g.items.forEach((item) => {
+const registeredFieldItems = [
+  ...fieldGroups.flatMap(group => group.items),
+  ...temporarilyHiddenFieldItems,
+]
+registeredFieldItems.forEach((item) => {
   fieldTypeMap[item.type] = item
-}))
+})
 
 function fieldTypeLabel(type: BlockFieldType): string {
   return fieldTypeMap[type]?.label ?? type

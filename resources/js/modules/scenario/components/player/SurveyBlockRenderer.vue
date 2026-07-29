@@ -18,7 +18,12 @@ import SurveyDirectoryListField from '@/modules/scenario/components/player/Surve
 import SurveyDirectoryTableField from '@/modules/scenario/components/player/SurveyDirectoryTableField.vue'
 import SurveySelectField from '@/modules/scenario/components/player/SurveySelectField.vue'
 import SurveySuggestField from '@/modules/scenario/components/player/SurveySuggestField.vue'
+import SurveyMapPointField from '@/modules/scenario/components/player/SurveyMapPointField.vue'
+import SurveyRouteField from '@/modules/scenario/components/player/SurveyRouteField.vue'
+import SurveyDirectoryMapField from '@/modules/scenario/components/player/SurveyDirectoryMapField.vue'
 import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
+import type {RoutingMode} from '@/modules/scenario/lib/scenario-block-fields'
+import type {MapPointValue, RouteValue} from '@/modules/scenario/types/yandex-map'
 import {ChevronDown} from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -382,6 +387,51 @@ watch(
         @update:model-value="formData[fieldName] = $event"
     />
     <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'map_point'" class="grid gap-1.5">
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <SurveyMapPointField
+        :model-value="(formData[fieldName] as MapPointValue | null) ?? null"
+        :default-zoom="Number(resolvedProps.defaultZoom ?? 15)"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'route'" class="grid gap-1.5">
+    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <SurveyRouteField
+        :model-value="(formData[fieldName] as RouteValue | null) ?? null"
+        :routing-mode="(resolvedProps.routingMode as RoutingMode) ?? 'auto'"
+        :show-alternatives="Boolean(resolvedProps.showAlternatives ?? true)"
+        :max-waypoints="Number(resolvedProps.maxWaypoints ?? 10)"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'directory_map'" class="grid gap-1.5">
+    <Label v-if="resolvedProps.label" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">
+      {{ resolvedProps.label }}
+    </Label>
+    <SurveyDirectoryMapField
+        :directory-id="String(resolvedProps.directoryId ?? '')"
+        :version-id="String(resolvedProps.versionId ?? '')"
+        :lat-key="String(resolvedProps.latKey ?? '')"
+        :lng-key="String(resolvedProps.lngKey ?? '')"
+        :detail-document="resolvedProps.detailDocument ?? null"
+        :default-zoom="Number(resolvedProps.defaultZoom ?? 12)"
+        :disabled="disabled"
+    />
   </div>
 
   <input

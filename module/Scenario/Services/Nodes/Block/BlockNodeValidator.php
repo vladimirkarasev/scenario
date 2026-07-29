@@ -7,6 +7,8 @@ namespace Module\Scenario\Services\Nodes\Block;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Validator;
 use Module\Scenario\Services\Nodes\Block\Rules\GrzRule;
+use Module\Scenario\Services\Nodes\Block\Rules\MapPointRule;
+use Module\Scenario\Services\Nodes\Block\Rules\RouteRule;
 use Module\Scenario\Services\Nodes\Block\Rules\VinRule;
 use Module\Scenario\Services\Nodes\NodeHelpers;
 
@@ -78,6 +80,14 @@ final class BlockNodeValidator
 
         if ($type === 'grz') {
             return [new GrzRule($required)];
+        }
+
+        if ($type === 'map_point') {
+            return [new MapPointRule($required)];
+        }
+
+        if ($type === 'route') {
+            return [new RouteRule($required)];
         }
 
         $rules = [];

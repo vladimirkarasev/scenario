@@ -719,9 +719,9 @@ function handleFlowKeyboardShortcut(event) {
     return
   }
 
-  const isModifierPressed = event.ctrlKey || event.metaKey
+  const isClipboardShortcut = (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey
 
-  if (isModifierPressed && event.code === 'KeyC') {
+  if (isClipboardShortcut && event.code === 'KeyC') {
     if (!selectedNodes.value.length) {
       return
     }
@@ -731,7 +731,7 @@ function handleFlowKeyboardShortcut(event) {
     return
   }
 
-  if (isModifierPressed && event.code === 'KeyV') {
+  if (isClipboardShortcut && event.code === 'KeyV') {
     if (!props.editable) {
       return
     }
