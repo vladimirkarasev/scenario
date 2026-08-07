@@ -5,12 +5,14 @@ import type {ActionStage, ActionStageStatus} from '@/modules/scenario/lib/scenar
 
 const props = withDefaults(defineProps<{
   title?: string
+  hideTitle?: boolean
   stages?: ActionStage[]
   statuses?: Record<string, ActionStageStatus>
   failed?: boolean
   loading?: boolean
 }>(), {
   title: 'Выполнение действий',
+  hideTitle: false,
   stages: () => [],
   statuses: () => ({}),
   failed: false,
@@ -52,7 +54,7 @@ const allDone = computed(() => props.stages.length > 0 && props.stages.every((s)
         <Zap class="size-4 text-violet-600"/>
       </div>
       <div class="min-w-0">
-        <p class="text-[13px] font-semibold text-slate-900">{{ title }}</p>
+        <p v-if="!hideTitle" class="text-[13px] font-semibold text-slate-900">{{ title }}</p>
         <p class="text-[12px] text-slate-400">
           {{ failed ? 'Возникла ошибка при выполнении' : allDone ? 'Все действия выполнены' : 'Выполняется…' }}
         </p>

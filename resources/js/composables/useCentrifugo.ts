@@ -1,6 +1,6 @@
 import type {Subscription} from 'centrifuge';
 import {Centrifuge} from 'centrifuge'
-import {getJson} from '@/lib/http'
+import {centrifugoRepository} from '@/modules/realtime/repositories/centrifugoRepository'
 
 let client: Centrifuge | null = null
 let clientPromise: Promise<Centrifuge> | null = null
@@ -26,17 +26,12 @@ async function getClient(): Promise<Centrifuge> {
 }
 
 async function createClient(): Promise<Centrifuge> {
-    const {token, ws_url} = await getJson<{
-        token: string;
-        ws_url: string
-    }>('/api/centrifugo/connection-token', 'Failed to get Centrifugo token.')
+    const {token, ws_url} = await centrifugoRepository.connection()
 
     const nextClient = new Centrifuge(ws_url, {
         token,
         getToken: async () => {
-            const data = await getJson<{
-                token: string
-            }>('/api/centrifugo/connection-token', 'Failed to refresh Centrifugo token.')
+            const data = await centrifugoRepository.connection()
             return data.token
         },
     })

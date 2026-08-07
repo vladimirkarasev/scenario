@@ -1,5 +1,10 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-import type {Project, ProjectsPage, ProjectPayload} from '@/modules/projects/types/project'
+import type {
+    Project,
+    ProjectManagerItem,
+    ProjectPayload,
+    ProjectsPage,
+} from '@/modules/projects/types/project'
 
 interface RawProject {
     id: string
@@ -59,5 +64,18 @@ export const projectRepository = {
 
     async remove(id: string): Promise<void> {
         await destroyJson(`/api/projects/${id}`, 'Не удалось удалить проект.')
+    },
+
+    async saveAt(url: string, payload: Omit<ProjectManagerItem, 'id'>, isUpdate: boolean): Promise<ProjectManagerItem> {
+        const response = await sendJson<{item: ProjectManagerItem}>(url, {
+            method: isUpdate ? 'PUT' : 'POST',
+            body: payload,
+            fallbackMessage: 'Не удалось сохранить проект.',
+        })
+        return response.item
+    },
+
+    async removeAt(url: string): Promise<void> {
+        await destroyJson(url, 'Не удалось удалить проект.')
     },
 }

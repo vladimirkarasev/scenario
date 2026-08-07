@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Scenario\DTO\ScenarioVersionActionData;
 use Module\Scenario\DTO\ScenarioVersionData;
+use Module\Scenario\DTO\ScenarioVersionSettingsData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
@@ -81,6 +82,21 @@ final class ScenarioVersionServiceTest extends TestCase
 
         $count = ScenarioVersionRevision::query()->where('scenario_version_id', $version->id)->count();
         $this->assertSame(2, $count);
+    }
+
+    public function test_update_settings_does_not_create_revision(): void
+    {
+        $scenario = $this->makeScenario();
+        $version = $this->makeVersion($scenario);
+
+        $result = $this->service->updateSettings(
+            new ScenarioVersionSettingsData(name: 'Рабочая версия', status: 'active'),
+            $version,
+        );
+
+        $this->assertSame('Рабочая версия', $result['name']);
+        $this->assertSame('active', $result['status']);
+        $this->assertSame(1, $version->revisions()->count());
     }
 
     public function test_duplicate_creates_draft_copy_with_suffix(): void
@@ -171,11 +187,15 @@ final class ScenarioVersionServiceTest extends TestCase
         array $schemaJson = [],
     ): ScenarioVersionData {
         $schema = $schemaJson ?: ['nodes' => [], 'edges' => []];
+        /** @var array<int, array<string, mixed>> $nodes */
+        $nodes = is_array($schema['nodes'] ?? null) ? array_values($schema['nodes']) : [];
+        /** @var array<int, array<string, mixed>> $edges */
+        $edges = is_array($schema['edges'] ?? null) ? array_values($schema['edges']) : [];
 
         return new ScenarioVersionData(
             schemaJson: $schema,
-            nodesJson: $schema['nodes'] ?? [],
-            edgesJson: $schema['edges'] ?? [],
+            nodesJson: $nodes,
+            edgesJson: $edges,
             schemaVersion: 1,
             name: $name,
             hasName: $name !== null,

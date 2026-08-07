@@ -1,30 +1,20 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-
-export interface ScenarioVersion {
-    id: string
-    scenario_id: string
-    name: string | null
-    status: string
-    schema_json: Record<string, unknown>
-    created_at: string | null
-    updated_at: string | null
-    revisions: { id: string; created_at: string | null }[]
-}
-
-export interface ScenarioVersionPayload {
-    name?: string | null
-    status?: string
-    schema_json: Record<string, unknown>
-}
+import type {
+    ScenarioVersion,
+    ScenarioVersionHistoryPage,
+    ScenarioVersionPayload,
+    ScenarioVersionSettingsPayload,
+    ScenarioVersionStatus,
+} from '@/modules/scenario/types/scenario-version'
 
 interface RawVersionAttributes {
     scenario_id: string
     name: string | null
-    status: string
+    status: ScenarioVersionStatus
     schema_json?: Record<string, unknown>
     created_at: string | null
     updated_at: string | null
-    revisions?: { id: string; created_at: string | null }[]
+    revisions?: ScenarioVersion['revisions']
 }
 
 interface RawVersion {
@@ -32,34 +22,19 @@ interface RawVersion {
     attributes: RawVersionAttributes
 }
 
-interface RawVersionFlat {
+interface RawVersionFlat extends Omit<RawVersionAttributes, 'scenario_id'> {
     id: string
-    name: string | null
-    status: string
-    schema_json?: Record<string, unknown>
-    created_at: string | null
-    updated_at: string | null
-    revisions?: { id: string; created_at: string | null }[]
+    scenario_id?: string
 }
 
 function normalizeVersion(raw: RawVersion): ScenarioVersion {
-    const a = raw.attributes
-    return {
-        id: raw.id,
-        scenario_id: a.scenario_id,
-        name: a.name,
-        status: a.status,
-        schema_json: a.schema_json ?? {},
-        created_at: a.created_at,
-        updated_at: a.updated_at,
-        revisions: a.revisions ?? [],
-    }
+    return normalizeVersionFlat({id: raw.id, ...raw.attributes}, raw.attributes.scenario_id)
 }
 
 function normalizeVersionFlat(raw: RawVersionFlat, scenarioId: string): ScenarioVersion {
     return {
         id: raw.id,
-        scenario_id: scenarioId,
+        scenario_id: raw.scenario_id ?? scenarioId,
         name: raw.name,
         status: raw.status,
         schema_json: raw.schema_json ?? {},
@@ -84,30 +59,62 @@ export const scenarioVersionRepository = {
         return normalizeVersion(raw.data)
     },
 
+    async editor(scenarioId: string, versionId: string): Promise<ScenarioVersion> {
+        const raw = await getJson(
+            `/api/scenarios/${scenarioId}/versions/${versionId}/editor`,
+            'Не удалось загрузить редактор версии.',
+        ) as {data: RawVersionFlat}
+        return normalizeVersionFlat(raw.data, scenarioId)
+    },
+
+    async settings(scenarioId: string, versionId: string): Promise<ScenarioVersion> {
+        const raw = await getJson(
+            `/api/scenarios/${scenarioId}/versions/${versionId}/settings`,
+            'Не удалось загрузить настройки версии.',
+        ) as {data: RawVersionFlat}
+        return normalizeVersionFlat(raw.data, scenarioId)
+    },
+
+    async history(scenarioId: string, versionId: string, page: number, perPage = 20): Promise<ScenarioVersionHistoryPage> {
+        const query = new URLSearchParams({
+            'page[number]': String(page),
+            'page[size]': String(perPage),
+        })
+        return await getJson(
+            `/api/scenarios/${scenarioId}/versions/${versionId}/revisions?${query}`,
+            'Не удалось загрузить историю версии.',
+        ) as ScenarioVersionHistoryPage
+    },
+
     async create(scenarioId: string, payload: ScenarioVersionPayload): Promise<ScenarioVersion> {
         const raw = await sendJson(`/api/scenarios/${scenarioId}/versions`, {
-            method: 'POST',
-            body: payload,
-            fallbackMessage: 'Не удалось создать версию.'
-        }) as { data: RawVersionFlat }
+            method: 'POST', body: payload, fallbackMessage: 'Не удалось создать версию.',
+        }) as {data: RawVersionFlat}
         return normalizeVersionFlat(raw.data, scenarioId)
     },
 
     async update(scenarioId: string, versionId: string, payload: ScenarioVersionPayload): Promise<ScenarioVersion> {
         const raw = await sendJson(`/api/scenarios/${scenarioId}/versions/${versionId}`, {
-            method: 'PUT',
-            body: payload,
-            fallbackMessage: 'Не удалось сохранить версию.'
-        }) as { data: RawVersionFlat }
+            method: 'PUT', body: payload, fallbackMessage: 'Не удалось сохранить версию.',
+        }) as {data: RawVersionFlat}
+        return normalizeVersionFlat(raw.data, scenarioId)
+    },
+
+    async updateSettings(
+        scenarioId: string,
+        versionId: string,
+        payload: ScenarioVersionSettingsPayload,
+    ): Promise<ScenarioVersion> {
+        const raw = await sendJson(`/api/scenarios/${scenarioId}/versions/${versionId}/settings`, {
+            method: 'PUT', body: payload, fallbackMessage: 'Не удалось сохранить настройки версии.',
+        }) as {data: RawVersionFlat}
         return normalizeVersionFlat(raw.data, scenarioId)
     },
 
     async duplicate(scenarioId: string, versionId: string): Promise<ScenarioVersion> {
         const raw = await sendJson(`/api/scenarios/${scenarioId}/versions/${versionId}/duplicate`, {
-            method: 'POST',
-            body: {},
-            fallbackMessage: 'Не удалось дублировать версию.'
-        }) as { data: RawVersionFlat }
+            method: 'POST', body: {}, fallbackMessage: 'Не удалось дублировать версию.',
+        }) as {data: RawVersionFlat}
         return normalizeVersionFlat(raw.data, scenarioId)
     },
 

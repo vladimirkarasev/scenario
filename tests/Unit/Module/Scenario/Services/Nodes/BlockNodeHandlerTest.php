@@ -56,7 +56,17 @@ final class BlockNodeHandlerTest extends TestCase
 
         $this->assertSame('block', $result['type']);
         $this->assertSame('Hello', $result['title']);
+        $this->assertTrue($result['hideTitle']);
         $this->assertIsArray($result['blocks']);
+    }
+
+    public function test_render_can_show_title(): void
+    {
+        $node = ['id' => 'node_block', 'type' => 'block', 'data' => ['hideTitle' => false]];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $this->assertFalse($result['hideTitle']);
     }
 
     public function test_render_resolves_template_in_title(): void
@@ -238,6 +248,7 @@ final class BlockNodeHandlerTest extends TestCase
                         'type' => 'input',
                         'name' => 'email',
                         'label' => 'Email',
+                        'hideLabel' => true,
                         'labelFontSize' => '24px',
                         'labelColor' => '#ff0000',
                         'labelHighlight' => '#ffff00',
@@ -249,6 +260,7 @@ final class BlockNodeHandlerTest extends TestCase
         $result = $this->handler->render($this->version, $node, []);
 
         $field = $result['blocks'][0];
+        $this->assertTrue($field['props']['hideLabel']);
         $this->assertSame('24px', $field['props']['labelFontSize']);
         $this->assertSame('#ff0000', $field['props']['labelColor']);
         $this->assertSame('#ffff00', $field['props']['labelHighlight']);

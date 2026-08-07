@@ -28,12 +28,6 @@ interface FlatTreeItem {
   scenario?: ScenarioItem
 }
 
-const STATUS_DOT: Record<string, string> = {
-  active: 'bg-emerald-500',
-  draft: 'bg-slate-400',
-  archived: 'bg-slate-300',
-}
-
 defineProps<{
   searchQuery: string
   isSearchMode: boolean
@@ -56,6 +50,12 @@ defineEmits<{
   toggleExpand: [id: string]
   jumpToFolder: [id: string]
 }>()
+
+const STATUS_DOT: Record<string, string> = {
+  active: 'bg-emerald-500',
+  draft: 'bg-slate-400',
+  archived: 'bg-slate-300',
+}
 </script>
 
 <template>

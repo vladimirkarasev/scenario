@@ -1,3 +1,5 @@
+import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
+
 export interface VarLike {
     fieldId: string
     blockId: string
@@ -102,7 +104,7 @@ export const DATETIME_SHIFTS: DateShiftItem[] = [
 
 export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
     {
-        name: 'run',
+        name: ScenarioContextKey.Run,
         label: 'Опрос',
         fields: [
             {suffix: 'id', label: 'UUID опроса', description: 'Уникальный идентификатор прогона'},
@@ -113,7 +115,7 @@ export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
         ],
     },
     {
-        name: 'operator',
+        name: ScenarioContextKey.Operator,
         label: 'Оператор',
         fields: [
             {suffix: 'login', label: 'Логин оператора', description: 'Логин учётной записи'},
@@ -122,7 +124,7 @@ export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
         ],
     },
     {
-        name: 'project',
+        name: ScenarioContextKey.Project,
         label: 'Проект',
         fields: [
             {suffix: 'name', label: 'Название проекта', description: 'Имя проекта оператора'},
@@ -130,7 +132,7 @@ export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
         ],
     },
     {
-        name: 'call',
+        name: ScenarioContextKey.Call,
         label: 'Звонок',
         fields: [
             {suffix: 'incoming_phone', label: 'Входящий номер телефона', description: 'Номер входящего звонка'},

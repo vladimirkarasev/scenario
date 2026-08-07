@@ -79,6 +79,7 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
         return [
             'type' => 'block',
             'title' => $this->variableResolver->resolve($this->strField($data, 'title'), $context),
+            'hideTitle' => $this->boolField($data, 'hideTitle', true),
             'blocks' => $this->resolveBlocksKeepingRawTemplates($blocks, $context),
             'layoutDocument' => is_array($layoutDocument) ? $this->variableResolver->resolve($layoutDocument, $context) : null,
         ];
@@ -425,13 +426,14 @@ final readonly class BlockNodeHandler implements NodeHandlerInterface
 
     /**
      * @param  array<array-key, mixed>                                                                                     $field
-     * @return array{name: string, label: string, required: bool, labelFontSize?: string, labelColor?: string, labelHighlight?: string}
+     * @return array{name: string, label: string, hideLabel: bool, required: bool, labelFontSize?: string, labelColor?: string, labelHighlight?: string}
      */
     private function baseProps(array $field, string $name): array
     {
         return [
             'name' => $name,
             'label' => $this->strField($field, 'label', $name),
+            'hideLabel' => $this->boolField($field, 'hideLabel'),
             'required' => $this->boolField($field, 'required'),
             ...$this->labelStyleProps($field),
         ];

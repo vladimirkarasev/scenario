@@ -86,7 +86,12 @@ const linkedName = computed(() => props.draft.targetScenarioName || 'Сцена�
 
 <template>
   <div class="space-y-4">
-    <DefaultInspector :node="node"/>
+    <DefaultInspector
+        :node="node"
+        :draft="draft"
+        :editable="editable"
+        @sync="emit('sync')"
+    />
 
     <Separator class="bg-slate-200"/>
 

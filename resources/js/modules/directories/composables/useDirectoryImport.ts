@@ -1,9 +1,12 @@
-import * as XLSX from 'xlsx'
 import {computed, onUnmounted, reactive, ref, watch} from 'vue'
 import type {Subscription} from 'centrifuge'
 import {subscribeTo, unsubscribeFrom} from '@/composables/useCentrifugo'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
-import {sendJson} from '@/lib/http'
+import {
+    SPREADSHEET_PREVIEW_ROWS,
+    spreadsheetColumnsError,
+    spreadsheetFileError,
+} from '@/modules/directories/lib/spreadsheetImport'
 import type {
     Directory,
     DirectoryImport,
@@ -61,14 +64,16 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             .forEach(i => subscribeToImport(i.id))
     }
 
-    function destroySubs(): void {
+    function destroy(): void {
         activeSubs.forEach(sub => {
             void unsubscribeFrom(sub)
         })
         activeSubs.clear()
+        if (saveTimer) clearTimeout(saveTimer)
+        if (pendingSettings) void flushSettingsSave()
     }
 
-    onUnmounted(() => destroySubs())
+    onUnmounted(destroy)
 
     async function loadImports(): Promise<void> {
         loading.value = true
@@ -126,19 +131,31 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
     }
 
     let saveTimer: ReturnType<typeof setTimeout> | null = null
+    let pendingSettings: Record<string, boolean> | null = null
+    let settingsSaveRunning = false
+
+    async function flushSettingsSave(): Promise<void> {
+        if (settingsSaveRunning) return
+        settingsSaveRunning = true
+        try {
+            while (pendingSettings) {
+                const settings = pendingSettings
+                pendingSettings = null
+                try {
+                    await directoryRepository.updateImportSettings(directoryId, settings)
+                } catch {
+                    continue
+                }
+            }
+        } finally {
+            settingsSaveRunning = false
+        }
+    }
 
     function scheduleSettingsSave(body: Record<string, boolean>): void {
+        pendingSettings = body
         if (saveTimer) clearTimeout(saveTimer)
-        saveTimer = setTimeout(async () => {
-            try {
-                await sendJson(`/api/directories/${directoryId}/import-settings`, {
-                    method: 'PATCH',
-                    fallbackMessage: 'Failed to save import settings.',
-                    body,
-                })
-            } catch { /* silent */
-            }
-        }, 400)
+        saveTimer = setTimeout(() => void flushSettingsSave(), 400)
     }
 
     watch(() => ({...importOptions}), () => {
@@ -169,12 +186,19 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             importError.value = 'Выберите хотя бы один файл.'
             return
         }
+        const invalidFileMessage = importFiles.value.map(spreadsheetFileError).find(message => message !== null)
+        if (invalidFileMessage) {
+            importError.value = invalidFileMessage
+            return
+        }
         importError.value = ''
         try {
+            const XLSX = await import('xlsx')
             const parsedFiles = await Promise.all(importFiles.value.map(async file => {
                 const buf = await file.arrayBuffer()
-                const wb = XLSX.read(buf, {type: 'array'})
+                const wb = XLSX.read(buf, {type: 'array', sheetRows: SPREADSHEET_PREVIEW_ROWS})
                 const ws = wb.Sheets[wb.SheetNames[0]]
+                if (!ws) throw new Error(`В файле «${file.name}» нет листов.`)
                 const rows = XLSX.utils.sheet_to_json<string[]>(ws, {header: 1})
 
                 return {
@@ -184,6 +208,11 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
                 }
             }))
             const headerRow = parsedFiles[0]?.headers ?? []
+            const columnsError = spreadsheetColumnsError(headerRow.length)
+            if (columnsError) {
+                importError.value = columnsError
+                return
+            }
             const headerSignature = JSON.stringify(headerRow)
             const incompatibleFile = parsedFiles.find(file => JSON.stringify(file.headers) !== headerSignature)
 

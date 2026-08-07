@@ -9,6 +9,7 @@ export const fieldMeta = {type: 'directory_map', label: 'Карта', icon: mark
 import {computed, ref} from 'vue'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 import {Input} from '@/components/ui/input'
+import {copyText} from '@/lib/clipboard'
 import {ChevronsUpDown, Check, Copy, X} from 'lucide-vue-next'
 import DirectoryPickerDialog from '@/modules/directories/components/DirectoryPickerDialog.vue'
 import TiptapTextEditor from '@/modules/scenario/components/tiptap/TiptapTextEditor.vue'
@@ -52,7 +53,7 @@ function tokenLabel(key: string): string {
 }
 
 async function copyToken(key: string): Promise<void> {
-  await navigator.clipboard.writeText(tokenLabel(key))
+  if (!await copyText(tokenLabel(key))) return
   copiedKey.value = key
   setTimeout(() => {
     copiedKey.value = null

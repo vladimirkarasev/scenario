@@ -5,7 +5,7 @@ import {Card, CardContent} from '@/components/ui/card'
 import {Separator} from '@/components/ui/separator'
 import {GitBranch, Play, Plus, Trash2, Workflow} from 'lucide-vue-next'
 import {Link} from '@inertiajs/vue3'
-import type {ScenarioVersion} from '@/modules/scenario/repositories/scenarioVersionRepository'
+import type {ScenarioVersion} from '@/modules/scenario/types/scenario-version'
 
 defineProps<{
   versions: ScenarioVersion[]

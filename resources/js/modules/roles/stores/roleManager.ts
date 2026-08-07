@@ -1,21 +1,16 @@
 import {computed, reactive, ref} from 'vue'
 import {defineStore} from 'pinia'
-import {destroyJson, sendJson} from '@/lib/http'
+import {roleRepository} from '@/modules/roles/repositories/roleRepository'
+import type {RoleManagerEndpoints} from '@/modules/roles/types/role'
 
 interface Role {
     id: number
     name: string
 }
 
-interface RoleEndpoints {
-    store: string
-    update: string
-    destroy: string
-}
-
 export const useRoleManagerStore = defineStore('roleManager', () => {
     const items = ref<Role[]>([])
-    const endpoints = ref<RoleEndpoints | null>(null)
+    const endpoints = ref<RoleManagerEndpoints | null>(null)
     const loading = ref(false)
     const error = ref('')
     const isDialogOpen = ref(false)
@@ -24,7 +19,7 @@ export const useRoleManagerStore = defineStore('roleManager', () => {
 
     const dialogTitle = computed(() => editingId.value ? 'Edit role' : 'Create role')
 
-    function initialize(nextItems: Role[], nextEndpoints: RoleEndpoints): void {
+    function initialize(nextItems: Role[], nextEndpoints: RoleManagerEndpoints): void {
         items.value = [...nextItems]
         endpoints.value = nextEndpoints
     }
@@ -52,18 +47,12 @@ export const useRoleManagerStore = defineStore('roleManager', () => {
         error.value = ''
 
         try {
-            const payload = await sendJson<Record<string, unknown>>(
-                editingId.value
-                    ? `${endpoints.value!.update}/${editingId.value}`
-                    : endpoints.value!.store,
-                {
-                    method: editingId.value ? 'PUT' : 'POST',
-                    body: {name: form.name},
-                    fallbackMessage: 'Failed to save role.',
-                },
+            const isUpdate = editingId.value !== null
+            const item = await roleRepository.saveAt(
+                isUpdate ? `${endpoints.value!.update}/${editingId.value}` : endpoints.value!.store,
+                form.name,
+                isUpdate,
             )
-
-            const item = payload.item as Role
 
             items.value = editingId.value
                 ? items.value
@@ -89,7 +78,7 @@ export const useRoleManagerStore = defineStore('roleManager', () => {
         error.value = ''
 
         try {
-            await destroyJson(`${endpoints.value!.destroy}/${item.id}`, 'Failed to delete role.')
+            await roleRepository.removeAt(`${endpoints.value!.destroy}/${item.id}`)
             items.value = items.value.filter((role) => role.id !== item.id)
         } catch (e: unknown) {
             error.value = e instanceof Error ? e.message : String(e)

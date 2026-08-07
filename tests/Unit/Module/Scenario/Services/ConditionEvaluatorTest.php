@@ -218,6 +218,7 @@ final class ConditionEvaluatorTest extends TestCase
         $this->assertSame($matches ? 'matched' : 'fallback', $result);
     }
 
+    /** @return iterable<string, array{string, int|float|string, int|float|string, bool}> */
     public static function numericComparisonCases(): iterable
     {
         yield 'greater than' => ['greater_than', 11, 10, true];
@@ -276,5 +277,153 @@ final class ConditionEvaluatorTest extends TestCase
         ]);
 
         $this->assertSame('matched', $result);
+    }
+
+    #[DataProvider('logicalEdgeCases')]
+    public function test_edge_target_handles_logical_values(mixed $actual, string $expectedTarget): void
+    {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            [
+                ['target' => 'node_else', 'data' => ['value' => 'Иначе']],
+                ['target' => 'node_yes', 'data' => ['value' => 'Да']],
+                ['target' => 'node_no', 'data' => ['value' => 'Нет']],
+                ['target' => 'node_empty', 'data' => ['value' => 'Пусто']],
+            ],
+            ['actual' => $actual],
+        );
+
+        $this->assertSame($expectedTarget, $result);
+    }
+
+    /** @return iterable<string, array{mixed, string}> */
+    public static function logicalEdgeCases(): iterable
+    {
+        yield 'boolean true' => [true, 'node_yes'];
+        yield 'boolean false' => [false, 'node_no'];
+        yield 'null is empty' => [null, 'node_empty'];
+        yield 'empty string is empty' => ['', 'node_empty'];
+        yield 'blank string is empty' => ['   ', 'node_empty'];
+        yield 'unmatched value uses else' => ['unknown', 'node_else'];
+    }
+
+    public function test_logical_edges_without_else_return_null_for_unmatched_value(): void
+    {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            [
+                ['target' => 'node_yes', 'data' => ['value' => 'Да']],
+                ['target' => 'node_no', 'data' => ['value' => 'Нет']],
+                ['target' => 'node_empty', 'data' => ['value' => 'Пусто']],
+            ],
+            ['actual' => 'unknown'],
+        );
+
+        $this->assertNull($result);
+    }
+
+    public function test_edge_expression_uses_condition_value_and_full_context(): void
+    {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ user.age }}'],
+            [
+                ['target' => 'node_child', 'data' => ['value' => '{{ _condition.value < adulthood }}']],
+                ['target' => 'node_adult', 'data' => ['value' => '{{ _condition.value >= adulthood }}']],
+                ['target' => 'node_else', 'data' => ['value' => 'Иначе']],
+            ],
+            [
+                'user' => ['age' => 20],
+                'adulthood' => 18,
+            ],
+        );
+
+        $this->assertSame('node_adult', $result);
+    }
+
+    public function test_false_edge_expressions_without_else_return_null(): void
+    {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ age }}'],
+            [
+                ['target' => 'node_child', 'data' => ['value' => '{{ _condition.value < 18 }}']],
+                ['target' => 'node_senior', 'data' => ['value' => '{{ _condition.value >= 65 }}']],
+            ],
+            ['age' => 30],
+        );
+
+        $this->assertNull($result);
+    }
+
+    #[DataProvider('englishLogicalEdgeCases')]
+    public function test_edge_target_handles_english_logical_values(
+        mixed $actual,
+        string $edgeValue,
+    ): void {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            [
+                ['target' => 'node_else', 'data' => ['value' => 'ELSE']],
+                ['target' => 'node_match', 'data' => ['value' => $edgeValue]],
+            ],
+            ['actual' => $actual],
+        );
+
+        $this->assertSame('node_match', $result);
+    }
+
+    /** @return iterable<string, array{mixed, string}> */
+    public static function englishLogicalEdgeCases(): iterable
+    {
+        yield 'true' => [true, 'true'];
+        yield 'uppercase true' => [true, 'TRUE'];
+        yield 'yes' => [true, 'yes'];
+        yield 'false' => [false, 'false'];
+        yield 'no' => [false, 'NO'];
+        yield 'empty' => ['', 'empty'];
+        yield 'null' => [null, 'NULL'];
+    }
+
+    #[DataProvider('englishFallbackEdgeCases')]
+    public function test_edge_target_handles_english_fallback_values(string $fallbackValue): void
+    {
+        $result = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            [
+                ['target' => 'node_fallback', 'data' => ['value' => $fallbackValue]],
+                ['target' => 'node_other', 'data' => ['value' => 'other']],
+            ],
+            ['actual' => 'unknown'],
+        );
+
+        $this->assertSame('node_fallback', $result);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function englishFallbackEdgeCases(): iterable
+    {
+        yield 'else' => ['else'];
+        yield 'uppercase else' => ['ELSE'];
+    }
+
+    public function test_default_and_arbitrary_strings_are_not_treated_as_fallback(): void
+    {
+        $edges = [
+            ['target' => 'node_default', 'data' => ['value' => 'default']],
+            ['target' => 'node_custom', 'data' => ['value' => 'custom']],
+        ];
+
+        $matched = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            $edges,
+            ['actual' => 'default'],
+        );
+        $unmatched = $this->evaluator->resolveEdgeTarget(
+            ['value' => '{{ actual }}'],
+            $edges,
+            ['actual' => 'unknown'],
+        );
+
+        $this->assertSame('node_default', $matched);
+        $this->assertNull($unmatched);
     }
 }

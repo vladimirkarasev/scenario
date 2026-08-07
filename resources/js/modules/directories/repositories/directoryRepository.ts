@@ -193,4 +193,12 @@ export const directoryRepository = {
         })
         return {item: normalizeImport(res.data as ApiResource<Omit<DirectoryImport, 'id'>>)}
     },
+
+    async updateImportSettings(directoryId: string, settings: Record<string, boolean>): Promise<void> {
+        await sendJson(`/api/directories/${directoryId}/import-settings`, {
+            method: 'PATCH',
+            body: settings,
+            fallbackMessage: 'Не удалось сохранить настройки импорта.',
+        })
+    },
 }

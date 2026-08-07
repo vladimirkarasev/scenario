@@ -8,25 +8,23 @@ description: Checklist and steps to run before opening a Merge Request — tests
 ## Quick summary
 
 ```
-1. Тесты → 2. PHPStan → 3. Pint → 4. TypeScript → 5. ESLint → 6. Self-review → 7. MR description
+1. Тесты → 2. PHPStan → 3. Rector dry-run → 4. TypeScript → 5. ESLint → 6. Self-review → 7. MR description
 ```
 
-Порядок важен: Pint меняет файлы, поэтому запускай его до PHPStan — иначе придётся перепрогонять.
+Порядок важен: после применения Rector повторно запускай PHPStan.
 
 ---
 
 ## 1. Тесты
 
 ```bash
-composer run test
-# или напрямую
-php artisan test
+task test
 
 # Только конкретный файл/класс
-php artisan test --filter=UserGroupsControllerTest
+task test:unit -- --filter=UserGroupsControllerTest
 
 # Параллельно (быстрее на большом наборе)
-php artisan test --parallel
+task test -- --parallel
 ```
 
 Тесты используют SQLite in-memory (`DB_DATABASE=:memory:`), `RefreshDatabase`, без фабрик — модели создаются через `Model::query()->create([...])`.
@@ -42,13 +40,13 @@ php artisan test --parallel
 
 ```bash
 # Только затронутый модуль (быстрее)
-./vendor/bin/phpstan analyse module/<Module> --memory-limit=512M --error-format=table
+task phpstan -- module/<Module>
 
 # Несколько модулей
-./vendor/bin/phpstan analyse module/Foo module/Bar --memory-limit=512M --error-format=table
+task phpstan -- module/Foo module/Bar
 
 # Полный прогон (app/ + все module/)
-./vendor/bin/phpstan analyse --memory-limit=512M --error-format=table
+task phpstan
 ```
 
 Уровень: **10**. Ноль ошибок обязателен.
@@ -57,24 +55,24 @@ php artisan test --parallel
 
 ---
 
-## 3. Pint (code style)
+## 3. Rector
 
 ```bash
 # Проверить без изменений
-./vendor/bin/pint module/<Module> --test
+task rector:check -- module/<Module>
 
-# Применить
-./vendor/bin/pint module/<Module>
+# Применить после просмотра предложенных изменений
+task rector -- module/<Module>
 ```
 
-После Pint запусти PHPStan ещё раз — изменения форматирования иногда нужно перепроверить.
+После Rector запусти PHPStan ещё раз.
 
 ---
 
 ## 4. TypeScript (frontend)
 
 ```bash
-npx tsc --noEmit
+task typecheck
 ```
 
 Строгий режим, охватывает `.ts` и `.vue` файлы. Ноль ошибок обязателен.
@@ -85,13 +83,13 @@ npx tsc --noEmit
 
 ```bash
 # Авто-фикс (безопасные правки)
-npm run lint:fix
+task lint:fix
 
 # Финальная проверка
-npm run lint
+task lint
 
 # Мёртвые экспорты (перед крупным рефактором)
-npm run knip
+task knip
 ```
 
 ---
@@ -154,7 +152,7 @@ npm run knip
 |---|---|
 | Тест упал из-за `Permission not found` | Создать Permission в `setUp()` через `Permission::firstOrCreate(...)` |
 | PHPStan падает только на CI, не локально | Проверить версию PHP (`php:8.5-cli`), запустить `task shell` и повторить |
-| Pint изменил файл который не трогал | Закоммить изменение — оно корректно, стиль был нарушен |
+| Rector предлагает изменение вне scope | Не применять автоматически; ограничить пути или исправить вручную |
 | Новый gateway — нет env в `.env.example` | Добавить перед коммитом, иначе деплой сломается |
 | Забыл запустить `proxies:sync` | Добавить в раздел "Миграции" MR description — DevOps запустит на стейдже |
 | Тест для нового эндпоинта не написан | Написать Feature-тест в `tests/Feature/<Module>/Http/` по образцу `UserGroupsControllerTest` |

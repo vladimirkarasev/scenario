@@ -1,22 +1,24 @@
-import {computed, ref} from 'vue'
+import {computed, ref, toRef} from 'vue'
 import {proxyConnectionRepository} from '@/modules/proxy/repositories/proxyConnectionRepository'
 import type {CredentialType, ProxyConnection} from '@/modules/proxy/types/connection'
 import type {WebhookField} from '@/modules/proxy/types/webhook'
 import {useFormToast} from '@/composables/useFormToast'
-import {HttpValidationError} from '@/lib/http'
+import {useZodForm} from '@/composables/useZodForm'
+import {connectionSchema} from '@/modules/proxy/schemas/connectionSchema'
 
 export function useConnectionModal(onSaved: () => void) {
     const open = ref(false)
     const editingId = ref<number | null>(null)
-    const saving = ref(false)
-    const formError = ref('')
-    const errors = ref<Record<string, string>>({})
-
     const types = ref<CredentialType[]>([])
-    const name = ref('')
-    const credentialType = ref('')
-    const values = ref<Record<string, unknown>>({})
     const secretFilled = ref<Record<string, boolean>>({})
+    const {formData: form, errors, formError, submitting: saving, submit, reset} = useZodForm(connectionSchema, {
+        name: '',
+        credential_type: '',
+        values: {},
+    })
+    const name = toRef(form, 'name')
+    const credentialType = toRef(form, 'credential_type')
+    const values = toRef(form, 'values')
 
     const isEditing = computed(() => editingId.value !== null)
     const currentFields = computed<WebhookField[]>(
@@ -49,23 +51,19 @@ export function useConnectionModal(onSaved: () => void) {
 
     function openCreate(): void {
         editingId.value = null
-        name.value = ''
-        credentialType.value = types.value[0]?.type ?? ''
-        values.value = {}
+        reset({name: '', credential_type: types.value[0]?.type ?? '', values: {}})
         secretFilled.value = {}
-        errors.value = {}
-        formError.value = ''
         open.value = true
     }
 
     function openEdit(connection: ProxyConnection): void {
         editingId.value = connection.id
-        name.value = connection.name
-        credentialType.value = connection.credential_type
-        values.value = {...connection.config}
+        reset({
+            name: connection.name,
+            credential_type: connection.credential_type,
+            values: {...connection.config},
+        })
         secretFilled.value = {...connection.secret_filled}
-        errors.value = {}
-        formError.value = ''
         open.value = true
     }
 
@@ -75,38 +73,20 @@ export function useConnectionModal(onSaved: () => void) {
     }
 
     async function save(): Promise<void> {
-        errors.value = {}
-        formError.value = ''
-        if (!name.value.trim()) {
-            errors.value.name = 'Название обязательно'
-            return
-        }
-        saving.value = true
         try {
-            const payload = {
-                name: name.value.trim(),
-                credential_type: credentialType.value,
-                values: values.value,
-            }
-            if (editingId.value !== null) {
-                await proxyConnectionRepository.update(editingId.value, payload)
-            } else {
-                await proxyConnectionRepository.create(payload)
-            }
-            formToast.saved(editingId.value !== null)
+            const isUpdate = editingId.value !== null
+            await submit(async (payload) => {
+                if (editingId.value !== null) {
+                    await proxyConnectionRepository.update(editingId.value, payload)
+                } else {
+                    await proxyConnectionRepository.create(payload)
+                }
+            })
+            formToast.saved(isUpdate)
             close()
             onSaved()
-        } catch (e: unknown) {
-            if (e instanceof HttpValidationError) {
-                errors.value = Object.fromEntries(
-                    Object.entries(e.errors).map(([key, msgs]) => [key, msgs[0] ?? '']),
-                )
-                formError.value = e.message
-            } else {
-                formError.value = e instanceof Error ? e.message : 'Не удалось сохранить доступ.'
-            }
-        } finally {
-            saving.value = false
+        } catch {
+            return
         }
     }
 

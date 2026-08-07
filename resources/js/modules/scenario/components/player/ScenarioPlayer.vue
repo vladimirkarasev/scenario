@@ -173,7 +173,7 @@ const activeDraftKey = computed(() => {
         <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
           <CheckCircle2 class="size-5 text-emerald-600"/>
         </div>
-        <h2 class="text-[15px] font-semibold tracking-[-0.01em] text-slate-900">
+        <h2 v-if="!asEnd(rendered)?.hideTitle" class="text-[15px] font-semibold tracking-[-0.01em] text-slate-900">
           {{ asEnd(rendered)?.title ?? 'Все шаги успешно пройдены' }}
         </h2>
         <TiptapTextRenderer
@@ -210,6 +210,7 @@ const activeDraftKey = computed(() => {
     <BlockRenderer
         v-if="rendered && (rendered as Record<string, unknown>).type === 'block' && !completed && !failed"
         :title="asBlock(rendered).title"
+        :hide-title="asBlock(rendered).hideTitle"
         :blocks="asBlock(rendered).blocks"
         :layout-document="asBlock(rendered).layoutDocument"
         :context="context"
@@ -224,6 +225,8 @@ const activeDraftKey = computed(() => {
     <ConditionRenderer
         v-if="rendered && (rendered as Record<string, unknown>).type === 'condition' && !completed && !failed"
         :question="asCondition(rendered).question"
+        :hide-title="asCondition(rendered).hideTitle"
+        :content="asCondition(rendered).content"
         :options="asCondition(rendered).options"
         :loading="loading"
         @select="(targetNodeId: string) => handleContinue({}, targetNodeId)"
@@ -233,6 +236,7 @@ const activeDraftKey = computed(() => {
     <ActionPipeline
         v-if="rendered && (rendered as Record<string, unknown>).type === 'action' && !completed && !failed"
         :title="String(asAction(rendered).data?.title || 'Выполнение действий')"
+        :hide-title="Boolean(asAction(rendered).data?.hideTitle ?? true)"
         :stages="asAction(rendered).stages ?? []"
         :statuses="actionStages"
         :failed="pipelineFailed || Boolean(asAction(rendered).failed)"

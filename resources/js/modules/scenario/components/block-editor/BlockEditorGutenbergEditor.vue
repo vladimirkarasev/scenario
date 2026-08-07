@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {onBeforeUnmount, toRef, watch} from 'vue'
+import type {Editor} from '@tiptap/core'
 import {useEditor} from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
-import Placeholder from '@tiptap/extension-placeholder'
 import Color from '@tiptap/extension-color'
 import {Table} from '@tiptap/extension-table'
 import {TableRow} from '@tiptap/extension-table-row'
@@ -15,7 +15,13 @@ import {TableCell} from '@tiptap/extension-table-cell'
 import {FontSize} from '@/lib/tiptap-font-size'
 import {Details} from '@/lib/tiptap-details'
 import {ScenarioField} from '@/lib/tiptap-scenario-field'
-import {computeFieldInsertPosition, insertBeforeTrailingEmptyParagraph} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
+import {
+  buildScenarioFieldNode,
+  computeFieldInsertPosition,
+  insertBeforeTrailingEmptyParagraph,
+  syncScenarioFieldPresentations,
+  type TiptapJsonNode,
+} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
 import {useTiptapFormatting} from '@/modules/scenario/composables/useTiptapFormatting'
 import {useTiptapLinkDialog} from '@/modules/scenario/composables/useTiptapLinkDialog'
 import TiptapFormattingToolbar from '@/modules/scenario/components/tiptap/TiptapFormattingToolbar.vue'
@@ -41,29 +47,10 @@ const emit = defineEmits<{
   'reorder-fields': [orderedIds: string[]]
 }>()
 
-type TiptapDoc = { type: 'doc'; content: Record<string, unknown>[] }
+type TiptapDoc = { type: 'doc'; content: TiptapJsonNode[] }
 
 function isTiptapDoc(value: unknown): value is TiptapDoc {
   return Boolean(value && typeof value === 'object' && (value as {type?: string}).type === 'doc')
-}
-
-function fieldNode(field: BlockField): Record<string, unknown> {
-  const marks: Record<string, unknown>[] = []
-  if (field.labelFontSize || field.labelColor) {
-    marks.push({
-      type: 'textStyle',
-      attrs: {fontSize: field.labelFontSize ?? null, color: field.labelColor ?? null},
-    })
-  }
-  if (field.labelHighlight) {
-    marks.push({type: 'highlight', attrs: {color: field.labelHighlight}})
-  }
-
-  return {
-    type: 'scenarioField',
-    attrs: {fieldId: field.id},
-    content: field.label ? [{type: 'text', text: field.label, ...(marks.length ? {marks} : {})}] : [],
-  }
 }
 
 function docFieldIds(doc: TiptapDoc): string[] {
@@ -80,15 +67,15 @@ interface LabelInfo {
   highlight: string | null
 }
 
-function fieldNodeLabelInfo(node: Record<string, unknown>): LabelInfo {
-  const content = Array.isArray(node.content) ? node.content as Record<string, unknown>[] : []
+function fieldNodeLabelInfo(node: TiptapJsonNode): LabelInfo {
+  const content = Array.isArray(node.content) ? node.content as TiptapJsonNode[] : []
   const info: LabelInfo = {text: '', fontSize: null, color: null, highlight: null}
 
   for (const n of content) {
     if (n.type !== 'text') continue
     info.text += String(n.text ?? '')
 
-    const marks = Array.isArray(n.marks) ? n.marks as Record<string, unknown>[] : []
+    const marks = Array.isArray(n.marks) ? n.marks as TiptapJsonNode[] : []
 
     if (info.fontSize === null) {
       const value = (marks.find((m) => m.type === 'textStyle')?.attrs as Record<string, unknown> | undefined)?.fontSize
@@ -114,23 +101,59 @@ function arraysEqual(a: string[], b: string[]): boolean {
 }
 
 function buildInitialContent(): TiptapDoc {
-  const base: TiptapDoc = isTiptapDoc(props.modelValue)
+  let base: TiptapDoc = isTiptapDoc(props.modelValue)
       ? {type: 'doc', content: [...props.modelValue.content]}
-      : {type: 'doc', content: [...props.fields.map(fieldNode), {type: 'paragraph'}]}
+      : {type: 'doc', content: [...props.fields.map(buildScenarioFieldNode), {type: 'paragraph'}]}
 
   const present = new Set(docFieldIds(base))
   const missing = props.fields.filter((f) => !present.has(f.id))
   if (missing.length) {
-    base.content = insertBeforeTrailingEmptyParagraph(base.content, missing.map(fieldNode))
+    base.content = insertBeforeTrailingEmptyParagraph(base.content, missing.map(buildScenarioFieldNode))
   }
   if (!base.content.length) {
     base.content = [{type: 'paragraph'}]
   }
 
+  // layoutDocument может отстать от field.label (например, если он менялся через
+  // диалог настроек поля, пока этот редактор был размонтирован на вкладке
+  // "Предпросмотр") — досинхронизируем лейблы на старте, а не доверяем сохранённому JSON.
+  base = syncScenarioFieldPresentations(base, props.fields) as TiptapDoc
+
   return base
 }
 
 let hasFocusedOnce = false
+
+function emitEditorState(nextEditor: Editor): void {
+  const json = nextEditor.getJSON() as TiptapDoc
+  const fieldNodes = json.content.filter((node) => node.type === 'scenarioField')
+  emit('update:modelValue', json)
+
+  fieldNodes.forEach((node) => {
+    const id = String((node.attrs as {fieldId?: string} | undefined)?.fieldId ?? '')
+    const currentField = props.fields.find((field) => field.id === id)
+    if (!currentField) return
+
+    const info = fieldNodeLabelInfo(node)
+    const labelFontSize = info.fontSize ?? undefined
+    const labelColor = info.color ?? undefined
+    const labelHighlight = info.highlight ?? undefined
+    const patch: Partial<BlockField> = {}
+    if (info.text !== currentField.label) patch.label = info.text
+    if (labelFontSize !== currentField.labelFontSize) patch.labelFontSize = labelFontSize
+    if (labelColor !== currentField.labelColor) patch.labelColor = labelColor
+    if (labelHighlight !== currentField.labelHighlight) patch.labelHighlight = labelHighlight
+    if (Object.keys(patch).length) emit('update-field', id, patch)
+  })
+
+  const nextOrder = fieldNodes
+      .map((node) => String((node.attrs as {fieldId?: string} | undefined)?.fieldId ?? ''))
+      .filter(Boolean)
+  const currentOrder = props.fields.map((field) => field.id).filter((id) => nextOrder.includes(id))
+  if (nextOrder.length === currentOrder.length && !arraysEqual(nextOrder, currentOrder)) {
+    emit('reorder-fields', nextOrder)
+  }
+}
 
 const editor = useEditor({
   content: buildInitialContent(),
@@ -149,7 +172,6 @@ const editor = useEditor({
     }),
     Highlight.configure({multicolor: true}),
     TextAlign.configure({types: ['heading', 'paragraph']}),
-    Placeholder.configure({placeholder: 'Заголовок, описание шага... добавляй поля из панели слева'}),
     FontSize,
     Color,
     Details,
@@ -175,37 +197,7 @@ const editor = useEditor({
   onFocus: () => {
     hasFocusedOnce = true
   },
-  onUpdate: ({editor: nextEditor}) => {
-    const json = nextEditor.getJSON() as TiptapDoc
-    emit('update:modelValue', json)
-
-    const fieldNodes = json.content.filter((node) => node.type === 'scenarioField')
-
-    fieldNodes.forEach((node) => {
-      const id = String((node.attrs as {fieldId?: string} | undefined)?.fieldId ?? '')
-      const currentField = props.fields.find((f) => f.id === id)
-      if (!currentField) return
-
-      const info = fieldNodeLabelInfo(node)
-      const labelFontSize = info.fontSize ?? undefined
-      const labelColor = info.color ?? undefined
-      const labelHighlight = info.highlight ?? undefined
-      const patch: Partial<BlockField> = {}
-      if (info.text !== currentField.label) patch.label = info.text
-      if (labelFontSize !== currentField.labelFontSize) patch.labelFontSize = labelFontSize
-      if (labelColor !== currentField.labelColor) patch.labelColor = labelColor
-      if (labelHighlight !== currentField.labelHighlight) patch.labelHighlight = labelHighlight
-      if (Object.keys(patch).length) emit('update-field', id, patch)
-    })
-
-    const nextOrder = fieldNodes
-        .map((node) => String((node.attrs as {fieldId?: string} | undefined)?.fieldId ?? ''))
-        .filter(Boolean)
-    const currentOrder = props.fields.map((f) => f.id).filter((id) => nextOrder.includes(id))
-    if (nextOrder.length === currentOrder.length && !arraysEqual(nextOrder, currentOrder)) {
-      emit('reorder-fields', nextOrder)
-    }
-  },
+  onUpdate: ({editor: nextEditor}) => emitEditorState(nextEditor),
 })
 
 const pendingInsertPositions = new Map<string, number>()
@@ -228,7 +220,25 @@ function assignReservedPosition(fieldId: string, pos: number): void {
   pendingInsertPositions.set(fieldId, pos)
 }
 
-defineExpose({reserveInsertPosition, assignReservedPosition})
+function updateFieldPresentation(field: BlockField): void {
+  if (!editor.value) return
+
+  const currentDocument = editor.value.getJSON() as TiptapDoc
+  const nextDocument = syncScenarioFieldPresentations(currentDocument, [field])
+
+  if (nextDocument === currentDocument) return
+
+  editor.value.commands.setContent(nextDocument, {emitUpdate: true})
+}
+
+function flushChanges(): void {
+  if (!editor.value) return
+
+  editor.value.commands.blur()
+  emitEditorState(editor.value)
+}
+
+defineExpose({reserveInsertPosition, assignReservedPosition, updateFieldPresentation, flushChanges})
 
 watch(
     () => props.fields.map((f) => f.id).join(','),
@@ -250,7 +260,7 @@ watch(
               : null,
         })
 
-        editor.value!.chain().insertContentAt(insertPos, fieldNode(f)).run()
+        editor.value!.chain().insertContentAt(insertPos, buildScenarioFieldNode(f)).run()
       })
     },
 )

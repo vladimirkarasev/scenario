@@ -1,4 +1,5 @@
 import {duplicateBlockFieldIds, normalizeScenarioBlockField, type BlockField} from '@/modules/scenario/lib/scenario-block-fields'
+import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
 
 export type NodeType = 'start' | 'block' | 'action' | 'condition' | 'end' | 'scenario_link'
 
@@ -9,10 +10,13 @@ export interface ConditionBranch {
 
 export interface ScenarioBlockData {
     title: string
+    hideTitle: boolean
     variable: string
     skipInSurvey: boolean
     text: string
     fields: BlockField[]
+    layoutDocument?: unknown
+    content?: unknown
     targetScenarioId: string | null
     targetVersionId: string | null
     description: string
@@ -74,6 +78,7 @@ function defaultNodeData(type: string): ScenarioBlockData {
     const byType: Record<string, ScenarioBlockData> = {
         start: {
             title: 'Начало',
+            hideTitle: true,
             variable: '',
             skipInSurvey: false,
             text: '',
@@ -85,10 +90,12 @@ function defaultNodeData(type: string): ScenarioBlockData {
         },
         condition: {
             title: 'Условие',
+            hideTitle: true,
             variable: '',
             skipInSurvey: false,
             text: '',
             fields: [],
+            content: null,
             targetScenarioId: null,
             targetVersionId: null,
             description: '',
@@ -96,6 +103,7 @@ function defaultNodeData(type: string): ScenarioBlockData {
         },
         block: {
             title: 'Блок',
+            hideTitle: true,
             variable: 'Block',
             skipInSurvey: false,
             text: '',
@@ -107,6 +115,7 @@ function defaultNodeData(type: string): ScenarioBlockData {
         },
         action: {
             title: 'Действие',
+            hideTitle: true,
             variable: '',
             skipInSurvey: false,
             text: '',
@@ -126,17 +135,19 @@ function defaultNodeData(type: string): ScenarioBlockData {
         },
         end: {
             title: 'Конец',
+            hideTitle: true,
             variable: '',
             skipInSurvey: false,
             text: '',
             fields: [],
             targetScenarioId: null,
             targetVersionId: null,
-            description: '<h3>Опрос завершен</h3> <p>Опрос успешно пройден #{{ run.number_formatted }} от {{ run.completed_at }}</p>',
+            description: `<h3>Опрос завершен</h3> <p>Опрос успешно пройден #{{ ${ScenarioContextKey.Run}.number_formatted }} от {{ ${ScenarioContextKey.Run}.completed_at }}</p>`,
             conditionBranches: []
         },
         scenario_link: {
             title: 'Переход',
+            hideTitle: true,
             variable: '',
             skipInSurvey: false,
             text: '',
@@ -176,6 +187,7 @@ function normalizeBlock(block: unknown, index: number): ScenarioBlock {
         data: {
             ...defaultData,
             ...rawData,
+            hideTitle: Boolean(rawData.hideTitle ?? true),
             variable: String(rawData.variable ?? (type === 'block' ? (rawData.title ?? defaultData.title) : '')),
             skipInSurvey: Boolean(rawData.skipInSurvey ?? false),
             fields: Array.isArray(rawData.fields)
@@ -314,7 +326,7 @@ export function toVueFlowState(document: unknown, scenarios: Scenario[] = []) {
                 sourceHandle: connection.source.port,
                 target: connection.target.blockId,
                 targetHandle: connection.target.port,
-                label: connection.label,
+                label: connection.label ?? undefined,
                 data: connection.data,
                 type: 'smoothstep',
             })),
@@ -323,27 +335,35 @@ export function toVueFlowState(document: unknown, scenarios: Scenario[] = []) {
 }
 
 export function fromVueFlowState({nodes, edges, viewport}: {
-    nodes: Array<Record<string, unknown>>
-    edges: Array<Record<string, unknown>>
+    nodes: unknown[]
+    edges: unknown[]
     viewport: Viewport
 }): ScenarioFlowDocument {
     return normalizeScenarioFlowDocument({
         format: SCHEMA_FORMAT,
         version: SCHEMA_VERSION,
         viewport,
-        blocks: nodes.map((node) => ({
-            id: node.id,
-            type: node.type,
-            position: node.position,
-            data: {...defaultNodeData(String(node.type)), ...asRecord(node.data), targetScenarioName: undefined},
-        })),
-        connections: edges.map((edge) => ({
-            id: edge.id,
-            source: {blockId: edge.source, port: edge.sourceHandle ?? null},
-            target: {blockId: edge.target, port: edge.targetHandle ?? null},
-            label: edge.label ?? null,
-            data: edge.data ?? {},
-        })),
+        blocks: nodes.map((value) => {
+            const node = asRecord(value)
+
+            return {
+                id: node.id,
+                type: node.type,
+                position: node.position,
+                data: {...defaultNodeData(String(node.type)), ...asRecord(node.data), targetScenarioName: undefined},
+            }
+        }),
+        connections: edges.map((value) => {
+            const edge = asRecord(value)
+
+            return {
+                id: edge.id,
+                source: {blockId: edge.source, port: edge.sourceHandle ?? null},
+                target: {blockId: edge.target, port: edge.targetHandle ?? null},
+                label: edge.label ?? null,
+                data: edge.data ?? {},
+            }
+        }),
     })
 }
 

@@ -1,261 +1,178 @@
 <script setup lang="ts">
 import AppShell from '@/layouts/AppShell.vue'
-import ScenarioFlowEditor from '@/modules/scenario/components/flow/ScenarioFlowEditor.vue'
-import VersionSettingsTab from './version-editor/VersionSettingsTab.vue'
-import VersionHistoryTab from './version-editor/VersionHistoryTab.vue'
+import ScenarioVersionTabs from '@/modules/scenario/components/ScenarioVersionTabs.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
-import {type ScenarioFlowDocument} from '@/modules/scenario/lib/scenario-flow-document'
+import type {ScenarioFlowDocument} from '@/modules/scenario/lib/scenario-flow-document'
+import type {ScenarioFlowEditorExpose} from '@/modules/scenario/types/scenario-flow-editor'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
 import {scenarioVersionRepository} from '@/modules/scenario/repositories/scenarioVersionRepository'
-import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
-import {Head, Link, router} from '@inertiajs/vue3'
+import {Head, router} from '@inertiajs/vue3'
 import {usePlayScenario} from '@/modules/scenario/composables/usePlayScenario'
-import {AlertTriangle, ArrowLeft, Copy, Loader2, Play, Save} from 'lucide-vue-next'
-import {computed, onMounted, ref} from 'vue'
+import {AlertTriangle, Copy, Loader2, Play, Save} from 'lucide-vue-next'
+import {computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref} from 'vue'
 import {toast} from 'vue-sonner'
-import {useZodForm} from '@/composables/useZodForm'
-import {scenarioVersionSchema} from '@/modules/scenario/schemas/scenarioSchema'
 
-const props = defineProps<{ scenarioId: string; versionId: string }>()
-
+const props = defineProps<{scenarioId: string; versionId: string}>()
+const ScenarioFlowEditor = defineAsyncComponent(
+    () => import('@/modules/scenario/components/flow/ScenarioFlowEditor.vue'),
+)
 const {navigationItems} = useDashboardNavigation()
-
-type VersionStatus = 'active' | 'draft' | 'archived'
-
 const {launching: playLaunching, launch: launchVersion} = usePlayScenario()
 
+const editorRef = ref<ScenarioFlowEditorExpose | null>(null)
 const loading = ref(true)
+const loadingError = ref<string | null>(null)
+const saving = ref(false)
 const duplicating = ref(false)
-const activeTab = ref<'editor' | 'settings' | 'history'>('editor')
-
-const editorTabs = computed<{ id: 'editor' | 'settings' | 'history'; label: string; count?: number }[]>(() => [
-  {id: 'editor', label: 'Редактор'},
-  {id: 'settings', label: 'Настройки'},
-  {id: 'history', label: 'История', count: revisions.value.length},
-])
+const dirty = ref(false)
 const scenarioName = ref('')
-const revisions = ref<{ id: string; created_at: string | null }[]>([])
-const versionCreatedAt = ref<string | null>(null)
-const versionUpdatedAt = ref<string | null>(null)
+const versionName = ref('')
+const versionStatus = ref<'active' | 'draft' | 'archived'>('draft')
 const versionDocument = ref<ScenarioFlowDocument>({
   format: 'scenario-flow',
   version: 1,
   viewport: {x: 0, y: 0, zoom: 1},
   blocks: [],
-  connections: []
+  connections: [],
 })
-const noScenarios = [] as { id: string; name: string }[]
+const noScenarios: {id: string; name: string}[] = []
 
-const {formData: form, errors, formError: saveError, submitting: saving, submit, reset} =
-    useZodForm(scenarioVersionSchema, {
-      name: '',
-      status: 'draft' as VersionStatus,
-    })
+const startBlockMissing = computed(() => !versionDocument.value.blocks.some((block) => block.type === 'start'))
+const startHasNoOutgoingEdge = computed(() => {
+  const start = versionDocument.value.blocks.find((block) => block.type === 'start')
+  return start ? !versionDocument.value.connections.some((connection) => connection.source.blockId === start.id) : false
+})
 
-const VERSION_STATUS_CONFIG: Record<VersionStatus, { label: string; dot: string; text: string; ring: string }> = {
-  active: {label: 'Активная', dot: 'bg-emerald-500', text: 'text-emerald-700', ring: 'ring-emerald-200'},
-  draft: {label: 'Черновик', dot: 'bg-amber-400', text: 'text-amber-700', ring: 'ring-amber-200'},
-  archived: {label: 'Архив', dot: 'bg-slate-400', text: 'text-slate-500', ring: 'ring-slate-200'},
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+  if (!dirty.value) return
+  event.preventDefault()
 }
 
+const removeNavigationGuard = router.on('before', (event) => {
+  if (dirty.value && !window.confirm('Есть несохранённые изменения. Покинуть страницу?')) {
+    event.preventDefault()
+  }
+})
+
 onMounted(async () => {
-  loading.value = true
+  window.addEventListener('beforeunload', handleBeforeUnload)
   try {
     const [scenario, version] = await Promise.all([
       scenarioRepository.find(props.scenarioId),
-      scenarioVersionRepository.find(props.scenarioId, props.versionId),
+      scenarioVersionRepository.editor(props.scenarioId, props.versionId),
     ])
     scenarioName.value = scenario.name
-    reset({
-      name: version.name ?? '',
-      status: (version.status as VersionStatus) ?? 'draft',
-    })
-    revisions.value = version.revisions
-    versionCreatedAt.value = version.created_at
-    versionUpdatedAt.value = version.updated_at
-
-    const doc = version.schema_json
-    if (doc && typeof doc === 'object' && ('blocks' in doc || 'nodes' in doc)) {
-      versionDocument.value = doc as unknown as ScenarioFlowDocument
+    versionName.value = version.name ?? ''
+    versionStatus.value = version.status
+    const document = version.schema_json
+    if (document && typeof document === 'object' && ('blocks' in document || 'nodes' in document)) {
+      versionDocument.value = document as unknown as ScenarioFlowDocument
     }
+  } catch (error: unknown) {
+    loadingError.value = error instanceof Error ? error.message : 'Не удалось загрузить редактор версии.'
   } finally {
     loading.value = false
   }
 })
 
-const startBlockMissing = computed(
-    () => !versionDocument.value.blocks.some((b) => b.type === 'start'),
-)
-const startHasNoOutgoingEdge = computed(() => {
-  const start = versionDocument.value.blocks.find((b) => b.type === 'start')
-  if (!start) return false
-  return !versionDocument.value.connections.some((c) => c.source.blockId === start.id)
+onBeforeUnmount(() => {
+  removeNavigationGuard()
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
-function fmtDate(iso: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'})
-}
-
-function fmtDateTime(iso: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('ru-RU', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'})
-}
-
-async function save() {
+async function save(): Promise<void> {
+  const document = editorRef.value?.getDocument() ?? versionDocument.value
+  saving.value = true
   try {
-    await submit(async (data) => {
-      const updated = await scenarioVersionRepository.update(props.scenarioId, props.versionId, {
-        name: data.name || null,
-        status: data.status,
-        schema_json: versionDocument.value as unknown as Record<string, unknown>,
-      })
-      reset({
-        name: updated.name ?? '',
-        status: (updated.status as VersionStatus) ?? 'draft',
-      })
-      revisions.value = updated.revisions
+    const updated = await scenarioVersionRepository.update(props.scenarioId, props.versionId, {
+      name: versionName.value || null,
+      status: versionStatus.value,
+      schema_json: document as unknown as Record<string, unknown>,
     })
+    versionDocument.value = document
+    versionName.value = updated.name ?? ''
+    versionStatus.value = updated.status
+    editorRef.value?.markSaved()
+    dirty.value = false
     toast.success('Версия сохранена')
-  } catch (e: unknown) {
-    toast.error(e instanceof Error ? e.message : 'Ошибка сохранения')
+  } catch (error: unknown) {
+    toast.error(error instanceof Error ? error.message : 'Ошибка сохранения версии')
+  } finally {
+    saving.value = false
   }
 }
 
-async function duplicate() {
-  if (!window.confirm('Дублировать эту версию?')) return
+async function duplicate(): Promise<void> {
+  if (!window.confirm('Дублировать сохранённую версию? Несохранённые изменения не попадут в копию.')) return
   duplicating.value = true
   try {
     const copy = await scenarioVersionRepository.duplicate(props.scenarioId, props.versionId)
     toast.success('Версия дублирована')
+    dirty.value = false
     router.visit(route('scenario-versions.edit', copy.id))
-  } catch (e: unknown) {
-    toast.error(e instanceof Error ? e.message : 'Ошибка дублирования')
+  } catch (error: unknown) {
+    toast.error(error instanceof Error ? error.message : 'Ошибка дублирования')
   } finally {
     duplicating.value = false
   }
 }
-
 </script>
 
 <template>
-  <Head :title="form.name || 'Версия сценария'"/>
-
+  <Head :title="versionName || 'Версия сценария'" />
   <AppShell
-      :title="form.name"
+      :title="versionName || scenarioName || 'Версия сценария'"
       description="Редактирование версии сценария"
       :navigation-items="navigationItems"
       flush
   >
-    <!-- Loading -->
-    <div v-if="loading" class="flex h-full w-full flex-1 items-center justify-center text-muted-foreground">
-      <Loader2 class="mr-3 size-6 animate-spin"/>
-      Загрузка…
+    <div v-if="loading" class="flex h-full w-full items-center justify-center text-muted-foreground">
+      <Loader2 class="mr-3 size-6 animate-spin" /> Загрузка…
     </div>
-
-    <div v-else class="flex h-full w-full flex-col">
-
-      <!-- Save error -->
-      <div
-          v-if="saveError"
-          class="shrink-0 rounded-none border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive"
-      >
-        {{ saveError }}
-      </div>
-
-      <!-- Graph warning: старт без исходящих рёбер -->
+    <div v-else-if="loadingError" class="flex h-full w-full items-center justify-center p-6 text-sm text-destructive">
+      {{ loadingError }}
+    </div>
+    <div v-else class="flex h-full min-h-0 w-full flex-col">
       <div
           v-if="startBlockMissing || startHasNoOutgoingEdge"
-          class="flex shrink-0 items-center gap-2 rounded-none border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-800"
+          class="flex shrink-0 items-center gap-2 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-sm text-amber-800"
       >
-        <AlertTriangle class="size-4 shrink-0"/>
-        <span v-if="startBlockMissing">В графе нет стартового блока «Начало» — сценарий не сможет запуститься.</span>
-        <span v-else>Стартовый блок «Начало» не соединён: у графа нет рёбер от старта, поэтому прогон завершится сразу после запуска.</span>
+        <AlertTriangle class="size-4 shrink-0" />
+        <span v-if="startBlockMissing">В графе нет стартового блока «Начало».</span>
+        <span v-else>Стартовый блок не соединён — прогон завершится сразу после запуска.</span>
       </div>
 
-      <!-- ── Tab bar ──────────────────────────────────────────────── -->
-      <div class="flex h-12 shrink-0 items-center gap-1 border-b border-border/60 bg-background px-5">
-        <Link
-            class="text-slate-400 hover:text-slate-700 relative inline-flex h-12 items-center gap-2 px-3.5 text-sm font-medium transition"
-            :href="route('scenarios.edit', props.scenarioId)">
-          Сценарий
-        </Link>
-        <button
-            v-for="tab in editorTabs"
-            :key="tab.id"
-            type="button"
-            class="relative inline-flex h-12 items-center gap-2 px-3.5 text-sm font-medium transition"
-            :class="activeTab === tab.id ? 'text-foreground' : 'text-slate-400 hover:text-slate-700'"
-            @click="activeTab = tab.id"
-        >
-          {{ tab.label }}
-          <span
-              v-if="tab.count !== undefined"
-              class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-slate-500"
-          >{{ tab.count }}</span>
-          <span
-              v-if="activeTab === tab.id"
-              class="absolute inset-x-2.5 bottom-0 h-0.5 rounded-full bg-blue-600"
-          />
-        </button>
-        <div class="flex-1"/>
-
+      <ScenarioVersionTabs active="editor" :scenario-id="scenarioId" :version-id="versionId">
+        <div class="flex-1" />
+        <span v-if="dirty" class="mr-2 text-xs font-medium text-amber-600">Есть несохранённые изменения</span>
         <Button variant="outline" class="h-9 gap-2 rounded-xl" :disabled="duplicating" @click="duplicate">
-          <Copy class="size-4"/>
-          {{ duplicating ? '…' : 'Дублировать' }}
+          <Copy class="size-4" /> {{ duplicating ? '…' : 'Дублировать' }}
         </Button>
-
         <Button
             variant="outline"
             class="h-9 gap-2 rounded-xl"
             :disabled="playLaunching"
-            @click="launchVersion({ versionId: props.versionId })"
+            @click="launchVersion({versionId})"
         >
-          <Play class="size-4"/>
-          {{ playLaunching ? '...' : 'Запустить' }}
+          <Play class="size-4" /> {{ playLaunching ? '...' : 'Запустить' }}
         </Button>
-
-        <Button class="h-9 gap-2 rounded-xl shadow-sm" :disabled="saving" @click="save">
-          <Save class="size-4"/>
-          {{ saving ? 'Сохраняем…' : 'Сохранить' }}
+        <Button class="mr-5 h-9 gap-2 rounded-xl shadow-sm" :disabled="saving" @click="save">
+          <Save class="size-4" /> {{ saving ? 'Сохраняем…' : 'Сохранить' }}
         </Button>
-      </div>
+      </ScenarioVersionTabs>
 
-      <!-- ── EDITOR TAB ───────────────────────────────────────────── -->
-      <div v-if="activeTab === 'editor'" class="flex min-h-0 flex-1">
+      <div class="flex min-h-0 flex-1">
         <ScenarioFlowEditor
-            v-model="versionDocument"
+            ref="editorRef"
+            :model-value="versionDocument"
             :scenarios="noScenarios"
             editable
-            :scenario-id="props.scenarioId"
-            :version-id="props.versionId"
+            :scenario-id="scenarioId"
+            :version-id="versionId"
             class="min-h-0 flex-1"
+            @dirty-change="dirty = $event"
         />
-      </div>
-
-      <!-- ── SETTINGS / HISTORY TABS ─────────────────────────────── -->
-      <div v-else class="flex-1 overflow-auto p-6">
-        <div class="mx-auto max-w-2xl space-y-4">
-          <VersionSettingsTab
-              v-if="activeTab === 'settings'"
-              :form="form"
-              :errors="errors"
-              :save-error="saveError"
-              :saving="saving"
-              :version-created-at="versionCreatedAt"
-              :version-updated-at="versionUpdatedAt"
-              :status-config="VERSION_STATUS_CONFIG"
-              :format-date="fmtDate"
-              @save="save"
-          />
-
-          <VersionHistoryTab
-              v-else-if="activeTab === 'history'"
-              :revisions="revisions"
-              :format-date-time="fmtDateTime"
-          />
-        </div>
       </div>
     </div>
   </AppShell>

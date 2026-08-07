@@ -202,7 +202,7 @@ export function blockFieldToSurveyBlock(field: BlockField): SurveyBlock {
     let block = buildSurveyBlock(field)
 
     if (block.props && 'label' in block.props) {
-        const labelStyle: Record<string, unknown> = {}
+        const labelStyle: Record<string, unknown> = {hideLabel: Boolean(field.hideLabel)}
         if (field.labelFontSize) labelStyle.labelFontSize = field.labelFontSize
         if (field.labelColor) labelStyle.labelColor = field.labelColor
         if (field.labelHighlight) labelStyle.labelHighlight = field.labelHighlight

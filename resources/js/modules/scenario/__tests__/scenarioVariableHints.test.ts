@@ -16,6 +16,11 @@ import {
     SYSTEM_VARIABLE_GROUPS,
     type VarLike,
 } from '@/modules/scenario/lib/scenario-variable-hints'
+import {
+    isReservedScenarioVariable,
+    isSystemVariable,
+    ScenarioContextKey,
+} from '@/modules/scenario/types/scenario-context-key'
 
 function variable(patch: Partial<VarLike> = {}): VarLike {
     return {
@@ -58,13 +63,15 @@ describe('scenario variable hints', () => {
     })
 
     it('строит ссылки на системные переменные', () => {
+        expect(SYSTEM_VARIABLE_GROUPS.every(item => item.name.startsWith('_'))).toBe(true)
+
         const group = SYSTEM_VARIABLE_GROUPS[0]
         const field = group.fields[0]
 
-        expect(systemGroupRef(group)).toBe('{{ run }}')
-        expect(systemFieldRef(group, field)).toBe('{{ run.id }}')
+        expect(systemGroupRef(group)).toBe('{{ _run }}')
+        expect(systemFieldRef(group, field)).toBe('{{ _run.id }}')
 
-        const callGroup = SYSTEM_VARIABLE_GROUPS.find(item => item.name === 'call')!
+        const callGroup = SYSTEM_VARIABLE_GROUPS.find(item => item.name === '_call')!
 
         expect(callGroup.fields.map(item => item.suffix)).toEqual([
             'incoming_phone',
@@ -72,6 +79,14 @@ describe('scenario variable hints', () => {
             'internal_phone',
             'id',
         ])
-        expect(systemFieldRef(callGroup, callGroup.fields[0])).toBe('{{ call.incoming_phone }}')
+        expect(systemFieldRef(callGroup, callGroup.fields[0])).toBe('{{ _call.incoming_phone }}')
+    })
+
+    it('отличает системные и зарезервированные имена', () => {
+        expect(Object.values(ScenarioContextKey).every(isSystemVariable)).toBe(true)
+        expect(isReservedScenarioVariable(ScenarioContextKey.Run)).toBe(true)
+        expect(isReservedScenarioVariable('_custom')).toBe(false)
+        expect(isSystemVariable('_custom')).toBe(true)
+        expect(isSystemVariable('varName')).toBe(false)
     })
 })

@@ -2,6 +2,7 @@ import {computed, ref} from 'vue'
 import {defineStore} from 'pinia'
 import {
     createScenarioBlockField,
+    instantiateScenarioBlockField,
     type BlockField,
     type BlockFieldType
 } from '@/modules/scenario/lib/scenario-block-fields'
@@ -134,7 +135,11 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         const others = fields.filter((f) => f.id !== excludeId)
         const taken = (v: string) => others.some((f) => f.varName === v)
         if (!taken(varName)) return varName
-        return `${varName}`
+
+        let suffix = 2
+        while (taken(`${varName}_${suffix}`)) suffix++
+
+        return `${varName}_${suffix}`
     }
 
     function createField(type: BlockFieldType): BlockField {
@@ -155,6 +160,24 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
             data: {
                 ...blockDraft.value.data,
                 fields: [...blockDraft.value.data.fields, newField],
+            },
+        }
+
+        return newField
+    }
+
+    function addFieldFromPreset(field: unknown): BlockField | null {
+        if (!blockDraft.value) return null
+
+        const existingFields = blockDraft.value.data.fields
+        const newField = instantiateScenarioBlockField(field, existingFields.length)
+        newField.varName = ensureUniqueVarName(newField.varName, existingFields)
+
+        blockDraft.value = {
+            ...blockDraft.value,
+            data: {
+                ...blockDraft.value.data,
+                fields: [...existingFields, newField],
             },
         }
 
@@ -244,6 +267,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
         updateBlockData: updateDraft,
         updateField,
         addField,
+        addFieldFromPreset,
         removeField,
         moveField,
         moveFieldToIndex,

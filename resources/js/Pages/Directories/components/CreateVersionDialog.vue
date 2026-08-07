@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props -- versCtx is a composable API whose refs are intentionally controlled by this dialog */
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'

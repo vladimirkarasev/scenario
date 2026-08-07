@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {FormCheckbox} from '@/components/form'
 import {Check, Copy, TriangleAlert} from 'lucide-vue-next'
 import type {BlockField} from '../../../lib/scenario-block-fields'
 
-type FieldNamePatch = Partial<Pick<BlockField, 'label' | 'name' | 'varName'>>
+type FieldNamePatch = Partial<Pick<BlockField, 'label' | 'hideLabel' | 'name' | 'varName'>>
 
 defineProps<{
   field: BlockField
@@ -20,13 +21,24 @@ defineOptions({inheritAttrs: false})
 </script>
 
 <template>
-  <div v-if="field.type !== 'hidden'" class="space-y-1.5">
-    <Label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Название</Label>
-    <Input
-        :model-value="field.label"
-        class="h-8 text-sm"
+  <div v-if="field.type !== 'hidden'" class="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+    <div class="space-y-1.5">
+      <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Название</Label>
+      <Input
+          :model-value="field.label"
+          class="h-8 text-sm"
+          :disabled="disabled || Boolean(field.hideLabel)"
+          @update:model-value="emit('update', { label: $event })"
+      />
+    </div>
+    <FormCheckbox
+        v-if="field.type !== 'collapse' && field.type !== 'rich_text'"
+        :model-value="Boolean(field.hideLabel)"
+        name="field-hide-label"
+        label="Скрыть название"
+        class="sm:mt-5 sm:min-w-44"
         :disabled="disabled"
-        @update:model-value="emit('update', { label: $event })"
+        @update:model-value="emit('update', { hideLabel: $event })"
     />
   </div>
 

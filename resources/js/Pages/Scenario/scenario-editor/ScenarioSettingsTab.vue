@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props -- form is shared editor state intentionally edited by this tab */
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
@@ -8,7 +9,7 @@ import {
 import {FormInput, FormRow, FormTagSearch, FormTextarea} from '@/components/form'
 import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {Check, GitBranch, Save, X} from 'lucide-vue-next'
-import type {ScenarioVersion} from '@/modules/scenario/repositories/scenarioVersionRepository'
+import type {ScenarioVersion} from '@/modules/scenario/types/scenario-version'
 import type {ScenarioCategory} from '@/modules/scenario/types/scenario'
 
 type ScenarioStatus = 'active' | 'draft' | 'archived'

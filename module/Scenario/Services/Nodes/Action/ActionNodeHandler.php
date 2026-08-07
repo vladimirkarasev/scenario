@@ -86,6 +86,7 @@ final readonly class ActionNodeHandler implements NodeHandlerInterface, Retryabl
     public function render(ScenarioVersion $version, array $node, array $context): array
     {
         $data = $this->nodeData($node);
+        $data['hideTitle'] = $this->boolField($data, 'hideTitle', true);
         $nodeId = $this->nodeId($node);
 
         $results = $this->pipeline->stageResults($context, $nodeId);

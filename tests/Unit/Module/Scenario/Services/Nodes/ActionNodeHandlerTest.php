@@ -92,6 +92,23 @@ final class ActionNodeHandlerTest extends TestCase
         $this->assertFalse($this->handler->isInteractive($node));
     }
 
+    public function test_render_hides_title_by_default_and_can_show_it(): void
+    {
+        $hidden = $this->handler->render(
+            $this->version,
+            ['id' => 'node_action', 'type' => 'action', 'data' => []],
+            [],
+        );
+        $visible = $this->handler->render(
+            $this->version,
+            ['id' => 'node_action', 'type' => 'action', 'data' => ['hideTitle' => false]],
+            [],
+        );
+
+        $this->assertTrue($hidden['data']['hideTitle']);
+        $this->assertFalse($visible['data']['hideTitle']);
+    }
+
     public function test_advance_dispatches_sequential_chain_for_action_items(): void
     {
         $node = [

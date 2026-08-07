@@ -9,6 +9,7 @@ export const fieldMeta = {type: 'directory_list', label: 'Список', icon: m
 import {computed, ref, watch} from 'vue'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 import {Input} from '@/components/ui/input'
+import {copyText} from '@/lib/clipboard'
 import {ChevronsUpDown, Copy, Check, X} from 'lucide-vue-next'
 import DirectoryPickerDialog from '@/modules/directories/components/DirectoryPickerDialog.vue'
 import DirectoryLabelTemplateField from '@/modules/directories/components/DirectoryLabelTemplateField.vue'
@@ -87,7 +88,7 @@ const copiedKey = ref<string | null>(null)
 async function copyVar(key: string): Promise<void> {
   const varName = props.field.varName
   if (!varName) return
-  await navigator.clipboard.writeText(`{{ ${varName}.${key} }}`)
+  if (!await copyText(`{{ ${varName}.${key} }}`)) return
   copiedKey.value = key
   setTimeout(() => {
     copiedKey.value = null

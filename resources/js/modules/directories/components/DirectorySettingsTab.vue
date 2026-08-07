@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props -- detail is a composable API whose reactive metadata is intentionally edited by this tab */
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card'

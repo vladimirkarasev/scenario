@@ -8,6 +8,7 @@ use App\Services\Expression\ExpressionService;
 use Module\Scenario\DTO\Variables\SelectVariableEntry;
 use Module\Scenario\DTO\Variables\VariableEntryFactory;
 use Module\Scenario\DTO\Variables\VariableEntryInterface;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Support\SelectShape;
 use Throwable;
 
@@ -22,6 +23,11 @@ final readonly class VariableResolver
     public function resolveValue(string $expression, array $context = []): mixed
     {
         return $this->expressionService->evaluate($expression, $this->prepareContext($context));
+    }
+
+    public function isExpression(string $value): bool
+    {
+        return $this->expressionService->isWrappedExpression($value);
     }
 
     /**
@@ -49,8 +55,8 @@ final readonly class VariableResolver
     {
         /** @var array<string, array<string, mixed>> $variableMap */
         $variableMap = is_array(
-            $context[RunContextKeys::VARIABLE_MAP] ?? null
-        ) ? $context[RunContextKeys::VARIABLE_MAP] : [];
+            $context[ScenarioContextKey::VariableMap->value] ?? null
+        ) ? $context[ScenarioContextKey::VariableMap->value] : [];
 
         return $this->injectFlatVariables($context, $variableMap);
     }

@@ -1,3 +1,5 @@
+import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
+
 export interface FlowPaletteItem {
     type: 'start' | 'block' | 'action' | 'condition' | 'end' | 'scenario_link'
     label: string
@@ -32,6 +34,7 @@ export interface FlowLogicalVariable {
 }
 
 export const LOGICAL_VARIABLES: FlowLogicalVariable[] = [
+    {id: 'condition_value', value: `{{ ${ScenarioContextKey.Condition}.value }}`},
     {id: 'logical_yes', value: 'Да'},
     {id: 'logical_no', value: 'Нет'},
     {id: 'logical_else', value: 'Иначе'},

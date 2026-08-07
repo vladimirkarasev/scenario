@@ -69,6 +69,11 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
                 parseHTML: (element) => element.getAttribute('data-field-id'),
                 renderHTML: (attrs) => ({'data-field-id': attrs.fieldId}),
             },
+            hideLabel: {
+                default: false,
+                parseHTML: (element) => element.getAttribute('data-hide-label') === 'true',
+                renderHTML: (attrs) => ({'data-hide-label': attrs.hideLabel ? 'true' : null}),
+            },
         }
     },
 
@@ -80,8 +85,12 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
         return ['div', mergeAttributes(HTMLAttributes, {'data-type': 'scenario-field'}), 0]
     },
 
+    /**
+     * selectedOnTextSelection: без него props.selected реагирует только на NodeSelection
+     * (весь узел целиком), а не на курсор внутри лейбла — см. TiptapScenarioFieldNodeView.vue.
+     */
     addNodeView() {
-        return VueNodeViewRenderer(TiptapScenarioFieldNodeView)
+        return VueNodeViewRenderer(TiptapScenarioFieldNodeView, {selectedOnTextSelection: true})
     },
 
     addKeyboardShortcuts() {

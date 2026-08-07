@@ -20,3 +20,9 @@ export interface RolePayload {
     description: string | null
     permissions: string[]
 }
+
+export interface RoleManagerEndpoints {
+    store: string
+    update: string
+    destroy: string
+}

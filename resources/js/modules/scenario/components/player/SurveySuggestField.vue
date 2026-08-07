@@ -4,7 +4,7 @@ import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {Input} from '@/components/ui/input'
 import {X, Loader2} from 'lucide-vue-next'
 import {suggestRepository} from '@/modules/scenario/repositories/suggestRepository'
-import {renderLabelTemplate} from '@/modules/scenario/lib/directory-template'
+import {useExpressionLabelBatch} from '@/modules/expression/composables/useExpressionLabelBatch'
 import type {SuggestFieldConfig} from '@/modules/scenario/lib/scenario-block-fields'
 
 type SuggestItem = Record<string, unknown>
@@ -35,10 +35,11 @@ const open = ref(false)
 const query = ref('')
 const items = ref<SuggestItem[]>([])
 const loading = ref(false)
+const expressionLabels = useExpressionLabelBatch()
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-function itemLabel(item: SuggestItem): string {
-  const rendered = props.labelTemplate ? renderLabelTemplate(props.labelTemplate, item, item) : ''
+function itemLabel(item: SuggestItem, index = 0): string {
+  const rendered = expressionLabels.label(itemKey(item, index))
   if (rendered) return rendered
   const firstKey = Object.keys(item)[0]
   return firstKey ? String(item[firstKey] ?? '') : ''
@@ -84,6 +85,25 @@ function itemKey(item: SuggestItem, index: number): string {
 watch(() => props.modelValue, (value) => {
   if (value) query.value = itemLabel(value)
 }, {immediate: true})
+
+watch([
+  () => props.labelTemplate,
+  () => props.modelValue,
+  items,
+], () => {
+  const sources = items.value.map((item, index) => ({id: itemKey(item, index), data: item}))
+  if (props.modelValue) {
+    const id = itemKey(props.modelValue, 0)
+    if (!sources.some((source) => source.id === id)) {
+      sources.push({id, data: props.modelValue})
+    }
+  }
+  void expressionLabels.load(props.labelTemplate, sources)
+}, {immediate: true, deep: true})
+
+watch(expressionLabels.labels, () => {
+  if (props.modelValue) query.value = itemLabel(props.modelValue)
+})
 
 async function loadItems(value: string): Promise<void> {
   if (!props.proxyUuid) return
@@ -187,7 +207,7 @@ function clear(): void {
             class="flex w-full items-center px-3 py-2 text-left text-sm text-foreground/80 transition hover:bg-accent"
             @click="select(item)"
         >
-          <span class="min-w-0 truncate">{{ itemLabel(item) }}</span>
+          <span class="min-w-0 truncate">{{ itemLabel(item, index) }}</span>
         </button>
       </div>
     </PopoverContent>

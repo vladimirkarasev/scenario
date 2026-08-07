@@ -10,6 +10,9 @@ import {type VarLike, implodeRef} from '@/modules/scenario/lib/scenario-variable
 const props = defineProps<{
   v: VarLike
   copiedId: string | null
+  expressionPreview: string
+  expressionPreviewLoading: boolean
+  expressionPreviewError: string | null
 }>()
 
 defineEmits<{ copy: [text: string, id: string] }>()
@@ -91,7 +94,11 @@ const filteredOptions = computed(() => {
           <Copy v-else class="size-3 shrink-0 text-slate-300"/>
         </div>
         <div class="truncate font-mono text-[10px] text-slate-400">{{ implodeRef(v) }}</div>
-        <div class="truncate text-[10px] text-slate-400">"Один, Два, Три"</div>
+        <div v-if="expressionPreviewLoading" class="truncate text-[10px] text-slate-400">Загрузка примера…</div>
+        <div v-else-if="expressionPreviewError" class="truncate text-[10px] text-destructive">
+          {{ expressionPreviewError }}
+        </div>
+        <div v-else class="truncate text-[10px] text-slate-400">{{ expressionPreview || 'Нет данных для примера' }}</div>
       </button>
     </TabsContent>
   </Tabs>

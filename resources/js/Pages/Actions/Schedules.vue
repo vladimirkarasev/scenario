@@ -38,8 +38,8 @@ function relativeUntil(iso: string | null | undefined): string {
   <Head title="Расписания action" />
 
   <AppShell title="Расписания action" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <PageHeader title="Расписания" subtitle="Action, которые запускаются автоматически по cron-выражению.">
           <template #actions>
             <a href="/actions"
@@ -92,8 +92,7 @@ function relativeUntil(iso: string | null | undefined): string {
           </div>
         </div>
 
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <Table>
             <TableHeader>
               <TableRow>

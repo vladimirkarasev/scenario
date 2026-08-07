@@ -8,18 +8,23 @@ import {Label} from '@/components/ui/label'
 import ConditionRenderer from '@/modules/scenario/components/player/ConditionRenderer.vue'
 import {Check, Copy, Settings} from 'lucide-vue-next'
 import {LOGICAL_VARIABLES} from '@/modules/scenario/lib/scenario-flow-constants'
+import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
 
 defineProps({
   open: {type: Boolean, default: false},
   selectedEdge: {type: Object, default: null},
   selectedEdgeFromCondition: {type: Boolean, default: false},
   conditionPreviewQuestion: {type: String, default: ''},
+  conditionPreviewHideTitle: {type: Boolean, default: true},
+  conditionPreviewContent: {type: Object, default: null},
   conditionPreviewOptions: {type: Array, default: () => []},
   editable: {type: Boolean, default: false},
   copiedConditionVariableId: {type: String, default: null},
 })
 
 defineEmits(['update:open', 'apply-logical', 'update-edge'])
+
+const conditionValueRef = `${ScenarioContextKey.Condition}.value`
 </script>
 
 <template>
@@ -27,7 +32,7 @@ defineEmits(['update:open', 'apply-logical', 'update-edge'])
     <DialogContent class="sm:max-w-3xl">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
-          <Settings class="size-4"/>
+          <Settings class="size-4" />
           <span>Настройки условия</span>
         </DialogTitle>
         <DialogDescription class="sr-only">Настройки условия перехода между блоками</DialogDescription>
@@ -45,23 +50,27 @@ defineEmits(['update:open', 'apply-logical', 'update-edge'])
                 @click="$emit('apply-logical', variable)"
             >
               <span class="truncate font-mono text-[10px] text-slate-500">{{ variable.value }}</span>
-              <Check v-if="copiedConditionVariableId === variable.id" class="size-3 shrink-0 text-emerald-500"/>
-              <Copy v-else class="size-3 shrink-0 text-slate-300"/>
+              <Check v-if="copiedConditionVariableId === variable.id" class="size-3 shrink-0 text-emerald-500" />
+              <Copy v-else class="size-3 shrink-0 text-slate-300" />
             </button>
           </div>
         </aside>
 
         <div class="space-y-4">
           <div class="space-y-2">
-            <Label for="condition-value">Значение</Label>
+            <Label for="condition-value">Значение или выражение</Label>
             <Input
                 id="condition-value"
                 :model-value="selectedEdge?.data?.value ?? ''"
                 class="border-slate-200"
-                placeholder="Например: user@example.test"
+                :placeholder="`Например: {{ ${conditionValueRef} >= 18 }}`"
                 :disabled="!editable"
                 @update:model-value="$emit('update-edge', { key: 'value', value: $event })"
             />
+            <p class="text-xs leading-5 text-slate-500">
+              Выражение ветки выбирается, если оно возвращает <code>true</code>.
+              Значение condition доступно как <code>{{ conditionValueRef }}</code>.
+            </p>
           </div>
         </div>
       </div>
@@ -70,6 +79,8 @@ defineEmits(['update:open', 'apply-logical', 'update-edge'])
         <div class="mb-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Предпросмотр</div>
         <ConditionRenderer
             :question="conditionPreviewQuestion"
+            :hide-title="conditionPreviewHideTitle"
+            :content="conditionPreviewContent"
             :options="conditionPreviewOptions"
         />
       </div>

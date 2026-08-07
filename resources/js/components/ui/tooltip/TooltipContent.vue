@@ -8,10 +8,6 @@ import {
 } from "reka-ui";
 import { cn } from "@/lib/utils";
 
-defineOptions({
-  inheritAttrs: false,
-});
-
 const props = defineProps({
   forceMount: { type: Boolean, required: false },
   ariaLabel: { type: String, required: false },
@@ -37,6 +33,10 @@ const props = defineProps({
 });
 
 const emits = defineEmits(["escapeKeyDown", "pointerDownOutside"]);
+
+defineOptions({
+  inheritAttrs: false,
+});
 
 const delegatedProps = reactiveOmit(props, "class");
 const forwarded = useForwardPropsEmits(delegatedProps, emits);

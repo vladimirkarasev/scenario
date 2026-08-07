@@ -10,7 +10,7 @@ import {
   addTimeRef, dateFormatRef, dateFormatsFor, dateShiftsFor,
 } from '@/modules/scenario/lib/scenario-variable-hints'
 
-const props = defineProps<{
+defineProps<{
   v: VarLike
   copiedId: string | null
 }>()

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
+import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextRenderer.vue'
+import {hasTiptapDocumentContent} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
 import type {ScenarioRenderedConditionOption} from '@/modules/scenario/lib/scenario-player-types'
 
 const props = defineProps<{
   question: string
+  hideTitle?: boolean
+  content?: unknown
   options: ScenarioRenderedConditionOption[]
   loading?: boolean
 }>()
@@ -13,6 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const safeOptions = computed(() => (props.options ?? []).filter(Boolean))
+const hasContent = computed(() => hasTiptapDocumentContent(props.content))
 
 const selected = ref<string | null>(null)
 
@@ -25,13 +30,16 @@ function pick(targetNodeId: string) {
 <template>
   <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <!-- Header -->
-    <div class="border-b border-slate-100 px-6 py-5">
+    <div v-if="!hideTitle" class="border-b border-slate-100 px-6 py-5">
       <h2 class="text-[18px] font-semibold leading-snug text-slate-900">
         {{ question || 'Выберите вариант' }}
       </h2>
     </div>
 
-    <!-- Options -->
+    <div v-if="hasContent" class="border-b border-slate-100 px-6 py-5">
+      <TiptapTextRenderer :document="content" />
+    </div>
+
     <div class="flex flex-wrap items-center gap-2 px-6 py-5">
       <div
           v-if="!safeOptions.length"

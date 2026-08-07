@@ -82,6 +82,22 @@ final class ScenarioWebController extends Controller
         ]);
     }
 
+    public function scenarioVersionSettings(ScenarioVersion $version): Response
+    {
+        return Inertia::render('Scenario/ScenarioVersionSettings', [
+            'scenarioId' => $version->scenario_id,
+            'versionId' => $version->id,
+        ]);
+    }
+
+    public function scenarioVersionHistory(ScenarioVersion $version): Response
+    {
+        return Inertia::render('Scenario/ScenarioVersionHistory', [
+            'scenarioId' => $version->scenario_id,
+            'versionId' => $version->id,
+        ]);
+    }
+
     public function editScenarioVersionBlock(ScenarioVersion $version, string $block): Response
     {
         return Inertia::render('Scenario/ScenarioBlockEditor', [

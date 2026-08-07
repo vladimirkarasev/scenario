@@ -101,6 +101,15 @@ final class ScenarioVersionRepository
         $version->delete();
     }
 
+    /** @param array<string, mixed> $attributes */
+    public function updateAttributes(ScenarioVersion $version, array $attributes): ScenarioVersion
+    {
+        $version->fill($attributes);
+        $version->save();
+
+        return $version->refresh();
+    }
+
     /** @param  array<string, mixed>  $content */
     public function storeRevision(ScenarioVersion $version, array $content): ScenarioVersionRevision
     {

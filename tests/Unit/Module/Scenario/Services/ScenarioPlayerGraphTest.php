@@ -183,6 +183,126 @@ final class ScenarioPlayerGraphTest extends TestCase
         $this->assertSame('Right', $this->renderedTitle($run));
     }
 
+    public function test_manual_condition_value_skips_ui_when_edge_matches(): void
+    {
+        $scenario = $this->scenarioWithRevision(
+            nodes: [
+                $this->node('start', 'start'),
+                $this->node('form', 'block', [
+                    'fields' => [$this->field('segment', 'input', 'segment')],
+                ]),
+                $this->node('choice', 'condition', [
+                    'mode' => 'manual',
+                    'value' => '{{ segment }}',
+                    'conditionBranches' => [
+                        ['id' => 'vip_branch', 'label' => 'VIP'],
+                        ['id' => 'regular_branch', 'label' => 'Обычный'],
+                    ],
+                ]),
+                $this->node('vip', 'end', ['title' => 'VIP']),
+                $this->node('regular', 'end', ['title' => 'Regular']),
+            ],
+            edges: [
+                $this->edge('start', 'form'),
+                $this->edge('form', 'choice'),
+                [...$this->edge('choice', 'vip'), 'sourceHandle' => 'vip_branch', 'data' => ['value' => 'vip']],
+                [...$this->edge('choice', 'regular'), 'sourceHandle' => 'regular_branch', 'data' => ['value' => 'regular']],
+            ],
+        );
+
+        $run = $this->player->continueRun(
+            $this->createRun($scenario),
+            new ScenarioRunContinueData(['segment' => 'vip'], null),
+        );
+
+        $this->assertSame('completed', $run->status->value);
+        $this->assertSame('vip', $run->current_node_id);
+        $this->assertSame('VIP', $this->renderedTitle($run));
+    }
+
+    public function test_manual_condition_selects_branch_expression_using_condition_value(): void
+    {
+        $scenario = $this->scenarioWithRevision(
+            nodes: [
+                $this->node('start', 'start'),
+                $this->node('choice', 'condition', [
+                    'mode' => 'manual',
+                    'value' => '{{ user.age }}',
+                ]),
+                $this->node('child', 'end', ['title' => 'Child']),
+                $this->node('adult', 'end', ['title' => 'Adult']),
+                $this->node('unknown', 'end', ['title' => 'Unknown']),
+            ],
+            edges: [
+                $this->edge('start', 'choice'),
+                [...$this->edge('choice', 'child'), 'data' => ['value' => '{{ _condition.value < 18 }}']],
+                [...$this->edge('choice', 'adult'), 'data' => ['value' => '{{ _condition.value >= 18 }}']],
+                [...$this->edge('choice', 'unknown'), 'data' => ['value' => 'else']],
+            ],
+        );
+
+        $run = $this->player->createRun(new ScenarioRunData(
+            scenarioId: $scenario->id,
+            scenarioVersionId: null,
+            context: [],
+            userData: ['age' => 20],
+        ));
+
+        $this->assertSame('completed', $run->status->value);
+        $this->assertSame('adult', $run->current_node_id);
+        $this->assertSame('Adult', $this->renderedTitle($run));
+    }
+
+    public function test_manual_condition_without_else_shows_logical_branches_when_no_edge_matches(): void
+    {
+        $scenario = $this->scenarioWithRevision(
+            nodes: [
+                $this->node('start', 'start'),
+                $this->node('form', 'block', [
+                    'fields' => [$this->field('answer', 'input', 'answer')],
+                ]),
+                $this->node('choice', 'condition', [
+                    'mode' => 'manual',
+                    'value' => '{{ answer }}',
+                    'question' => 'Выберите ответ',
+                    'conditionBranches' => [
+                        ['id' => 'yes_branch', 'label' => 'Да'],
+                        ['id' => 'no_branch', 'label' => 'Нет'],
+                        ['id' => 'empty_branch', 'label' => 'Пусто'],
+                    ],
+                ]),
+                $this->node('yes', 'end', ['title' => 'Yes']),
+                $this->node('no', 'end', ['title' => 'No']),
+                $this->node('empty', 'end', ['title' => 'Empty']),
+            ],
+            edges: [
+                $this->edge('start', 'form'),
+                $this->edge('form', 'choice'),
+                [...$this->edge('choice', 'yes'), 'sourceHandle' => 'yes_branch', 'data' => ['value' => 'Да']],
+                [...$this->edge('choice', 'no'), 'sourceHandle' => 'no_branch', 'data' => ['value' => 'Нет']],
+                [...$this->edge('choice', 'empty'), 'sourceHandle' => 'empty_branch', 'data' => ['value' => 'Пусто']],
+            ],
+        );
+
+        $run = $this->player->continueRun(
+            $this->createRun($scenario),
+            new ScenarioRunContinueData(['answer' => 'unknown'], null),
+        );
+        $payload = $this->player->payload($run);
+        $runPayload = $payload['run'] ?? null;
+        $this->assertIsArray($runPayload);
+        $rendered = $runPayload['rendered'] ?? null;
+
+        $this->assertSame('active', $run->status->value);
+        $this->assertSame('choice', $run->current_node_id);
+        $this->assertIsArray($rendered);
+        $this->assertSame('condition', $rendered['type'] ?? null);
+        $options = $rendered['options'] ?? null;
+        $this->assertIsArray($options);
+        $this->assertCount(3, $options);
+        $this->assertSame(['Да', 'Нет', 'Пусто'], array_column($options, 'label'));
+    }
+
     public function test_scenario_link_switches_graph_and_continues_to_target_block(): void
     {
         $target = $this->scenarioWithRevision(
@@ -238,7 +358,10 @@ final class ScenarioPlayerGraphTest extends TestCase
         ));
     }
 
-    /** @param list<array<string, mixed>> $nodes @param list<array<string, mixed>> $edges */
+    /**
+     * @param  list<array<string, mixed>>  $nodes
+     * @param  list<array<string, mixed>>  $edges
+     */
     private function scenarioWithRevision(array $nodes, array $edges): Scenario
     {
         $scenario = Scenario::query()->create(['name' => 'Player test', 'is_active' => true]);
@@ -256,7 +379,10 @@ final class ScenarioPlayerGraphTest extends TestCase
         return $scenario;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private function node(string $id, string $type, array $data = []): array
     {
         return ['id' => $id, 'type' => $type, 'data' => $data];
@@ -285,7 +411,13 @@ final class ScenarioPlayerGraphTest extends TestCase
     private function renderedTitle(ScenarioRun $run): ?string
     {
         $payload = $this->player->payload($run);
-        $rendered = $payload['run']['rendered'] ?? null;
+        $runPayload = $payload['run'] ?? null;
+
+        if (!is_array($runPayload)) {
+            return null;
+        }
+
+        $rendered = $runPayload['rendered'] ?? null;
 
         return is_array($rendered) && is_string($rendered['title'] ?? null)
             ? $rendered['title']

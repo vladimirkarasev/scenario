@@ -8,10 +8,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\DTO\ScenarioRunJumpData;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\ScenarioPlayerService;
 use Tests\TestCase;
 
@@ -53,8 +53,8 @@ final class ScenarioPlayerServiceJumpTest extends TestCase
         $this->assertSame('node_block', $run->current_node_id);
 
         $context = $run->context ?? [];
-        $context[NodeContextKeys::ACTION_RUNS] = ['node_action' => 'done'];
-        $context[NodeContextKeys::ACTION_STAGES] = ['node_action' => ['send' => 'success']];
+        $context[ScenarioContextKey::ActionRuns->value] = ['node_action' => 'done'];
+        $context[ScenarioContextKey::ActionStages->value] = ['node_action' => ['send' => 'success']];
         $run->forceFill(['context' => $context])->save();
 
         $run = $this->player->jumpRun($run, new ScenarioRunJumpData('node_block'));
@@ -63,8 +63,8 @@ final class ScenarioPlayerServiceJumpTest extends TestCase
         $this->assertSame('active', $run->status->value);
 
         $freshContext = $this->context($run);
-        $this->assertArrayNotHasKey(NodeContextKeys::ACTION_RUNS, $freshContext);
-        $this->assertArrayNotHasKey(NodeContextKeys::ACTION_STAGES, $freshContext);
+        $this->assertArrayNotHasKey(ScenarioContextKey::ActionRuns->value, $freshContext);
+        $this->assertArrayNotHasKey(ScenarioContextKey::ActionStages->value, $freshContext);
     }
 
     public function test_action_node_reruns_after_jump_instead_of_being_skipped(): void
@@ -72,14 +72,14 @@ final class ScenarioPlayerServiceJumpTest extends TestCase
         $run = $this->createRun();
 
         $run = $this->player->continueRun($run, new ScenarioRunContinueData([], null));
-        $actionRuns = $this->context($run)[NodeContextKeys::ACTION_RUNS] ?? [];
+        $actionRuns = $this->context($run)[ScenarioContextKey::ActionRuns->value] ?? [];
         $this->assertIsArray($actionRuns);
         $this->assertSame('done', $actionRuns['node_action'] ?? null);
 
         $run = $this->player->jumpRun($run, new ScenarioRunJumpData('node_block'));
 
         $this->assertSame('node_block', $run->current_node_id);
-        $afterJump = $this->context($run)[NodeContextKeys::ACTION_RUNS] ?? [];
+        $afterJump = $this->context($run)[ScenarioContextKey::ActionRuns->value] ?? [];
         $this->assertIsArray($afterJump);
         $this->assertArrayNotHasKey('node_action', $afterJump);
     }

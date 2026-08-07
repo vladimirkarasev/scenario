@@ -3,45 +3,39 @@ import AppShell from '@/layouts/AppShell.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import SearchInput from '@/components/SearchInput.vue'
+import CopyButton from '@/components/CopyButton.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  FormActions, FormBody, FormError, FormInput, FormSection, FormToggle,
+  FormActions, FormBody, FormError, FormInput, FormInputAction, FormSection, FormToggle,
 } from '@/components/form'
 import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
+import {useAuthStore} from '@/stores/auth'
 import {useProjectList} from '@/modules/projects/composables/useProjectList'
 import {useProjectModal} from '@/modules/projects/composables/useProjectModal'
 import {Head} from '@inertiajs/vue3'
 import {
-  Building2, Check, Copy, ExternalLink, Globe, Key,
+  Building2, ExternalLink, Globe, Key,
   MoreHorizontal, Pencil, Plus, RefreshCw, Shield, ShieldOff, Trash2, X,
 } from 'lucide-vue-next'
-import {computed, ref} from 'vue'
+import {computed} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
+const auth = useAuthStore()
+const canManage = computed(() => auth.hasPermission('project_create'))
+const canDelete = computed(() => auth.hasPermission('project_delete'))
 
-const {page, loading, projects, meta, load} = useProjectList()
+const {page, search, loading, error, projects, meta, load} = useProjectList()
 const {
   showModal, editing, form, errors, formError, submitting, modalLoading,
   openCreate, openEdit, close, save, toggleActive, regenerateSecret,
   confirmDelete, deleting, deleteError,
   openDeleteConfirm, closeDeleteConfirm, doDelete,
 } = useProjectModal(load)
-
-const copiedId = ref<string | null>(null)
-
-function copyId(id: string): void {
-  navigator.clipboard.writeText(id).catch(() => {
-  })
-  copiedId.value = id
-  setTimeout(() => {
-    copiedId.value = null
-  }, 1500)
-}
 
 function shortId(id: string): string {
   return id.slice(0, 8) + '…'
@@ -52,16 +46,17 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
 </script>
 
 <template>
-  <Head title="Projects"/>
+  <Head title="Проекты"/>
 
-  <AppShell title="Projects" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-5xl px-6 py-8">
+  <AppShell title="Проекты" :navigation-items="navigationItems">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <!-- Header -->
         <PageHeader title="Проекты"
                     subtitle="Управление проектами для встраивания (embed). Каждый проект задаёт sitekey, host и shared secret для обмена JWT-токенами.">
           <template #actions>
             <button
+                v-if="canManage"
                 class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
                 @click="openCreate"
             >
@@ -73,24 +68,41 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
 
         <!-- Stats -->
         <div class="mb-6 grid grid-cols-3 gap-4">
-          <div class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Всего</div>
-            <div class="mt-1.5 text-3xl font-bold tabular-nums text-slate-900">{{ meta.total }}</div>
+          <div class="rounded-xl border border-blue-300 bg-white px-5 py-4 shadow-sm ring-1 ring-blue-200">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <Building2 :size="11"/>
+              Проекты
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-slate-900">{{ meta.total }}</div>
+            <div class="mt-0.5 text-[11px] text-slate-400">в системе</div>
           </div>
           <div
-              class="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Активных</div>
-            <div class="mt-1.5 text-3xl font-bold tabular-nums text-emerald-700">{{ activeCount }}</div>
+              class="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-4 shadow-sm">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
+              <Shield :size="11"/>
+              Активные
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-emerald-700">{{ activeCount }}</div>
+            <div class="mt-0.5 text-[11px] text-emerald-600/70">на странице</div>
           </div>
-          <div class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Отключённых</div>
-            <div class="mt-1.5 text-3xl font-bold tabular-nums text-slate-400">{{ inactiveCount }}</div>
+          <div class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <ShieldOff :size="11"/>
+              Отключённые
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-slate-400">{{ inactiveCount }}</div>
+            <div class="mt-0.5 text-[11px] text-slate-400">на странице</div>
+          </div>
+        </div>
+
+        <div class="mb-4 flex items-center justify-end">
+          <div class="w-56">
+            <SearchInput v-model="search" placeholder="Поиск проектов..."/>
           </div>
         </div>
 
         <!-- Table -->
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <!-- Table header -->
           <div class="grid border-b border-slate-100 px-5 py-3"
                style="grid-template-columns: 1fr 140px 180px 100px 40px">
@@ -104,6 +116,13 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
           <!-- Loading -->
           <div v-if="loading && !projects.length" class="px-5 py-8 text-center text-[13px] text-slate-400">
             Загрузка…
+          </div>
+
+          <div v-else-if="error" class="flex flex-col items-center gap-3 px-5 py-10 text-center">
+            <div class="text-[13px] text-red-600">{{ error }}</div>
+            <button class="h-8 rounded-lg border border-slate-200 px-3 text-[12px] font-medium text-slate-600 hover:bg-slate-50" @click="load">
+              Повторить
+            </button>
           </div>
 
           <!-- Empty -->
@@ -133,14 +152,13 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
                 </div>
                 <span class="truncate text-[13px] font-semibold text-slate-900">{{ p.name }}</span>
               </div>
-              <button
+              <CopyButton
+                  :text="p.id"
+                  :label="shortId(p.id)"
+                  :copied-label="shortId(p.id)"
                   class="mt-1 flex items-center gap-1 text-left font-mono text-[11px] text-slate-400 transition hover:text-slate-700"
                   :title="p.id"
-                  @click="copyId(p.id)"
-              >
-                <component :is="copiedId === p.id ? Check : Copy" :size="10"/>
-                {{ shortId(p.id) }}
-              </button>
+              />
             </div>
 
             <!-- Sitekey -->
@@ -173,7 +191,7 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
             </div>
 
             <!-- Actions menu -->
-            <div class="flex justify-end">
+            <div v-if="canManage || canDelete" class="flex justify-end">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
@@ -182,22 +200,23 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" class="w-44">
-                  <DropdownMenuItem @click="openEdit(p)">
+                  <DropdownMenuItem v-if="canManage" @click="openEdit(p)">
                     <Pencil class="mr-2 h-4 w-4 text-slate-400"/>
                     Редактировать
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click="toggleActive(p)">
+                  <DropdownMenuItem v-if="canManage" @click="toggleActive(p)">
                     <component :is="p.is_active ? ShieldOff : Shield" class="mr-2 h-4 w-4 text-slate-400"/>
                     {{ p.is_active ? 'Отключить' : 'Активировать' }}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator/>
-                  <DropdownMenuItem class="text-red-600 focus:text-red-600" @click="openDeleteConfirm(p)">
+                  <DropdownMenuSeparator v-if="canDelete"/>
+                  <DropdownMenuItem v-if="canDelete" class="text-red-600 focus:text-red-600" @click="openDeleteConfirm(p)">
                     <Trash2 class="mr-2 h-4 w-4"/>
                     Удалить
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            <div v-else/>
           </div>
 
           <!-- Pagination -->
@@ -270,26 +289,22 @@ const inactiveCount = computed(() => projects.value.filter(p => !p.is_active).le
                   autocomplete="url"
                   :error="errors.host"
               />
-              <div class="space-y-1.5">
-                <label for="project-shared-secret" class="text-[12px] font-semibold text-slate-700">
-                  Shared Secret <span class="text-red-500">*</span>
-                </label>
-                <div class="flex gap-2">
-                  <Input
-                      id="project-shared-secret"
-                      name="shared_secret"
-                      v-model="form.shared_secret"
-                      autocomplete="off"
-                      class="font-mono"
-                      placeholder="supersecret"
-                  />
+              <FormInputAction
+                  v-model="form.shared_secret"
+                  name="shared_secret"
+                  label="Shared Secret"
+                  placeholder="supersecret"
+                  required
+                  autocomplete="off"
+                  :error="errors.shared_secret"
+              >
+                <template #action>
                   <Button type="button" variant="outline" size="icon" title="Сгенерировать новый"
                           @click="regenerateSecret">
                     <RefreshCw :size="14"/>
                   </Button>
-                </div>
-                <p v-if="errors.shared_secret" class="text-[11px] text-red-600">{{ errors.shared_secret }}</p>
-              </div>
+                </template>
+              </FormInputAction>
               <FormToggle v-model="form.is_active" label="Активен"/>
             </FormSection>
           </FormBody>

@@ -10,9 +10,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Event;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Services\Nodes\Action\ActionStatus;
-use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\ScenarioPlayerService;
 use App\Events\CentrifugoMessagePublished;
 
@@ -54,9 +54,11 @@ final class ResumeScenarioActionNodeJob implements ShouldQueue
             $context[$key] = $value;
         }
 
-        $runs = is_array($context[NodeContextKeys::ACTION_RUNS] ?? null) ? $context[NodeContextKeys::ACTION_RUNS] : [];
+        $runs = is_array($context[ScenarioContextKey::ActionRuns->value] ?? null)
+            ? $context[ScenarioContextKey::ActionRuns->value]
+            : [];
         $runs[$this->nodeId] = ($this->success ? ActionStatus::Done : ActionStatus::Failed)->value;
-        $context[NodeContextKeys::ACTION_RUNS] = $runs;
+        $context[ScenarioContextKey::ActionRuns->value] = $runs;
 
         $run->forceFill(['context' => $context])->save();
 

@@ -1,6 +1,6 @@
 ---
 name: types-organization
-description: TypeScript types must live in modules/<module>/types/ — never inside repositories. Repositories contain only HTTP logic + normalization. Apply when adding new entities, new repository, or moving types around.
+description: TypeScript types must live in each module types directory, never inside repositories. Repositories contain only HTTP logic and normalization. Apply when adding new entities, a new repository, or moving types around.
 ---
 
 # Types Organization
@@ -26,6 +26,14 @@ resources/js/modules/<module>/
 2. Импортируй их и в репозиторий, и в страницы/композаблы отдельно — не реэкспортируй типы из репозитория.
 3. `Raw<Entity>` (форма ответа API до нормализации) — приватный тип внутри репозитория. Можно оставить там как `interface RawEntity { … }` без экспорта.
 4. Zod-формы (см. [[form-validation]]) живут в `schemas/`, тип формы — `z.infer<typeof xxxSchema>`. Не дублируй его в `types/`.
+5. Не делай barrel-реэкспорт domain types из repository: потребитель импортирует тип из `types/`, а repository — из `repositories/`.
+6. После переноса проверь, что repositories не экспортируют публичные `interface`/`type`:
+
+```bash
+rg -n "export (interface|type)" resources/js/modules/*/repositories
+```
+
+Приватные wire DTO допустимы только без `export`. Если один wire DTO используется несколькими repositories, вынеси его в `types/<entity>Api.ts`, не смешивая с domain model.
 
 **Анти-паттерн:**
 

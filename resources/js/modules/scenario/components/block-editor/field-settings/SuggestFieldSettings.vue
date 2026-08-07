@@ -9,6 +9,7 @@ export const fieldMeta = {type: 'suggest', label: 'Подсказки', icon: ma
 import {computed, onMounted, ref} from 'vue'
 import {Check, ChevronsUpDown, Copy, X} from 'lucide-vue-next'
 import {Input} from '@/components/ui/input'
+import {copyText} from '@/lib/clipboard'
 import SuggestProxyPickerDialog from '@/modules/scenario/components/pickers/SuggestProxyPickerDialog.vue'
 import DirectoryLabelTemplateField from '@/modules/directories/components/DirectoryLabelTemplateField.vue'
 import {useSuggestProxyPicker} from '@/modules/scenario/composables/useSuggestProxyPicker'
@@ -55,7 +56,7 @@ const copiedKey = ref<string | null>(null)
 async function copyVar(key: string): Promise<void> {
   const varName = props.field.varName
   if (!varName) return
-  await navigator.clipboard.writeText(`{{ ${varName}.${key} }}`)
+  if (!await copyText(`{{ ${varName}.${key} }}`)) return
   copiedKey.value = key
   setTimeout(() => {
     copiedKey.value = null

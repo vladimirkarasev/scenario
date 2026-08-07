@@ -15,6 +15,7 @@ A block field type exists at four layers that must all be updated:
 | **Block editor UI** | `field-settings/XxxFieldSettings.vue` + registration in `ScenarioBlockEditorDrawer.vue` |
 | **Player renderer** | `SurveyBlockRenderer.vue` — `v-else-if` branch for the new type |
 | **PHP backend** | `BlockNodeHandler::renderField()` — maps stored field data to API props |
+| **Project presets** | Snapshot normalization, cloning and backend `BlockFieldType` allow-list |
 
 Key files:
 - `resources/js/modules/scenario/lib/scenario-block-fields.ts` — source of truth for all types
@@ -22,6 +23,7 @@ Key files:
 - `resources/js/modules/scenario/components/field-settings/` — one component per field type
 - `resources/js/modules/scenario/components/SurveyBlockRenderer.vue` — player-side renderer
 - `module/Scenario/Services/Nodes/BlockNodeHandler.php` — backend `renderField()`
+- `module/Scenario/Enums/BlockFieldType.php` — backend allow-list for field preset snapshots
 
 ## Step-by-Step
 
@@ -217,6 +219,17 @@ Available `NodeHelpers` methods: `strField`, `boolField`, `intField`, `arrayFiel
 
 If the field collects user input, add validation in `BlockNodeValidator.php`.
 
+### 10. Keep project field presets compatible
+
+Every field type can be saved as a project-scoped reusable preset. Presets are snapshots, not live links to fields already placed in blocks.
+
+- Add the type to `module/Scenario/Enums/BlockFieldType.php`.
+- Ensure `normalizeScenarioBlockField()` accepts a stored snapshot without a top-level `id`.
+- Ensure `duplicateBlockFieldIds()` regenerates every runtime identity owned by the type. This includes nested option, validation-rule and action-item IDs, plus references such as `parentId`.
+- Keep external resource IDs such as directory or action identifiers unchanged. The field settings UI must handle a referenced resource that was later removed.
+- Never store a preset ID on an inserted field. `instantiateScenarioBlockField()` creates an independent copy and the editor makes `varName` unique.
+- Add a unit test proving that two insertions do not share IDs and that nested references are remapped correctly.
+
 ## Field groups in the palette
 
 The palette in `ScenarioBlockEditorDrawer.vue` is organized as:
@@ -257,6 +270,7 @@ Then:
 2. Open field settings — verify your settings component renders.
 3. Open the preview tab — verify it renders in the player preview.
 4. Run a scenario that hits the block — verify the API response includes the correct `type` and `props`.
+5. Save the field as a user preset, insert it twice, edit one copy and verify the preset and the other copy are unchanged.
 
 ## References
 

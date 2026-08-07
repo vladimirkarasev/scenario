@@ -119,6 +119,9 @@ const suggestFields = computed(() => Array.isArray(resolvedProps.value.fields) ?
 const isCollapseOpen = ref(!(props.block.props?.defaultCollapsed ?? false))
 
 const fieldName = computed(() => String(resolvedProps.value.name ?? resolvedProps.value.key ?? props.block.id))
+const showFieldLabel = computed(() =>
+    resolvedProps.value.hideLabel !== true && String(resolvedProps.value.label ?? '').trim() !== '',
+)
 const fieldError = computed(() => props.errors?.[fieldName.value] ?? '')
 const hasError = computed(() => Boolean(fieldError.value))
 
@@ -160,7 +163,7 @@ watch(
   </Button>
 
   <div v-else-if="block.type === 'input'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -176,7 +179,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'email'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -194,7 +197,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'phone'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <PhoneInput
@@ -207,7 +210,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'vin'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <VinInput
@@ -220,7 +223,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'grz'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <GrzInput
@@ -234,7 +237,7 @@ watch(
 
   <div v-else-if="block.type === 'textarea'" class="grid gap-1.5">
     <div class="flex items-baseline justify-between">
-      <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+      <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
           resolvedProps.label ?? fieldName
         }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
       <span class="text-[11px] tabular-nums" :class="hasError ? 'text-destructive' : 'text-muted-foreground'">
@@ -256,7 +259,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'number'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <NumberInput
@@ -274,7 +277,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'select'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySelectField
@@ -291,7 +294,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'date' || block.type === 'datetime'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <DatePicker
@@ -319,7 +322,7 @@ watch(
           :required="Boolean(resolvedProps.required)"
           class="mt-0.5 size-4 shrink-0 rounded border-border accent-primary disabled:cursor-not-allowed"
       />
-      <span class="text-sm text-foreground" :style="labelStyle">
+      <span v-if="showFieldLabel" class="text-sm text-foreground" :style="labelStyle">
                 {{ resolvedProps.label ?? fieldName }}
                 <span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span>
             </span>
@@ -328,7 +331,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_list'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryListField
@@ -351,7 +354,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_table'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryTableField
@@ -372,7 +375,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'suggest'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySuggestField
@@ -390,7 +393,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'map_point'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyMapPointField
@@ -404,7 +407,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'route'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyRouteField
@@ -420,7 +423,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_map'" class="grid gap-1.5">
-    <Label v-if="resolvedProps.label" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">
       {{ resolvedProps.label }}
     </Label>
     <SurveyDirectoryMapField

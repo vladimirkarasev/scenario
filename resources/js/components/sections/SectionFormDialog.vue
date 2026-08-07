@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props -- modal is a composable API whose form and refs are intentionally controlled by this dialog */
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'

@@ -5,9 +5,9 @@
 ### Commands
 
 ```bash
-./vendor/bin/phpstan analyse module/<Module> --memory-limit=512M --error-format=table
-./vendor/bin/pint module/<Module>
-./vendor/bin/pint module/<Module> --test   # dry-run
+task phpstan -- module/<Module>
+task rector -- module/<Module>
+task rector:check -- module/<Module>
 ```
 
 ### PHPStan error identifiers → fix
@@ -52,10 +52,13 @@ User::query()->paginate(20, ['*'], 'page[number]');
 ### Commands
 
 ```bash
-npx tsc --noEmit               # TypeScript check
-npm run lint                   # ESLint check
-npm run lint:fix               # ESLint auto-fix
-npm run knip                   # Unused exports/files
+task typecheck                 # Vue + TypeScript check
+task lint                      # ESLint check
+task lint:fix                  # ESLint auto-fix
+task knip                      # Unused exports/files
+task test:frontend             # Unit tests
+task build:frontend            # Production bundle
+task audit:frontend            # Runtime dependency audit
 ```
 
 ### TypeScript error patterns → fix
@@ -112,15 +115,18 @@ const user = UserSchema.parse(data)
 
 ### Before committing backend changes
 
-- [ ] `./vendor/bin/pint module/<Module>`
-- [ ] `./vendor/bin/phpstan analyse module/<Module> --memory-limit=512M --error-format=table` — 0 errors
+- [ ] `task rector:check -- module/<Module>` — proposed changes reviewed
+- [ ] `task phpstan -- module/<Module>` — 0 errors
 
 ### Before committing frontend changes
 
-- [ ] `npm run lint:fix`
-- [ ] `npx tsc --noEmit` — 0 errors
-- [ ] `npm run lint` — 0 errors
-- [ ] `npm run knip` — no unexpected unused exports
+- [ ] `task lint:fix`
+- [ ] `task typecheck` — 0 errors
+- [ ] `task lint` — 0 errors
+- [ ] `task knip` — no unexpected unused exports
+- [ ] `task test:frontend` — unit tests pass
+- [ ] `task build:frontend` — production bundle compiles
+- [ ] `task audit:frontend` — residual risks documented; no automatic `--force`
 
 ### When PHPStan errors seem unfixable
 

@@ -7,6 +7,7 @@ use Module\Scenario\Http\Controllers\CatalogController;
 use Module\Scenario\Http\Controllers\ScenarioCategoryController;
 use Module\Scenario\Http\Controllers\ScenarioDispatchController;
 use Module\Scenario\Http\Controllers\ScenarioFeedController;
+use Module\Scenario\Http\Controllers\ScenarioFieldPresetController;
 use Module\Scenario\Http\Controllers\ScenarioRunController;
 use Module\Scenario\Http\Controllers\ScenarioRunnerController;
 use Module\Scenario\Http\Controllers\ScenariosController;
@@ -44,6 +45,8 @@ Route::middleware(RequireCurrentProject::class)->group(static function (): void 
 });
 
 Route::middleware('permission:scenario_view')->group(static function (): void {
+    Route::get('scenarios/field-presets', [ScenarioFieldPresetController::class, 'index'])
+        ->middleware(RequireCurrentProject::class);
     Route::get('scenarios/categories', [ScenarioCategoryController::class, 'index']);
     Route::get('scenarios/categories/{category}', [ScenarioCategoryController::class, 'show']);
     Route::get('scenarios/feed', ScenarioFeedController::class);
@@ -52,6 +55,10 @@ Route::middleware('permission:scenario_view')->group(static function (): void {
 });
 
 Route::middleware('permission:scenario_create')->group(static function (): void {
+    Route::post('scenarios/field-presets', [ScenarioFieldPresetController::class, 'store'])
+        ->middleware(RequireCurrentProject::class);
+    Route::put('scenarios/field-presets/{fieldPreset}', [ScenarioFieldPresetController::class, 'update'])
+        ->middleware(RequireCurrentProject::class);
     Route::post('scenarios/categories', [ScenarioCategoryController::class, 'store']);
     Route::put('scenarios/categories/{category}', [ScenarioCategoryController::class, 'update']);
     Route::post('scenarios', [ScenariosController::class, 'store']);
@@ -60,21 +67,27 @@ Route::middleware('permission:scenario_create')->group(static function (): void 
 });
 
 Route::middleware('permission:scenario_delete')->group(static function (): void {
+    Route::delete('scenarios/field-presets/{fieldPreset}', [ScenarioFieldPresetController::class, 'destroy'])
+        ->middleware(RequireCurrentProject::class);
     Route::delete('scenarios/categories/{category}', [ScenarioCategoryController::class, 'destroy']);
     Route::delete('scenarios/{scenario}', [ScenariosController::class, 'destroy']);
 });
 
 Route::middleware('permission:scenario_view')->group(static function (): void {
     Route::get('scenarios/{scenario}/versions', [ScenariosVersionController::class, 'index']);
-    Route::get('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'show']);
+    Route::get('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'show'])->scopeBindings();
+    Route::get('scenarios/{scenario}/versions/{version}/editor', [ScenariosVersionController::class, 'editor'])->scopeBindings();
+    Route::get('scenarios/{scenario}/versions/{version}/settings', [ScenariosVersionController::class, 'settings'])->scopeBindings();
+    Route::get('scenarios/{scenario}/versions/{version}/revisions', [ScenariosVersionController::class, 'history'])->scopeBindings();
 });
 
 Route::middleware('permission:scenario_create')->group(static function (): void {
     Route::post('scenarios/{scenario}/versions', [ScenariosVersionController::class, 'store']);
-    Route::put('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'update']);
-    Route::post('scenarios/{scenario}/versions/{version}/duplicate', [ScenariosVersionController::class, 'duplicate']);
+    Route::put('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'update'])->scopeBindings();
+    Route::put('scenarios/{scenario}/versions/{version}/settings', [ScenariosVersionController::class, 'updateSettings'])->scopeBindings();
+    Route::post('scenarios/{scenario}/versions/{version}/duplicate', [ScenariosVersionController::class, 'duplicate'])->scopeBindings();
 });
 
 Route::middleware('permission:scenario_delete')->group(static function (): void {
-    Route::delete('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'destroy']);
+    Route::delete('scenarios/{scenario}/versions/{version}', [ScenariosVersionController::class, 'destroy'])->scopeBindings();
 });

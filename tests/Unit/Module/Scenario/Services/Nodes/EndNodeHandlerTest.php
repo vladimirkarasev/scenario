@@ -77,7 +77,17 @@ final class EndNodeHandlerTest extends TestCase
 
         $this->assertSame('end', $result['type']);
         $this->assertSame('Done!', $result['title']);
+        $this->assertTrue($result['hideTitle']);
         $this->assertCount(1, $result['blocks']);
+    }
+
+    public function test_render_can_show_title(): void
+    {
+        $node = ['id' => 'node_end', 'type' => 'end', 'data' => ['hideTitle' => false]];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $this->assertFalse($result['hideTitle']);
     }
 
     public function test_render_uses_default_title_when_absent(): void

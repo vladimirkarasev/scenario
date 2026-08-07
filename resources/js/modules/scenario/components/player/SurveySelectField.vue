@@ -3,6 +3,7 @@ import {ref, computed, nextTick} from 'vue'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {Input} from '@/components/ui/input'
 import {ChevronsUpDown, X, Check} from 'lucide-vue-next'
+import SelectionChip from '@/components/SelectionChip.vue'
 import type {SelectShape} from '@/lib/select-shape'
 import {isSelectShape} from '@/lib/select-shape'
 
@@ -90,8 +91,7 @@ const selectedItems = computed(() =>
     })),
 )
 
-function removeOne(value: string, e: MouseEvent): void {
-  e.stopPropagation()
+function removeOne(value: string): void {
   if (props.disabled) return
   if (props.multiple) {
     emit('update:modelValue', currentShapes().filter((s) => s.value !== value))
@@ -182,7 +182,7 @@ async function onOpenChange(val: boolean): Promise<void> {
       <button
           type="button"
           :disabled="disabled"
-          class="flex min-h-9 w-full items-center gap-2 rounded-xl border px-3 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex min-h-9 w-full items-start gap-2 rounded-xl border px-3 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
           :class="[
                     error
                         ? 'border-destructive focus:ring-1 focus:ring-destructive/30'
@@ -191,25 +191,20 @@ async function onOpenChange(val: boolean): Promise<void> {
                 ]"
       >
         <!-- Chips -->
-        <div class="flex min-w-0 flex-1 flex-wrap gap-1">
+        <div class="flex min-w-0 flex-1 flex-wrap items-start gap-1">
           <template v-if="hasSelection">
-                        <span
+                        <SelectionChip
                             v-for="item in selectedItems"
                             :key="item.value"
-                            class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
-                        >
-                            <span class="max-w-[160px] truncate">{{ item.label }}</span>
-                            <X
-                                v-if="!disabled"
-                                class="size-3 shrink-0 text-slate-400 transition hover:text-slate-700"
-                                @click="removeOne(item.value, $event)"
-                            />
-                        </span>
+                            :label="item.label"
+                            :removable="!disabled"
+                            @remove="removeOne(item.value)"
+                        />
           </template>
           <span v-else class="text-muted-foreground">Выберите...</span>
         </div>
 
-        <span class="flex shrink-0 items-center gap-1 self-center">
+        <span class="flex shrink-0 items-center gap-1 self-start pt-0.5">
                     <X
                         v-if="hasSelection && !disabled"
                         class="size-3.5 text-muted-foreground transition hover:text-foreground"

@@ -36,6 +36,7 @@ interface BaseBlockField {
     type: BlockFieldType
     name: string
     label: string
+    hideLabel?: boolean
     required: boolean
     varName: string
     validation?: ValidationRule[]
@@ -602,6 +603,7 @@ function normalizeBase(f: Record<string, unknown>, base: BlockField): BaseBlockF
         id,
         name: id,
         label,
+        hideLabel: Boolean(f.hideLabel ?? base.hideLabel ?? false),
         required: f.required === true || f.required === 1,
         varName: f.varName !== undefined ? String(f.varName) : labelToVarName(label),
         validation,
@@ -666,6 +668,14 @@ export function duplicateBlockFieldIds(fields: BlockField[]): BlockField[] {
 
         return {...field, id: newId, name, varName, validation}
     })
+}
+
+export function instantiateScenarioBlockField(field: unknown, index = 0): BlockField {
+    const normalized = normalizeScenarioBlockField(field, index)
+    const originalVarName = normalized.varName
+    const duplicated = duplicateBlockFieldIds([normalized])[0]
+
+    return {...duplicated, varName: originalVarName}
 }
 
 export function normalizeScenarioBlockField(field: unknown, index = 0): BlockField {

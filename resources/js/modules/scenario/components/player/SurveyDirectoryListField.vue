@@ -3,11 +3,13 @@ import {ref, computed, watch, nextTick, onMounted} from 'vue'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {Input} from '@/components/ui/input'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
-import {renderLabelTemplate, extractTemplateKeys} from '@/modules/scenario/lib/directory-template'
+import {extractTemplateKeys} from '@/modules/scenario/lib/directory-template'
+import {useExpressionLabelBatch} from '@/modules/expression/composables/useExpressionLabelBatch'
 import type {DirectoryItem} from '@/modules/directories/types/directory'
 import type {DirectoryListShape} from '@/lib/directory-list-shape'
 import {isDirectoryListShape, OTHER_ITEM_ID} from '@/lib/directory-list-shape'
 import {ChevronsUpDown, X, Check, Loader2} from 'lucide-vue-next'
+import SelectionChip from '@/components/SelectionChip.vue'
 
 type IncomingModelValue =
     | DirectoryListShape
@@ -60,6 +62,7 @@ const search = ref('')
 const searchRef = ref<InstanceType<typeof Input> | null>(null)
 const items = ref<DirectoryItem[]>([])
 const loading = ref(false)
+const expressionLabels = useExpressionLabelBatch()
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const OTHER_SHAPE_ID = String(OTHER_ITEM_ID)
@@ -74,7 +77,7 @@ function getLabel(item: DirectoryItem): string {
   if (isOtherItem(item)) {
     return String(Object.values(item.data)[0] ?? otherDefaultLabel.value)
   }
-  const rendered = renderLabelTemplate(props.labelTemplate, item.data, props.context)
+  const rendered = expressionLabels.label(item.id)
   if (rendered) return rendered
   const firstKey = Object.keys(item.data)[0]
   return firstKey ? String(item.data[firstKey] ?? item.id) : String(item.id)
@@ -131,6 +134,8 @@ const hasSelection = computed(() => selectedValues.value.length > 0)
 
 const selectedChips = computed(() =>
     selectedValues.value.map((id) => {
+      const rendered = expressionLabels.label(id)
+      if (rendered) return {value: id, label: rendered}
       const fromModel = labelFromModel(id)
       if (fromModel) return {value: id, label: fromModel}
       const found = items.value.find((i) => getValue(i) === id)
@@ -211,8 +216,7 @@ function toggle(item: DirectoryItem): void {
   }
 }
 
-function removeOne(value: string, e: MouseEvent): void {
-  e.stopPropagation()
+function removeOne(value: string): void {
   if (props.disabled) return
   if (props.multiple) {
     emit('update:modelValue', currentShapes().filter((s) => s.id !== value))
@@ -301,6 +305,27 @@ watch(() => props.filterValue, (next, prev) => {
   items.value = []
   if (open.value) loadItems()
 })
+
+watch([
+  () => props.labelTemplate,
+  () => props.context,
+  () => props.modelValue,
+  items,
+], () => {
+  const sources = new Map<string, {id: string, data: Record<string, unknown>}>()
+  for (const item of items.value) {
+    if (!isOtherItem(item)) sources.set(String(item.id), {id: String(item.id), data: item.data})
+  }
+  const model = props.modelValue === null
+      ? []
+      : Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue]
+  for (const item of model) {
+    if (isDirectoryListShape(item) && item.id !== OTHER_SHAPE_ID) {
+      sources.set(item.id, {id: item.id, data: item.data})
+    }
+  }
+  void expressionLabels.load(props.labelTemplate, [...sources.values()], props.context)
+}, {immediate: true, deep: true})
 </script>
 
 <template>
@@ -310,7 +335,7 @@ watch(() => props.filterValue, (next, prev) => {
         <button
             type="button"
             :disabled="disabled || isFilteredAndEmpty"
-            class="flex min-h-9 w-full items-center gap-2 rounded-xl border px-3 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex min-h-9 w-full items-start gap-2 rounded-xl border px-3 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
             :class="[
                     error
                         ? 'border-destructive'
@@ -318,26 +343,20 @@ watch(() => props.filterValue, (next, prev) => {
                     open ? (error ? 'border-destructive ring-1 ring-destructive/30' : 'border-ring ring-1 ring-ring') : '',
                 ]"
         >
-          <div class="flex min-w-0 flex-1 flex-wrap gap-1">
+          <div class="flex min-w-0 flex-1 flex-wrap items-start gap-1">
             <template v-if="hasSelection">
-                        <span
+                        <SelectionChip
                             v-for="chip in selectedChips"
                             :key="chip.value"
-                            :title="chip.label"
-                            class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700"
-                        >
-                            <span class="max-w-[160px] truncate">{{ chip.label }}</span>
-                            <X
-                                v-if="!disabled"
-                                class="size-3 shrink-0 text-slate-400 transition hover:text-slate-700"
-                                @click="removeOne(chip.value, $event)"
-                            />
-                        </span>
+                            :label="chip.label"
+                            :removable="!disabled"
+                            @remove="removeOne(chip.value)"
+                        />
             </template>
             <span v-else class="text-muted-foreground">Выберите...</span>
           </div>
 
-          <span class="flex shrink-0 items-center gap-1 self-center">
+          <span class="flex shrink-0 items-center gap-1 self-start pt-0.5">
                     <X
                         v-if="hasSelection && !disabled"
                         class="size-3.5 text-muted-foreground transition hover:text-foreground"

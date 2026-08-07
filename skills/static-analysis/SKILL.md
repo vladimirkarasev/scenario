@@ -1,6 +1,6 @@
 ---
 name: static-analysis
-description: Run static analysis on backend (PHPStan level 10 + Pint) and frontend (TypeScript + ESLint + Knip). Use when asked to check types, fix type errors, lint code, find unused exports, or clean up a module before a PR.
+description: Run static analysis on backend (PHPStan level 10 + Rector) and frontend (TypeScript + ESLint + Knip). Use when asked to check types, fix type errors, lint code, find unused exports, refactor PHP, or clean up a module before a PR.
 ---
 
 # Static Analysis
@@ -9,11 +9,13 @@ description: Run static analysis on backend (PHPStan level 10 + Pint) and fronte
 
 | Tool | Target | Command |
 |---|---|---|
-| PHPStan | PHP backend | `./vendor/bin/phpstan analyse <path> --memory-limit=512M` |
-| Pint | PHP style | `./vendor/bin/pint <path>` |
-| TypeScript | Vue + TS files | `npx tsc --noEmit` |
-| ESLint | JS/TS/Vue files | `npm run lint` |
-| Knip | Unused exports | `npm run knip` |
+| PHPStan | PHP backend | `task phpstan -- <path>` |
+| Rector | PHP refactoring | `task rector:check -- <path>` |
+| TypeScript | Vue + TS files | `task typecheck` |
+| ESLint | JS/TS/Vue files | `task lint` |
+| Knip | Unused exports | `task knip` |
+| npm audit | Runtime dependencies | `task audit:frontend` |
+| Vite build | Production bundle | `task build:frontend` |
 
 Run **backend** and **frontend** independently — they have nothing in common.
 
@@ -25,13 +27,13 @@ Run **backend** and **frontend** independently — they have nothing in common.
 
 ```bash
 # Analyse a single module
-./vendor/bin/phpstan analyse module/Scenario --memory-limit=512M --error-format=table
+task phpstan -- module/Scenario
 
 # Analyse multiple paths
-./vendor/bin/phpstan analyse module/Scenario module/Proxy --memory-limit=512M --error-format=table
+task phpstan -- module/Scenario module/Proxy
 
 # Full project (app/ + all modules — slow)
-./vendor/bin/phpstan analyse --memory-limit=512M --error-format=table
+task phpstan
 ```
 
 Config: `phpstan.neon` — level 10, Larastan extension, paths `app/` + `module/`.
@@ -117,31 +119,34 @@ These are expected warnings from the global `ignoreErrors` in `phpstan.neon`. Th
 - Do not add `@param mixed $x` when you can use a narrower type
 - Do not cast `mixed` directly — always check `is_string()` / `is_int()` / `is_array()` first
 
-### Pint (code style)
+### Rector
 
 ```bash
 # Dry-run — show what would change
-./vendor/bin/pint module/Scenario --test
+task rector:check -- module/Scenario
 
-# Apply fixes
-./vendor/bin/pint module/Scenario
+# Apply refactoring
+task rector -- module/Scenario
 
 # Single file
-./vendor/bin/pint module/Scenario/Services/ScenarioService.php
+task rector -- module/Scenario/Services/ScenarioService.php
 ```
 
-Pint runs automatically after each PHPStan pass — always run both together before committing.
+Run `rector:check` before applying changes. Review Rector's diff and rerun PHPStan afterward.
 
 ### Workflow for a module
 
 ```bash
-# 1. Style first (so PHPStan sees clean code)
-./vendor/bin/pint module/<Module>
+# 1. Preview automated refactoring
+task rector:check -- module/<Module>
 
-# 2. Static analysis
-./vendor/bin/phpstan analyse module/<Module> --memory-limit=512M --error-format=table
+# 2. Apply Rector only when its proposed changes are in scope
+task rector -- module/<Module>
 
-# 3. Fix errors, repeat until clean
+# 3. Static analysis
+task phpstan -- module/<Module>
+
+# 4. Fix errors, repeat until clean
 ```
 
 ---
@@ -151,10 +156,10 @@ Pint runs automatically after each PHPStan pass — always run both together bef
 ### TypeScript
 
 ```bash
-npx tsc --noEmit
+task typecheck
 ```
 
-Checks all `.ts` and `.vue` files under paths declared in `tsconfig.json`. Config: strict mode, `noEmit: true`, path alias `@/*` → `resources/js/*`.
+Checks all `.ts` and `.vue` files under paths declared in `tsconfig.json`. Config: strict mode, `noEmit: true`, path alias `@/*` → `resources/js/*`. После frontend-изменений исправлять все найденные ошибки, включая существующие, согласно `typescript-fix-policy`.
 
 #### Common errors and fixes
 
@@ -222,11 +227,11 @@ Usually a union exhaustiveness issue. Add the missing case or a proper fallback.
 
 ```bash
 # Check
-npm run lint
+task lint
 # equivalent to: npx eslint resources/js
 
 # Auto-fix (safe fixes only)
-npm run lint:fix
+task lint:fix
 # equivalent to: npx eslint resources/js --fix
 ```
 
@@ -276,29 +281,50 @@ function process(data: MyData) {}
 ### Knip (unused exports)
 
 ```bash
-npm run knip
+task knip
 ```
 
 Reports: unused files, unused exports, unused dependencies. Run before a PR to catch dead code.
 
 Do not suppress Knip warnings with ignores unless the export is used dynamically (e.g., a plugin hook called by name). If it's genuinely unused, delete it.
 
+### Security and architecture scans
+
+```bash
+task audit:frontend
+rg -n "v-html|innerHTML|target=.?_blank|localStorage|sessionStorage" resources/js
+rg -n "axios|fetch\(|getJson|sendJson|destroyJson" resources/js/modules
+rg -n "export (interface|type)" resources/js/modules/*/repositories
+task build:frontend
+```
+
+Проверять совпадения вручную: поиск даёт кандидатов, а не доказанные уязвимости. HTTP допустим в repositories, rich text допустим только после централизованной sanitization. Не запускать `npm audit fix --force` автоматически: он может внести breaking changes. Безопасно обновлять прямые зависимости и отдельно перечислять transitive/no-fix уязвимости.
+
+Для комплексного аудита frontend применять `frontend-audit`; этот раздел отвечает за воспроизводимые проверки после изменений.
+
 ### Workflow for frontend
 
 ```bash
 # 1. ESLint auto-fix (safe changes)
-npm run lint:fix
+task lint:fix
 
 # 2. TypeScript — full check
-npx tsc --noEmit
+task typecheck
 
 # 3. Manual fixes for remaining errors
 
 # 4. Final ESLint check (no --fix)
-npm run lint
+task lint
 
 # 5. Unused exports (optional, before PR)
-npm run knip
+task knip
+
+# 6. Unit tests and production compilation
+task test:frontend
+task build:frontend
+
+# 7. Runtime dependency audit
+task audit:frontend
 ```
 
 ---
@@ -311,7 +337,7 @@ npm run knip
 | PHPStan `mixed` returned from Eloquent | Use `findOrFail()` or add `@var` annotation with correct type |
 | PHPStan ignoreErrors pattern not matched | Expected warning when running on a subset — not a real error |
 | PHPStan error in vendor / generated code | Add narrow `ignoreErrors` entry in `phpstan.neon` with identifier |
-| TSC error in a `.vue` file | Run `npx tsc --noEmit` — it covers Vue files via `vue-tsc` config |
+| Type error in a `.vue` file | Run `task typecheck` and fix the complete result |
 | ESLint error that can't be auto-fixed | Fix manually — do not use `eslint-disable` without a reason |
 | Knip reports a false positive | Use `knip.config.ts` `ignore` — document why it's needed |
 | Error only in CI but not locally | Check Node / PHP version mismatch; run in Docker via `task shell` |

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
-import {Check, Copy, KeyRound, Trash2, X} from 'lucide-vue-next'
+import {computed} from 'vue'
+import {KeyRound, Trash2, X} from 'lucide-vue-next'
+import CopyButton from '@/components/CopyButton.vue'
 import {useAuthStore} from '@/stores/auth'
 import {useUserTokens} from '@/modules/users/composables/useUserTokens'
 import type {User} from '@/modules/users/types/user'
@@ -15,7 +16,6 @@ const {
   open, close, create, revoke, dismissCreatedToken,
 } = useUserTokens()
 
-const copiedTokenId = ref<number | null>(null)
 const tomorrow = new Date()
 tomorrow.setDate(tomorrow.getDate() + 1)
 const minTokenExpiration = [
@@ -23,15 +23,6 @@ const minTokenExpiration = [
   String(tomorrow.getMonth() + 1).padStart(2, '0'),
   String(tomorrow.getDate()).padStart(2, '0'),
 ].join('-')
-
-function copyToken(text: string, id: number): void {
-  navigator.clipboard.writeText(text).then(() => {
-    copiedTokenId.value = id
-    setTimeout(() => {
-      copiedTokenId.value = null
-    }, 2000)
-  })
-}
 
 function formatDate(iso: string | null): string {
   return iso ? iso.slice(0, 10) : '—'
@@ -118,13 +109,12 @@ defineExpose<{open: (user: User) => Promise<void>}>({open})
               <code class="min-w-0 flex-1 break-all font-mono text-[12px] text-emerald-900">
                 {{ createdToken.plain_text_token }}
               </code>
-              <button
+              <CopyButton
+                  :text="createdToken.plain_text_token"
+                  :duration="2000"
                   class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-emerald-600 transition hover:bg-emerald-100"
-                  @click="copyToken(createdToken.plain_text_token, createdToken.id)"
-              >
-                <Check v-if="copiedTokenId === createdToken.id" :size="14"/>
-                <Copy v-else :size="14"/>
-              </button>
+                  title="Скопировать токен"
+              />
             </div>
           </div>
 

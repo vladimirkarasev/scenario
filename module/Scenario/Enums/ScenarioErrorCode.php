@@ -16,6 +16,8 @@ enum ScenarioErrorCode: string implements ErrorText
     case DispatchScenarioNotFound = 'DISPATCH_SCENARIO_NOT_FOUND';
     case ServiceAccountRequired = 'SCENARIO_SERVICE_ACCOUNT_REQUIRED';
     case SystemCategoryDeleteForbidden = 'SCENARIO_SYSTEM_CATEGORY_DELETE_FORBIDDEN';
+    case FieldPresetNotFound = 'SCENARIO_FIELD_PRESET_NOT_FOUND';
+    case FieldPresetNameConflict = 'SCENARIO_FIELD_PRESET_NAME_CONFLICT';
 
     #[\Override]
     public function code(): string

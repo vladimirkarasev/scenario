@@ -18,6 +18,7 @@ export interface ScenarioNode {
 export interface ScenarioRenderedBlock {
     type: 'block'
     title: string
+    hideTitle: boolean
     blocks: SurveyBlock[]
     layoutDocument?: unknown
 }
@@ -31,6 +32,8 @@ export interface ScenarioRenderedCondition {
     type: 'condition'
     mode: ConditionMode
     question: string
+    hideTitle: boolean
+    content?: unknown
     options: ScenarioRenderedConditionOption[]
     expression?: string | null
 }
@@ -38,6 +41,7 @@ export interface ScenarioRenderedCondition {
 export interface ScenarioRenderedEnd {
     type: 'end'
     title: string
+    hideTitle: boolean
     description: string
     blocks: SurveyBlock[]
 }

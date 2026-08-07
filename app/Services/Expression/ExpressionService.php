@@ -63,6 +63,19 @@ final readonly class ExpressionService
         );
     }
 
+    public function isWrappedExpression(string $value): bool
+    {
+        $value = trim($value);
+
+        foreach (self::WRAPPED_EXPRESSION_PATTERNS as $pattern) {
+            if (preg_match($pattern, $value) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param  array<string, mixed>  $context
      */

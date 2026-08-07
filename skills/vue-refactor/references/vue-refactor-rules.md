@@ -9,9 +9,35 @@
 | Filter inputs + URLSearchParams builder | `useXxxFilters` composable |
 | Cross-page shared state (catalog, editor) | Pinia store |
 | HTTP call + response normalization | Repository |
+| Competing list/search reads | `useLatestRequest` + latest-started-wins policy |
+| Ordered save/autosave writes | Serialized mutation queue |
+| Repeated sibling-page navigation | Shared module tabs component |
+| Rich HTML rendering | Central safe-html sanitizer |
 | Shared types used across files | `modules/<module>/types/<name>.ts` |
 | One-off derived value from props/state | `computed()` in the component |
 | Template-only helper (label, color, icon) | Local function in `<script setup>` |
+
+## Watch / Reactivity Decision Table
+
+| Situation | Decision |
+|---|---|
+| Сохранение большого документа или графа | Явная команда Save; получить актуальный draft непосредственно перед запросом |
+| Dirty state | Вызывать `markChanged()` из команд изменения, не вычислять глубоким обходом |
+| Выделение, hover, focus, открытие drawer | Не включать в persisted state и не помечать документ изменённым |
+| Поиск/фильтр по одному значению | `watch` конкретного scalar ref + debounce + `useLatestRequest` |
+| Реакция на несколько scalar-полей | `watch([getterA, getterB], ...)` без `deep` |
+| Небольшой ограниченный nested-фрагмент | Getter на нужные leaf-поля; `deep: N` только с обоснованным минимальным N |
+| `deep: true` на nodes/edges/form/document | Удалить; заменить событиями или командами предметной области |
+| `JSON.stringify`, deep clone или normalize внутри watch | Вынести из горячего пути; выполнять по Save или по явному preview action |
+
+### Обязательные вопросы аудита
+
+- Какова максимальная глубина и ширина наблюдаемой структуры?
+- Какие UI-действия вызывают watcher: ввод, drag, selection, resize, viewport?
+- Сколько раз callback выполняется за одно пользовательское действие?
+- Есть ли внутри полный обход, clone, stringify, normalize, emit или HTTP?
+- Можно ли заменить наблюдение явным событием или командой изменения?
+- Есть ли unit-тест, подтверждающий отсутствие записи при посторонней nested-мутации?
 
 ## TypeScript: `any` Replacement Guide
 
@@ -31,6 +57,7 @@
 
 Extract a composable when the component has:
 - [ ] `loading` + `errorMessage` + a fetch function
+- [ ] Async reads can complete out of order
 - [ ] `dialogOpen` + `form` reactive + `submit` async function
 - [ ] `filters` reactive + watcher that calls fetch
 - [ ] Same pattern already exists in another composable in `composables/`
@@ -70,6 +97,7 @@ All frontend files use kebab-case:
 - Components: `DirectoryTreeNode.vue`
 - Composables: `useDirectoryItems.ts`
 - Repositories: `directoryRepository.ts`
+- Schemas: `directorySchema.ts`
 - Types: `directory.ts` inside `types/`
 - Stores: `scenarioCatalog.ts`
 

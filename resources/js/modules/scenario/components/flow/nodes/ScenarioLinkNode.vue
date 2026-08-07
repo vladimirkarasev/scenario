@@ -1,13 +1,16 @@
-<script setup>
+<script setup lang="ts">
 import {computed} from 'vue'
 import {Handle, Position} from '@vue-flow/core'
+import type {ScenarioBlockData} from '@/modules/scenario/lib/scenario-flow-document'
 
-const props = defineProps({
-  data: {type: Object, default: () => ({})},
-  selected: {type: Boolean, default: false},
+const props = withDefaults(defineProps<{
+  data: ScenarioBlockData
+  selected?: boolean
+}>(), {
+  selected: false,
 })
 
-const hasTarget = computed(() => Boolean(props.data?.targetScenarioId))
+const hasTarget = computed(() => Boolean(props.data.targetScenarioId))
 </script>
 
 <template>
@@ -15,17 +18,20 @@ const hasTarget = computed(() => Boolean(props.data?.targetScenarioId))
     <!-- 4 handles so any arc on the circle can start or receive a connection.   -->
     <!-- Connections from in/in_b/left/right_i get reversed in the editor so     -->
     <Handle id="in" type="source" :position="Position.Top" class="scenario-flow-handle !h-[10%] !w-full"
-            connectable-start connectable-end/>
+            connectable-start connectable-end />
     <Handle id="in_b" type="source" :position="Position.Bottom" class="scenario-flow-handle !h-[10%] !w-full"
-            connectable-start connectable-end/>
+            connectable-start connectable-end />
     <Handle id="left" type="source" :position="Position.Left" class="scenario-flow-handle !h-full !w-[10%]"
-            connectable-start connectable-end/>
+            connectable-start connectable-end />
     <Handle id="right_i" type="source" :position="Position.Right" class="scenario-flow-handle !h-full !w-[10%]"
-            connectable-start connectable-end/>
+            connectable-start connectable-end />
 
     <div
         class="relative flex size-[160px] items-center justify-center rounded-full border-[4px] border-emerald-400 bg-emerald-500 text-center text-white shadow-[0_16px_36px_rgba(16,185,129,0.24)] transition">
       <div class="space-y-1 px-4">
+        <div class="line-clamp-1 text-[12px] font-semibold text-white">
+          {{ data.title || 'Переход' }}
+        </div>
         <template v-if="hasTarget">
           <div class="text-[10px] font-medium uppercase tracking-wide text-emerald-100/70">
             Переход к
@@ -44,7 +50,7 @@ const hasTarget = computed(() => Boolean(props.data?.targetScenarioId))
     </div>
 
     <div class="scenario-flow-connector scenario-flow-connector--circle"
-         :class="{ 'scenario-flow-connector--selected': selected }"/>
+         :class="{ 'scenario-flow-connector--selected': selected }" />
   </div>
 </template>
 

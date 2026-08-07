@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Repositories;
 
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioRunStep;
-use Module\Scenario\Services\RunContextKeys;
 
 final class ScenarioRunStepRepository
 {
@@ -55,7 +55,7 @@ final class ScenarioRunStepRepository
         $attributes['scenario_version_revision_id'] ??= $run->scenario_version_revision_id;
         if (!array_key_exists('call_stack', $attributes)) {
             $context = is_array($run->context) ? $run->context : [];
-            $stack = $context[RunContextKeys::CALL_STACK] ?? [];
+            $stack = $context[ScenarioContextKey::CallStack->value] ?? [];
             $attributes['call_stack'] = is_array($stack) ? $stack : [];
         }
 

@@ -21,7 +21,7 @@ import {actionCategoryRepository} from '@/modules/actions/repositories/actionCat
 import {actionRepository} from '@/modules/actions/repositories/actionRepository'
 import {actionTypeRepository} from '@/modules/actions/repositories/actionTypeRepository'
 import type {Action, ActionCategory, ActionTypeMeta} from '@/modules/actions/types/action'
-import type {FeedActionRow, FeedFolderRow} from '@/modules/actions/repositories/actionFeedRepository'
+import type {FeedActionRow, FeedFolderRow} from '@/modules/actions/types/feed'
 import {computed, ref} from 'vue'
 import {Head, router} from '@inertiajs/vue3'
 import {

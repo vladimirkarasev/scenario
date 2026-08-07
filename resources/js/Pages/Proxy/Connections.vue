@@ -3,20 +3,26 @@ import AppShell from '@/layouts/AppShell.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import ProxyTabs from '@/modules/proxy/components/ProxyTabs.vue'
 import {
   FormActions, FormBody, FormError, FormInput, FormSelect,
 } from '@/components/form'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
+import {useAuthStore} from '@/stores/auth'
 import {useConnectionList} from '@/modules/proxy/composables/useConnectionList'
 import {useConnectionModal} from '@/modules/proxy/composables/useConnectionModal'
-import {Head, router} from '@inertiajs/vue3'
+import {Head} from '@inertiajs/vue3'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {ArrowLeft, KeyRound, Loader2, MoreHorizontal, Pencil, Plus, Trash2, X} from 'lucide-vue-next'
+import {KeyRound, Layers3, Loader2, MoreHorizontal, Pencil, Plus, ShieldCheck, Trash2, X} from 'lucide-vue-next'
+import {computed} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
-const {loading, search, filtered, load} = useConnectionList()
+const auth = useAuthStore()
+const canManage = computed(() => auth.hasPermission('proxy_create'))
+const canDelete = computed(() => auth.hasPermission('proxy_delete'))
+const {loading, error, connections, search, filtered, load} = useConnectionList()
 const {
   open, isEditing, saving, formError, errors,
   types, name, credentialType, values, secretFilled, currentFields,
@@ -26,42 +32,77 @@ const {
 function secretHint(key: string): string {
   return secretFilled.value[key] ? 'Сохранён — оставьте пустым, чтобы не менять' : ''
 }
+
+const typeCount = computed(() => new Set(connections.value.map(connection => connection.credential_type)).size)
+const protectedCount = computed(() => connections.value.filter(connection =>
+    Object.values(connection.secret_filled).some(Boolean),
+).length)
 </script>
 
 <template>
   <Head title="Доступы" />
 
   <AppShell title="Доступы" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-5xl px-6 py-8">
-        <button
-            class="mb-3 inline-flex items-center gap-1.5 text-[13px] text-slate-500 transition hover:text-slate-900"
-            @click="router.visit('/proxy/endpoints')"
-        >
-          <ArrowLeft :size="14" />
-          Интеграции
-        </button>
-
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <PageHeader title="Доступы"
                     subtitle="Переиспользуемые доступы к внешним сервисам. Тип определяет набор полей; секреты шифруются.">
           <template #actions>
             <button
-                class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-blue-700"
+                v-if="canManage"
+                class="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white shadow-sm transition hover:bg-blue-700"
                 @click="openCreate"
             >
               <Plus :size="15" />
-              Создать
+              Новый доступ
             </button>
           </template>
         </PageHeader>
 
-        <div class="mb-4">
-          <SearchInput v-model="search" placeholder="Поиск по доступам..." />
+        <div class="mb-6 grid grid-cols-3 gap-4">
+          <div class="rounded-xl border border-blue-300 bg-white px-5 py-4 shadow-sm ring-1 ring-blue-200">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <KeyRound :size="11" />
+              Доступы
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-slate-900">{{ connections.length }}</div>
+            <div class="mt-0.5 text-[11px] text-slate-400">в системе</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <Layers3 :size="11" />
+              Типы
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-slate-900">{{ typeCount }}</div>
+            <div class="mt-0.5 text-[11px] text-slate-400">используется</div>
+          </div>
+          <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-5 py-4 shadow-sm">
+            <div class="mb-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
+              <ShieldCheck :size="11" />
+              С секретами
+            </div>
+            <div class="text-3xl font-bold tabular-nums text-emerald-700">{{ protectedCount }}</div>
+            <div class="mt-0.5 text-[11px] text-emerald-600/70">зашифровано</div>
+          </div>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <ProxyTabs active="connections" />
+          <div class="w-56">
+            <SearchInput v-model="search" placeholder="Поиск доступов..." />
+          </div>
+        </div>
+
+        <div class="app-panel">
           <div v-if="loading" class="flex items-center justify-center py-16 text-slate-400">
             <Loader2 :size="20" class="animate-spin" />
+          </div>
+
+          <div v-else-if="error" class="flex flex-col items-center gap-3 px-5 py-10 text-center">
+            <div class="text-[13px] text-red-600">{{ error }}</div>
+            <button class="h-8 rounded-lg border border-slate-200 px-3 text-[12px] font-medium text-slate-600 hover:bg-slate-50" @click="load">
+              Повторить
+            </button>
           </div>
 
           <template v-else>
@@ -95,7 +136,7 @@ function secretHint(key: string): string {
                   {{ conn.credential_label }}
                 </span>
               </div>
-              <div class="flex justify-end">
+              <div v-if="canManage || canDelete" class="flex justify-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger as-child>
                     <button class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" @click.stop>
@@ -103,17 +144,18 @@ function secretHint(key: string): string {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" class="w-44">
-                    <DropdownMenuItem @click.stop="openEdit(conn)">
+                    <DropdownMenuItem v-if="canManage" @click.stop="openEdit(conn)">
                       <Pencil class="mr-2 h-4 w-4 text-slate-400" />
                       Редактировать
                     </DropdownMenuItem>
-                    <DropdownMenuItem @click.stop="remove(conn)">
+                    <DropdownMenuItem v-if="canDelete" @click.stop="remove(conn)">
                       <Trash2 class="mr-2 h-4 w-4 text-rose-400" />
                       Удалить
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              <div v-else />
             </div>
           </template>
         </div>

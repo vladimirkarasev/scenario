@@ -1,29 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import {computed} from 'vue'
 import {generateHTML} from '@tiptap/html'
+import type {JSONContent} from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
 import Color from '@tiptap/extension-color'
-import {TextStyle} from '@tiptap/extension-text-style'
 import {Table} from '@tiptap/extension-table'
 import {TableRow} from '@tiptap/extension-table-row'
 import {TableHeader} from '@tiptap/extension-table-header'
 import {TableCell} from '@tiptap/extension-table-cell'
 import {Details} from '@/lib/tiptap-details'
+import {FontSize} from '@/lib/tiptap-font-size'
+import {sanitizeHtml} from '@/lib/safe-html'
 
-const props = defineProps({
-  document: {
-    type: [Object, String, null],
-    default: null,
-  },
-  html: {
-    type: String,
-    default: '',
-  },
-})
+const props = defineProps<{
+  document?: unknown
+  html?: string
+}>()
 
 const extensions = [
   StarterKit.configure({
@@ -35,7 +31,7 @@ const extensions = [
   Link,
   Highlight.configure({multicolor: true}),
   TextAlign.configure({types: ['heading', 'paragraph']}),
-  TextStyle,
+  FontSize,
   Color,
   Details,
   Table,
@@ -44,28 +40,26 @@ const extensions = [
   TableCell,
 ]
 
-function isTiptapDocument(value) {
-  return value && typeof value === 'object' && value.type === 'doc'
+function isTiptapDocument(value: unknown): value is JSONContent {
+  return typeof value === 'object' && value !== null && 'type' in value && value.type === 'doc'
 }
 
-function pruneEmptyTextNodes(node) {
-  if (!node || typeof node !== 'object') return node
-
+function pruneEmptyTextNodes(node: JSONContent): JSONContent | null {
   if (node.type === 'text') {
     return typeof node.text === 'string' && node.text.length > 0 ? node : null
   }
 
-  if (Array.isArray(node.content)) {
+  if (node.content) {
     const content = node.content
         .map(pruneEmptyTextNodes)
-        .filter((n) => n !== null)
+        .filter((item): item is JSONContent => item !== null)
     return {...node, content}
   }
 
   return node
 }
 
-function normalizeDocument(value) {
+function normalizeDocument(value: unknown): JSONContent | null {
   if (isTiptapDocument(value)) {
     return pruneEmptyTextNodes(value)
   }
@@ -88,17 +82,16 @@ const renderedHtml = computed(() => {
 
   if (document) {
     try {
-      return generateHTML(document, extensions)
-    } catch (e) {
-      console.error('TiptapTextRenderer: generateHTML failed', e, document)
-      return props.html ?? ''
+      return sanitizeHtml(generateHTML(document, extensions))
+    } catch {
+      return sanitizeHtml(props.html ?? '')
     }
   }
 
-  return props.html ?? ''
+  return sanitizeHtml(props.html ?? '')
 })
 </script>
 
 <template>
-  <div class="tiptap-content text-foreground/90" v-html="renderedHtml"/>
+  <div class="tiptap-content text-foreground/90" v-html="renderedHtml" />
 </template>

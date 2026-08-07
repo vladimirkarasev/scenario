@@ -1,9 +1,52 @@
 import {describe, expect, it} from 'vitest'
 import {
+    buildScenarioFieldNode,
     computeFieldInsertPosition,
+    hasTiptapDocumentContent,
     insertBeforeTrailingEmptyParagraph,
     isEmptyParagraphNode,
+    syncScenarioFieldPresentations,
+    tiptapDocumentPlainText,
 } from '@/modules/scenario/lib/tiptap-gutenberg-doc'
+import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
+
+describe('hasTiptapDocumentContent', () => {
+    it('отличает пустой документ от документа с текстом', () => {
+        expect(hasTiptapDocumentContent({type: 'doc', content: [{type: 'paragraph'}]})).toBe(false)
+        expect(hasTiptapDocumentContent({
+            type: 'doc',
+            content: [{type: 'paragraph', content: [{type: 'text', text: 'Вопрос'}]}],
+        })).toBe(true)
+    })
+
+    it('не считает пробелы содержимым', () => {
+        expect(hasTiptapDocumentContent({
+            type: 'doc',
+            content: [{type: 'paragraph', content: [{type: 'text', text: '   '}]}],
+        })).toBe(false)
+    })
+
+    it('безопасно обрабатывает повреждённые дочерние узлы', () => {
+        expect(hasTiptapDocumentContent({type: 'doc', content: [null, 'text']})).toBe(false)
+    })
+})
+
+describe('tiptapDocumentPlainText', () => {
+    it('собирает компактный текст для превью без Tiptap renderer', () => {
+        expect(tiptapDocumentPlainText({
+            type: 'doc',
+            content: [
+                {type: 'heading', content: [{type: 'text', text: 'Проверка'}]},
+                {type: 'paragraph', content: [{type: 'text', text: '  условия  '}]},
+            ],
+        })).toBe('Проверка условия')
+    })
+
+    it('безопасно обрабатывает пустое и повреждённое содержимое', () => {
+        expect(tiptapDocumentPlainText(null)).toBe('')
+        expect(tiptapDocumentPlainText({type: 'doc', content: [null, 'text']})).toBe('')
+    })
+})
 
 describe('isEmptyParagraphNode', () => {
     it('распознаёт параграф без content как пустой', () => {
@@ -104,5 +147,44 @@ describe('computeFieldInsertPosition', () => {
         const pos = computeFieldInsertPosition({contentSize: 0, lastChild: null})
 
         expect(pos).toBe(0)
+    })
+})
+
+describe('syncScenarioFieldPresentations', () => {
+    it('обновляет устаревший label в Tiptap из актуального поля', () => {
+        const document = {
+            type: 'doc',
+            content: [
+                {
+                    type: 'scenarioField',
+                    attrs: {fieldId: 'field_1'},
+                    content: [{type: 'text', text: 'Старое название'}],
+                },
+                {type: 'paragraph', content: [{type: 'text', text: 'Описание'}]},
+            ],
+        }
+        const field = {
+            id: 'field_1',
+            label: 'Новое название',
+            labelFontSize: '16px',
+            labelColor: '#334155',
+            labelHighlight: '#fef08a',
+        } as BlockField
+
+        const result = syncScenarioFieldPresentations(document, [field])
+
+        expect(result).not.toBe(document)
+        expect(result.content?.[0]).toEqual(buildScenarioFieldNode(field))
+        expect(result.content?.[1]).toBe(document.content[1])
+    })
+
+    it('не создаёт новую версию документа, когда label уже синхронизирован', () => {
+        const field = {id: 'field_1', label: 'Название'} as BlockField
+        const document = {
+            type: 'doc',
+            content: [buildScenarioFieldNode(field), {type: 'paragraph'}],
+        }
+
+        expect(syncScenarioFieldPresentations(document, [field])).toBe(document)
     })
 })

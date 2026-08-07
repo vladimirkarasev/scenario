@@ -4,6 +4,7 @@ import EmptyState from '@/components/EmptyState.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import CopyButton from '@/components/CopyButton.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -18,8 +19,6 @@ import {useGroupModal} from '@/modules/groups/composables/useGroupModal'
 import UsersTabs from '@/modules/users/components/UsersTabs.vue'
 import {Head, Link} from '@inertiajs/vue3'
 import {
-  Check,
-  Copy,
   Layers,
   MoreHorizontal,
   Pencil,
@@ -31,14 +30,12 @@ import {
   Users,
   X
 } from 'lucide-vue-next'
-import {computed, ref} from 'vue'
+import {computed} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
 const auth = useAuthStore()
 const canManage = computed(() => auth.hasPermission('group_create'))
 const canDelete = computed(() => auth.hasPermission('group_delete'))
-
-const copiedId = ref<string | null>(null)
 
 const {search, page, loading, error, groups, meta, load} = useGroupList()
 
@@ -53,15 +50,6 @@ const {
   openDeleteConfirm, closeDeleteConfirm, doDelete: doDeleteGroup,
 } = useGroupModal(load)
 
-function copyText(text: string, key: string): void {
-  navigator.clipboard.writeText(text).catch(() => {
-  })
-  copiedId.value = key
-  setTimeout(() => {
-    copiedId.value = null
-  }, 1500)
-}
-
 function closeMemberSearchSoon(): void {
   setTimeout(() => {
     memberSearchOpen.value = false
@@ -73,8 +61,8 @@ function closeMemberSearchSoon(): void {
   <Head title="Группы"/>
 
   <AppShell title="Группы" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <!-- Header -->
         <PageHeader title="Пользователи и роли" subtitle="Управление пользователями, группами и ролями доступа.">
           <template #actions>
@@ -136,8 +124,7 @@ function closeMemberSearchSoon(): void {
         </div>
 
         <!-- Groups table -->
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <div class="grid border-b border-slate-100 px-5 py-3" style="grid-template-columns: 1fr 80px 100px 40px">
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Группа</div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Участники</div>
@@ -172,13 +159,13 @@ function closeMemberSearchSoon(): void {
           >
             <div class="min-w-0 pr-4">
               <div class="text-[13px] font-semibold text-slate-900">{{ g.name }}</div>
-              <button
+              <CopyButton
+                  :text="g.slug"
+                  :label="g.slug"
+                  :copied-label="g.slug"
                   class="mt-0.5 flex items-center gap-1 font-mono text-[11px] text-slate-400 transition hover:text-slate-700"
-                  @click="copyText(g.slug, `slug-${g.id}`)"
-              >
-                <component :is="copiedId === `slug-${g.id}` ? Check : Copy" :size="10"/>
-                {{ g.slug }}
-              </button>
+                  title="Скопировать slug"
+              />
               <div v-if="g.description" class="mt-0.5 truncate text-[11px] text-slate-400">{{ g.description }}</div>
             </div>
 

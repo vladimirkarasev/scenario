@@ -1,6 +1,6 @@
 ---
 name: form-validation
-description: Build forms using the zod-schema + useZodForm + components/form/ stack. NEVER write manual <Input>/<Textarea>/<Label>/<p class="text-red-600"> markup or hand-rolled try/catch error handling in form composables. Apply when adding a new modal/form, refactoring an existing form, or extending fields in an existing entity form.
+description: Build forms using the zod-schema + useZodForm + components/form/ stack. Never write manual input, textarea, label or inline-error markup or hand-rolled try/catch error handling in form composables. Apply when adding a new modal/form, refactoring an existing form, or extending fields in an existing entity form.
 ---
 
 # Создание формы
@@ -46,6 +46,8 @@ export type ProjectFormValues = z.infer<typeof projectSchema>
 - Системные имена (snake_case): `.regex(/^[a-z][a-z0-9_]*$/, 'Только латиница, цифры и _, первый символ — буква')`.
 - Email: `.email('Некорректный email')`.
 - Поля, зависящие от режима (create vs edit), оформи как функцию: `userSchema(isEditing: boolean) → z.object(...)` — пароль обязательный только при create.
+- Динамические наборы полей собирать в schema factory/Strategy внутри `schemas/`, а не в component или composable.
+- Не вызывать глобальный `z.setErrorMap` из composable: это разделяемое состояние создаёт зависимость от порядка выполнения тестов и параллельных форм. Передавать сообщения в schema или локальный parse context.
 
 ## Step 2 — Composable через useZodForm
 
@@ -163,6 +165,7 @@ export function useProjectModal(onSaved: () => void) {
 | `<FormActions>` | footer с кнопками Cancel/Submit + slot `#extra` |
 | `<FormField>` | low-level: label + error + slot (используется внутри Form*) |
 | `<FormInput>` | text/email/url input |
+| `<FormInputAction>` | input с inline-действием справа: сгенерировать, проверить, скопировать или обновить значение |
 | `<FormPassword>` | password input с eye-toggle |
 | `<FormTextarea>` | textarea |
 | `<FormSelect>` | NativeSelect + slot для `<option>` |
@@ -181,6 +184,8 @@ export function useProjectModal(onSaved: () => void) {
 | `<FormMockVariants>` | динамический массив webhook mock-вариантов |
 
 **Если поле повторяется в 2+ формах — выноси в `components/form/`**, не оставляй inline. Каждый новый компонент должен оборачивать содержимое в `<FormField :label :error :hint :required :for>` для консистентности.
+
+Если действие является частью одного поля, использовать `<FormInputAction>` и slot `#action`. Не собирать вручную соседние `<FormInput>` и `<Button>`: общий компонент отвечает за layout, disabled state, label binding и ошибку поля.
 
 ## HTML-стандарты: id / name / for / a11y
 
@@ -276,6 +281,7 @@ const fieldId = useFieldId(() => props.id)
 - **Валидация типа `!form.name.trim()`** в шаблоне или composable: пиши zod-схему.
 - **`alert()` для ошибок**: см. [[crud-toast]].
 - **Дублирование схемы**: типы формы — `z.infer<typeof xxxSchema>`, не объявляй отдельный `interface XxxForm`.
+- **Глобальная настройка Zod во время работы формы**: `z.setErrorMap(...)` влияет на другие формы и тесты. Используй локальные сообщения или schema factory.
 
 ## Существующие формы — образцы
 

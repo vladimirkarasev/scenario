@@ -130,8 +130,8 @@ function canDeleteUser(user: {id: string}): boolean {
   <Head title="Пользователи"/>
 
   <AppShell title="Пользователи" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <PageHeader title="Пользователи и роли" subtitle="Управление пользователями, группами и ролями доступа.">
           <template #actions>
             <button
@@ -316,8 +316,7 @@ function canDeleteUser(user: {id: string}): boolean {
         </div>
 
         <!-- Table -->
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <div class="grid border-b border-slate-100 px-5 py-3" style="grid-template-columns: 1fr 240px 100px 40px">
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Пользователь</div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Роли</div>
