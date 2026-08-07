@@ -144,11 +144,12 @@ const {isActive, run} = useTiptapFormatting(toRef(props, 'editor'), toRef(props,
   top: 0;
   left: 0;
   right: 0;
-  border-top: 1px dashed #cbd5e1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #bfdbfe 15%, #bfdbfe 85%, transparent);
 }
 
 .tiptap-content .ProseMirror-gapcursor:after {
-  content: '+ Добавить';
+  content: '+  Добавить';
   display: flex;
   align-items: center;
   gap: 4px;
@@ -156,20 +157,27 @@ const {isActive, run} = useTiptapFormatting(toRef(props, 'editor'), toRef(props,
   top: 0;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 2px 10px;
+  padding: 4px 14px;
   white-space: nowrap;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  letter-spacing: 0.01em;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: 9999px;
-  animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.12);
+  animation: ProseMirror-gapcursor-pulse 1.6s ease-in-out infinite;
 }
 
-@keyframes ProseMirror-cursor-blink {
-  to {
-    visibility: hidden;
+@keyframes ProseMirror-gapcursor-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scale(0.97);
   }
 }
 

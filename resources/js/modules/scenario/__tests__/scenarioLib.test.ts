@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {extractTemplateKeys, renderLabelTemplate} from '@/modules/scenario/lib/directory-template'
+import {extractTemplateKeys} from '@/modules/scenario/lib/directory-template'
 import {
     blockVariableFromId,
     createEmptyScenarioFlowDocument,
@@ -14,29 +14,21 @@ import {blockFieldsToSurveyBlocks, blockFieldToSurveyBlock} from '@/modules/scen
 import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
 
 describe('scenario library', () => {
-    it('рендерит плоские поля и пути из context', () => {
-        expect(renderLabelTemplate(
-            '{{ name }} — {{ operator.fio }} — {{ missing }}',
-            {name: 'Москва'},
-            {operator: {fio: 'Иванов И.И.'}},
-        )).toBe('Москва — Иванов И.И. — ')
-        expect(extractTemplateKeys('{{ name }} {{ operator.fio }} {{ name }}')).toEqual([
+    it('извлекает поля из простого шаблона подписи', () => {
+        expect(extractTemplateKeys('{{ name }} {{ _operator.fio }} {{ name }}')).toEqual([
             'name',
-            'operator.fio',
+            '_operator.fio',
             'name',
         ])
     })
 
-    it('рендерит ключи-слаги с дефисами', () => {
-        expect(renderLabelTemplate(
-            '{{ gorod }}:{{ nazvanie-goroda-dlya-gl }}',
-            {gorod: 'Москва', 'nazvanie-goroda-dlya-gl': 'Мск'},
-        )).toBe('Москва:Мск')
+    it('извлекает ключи-слаги с дефисами', () => {
         expect(extractTemplateKeys('{{ city-name }}')).toEqual(['city-name'])
     })
 
     it('нормализует пустой и legacy flow document', () => {
-        expect(normalizeScenarioFlowDocument(null)).toEqual(createEmptyScenarioFlowDocument())
+        const emptyDocument = normalizeScenarioFlowDocument(null)
+        expect(emptyDocument).toEqual(createEmptyScenarioFlowDocument())
 
         const flow = normalizeScenarioFlowDocument({
             nodes: [{id: 'start', type: 'start', position: {x: 10, y: 20}, data: {}}],
@@ -56,6 +48,13 @@ describe('scenario library', () => {
                 target: {blockId: 'end', port: null},
             }],
         })
+        expect(flow.blocks[0].data.hideTitle).toBe(true)
+
+        const visibleTitleFlow = normalizeScenarioFlowDocument({
+            nodes: [{id: 'start', type: 'start', data: {hideTitle: false}}],
+            edges: [],
+        })
+        expect(visibleTitleFlow.blocks[0].data.hideTitle).toBe(false)
     })
 
     it('дублирует блоки с новыми id и сдвигом позиции, ремапит только внутренние connections', () => {
@@ -205,6 +204,7 @@ describe('scenario library', () => {
             type: 'number',
             name: 'age',
             label: 'Возраст',
+            hideLabel: true,
             required: true,
             varName: 'age',
             placeholder: '',
@@ -220,6 +220,7 @@ describe('scenario library', () => {
             type: 'number',
             props: {
                 defaultValue: '18',
+                hideLabel: true,
                 validation: [{id: 'min', type: 'min', value: '0', message: 'Не меньше нуля'}],
             },
         })

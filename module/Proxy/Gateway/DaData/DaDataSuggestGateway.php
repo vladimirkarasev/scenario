@@ -15,7 +15,6 @@ use Module\Proxy\Gateway\DaData\Methods\FindByIdMethod;
 use Module\Proxy\Gateway\DaData\Methods\GeolocateMethod;
 use Module\Proxy\Gateway\DaData\Methods\IplocateMethod;
 use Module\Proxy\Gateway\DaData\Methods\SuggestMethod;
-use Psr\Log\LoggerInterface;
 
 final class DaDataSuggestGateway extends BaseApiGateway
 {
@@ -23,13 +22,11 @@ final class DaDataSuggestGateway extends BaseApiGateway
         ApiGatewayConfig $config,
         GuzzleApiTransport $transport,
         MockApiTransport $mockTransport,
-        LoggerInterface $logger,
     ) {
         parent::__construct(
             config: $config,
             transport: $transport,
             mockTransport: $mockTransport,
-            logger: $logger,
         );
     }
 
@@ -305,7 +302,7 @@ final class DaDataSuggestGateway extends BaseApiGateway
 
         return array_values(array_map(
             DaDataSuggestion::fromArray(...),
-            array_filter($items, 'is_array'),
+            array_filter($items, is_array(...)),
         ));
     }
 }

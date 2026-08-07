@@ -15,8 +15,9 @@ use Module\Users\Models\User;
  * @property string $directory_id
  * @property array<string, string> $mapping_json
  * @property array<int, array<string, mixed>> $fields_json
- * @property array<string, mixed> $remote_config_json
+ * @property array<string, mixed> $source_config_json
  * @property array<int, string> $processed_keys_json
+ * @property string|null $external_key_field
  * @property Carbon|null $started_at
  * @property Carbon|null $finished_at
  */
@@ -30,11 +31,12 @@ use Module\Users\Models\User;
     'file_disk',
     'file_path',
     'match_by',
+    'external_key_field',
     'parent_key_field',
     'chunk_size',
     'mapping_json',
     'fields_json',
-    'remote_config_json',
+    'source_config_json',
     'processed_keys_json',
     'processed_rows',
     'imported_rows',
@@ -70,7 +72,7 @@ final class DirectoryImport extends Model
         return [
             'mapping_json' => 'array',
             'fields_json' => 'array',
-            'remote_config_json' => 'array',
+            'source_config_json' => 'array',
             'processed_keys_json' => 'array',
             'started_at' => 'datetime',
             'finished_at' => 'datetime',

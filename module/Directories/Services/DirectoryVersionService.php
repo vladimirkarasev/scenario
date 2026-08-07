@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services;
 
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\DB;
 use Module\Directories\Cache\DirectoryCache;
 use Module\Directories\Exceptions\DirectoryVersionException;
-use Module\Directories\Jobs\RebuildDirectorySearchTextJob;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
+use Module\Directories\Repositories\DirectoryCacheRepository;
 use Module\Directories\Repositories\DirectoryVersionRepository;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
+use Module\Directories\Presenters\DirectoryVersionPresenter;
 
 final readonly class DirectoryVersionService
 {
     public function __construct(
         private DirectoryVersionRepository $versions,
-        private Container $container,
+        private DirectoryCacheRepository $dataCache,
+        private DirectorySyncScheduleService $syncSchedules,
+        private RebuildDirectorySearchTextWorkflowStarterInterface $searchTextRebuilder,
+        private DirectoryVersionPresenter $presenter,
     ) {
     }
 
@@ -84,6 +88,8 @@ final readonly class DirectoryVersionService
             throw DirectoryVersionException::notBelongsToDirectory();
         }
 
+        $this->validateRelatedDirectoryFields($fields, $directory);
+
         $previousSearchableKeys = $this->searchableKeys($version->schema_json);
 
         $version->schema_json = $fields;
@@ -94,12 +100,38 @@ final readonly class DirectoryVersionService
         $directory->save();
 
         if ($previousSearchableKeys !== $this->searchableKeys($fields)) {
-            RebuildDirectorySearchTextJob::dispatch($version->id);
+            $this->searchTextRebuilder->start($version->id);
         }
 
         DirectoryCache::forgetDirectory($directory->id);
 
         return $this->payload($version);
+    }
+
+    /** @param  array<int, array<string, mixed>>  $fields */
+    private function validateRelatedDirectoryFields(array $fields, Directory $directory): void
+    {
+        foreach ($fields as $field) {
+            if (($field['type'] ?? null) !== 'related_directory') {
+                continue;
+            }
+
+            $relatedId = $field['related_directory_id'] ?? null;
+
+            if (!is_string($relatedId) || $relatedId === '') {
+                continue;
+            }
+
+            if ($relatedId === $directory->id) {
+                throw DirectoryVersionException::relatedDirectorySelfReference();
+            }
+
+            $related = Directory::query()->find($relatedId);
+
+            if (!$related instanceof Directory || $related->project_id !== $directory->project_id) {
+                throw DirectoryVersionException::relatedDirectoryNotFound();
+            }
+        }
     }
 
     /**
@@ -138,6 +170,10 @@ final readonly class DirectoryVersionService
             $directory->source_type = $sourceType;
             $directory->next_sync_at = $sourceType === 'api' ? now() : null;
             $directory->save();
+
+            if ($sourceType === 'api') {
+                $this->syncSchedules->ensureDefault($directory);
+            }
         }
 
         DirectoryCache::forgetDirectory($directory->id);
@@ -180,8 +216,12 @@ final readonly class DirectoryVersionService
         $directory->next_sync_at = $version->source_type === 'api' ? now() : null;
         $directory->save();
 
+        if ($version->source_type === 'api') {
+            $this->syncSchedules->ensureDefault($directory);
+        }
+
         DirectoryCache::forgetDirectory($directory->id);
-        $this->container->make(DirectoryCacheService::class)->forgetDirectory($directory);
+        $this->dataCache->forgetDirectory($directory);
 
         return $this->payload($version->refresh());
     }
@@ -191,41 +231,7 @@ final readonly class DirectoryVersionService
      */
     public function payload(DirectoryVersion $version): array
     {
-        return [
-            'id' => $version->id,
-            'version_number' => $version->version_number,
-            'code' => $version->code,
-            'status' => $version->status,
-            'is_active' => (bool)$version->is_active,
-            'source_type' => $version->source_type ?? 'manual',
-            'sync_options' => $version->sync_options ?? [
-                    'add_new' => true,
-                    'update_existing' => true,
-                    'delete_unused' => false,
-                ],
-            'allow_other' => (bool)$version->allow_other,
-            'other_label' => $version->other_label,
-            'other_external_key' => $version->other_external_key,
-            'schema_json' => $this->schemaPayload($version),
-            'items_count' => $version->items_count ?? $this->versions->itemsCount($version),
-            'imports_count' => $version->imports_count ?? $this->versions->importsCount($version),
-            'created_at' => $version->created_at?->toIso8601String(),
-        ];
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function schemaPayload(DirectoryVersion $version): array
-    {
-        if ($version->schema_json !== []) {
-            return $version->schema_json;
-        }
-
-        $import = $version->sourceImport()->first()
-            ?? $version->imports()->latest()->first();
-
-        return $import !== null ? $import->fields_json : [];
+        return $this->presenter->present($version);
     }
 
     /**

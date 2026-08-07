@@ -63,6 +63,7 @@ export interface WebhookField {
     secret?: boolean
     filterable?: boolean
     filter_key?: string | null
+    identity?: boolean
     values?: string[]
 }
 

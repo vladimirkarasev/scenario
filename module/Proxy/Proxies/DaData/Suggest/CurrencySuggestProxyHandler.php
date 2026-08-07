@@ -19,7 +19,7 @@ final class CurrencySuggestProxyHandler extends DaDataSuggestEndpointHandler
 
     /** @return iterable<mixed> */
     #[\Override]
-    public function resultFields(): iterable
+    public function responseFields(): iterable
     {
         yield ProxyFieldString::make('value')->label('Значение');
         yield ProxyFieldString::make('data.code')->label('Код');

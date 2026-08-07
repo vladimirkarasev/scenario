@@ -7,16 +7,17 @@ namespace Module\Directories\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Module\Directories\DTO\ApiDirectoryImportCommand;
 use Module\Directories\DTO\DirectoryImportOptions;
 use Module\Directories\Http\Resources\JsonApi\DirectoryImportResource;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DictionaryApiSyncService;
+use Module\Directories\Services\DirectoryManager;
 use Module\Directories\Services\DirectoryService;
 
 final class DirectoryApiSyncController extends Controller
 {
     public function __construct(
-        private readonly DictionaryApiSyncService $syncService,
+        private readonly DirectoryManager $directories,
         private readonly DirectoryService $directoryService,
     ) {
     }
@@ -39,7 +40,13 @@ final class DirectoryApiSyncController extends Controller
             );
         }
 
-        $import = $this->syncService->queue($directory, is_int($authId) ? $authId : null, $options);
+        $import = $this->directories->import(
+            new ApiDirectoryImportCommand(
+                directoryModel: $directory,
+                userId: is_int($authId) ? $authId : null,
+                options: $options,
+            ),
+        );
 
         return new DirectoryImportResource($this->directoryService->importPayload($import))
             ->response()

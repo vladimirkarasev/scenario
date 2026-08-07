@@ -4,6 +4,7 @@ import EmptyState from '@/components/EmptyState.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import ProxyTabs from '@/modules/proxy/components/ProxyTabs.vue'
 import {Button} from '@/components/ui/button'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -17,7 +18,7 @@ import {Activity, ChevronDown, Loader2, Plug, RefreshCw, X, Zap} from 'lucide-vu
 const {navigationItems} = useDashboardNavigation()
 
 const {
-  params, loading, items, meta, search, page, load,
+  params, loading, error, items, meta, search, page, load,
 } = useWebhookRequestList()
 
 const {
@@ -50,23 +51,27 @@ function fmt(iso: string | null) {
   <Head title="Webhook запросы"/>
 
   <AppShell title="Webhook запросы" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <PageHeader
             title="Webhook запросы"
             subtitle="История входящих запросов."
         />
 
-        <!-- Search + refresh -->
-        <div class="mb-3 flex items-center gap-3">
-          <div class="flex-1">
+        <div v-if="error" class="app-error mb-4">{{ error }}</div>
+
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <ProxyTabs active="requests" />
+          <div class="flex w-full max-w-md items-center gap-3">
+            <div class="flex-1">
             <SearchInput v-model="search" placeholder="Поиск по request ID или эндпоинту…"/>
+            </div>
+            <Button variant="outline" class="gap-2" :disabled="loading" @click="load">
+              <Loader2 v-if="loading" :size="14" class="animate-spin"/>
+              <RefreshCw v-else :size="14"/>
+              Обновить
+            </Button>
           </div>
-          <Button variant="outline" class="gap-2" :disabled="loading" @click="load">
-            <Loader2 v-if="loading" :size="14" class="animate-spin"/>
-            <RefreshCw v-else :size="14"/>
-            Обновить
-          </Button>
         </div>
 
         <!-- Filters -->
@@ -173,8 +178,7 @@ function fmt(iso: string | null) {
           </template>
         </div>
 
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <Table>
             <TableHeader>
               <TableRow>

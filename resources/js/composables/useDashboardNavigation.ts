@@ -7,7 +7,7 @@ export function useDashboardNavigation() {
 
     const navigationItems = computed(() => [
         {
-            label: 'Workspace',
+            label: 'Рабочая область',
             icon: LayoutPanelLeft,
             href: route('workspace'),
             active: page.url.startsWith('/workspace'),
@@ -19,25 +19,25 @@ export function useDashboardNavigation() {
             active: page.url.startsWith('/surveys'),
         },
         {
-            label: 'Users and Roles',
+            label: 'Пользователи и роли',
             icon: Users,
             href: route('users.index'),
             active: page.url.startsWith('/users'),
         },
         {
-            label: 'Scenarios',
+            label: 'Сценарии',
             icon: Workflow,
             href: route('scenarios'),
             active: page.url.startsWith('/scenarios') || page.url.startsWith('/scenario-versions/'),
         },
         {
-            label: 'Projects',
+            label: 'Проекты',
             icon: Building2,
             href: route('projects.index'),
             active: page.url.startsWith('/projects'),
         },
         {
-            label: 'Actions',
+            label: 'Действия',
             icon: Zap,
             href: route('actions'),
             active: page.url.startsWith('/actions'),
@@ -49,7 +49,7 @@ export function useDashboardNavigation() {
             active: page.url.startsWith('/proxy'),
         },
         {
-            label: 'Directories',
+            label: 'Справочники',
             icon: Database,
             href: route('directories'),
             active: page.url.startsWith('/directories'),

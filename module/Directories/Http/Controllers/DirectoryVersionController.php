@@ -92,6 +92,15 @@ final class DirectoryVersionController extends Controller
                             static fn(string $v): bool => $v !== ''
                         )
                     ) : [],
+                    'related_directory_id' => is_string(
+                        $f['related_directory_id'] ?? null
+                    ) && $f['related_directory_id'] !== '' ? $f['related_directory_id'] : null,
+                    'related_match_key' => is_string(
+                        $f['related_match_key'] ?? null
+                    ) && $f['related_match_key'] !== '' ? $f['related_match_key'] : null,
+                    'related_template' => is_string(
+                        $f['related_template'] ?? null
+                    ) && $f['related_template'] !== '' ? $f['related_template'] : null,
                 ];
             })
             ->values()

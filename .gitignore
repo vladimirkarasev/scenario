@@ -27,4 +27,7 @@ Homestead.yaml
 Thumbs.db
 rr
 storage/app/rr-*.db
-.claude
+.claude/worktrees
+.claude/settings.local.json
+.claude/skills
+.codex/skills

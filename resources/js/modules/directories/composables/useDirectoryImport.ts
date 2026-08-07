@@ -1,9 +1,12 @@
-import * as XLSX from 'xlsx'
-import {onUnmounted, reactive, ref, watch} from 'vue'
+import {computed, onUnmounted, reactive, ref, watch} from 'vue'
 import type {Subscription} from 'centrifuge'
 import {subscribeTo, unsubscribeFrom} from '@/composables/useCentrifugo'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
-import {sendJson} from '@/lib/http'
+import {
+    SPREADSHEET_PREVIEW_ROWS,
+    spreadsheetColumnsError,
+    spreadsheetFileError,
+} from '@/modules/directories/lib/spreadsheetImport'
 import type {
     Directory,
     DirectoryImport,
@@ -19,6 +22,8 @@ interface ImportStatusEvent {
     imported_rows: number
     failed_rows: number
     error_message: string | null
+    source_type: string
+    sources_total: number
 }
 
 export function useDirectoryImport(directoryId: string, versionId?: number) {
@@ -59,14 +64,16 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             .forEach(i => subscribeToImport(i.id))
     }
 
-    function destroySubs(): void {
+    function destroy(): void {
         activeSubs.forEach(sub => {
             void unsubscribeFrom(sub)
         })
         activeSubs.clear()
+        if (saveTimer) clearTimeout(saveTimer)
+        if (pendingSettings) void flushSettingsSave()
     }
 
-    onUnmounted(() => destroySubs())
+    onUnmounted(destroy)
 
     async function loadImports(): Promise<void> {
         loading.value = true
@@ -82,23 +89,17 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
     const syncModalOpen = ref(false)
     const syncRunning = ref(false)
     const syncResult = ref<{ added: number; updated: number; deleted: number } | null>(null)
-    const syncOptions = reactive<DirectoryVersionSyncOptions>({
-        add_new: true,
-        update_existing: true,
-        delete_unused: false
-    })
-
     function openSync(): void {
         syncResult.value = null
         syncRunning.value = false
         syncModalOpen.value = true
     }
 
-    async function runSync(): Promise<void> {
+    async function runSync(options?: DirectoryVersionSyncOptions): Promise<void> {
         syncRunning.value = true
         syncResult.value = null
         try {
-            await directoryRepository.syncApi(directoryId, {...syncOptions})
+            await directoryRepository.syncApi(directoryId, options)
             syncResult.value = {added: 0, updated: 0, deleted: 0}
             await loadImports()
         } catch { /* shown via syncResult staying null */
@@ -108,38 +109,53 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
     }
 
     const importStep = ref<1 | 2>(1)
-    const importFile = ref<File | null>(null)
+    const importFiles = ref<File[]>([])
+    const importFile = computed<File | null>({
+        get: () => importFiles.value[0] ?? null,
+        set: file => {
+            importFiles.value = file ? [file] : []
+        },
+    })
     const importOptions = reactive({addNew: true, updateExisting: true, deleteUnused: false})
 
     function restoreImportOptions(settings: Directory['import_settings']): void {
         if (typeof settings.add_new === 'boolean') {
             importOptions.addNew = settings.add_new
-            syncOptions.add_new = settings.add_new
         }
         if (typeof settings.update_existing === 'boolean') {
             importOptions.updateExisting = settings.update_existing
-            syncOptions.update_existing = settings.update_existing
         }
         if (typeof settings.delete_unused === 'boolean') {
             importOptions.deleteUnused = settings.delete_unused
-            syncOptions.delete_unused = settings.delete_unused
         }
     }
 
     let saveTimer: ReturnType<typeof setTimeout> | null = null
+    let pendingSettings: Record<string, boolean> | null = null
+    let settingsSaveRunning = false
+
+    async function flushSettingsSave(): Promise<void> {
+        if (settingsSaveRunning) return
+        settingsSaveRunning = true
+        try {
+            while (pendingSettings) {
+                const settings = pendingSettings
+                pendingSettings = null
+                try {
+                    await directoryRepository.updateImportSettings(directoryId, settings)
+                } catch {
+                    continue
+                }
+            }
+        } finally {
+            settingsSaveRunning = false
+        }
+    }
 
     function scheduleSettingsSave(body: Record<string, boolean>): void {
+        pendingSettings = body
         if (saveTimer) clearTimeout(saveTimer)
-        saveTimer = setTimeout(async () => {
-            try {
-                await sendJson(`/api/directories/${directoryId}/import-settings`, {
-                    method: 'PATCH',
-                    fallbackMessage: 'Failed to save import settings.',
-                    body,
-                })
-            } catch { /* silent */
-            }
-        }, 400)
+        saveTimer = setTimeout(() => void flushSettingsSave(), 400)
     }
 
     watch(() => ({...importOptions}), () => {
@@ -150,13 +166,6 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
         })
     })
 
-    watch(() => ({...syncOptions}), () => {
-        scheduleSettingsSave({
-            add_new: syncOptions.add_new,
-            update_existing: syncOptions.update_existing,
-            delete_unused: syncOptions.delete_unused,
-        })
-    })
     const importLoading = ref(false)
     const importError = ref('')
     const parsedHeaders = ref<{ key: string; label: string }[]>([])
@@ -165,7 +174,7 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
     const storedSchemaFields = ref<DirectorySchemaField[]>([])
 
     function onFileSelect(e: Event): void {
-        importFile.value = (e.target as HTMLInputElement).files?.[0] ?? null
+        importFiles.value = Array.from((e.target as HTMLInputElement).files ?? [])
     }
 
     async function goToMapping(schemaFields: DirectorySchemaField[]): Promise<void> {
@@ -173,19 +182,49 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
             importError.value = 'Выберите хотя бы один режим.'
             return
         }
-        if (!importFile.value) {
-            importError.value = 'Выберите файл.'
+        if (importFiles.value.length === 0) {
+            importError.value = 'Выберите хотя бы один файл.'
+            return
+        }
+        const invalidFileMessage = importFiles.value.map(spreadsheetFileError).find(message => message !== null)
+        if (invalidFileMessage) {
+            importError.value = invalidFileMessage
             return
         }
         importError.value = ''
         try {
-            const buf = await importFile.value.arrayBuffer()
-            const wb = XLSX.read(buf, {type: 'array'})
-            const ws = wb.Sheets[wb.SheetNames[0]]
-            const rows = XLSX.utils.sheet_to_json<string[]>(ws, {header: 1})
-            const headerRow = (rows[0] ?? []).map(String)
+            const XLSX = await import('xlsx')
+            const parsedFiles = await Promise.all(importFiles.value.map(async file => {
+                const buf = await file.arrayBuffer()
+                const wb = XLSX.read(buf, {type: 'array', sheetRows: SPREADSHEET_PREVIEW_ROWS})
+                const ws = wb.Sheets[wb.SheetNames[0]]
+                if (!ws) throw new Error(`В файле «${file.name}» нет листов.`)
+                const rows = XLSX.utils.sheet_to_json<string[]>(ws, {header: 1})
+
+                return {
+                    file,
+                    rows,
+                    headers: (rows[0] ?? []).map(String),
+                }
+            }))
+            const headerRow = parsedFiles[0]?.headers ?? []
+            const columnsError = spreadsheetColumnsError(headerRow.length)
+            if (columnsError) {
+                importError.value = columnsError
+                return
+            }
+            const headerSignature = JSON.stringify(headerRow)
+            const incompatibleFile = parsedFiles.find(file => JSON.stringify(file.headers) !== headerSignature)
+
+            if (incompatibleFile) {
+                importError.value = `Колонки файла «${incompatibleFile.file.name}» отличаются от первого файла.`
+                return
+            }
+
             parsedHeaders.value = headerRow.map(h => ({key: h, label: h}))
-            parsedPreviewRows.value = rows.slice(1, 4).map(r => headerRow.map((_, i) => String((r as string[])[i] ?? '')))
+            parsedPreviewRows.value = (parsedFiles[0]?.rows ?? [])
+                .slice(1, 4)
+                .map(r => headerRow.map((_, i) => String((r as string[])[i] ?? '')))
             storedSchemaFields.value = schemaFields
 
             const normalize = (s: string): string => s.trim().toLowerCase()
@@ -217,7 +256,7 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
         importError.value = ''
         try {
             const fd = new FormData()
-            fd.append('file', importFile.value!)
+            importFiles.value.forEach(file => fd.append('files[]', file))
             fd.append('source_type', 'file')
             fd.append('mode', importOptions.deleteUnused ? 'replace' : importOptions.updateExisting ? 'update' : 'create')
             fd.append('add_new', importOptions.addNew ? '1' : '0')
@@ -251,7 +290,7 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
 
     function resetImport(): void {
         importStep.value = 1
-        importFile.value = null
+        importFiles.value = []
         importError.value = ''
         importLoading.value = false
         parsedHeaders.value = []
@@ -276,8 +315,8 @@ export function useDirectoryImport(directoryId: string, versionId?: number) {
 
     return {
         imports, loading, loadImports, restoreImportOptions,
-        syncModalOpen, syncRunning, syncResult, syncOptions, openSync, runSync,
-        importStep, importFile, importOptions, importLoading, importError,
+        syncModalOpen, syncRunning, syncResult, openSync, runSync,
+        importStep, importFile, importFiles, importOptions, importLoading, importError,
         parsedHeaders, parsedPreviewRows, importMapping,
         onFileSelect, goToMapping, submitImport, resetImport,
         importLabel, importVariant,

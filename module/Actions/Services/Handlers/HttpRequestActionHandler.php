@@ -11,10 +11,12 @@ use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionCredentialResolver;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
+use Module\Actions\Services\Handlers\Concerns\MasksSensitiveHeaders;
 
 final readonly class HttpRequestActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
+    use MasksSensitiveHeaders;
 
     public function __construct(
         private ActionDataResolver $dataResolver,
@@ -43,12 +45,14 @@ final readonly class HttpRequestActionHandler implements ActionHandlerInterface
         $timeout = $resolvedConfig['timeout'] ?? 15;
         $retryCount = $resolvedConfig['retry_count'] ?? 0;
 
+        $requestHeaders = [
+            ...$resolvedCredentials['headers'],
+            ...$headers,
+        ];
+
         $request = Http::timeout(is_numeric($timeout) ? (int) $timeout : 15)
             ->retry(is_numeric($retryCount) ? (int) $retryCount : 0, 250)
-            ->withHeaders([
-                ...$resolvedCredentials['headers'],
-                ...$headers,
-            ]);
+            ->withHeaders($requestHeaders);
 
         $query = [
             ...$resolvedCredentials['query'],
@@ -71,6 +75,15 @@ final readonly class HttpRequestActionHandler implements ActionHandlerInterface
             default => $request->send($method, $url, ['query' => $query, 'json' => $body]),
         };
 
+        $requestInfo = [
+            'method' => $method,
+            'url' => $url,
+            'headers' => $this->maskSensitive($requestHeaders),
+            'query' => $this->maskSensitive($query),
+            'body' => $body,
+            'body_type' => $bodyType,
+        ];
+
         if ($response->failed()) {
             return ActionResult::failed(
                 error: sprintf('HTTP request failed with status %d.', $response->status()),
@@ -78,6 +91,7 @@ final readonly class HttpRequestActionHandler implements ActionHandlerInterface
                     'status' => $response->status(),
                     'headers' => $response->headers(),
                     'body' => $response->json() ?? $response->body(),
+                    'request' => $requestInfo,
                 ],
             );
         }
@@ -86,6 +100,7 @@ final readonly class HttpRequestActionHandler implements ActionHandlerInterface
             'status' => $response->status(),
             'headers' => $response->headers(),
             'body' => $response->json() ?? $response->body(),
+            'request' => $requestInfo,
         ]);
     }
 }

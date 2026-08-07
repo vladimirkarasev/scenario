@@ -215,6 +215,147 @@ final class BlockNodeValidatorTest extends TestCase
         $this->assertStringContainsString('100', $e->errors()['note'][0]);
     }
 
+    public function test_vin_field_passes_valid_vin(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => 'X4XCM1950L0000001'],
+        );
+    }
+
+    public function test_vin_field_fails_lowercase_vin(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => 'x4xcm1950l0000001'],
+        );
+
+        $this->assertArrayHasKey('vin', $e->errors());
+        $this->assertStringContainsString('VIN', $e->errors()['vin'][0]);
+    }
+
+    public function test_vin_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('vin', $e->errors());
+    }
+
+    public function test_vin_field_passes_shape_value(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('vin', 'vin', required: true)]),
+            ['vin' => ['value' => 'X4XCM1950L0000001']],
+        );
+    }
+
+    public function test_grz_field_passes_uppercase_grz(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => 'А123ВС777'],
+        );
+    }
+
+    public function test_grz_field_fails_lowercase_grz(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => 'а123вс777'],
+        );
+
+        $this->assertArrayHasKey('grz', $e->errors());
+        $this->assertStringContainsString('регистре', $e->errors()['grz'][0]);
+    }
+
+    public function test_grz_field_passes_shape_original(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            ['grz' => ['country' => 'RU', 'formatted' => 'А123ВС 777', 'original' => 'А123ВС777']],
+        );
+    }
+
+    public function test_grz_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('grz', 'grz', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('grz', $e->errors());
+    }
+
+    public function test_map_point_field_passes_with_coordinates(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            ['place' => ['lat' => 55.75, 'lng' => 37.62]],
+        );
+    }
+
+    public function test_map_point_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('place', $e->errors());
+    }
+
+    public function test_map_point_field_fails_when_coordinates_incomplete(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('place', 'map_point', required: true)]),
+            ['place' => ['lat' => 55.75]],
+        );
+
+        $this->assertArrayHasKey('place', $e->errors());
+    }
+
+    public function test_map_point_field_passes_when_nullable_and_absent(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('place', 'map_point', required: false)]),
+            [],
+        );
+    }
+
+    public function test_route_field_passes_with_two_waypoints(): void
+    {
+        $this->assertPasses(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            ['trip' => ['waypoints' => [
+                ['lat' => 55.75, 'lng' => 37.62],
+                ['lat' => 59.93, 'lng' => 30.33],
+            ]]],
+        );
+    }
+
+    public function test_route_field_fails_with_single_waypoint(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            ['trip' => ['waypoints' => [['lat' => 55.75, 'lng' => 37.62]]]],
+        );
+
+        $this->assertArrayHasKey('trip', $e->errors());
+    }
+
+    public function test_route_field_fails_when_required_and_missing(): void
+    {
+        $e = $this->assertFails(
+            $this->nodeData([$this->field('trip', 'route', required: true)]),
+            [],
+        );
+
+        $this->assertArrayHasKey('trip', $e->errors());
+    }
+
     public function test_multiple_fields_all_pass(): void
     {
         $this->assertPasses(

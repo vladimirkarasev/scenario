@@ -6,6 +6,7 @@ import {Label} from '@/components/ui/label'
 import TiptapTextEditor from '@/modules/scenario/components/tiptap/TiptapTextEditor.vue'
 import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextRenderer.vue'
 import ScenarioVariableList from '@/modules/scenario/components/ScenarioVariableList.vue'
+import NodeTitleSettings from '@/modules/scenario/components/flow/NodeTitleSettings.vue'
 
 defineProps({
   node: {type: Object, required: true},
@@ -59,6 +60,15 @@ const activeTab = ref('editor')
           </div>
 
           <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <NodeTitleSettings
+                v-model:title="draft.title"
+                v-model:hide-title="draft.hideTitle"
+                :editable="editable"
+                @change="emit('sync')"
+            />
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3">
             <TiptapTextEditor
                 v-model="draft.description"
                 format="html"
@@ -79,6 +89,9 @@ const activeTab = ref('editor')
               <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
                 <Check class="size-5 text-emerald-600"/>
               </div>
+              <h2 v-if="!draft.hideTitle" class="mb-3 text-[15px] font-semibold text-slate-900">
+                {{ draft.title || 'Конец' }}
+              </h2>
               <TiptapTextRenderer
                   v-if="draft.description"
                   :html="draft.description"

@@ -142,6 +142,48 @@ function buildSurveyBlock(field: BlockField): SurveyBlock {
                 }
             }
 
+        case 'map_point':
+            return {
+                ...base,
+                props: {
+                    name: field.name,
+                    label: field.label,
+                    required: field.required,
+                    lat: field.lat,
+                    lng: field.lng,
+                    address: field.address,
+                    defaultZoom: field.defaultZoom
+                }
+            }
+
+        case 'route':
+            return {
+                ...base,
+                props: {
+                    name: field.name,
+                    label: field.label,
+                    required: field.required,
+                    routingMode: field.routingMode,
+                    showAlternatives: field.showAlternatives,
+                    maxWaypoints: field.maxWaypoints
+                }
+            }
+
+        case 'directory_map':
+            return {
+                ...base,
+                props: {
+                    name: field.name,
+                    label: field.label,
+                    directoryId: field.directoryId,
+                    versionId: field.versionId,
+                    latKey: field.latKey,
+                    lngKey: field.lngKey,
+                    detailDocument: field.detailDocument,
+                    defaultZoom: field.defaultZoom
+                }
+            }
+
         default:
             return {
                 ...base,
@@ -160,7 +202,7 @@ export function blockFieldToSurveyBlock(field: BlockField): SurveyBlock {
     let block = buildSurveyBlock(field)
 
     if (block.props && 'label' in block.props) {
-        const labelStyle: Record<string, unknown> = {}
+        const labelStyle: Record<string, unknown> = {hideLabel: Boolean(field.hideLabel)}
         if (field.labelFontSize) labelStyle.labelFontSize = field.labelFontSize
         if (field.labelColor) labelStyle.labelColor = field.labelColor
         if (field.labelHighlight) labelStyle.labelHighlight = field.labelHighlight

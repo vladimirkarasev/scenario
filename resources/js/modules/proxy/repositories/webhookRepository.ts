@@ -74,7 +74,7 @@ export const webhookRepository = {
         }))
     },
 
-    async fields(webhookUuid: string): Promise<WebhookField[]> {
+    async requestFields(webhookUuid: string): Promise<WebhookField[]> {
         const raw = await getJson(
             `/api/proxies/${webhookUuid}/fields`,
             'Не удалось загрузить поля интеграции.',
@@ -82,7 +82,7 @@ export const webhookRepository = {
         return raw.data.map(item => item.attributes)
     },
 
-    async resultFields(webhookUuid: string): Promise<WebhookField[]> {
+    async responseFields(webhookUuid: string): Promise<WebhookField[]> {
         const raw = await getJson(
             `/api/proxies/${webhookUuid}/result-fields`,
             'Не удалось загрузить поля результата интеграции.',

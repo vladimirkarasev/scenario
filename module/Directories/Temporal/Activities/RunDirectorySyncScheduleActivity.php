@@ -20,7 +20,11 @@ final readonly class RunDirectorySyncScheduleActivity implements RunDirectorySyn
     {
         $directory = Directory::query()->find($directoryId);
 
-        if ($directory instanceof Directory && $directory->source_type === 'api') {
+        if (
+            $directory instanceof Directory
+            && $directory->source_type === 'api'
+            && !in_array($directory->sync_status, ['queued', 'processing'], true)
+        ) {
             try {
                 $this->apiSync->queue($directory);
             } catch (Throwable $exception) {

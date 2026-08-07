@@ -1,7 +1,8 @@
 <script setup>
 import {ref} from 'vue'
 import {Textarea} from '@/components/ui/textarea'
-import {Check, Copy, Pencil, X} from 'lucide-vue-next'
+import CopyButton from '@/components/CopyButton.vue'
+import {Check, Pencil, X} from 'lucide-vue-next'
 
 const props = defineProps({
   schemaPreview: {type: String, default: ''},
@@ -13,16 +14,6 @@ const emit = defineEmits(['apply'])
 const jsonEditMode = ref(false)
 const jsonDraft = ref('')
 const jsonError = ref('')
-const copied = ref(false)
-
-async function copyJson() {
-  await navigator.clipboard.writeText(props.schemaPreview)
-  copied.value = true
-  setTimeout(() => {
-    copied.value = false
-  }, 2000)
-}
-
 function startJsonEdit() {
   jsonDraft.value = props.schemaPreview
   jsonError.value = ''
@@ -92,13 +83,12 @@ function applyJsonEdit() {
           </button>
         </template>
         <template v-else>
-          <button type="button"
-                  class="inline-flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50"
-                  @click="copyJson">
-            <Copy v-if="!copied" class="size-3.5"/>
-            <Check v-else class="size-3.5 text-emerald-500"/>
-            {{ copied ? 'Скопировано' : 'Копировать' }}
-          </button>
+          <CopyButton
+              :text="schemaPreview"
+              label="Копировать"
+              :duration="2000"
+              class="inline-flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50"
+          />
           <button v-if="editable" type="button"
                   class="inline-flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50"
                   @click="startJsonEdit">

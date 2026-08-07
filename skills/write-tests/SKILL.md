@@ -26,17 +26,31 @@ tests/
 
 ```bash
 # Все тесты
-composer run test
+task test
+
+# Только backend Unit
+task test:unit
+
+# Только backend Feature
+task test:feature
 
 # Конкретный класс
-php artisan test --filter=UserGroupsControllerTest
+task test:unit -- --filter=UserGroupsControllerTest
 
 # Конкретный метод
-php artisan test --filter=UserGroupsControllerTest::test_index_returns_groups_for_current_project
+task test:unit -- --filter=UserGroupsControllerTest::test_index_returns_groups_for_current_project
 
 # Параллельно
-php artisan test --parallel
+task test -- --parallel
+
+# Frontend Unit
+task test:frontend
+
+# Конкретный frontend test-файл
+task test:frontend -- resources/js/modules/example/__tests__/example.test.ts
 ```
+
+Всегда запускай проверки через цели `Taskfile.yml`. Дополнительные аргументы передавай после `--`.
 
 ---
 

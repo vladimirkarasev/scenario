@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Users\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Module\Users\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -53,7 +54,7 @@ final class UsersController extends Controller
         return new JsonResponse(new UserResource($user));
     }
 
-    public function destroy(\Illuminate\Http\Request $request, User $user): JsonResponse
+    public function destroy(Request $request, User $user): JsonResponse
     {
         /** @var User $actor */
         $actor = $request->user();

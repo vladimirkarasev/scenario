@@ -1,4 +1,5 @@
 import {nextTick} from 'vue'
+import type * as Vue from 'vue'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 import {useGroupList} from '@/modules/groups/composables/useGroupList'
 import {useGroupModal} from '@/modules/groups/composables/useGroupModal'
@@ -6,7 +7,7 @@ import {groupRepository} from '@/modules/groups/repositories/groupRepository'
 import type {Group, GroupsPage} from '@/modules/groups/types/group'
 
 vi.mock('vue', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('vue')>()
+    const actual = await importOriginal<typeof Vue>()
 
     return {
         ...actual,

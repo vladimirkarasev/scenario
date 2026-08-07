@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-mutating-props -- form is shared editor state intentionally edited by this tab */
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 import {Button} from '@/components/ui/button'
 import {FormError, FormInput} from '@/components/form'

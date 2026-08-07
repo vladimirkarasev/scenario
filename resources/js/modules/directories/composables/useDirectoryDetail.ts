@@ -18,8 +18,10 @@ export interface DirectoryMeta {
     source_type: SourceType
     match_by: string | null
     default_sort: string | null
+    cache_ttl_seconds: number | null
     proxy_uuid: string | null
     field_mapping: Record<string, string>
+    external_key_field: string | null
     fields: DirectorySchemaField[]
     category_ids: string[]
 }
@@ -32,8 +34,10 @@ function emptyMeta(): DirectoryMeta {
         source_type: 'manual',
         match_by: null,
         default_sort: null,
+        cache_ttl_seconds: null,
         proxy_uuid: null,
         field_mapping: {},
+        external_key_field: null,
         fields: [],
         category_ids: [],
     }
@@ -55,12 +59,17 @@ export function useDirectoryDetail(directoryId: string) {
         meta.source_type = d.source_type
         meta.match_by = d.match_by
         meta.default_sort = d.default_sort
+        meta.cache_ttl_seconds = d.cache_ttl_seconds
         meta.proxy_uuid = (d as unknown as {
             api_config?: Record<string, unknown>
         }).api_config?.proxy_uuid as string | null ?? null
         meta.field_mapping = (d as unknown as {
             api_config?: Record<string, unknown>
         }).api_config?.field_mapping as Record<string, string> ?? {}
+        meta.external_key_field = (d as unknown as {
+            api_config?: Record<string, unknown>
+        }).api_config?.external_key_field as string | null
+            ?? (meta.match_by ? meta.field_mapping[meta.match_by] ?? null : null)
         meta.category_ids = d.category_ids ?? []
         meta.fields = fields.length
             ? fields.map(f => {
@@ -85,6 +94,15 @@ export function useDirectoryDetail(directoryId: string) {
                     sort_order: (f as unknown as { sort_order?: number }).sort_order ?? 0,
                     rules: [],
                     options: (f as unknown as { options?: string[] }).options ?? [],
+                    related_directory_id: (f as unknown as {
+                        related_directory_id?: string | null
+                    }).related_directory_id ?? null,
+                    related_match_key: (f as unknown as {
+                        related_match_key?: string | null
+                    }).related_match_key ?? null,
+                    related_template: (f as unknown as {
+                        related_template?: string | null
+                    }).related_template ?? null,
                 }
             })
             : [{
@@ -101,7 +119,10 @@ export function useDirectoryDetail(directoryId: string) {
                 default: null,
                 sort_order: 0,
                 rules: [],
-                options: []
+                options: [],
+                related_directory_id: null,
+                related_match_key: null,
+                related_template: null,
             }]
     }
 
@@ -127,10 +148,12 @@ export function useDirectoryDetail(directoryId: string) {
                 category_ids: meta.category_ids,
                 source_type: meta.source_type,
                 match_by: meta.match_by,
+                cache_ttl_seconds: meta.cache_ttl_seconds,
                 fields: meta.fields.filter(f => f.key),
                 api_config: (meta.source_type === 'api' || meta.source_type === 'external') ? {
                     proxy_uuid: meta.proxy_uuid,
                     field_mapping: meta.field_mapping,
+                    external_key_field: meta.external_key_field,
                 } : null,
             })
             directory.value = result.item

@@ -5,7 +5,8 @@ declare(strict_types=1);
 return [
     'handler_namespace' => 'Module\\Proxy\\Proxies\\',
 
-    'allowed_handlers' => [],
+    // Тестовый fixture-handler (tests/Stubs/Proxy) — допущен только через PROXY_ALLOWED_TEST_HANDLERS (phpunit.xml).
+    'allowed_handlers' => array_filter(explode(',', (string) env('PROXY_ALLOWED_TEST_HANDLERS', ''))),
 
     'max_payload_bytes' => 1024 * 1024,
 

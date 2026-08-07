@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, nextTick, type ComponentPublicInstance} from 'vue'
+import {ref, computed, nextTick, watch, type ComponentPublicInstance} from 'vue'
 import {useVirtualizer} from '@tanstack/vue-virtual'
 import {useHorizontalScrollArrows} from '@/composables/useHorizontalScrollArrows'
 import {
@@ -11,7 +11,7 @@ import SurveyDirectoryTableTrigger from './SurveyDirectoryTableTrigger.vue'
 import DirectoryFilterBar from '@/modules/directories/components/DirectoryFilterBar.vue'
 import {useDirectoryItems} from '@/modules/directories/composables/useDirectoryItems'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
-import {renderLabelTemplate} from '@/modules/scenario/lib/directory-template'
+import {useExpressionLabelBatch} from '@/modules/expression/composables/useExpressionLabelBatch'
 import {OTHER_ITEM_ID} from '@/lib/directory-list-shape'
 import type {DirectoryItem, DirectorySchemaField} from '@/modules/directories/types/directory'
 import {
@@ -70,6 +70,7 @@ const emit = defineEmits<{
 const open = ref(false)
 const schema = ref<DirectorySchemaField[]>([])
 const schemaReady = ref(false)
+const expressionLabels = useExpressionLabelBatch()
 
 const ctx = useDirectoryItems(props.directoryId, null, true)
 
@@ -139,7 +140,7 @@ function getItemLabel(item: DirectoryItem): string {
   if (item.id === OTHER_ITEM_ID) {
     return String(Object.values(item.data)[0] ?? '')
   }
-  const rendered = renderLabelTemplate(props.labelTemplate, item.data, props.context)
+  const rendered = expressionLabels.label(item.id)
   if (rendered) return rendered
   const firstKey = Object.keys(item.data)[0]
   return firstKey ? String(item.data[firstKey] ?? item.id) : String(item.id)
@@ -182,12 +183,22 @@ const hasSelection = computed(() => currentItems.value.length > 0)
 
 const selectionChips = computed(() =>
     currentItems.value.map((i) => {
-      const fromTemplate = props.labelTemplate && Object.keys(i.data ?? {}).length
-          ? renderLabelTemplate(props.labelTemplate, i.data, props.context)
-          : ''
+      const fromTemplate = expressionLabels.label(i.id)
       return {value: i.id, label: fromTemplate || i.label || i.id}
     }),
 )
+
+watch([
+  () => props.labelTemplate,
+  () => props.context,
+  currentItems,
+], () => {
+  void expressionLabels.load(
+      props.labelTemplate,
+      currentItems.value.map((item) => ({id: item.id, data: item.data})),
+      props.context,
+  )
+}, {immediate: true, deep: true})
 
 const fieldConfigMap = computed(() =>
     Object.fromEntries((props.fields ?? []).map((f) => [f.key, f])),
@@ -301,8 +312,7 @@ function clearSelection(e: MouseEvent): void {
   emit('update:modelValue', props.multiple ? [] : '')
 }
 
-function removeChip(value: string, e: MouseEvent): void {
-  e.stopPropagation()
+function removeChip(value: string): void {
   if (props.disabled) return
   if (props.multiple) {
     emit('update:modelValue', currentItems.value.filter((i) => i.id !== value))

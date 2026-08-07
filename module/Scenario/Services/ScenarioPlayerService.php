@@ -9,6 +9,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\DTO\ScenarioRunJumpData;
 use Module\Scenario\DTO\ScenarioStartData;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Enums\ScenarioNodeType;
 use Module\Scenario\Enums\ScenarioRunStatus;
 use Module\Scenario\Events\ScenarioRunCompleted;
@@ -23,7 +24,6 @@ use Module\Scenario\Repositories\ScenarioRunRepository;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
 use Module\Scenario\Repositories\ScenarioVersionRepository;
 use Module\Scenario\Repositories\ScenarioVersionRevisionRepository;
-use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\Nodes\NodeHandlerRegistry;
 use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\Nodes\RetryableNodeHandler;
@@ -57,9 +57,11 @@ final readonly class ScenarioPlayerService
         $context = is_array($run->context) ? $run->context : [];
         $flat = $this->variableResolver->flatten($context);
 
-        unset($flat[RunContextKeys::PLAYER], $flat[RunContextKeys::VARIABLE_MAP]);
-
-        return $flat;
+        return array_filter(
+            $flat,
+            static fn(string $name): bool => !ScenarioContextKey::isSystem($name),
+            ARRAY_FILTER_USE_KEY,
+        );
     }
 
     public function start(ScenarioStartData $data, ?string $projectId = null): string
@@ -206,7 +208,7 @@ final readonly class ScenarioPlayerService
                 ])->save();
                 $run = $this->hydrateRun($run);
                 $context = $run->context ?? [];
-                $context[RunContextKeys::CALL_STACK] = is_array($targetStep->call_stack)
+                $context[ScenarioContextKey::CallStack->value] = is_array($targetStep->call_stack)
                     ? $targetStep->call_stack
                     : [];
             }
@@ -223,9 +225,12 @@ final readonly class ScenarioPlayerService
             Event::dispatch(new ScenarioRunRewound($run, $node));
         }
 
-        $context[RunContextKeys::PLAYER] = ['total_steps' => 0, 'visited' => []];
+        $context[ScenarioContextKey::Player->value] = ['total_steps' => 0, 'visited' => []];
 
-        unset($context[NodeContextKeys::ACTION_RUNS], $context[NodeContextKeys::ACTION_STAGES]);
+        unset(
+            $context[ScenarioContextKey::ActionRuns->value],
+            $context[ScenarioContextKey::ActionStages->value],
+        );
 
         $run->forceFill([
             'status' => ScenarioRunStatus::Active,
@@ -246,26 +251,28 @@ final readonly class ScenarioPlayerService
         $version = $this->runVersion($run);
         $isFinished = in_array($run->status, [ScenarioRunStatus::Completed, ScenarioRunStatus::Failed], true);
         $operator = $run->operator;
-        $call = is_array($run->context['call'] ?? null) ? $run->context['call'] : [];
+        $call = is_array($run->context[ScenarioContextKey::Call->value] ?? null)
+            ? $run->context[ScenarioContextKey::Call->value]
+            : [];
         $renderContext = [
             ...($run->context ?? []),
-            'run' => [
+            ScenarioContextKey::Run->value => [
                 'id' => $run->id,
                 'number' => $run->number,
                 'number_formatted' => $run->formattedNumber(),
                 'created_at' => $run->created_at?->format('d.m.Y H:i'),
                 'completed_at' => $isFinished ? $run->updated_at?->format('d.m.Y H:i') : null,
             ],
-            'operator' => [
+            ScenarioContextKey::Operator->value => [
                 'login' => $operator?->login,
                 'name' => $operator?->name,
                 'fio' => $operator?->fio,
             ],
-            'project' => [
+            ScenarioContextKey::Project->value => [
                 'name' => $operator?->project?->name,
                 'id' => $operator?->project?->id,
             ],
-            'call' => [
+            ScenarioContextKey::Call->value => [
                 'incoming_phone' => $call['incoming_phone'] ?? null,
                 'outgoing_phone' => $call['outgoing_phone'] ?? null,
                 'internal_phone' => $call['internal_phone'] ?? null,
@@ -285,8 +292,8 @@ final readonly class ScenarioPlayerService
         /** @var array<string, ScenarioVersion> $versionCache */
         $versionCache = [];
 
-        $callStack = is_array($run->context[RunContextKeys::CALL_STACK] ?? null)
-            ? $run->context[RunContextKeys::CALL_STACK]
+        $callStack = is_array($run->context[ScenarioContextKey::CallStack->value] ?? null)
+            ? $run->context[ScenarioContextKey::CallStack->value]
             : [];
         $rootFrame = $callStack[0] ?? null;
         $rootVersionId = is_array($rootFrame) && is_string($rootFrame['version_id'] ?? null)
@@ -438,7 +445,7 @@ final readonly class ScenarioPlayerService
     {
         $context = $run->context ?? [];
 
-        $rawPlayer = $context[RunContextKeys::PLAYER] ?? null;
+        $rawPlayer = $context[ScenarioContextKey::Player->value] ?? null;
         $player = is_array($rawPlayer) ? $rawPlayer : ['total_steps' => 0, 'visited' => []];
 
         $rawSteps = $player['total_steps'] ?? 0;
@@ -457,7 +464,7 @@ final readonly class ScenarioPlayerService
         if ($totalSteps > self::MAX_STEPS || $nodeVisits > self::MAX_VISITS_PER_NODE) {
             $run->forceFill([
                 'status' => ScenarioRunStatus::Failed,
-                'context' => [...$context, RunContextKeys::PLAYER => $updatedPlayer],
+                'context' => [...$context, ScenarioContextKey::Player->value => $updatedPlayer],
             ])->save();
 
             Event::dispatch(new ScenarioRunFailed($run));
@@ -466,7 +473,7 @@ final readonly class ScenarioPlayerService
         }
 
         $run->forceFill([
-            'context' => [...$context, RunContextKeys::PLAYER => $updatedPlayer],
+            'context' => [...$context, ScenarioContextKey::Player->value => $updatedPlayer],
         ])->save();
 
         return true;
@@ -486,8 +493,8 @@ final readonly class ScenarioPlayerService
             $base,
             $context,
             [
-                RunContextKeys::PLAYER => ['total_steps' => 0, 'visited' => []],
-                RunContextKeys::VARIABLE_MAP => $this->variableMapBuilder->build($schemaJson),
+                ScenarioContextKey::Player->value => ['total_steps' => 0, 'visited' => []],
+                ScenarioContextKey::VariableMap->value => $this->variableMapBuilder->build($schemaJson),
             ],
         );
     }
@@ -508,8 +515,8 @@ final readonly class ScenarioPlayerService
     private function peekCallFrame(ScenarioRun $run): ?array
     {
         $context = is_array($run->context) ? $run->context : [];
-        $stack = is_array($context[RunContextKeys::CALL_STACK] ?? null)
-            ? $context[RunContextKeys::CALL_STACK]
+        $stack = is_array($context[ScenarioContextKey::CallStack->value] ?? null)
+            ? $context[ScenarioContextKey::CallStack->value]
             : [];
         $frame = end($stack);
 
@@ -527,11 +534,11 @@ final readonly class ScenarioPlayerService
     private function returnToParent(ScenarioRun $run, array $frame): ScenarioRun
     {
         $context = is_array($run->context) ? $run->context : [];
-        $stack = is_array($context[RunContextKeys::CALL_STACK] ?? null)
-            ? $context[RunContextKeys::CALL_STACK]
+        $stack = is_array($context[ScenarioContextKey::CallStack->value] ?? null)
+            ? $context[ScenarioContextKey::CallStack->value]
             : [];
         array_pop($stack);
-        $context[RunContextKeys::CALL_STACK] = $stack;
+        $context[ScenarioContextKey::CallStack->value] = $stack;
 
         $returnNodeId = $frame['return_node_id'];
 

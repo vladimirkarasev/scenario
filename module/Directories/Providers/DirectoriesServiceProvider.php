@@ -16,11 +16,14 @@ use Module\Directories\Events\DirectoryImportStatusUpdated;
 use Module\Directories\Exceptions\DictionaryApiSyncException;
 use Module\Directories\Exceptions\DirectoryException;
 use Module\Directories\Exceptions\DirectoryExternalException;
+use Module\Directories\Exceptions\DirectoryImportException;
 use Module\Directories\Exceptions\DirectoryItemException;
 use Module\Directories\Exceptions\DirectoryVersionException;
 use Module\Directories\Listeners\LogDirectoryImportStatusUpdate;
 use Module\Directories\Listeners\PublishDirectoryImportStatusUpdate;
 use Module\Directories\Listeners\SyncDirectoryStatusOnImportFinished;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarter;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
 use Module\Directories\Temporal\RunDirectoryImportWorkflowStarter;
 use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 
@@ -30,6 +33,10 @@ final class DirectoriesServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(RunDirectoryImportWorkflowStarterInterface::class, RunDirectoryImportWorkflowStarter::class);
+        $this->app->bind(
+            RebuildDirectorySearchTextWorkflowStarterInterface::class,
+            RebuildDirectorySearchTextWorkflowStarter::class,
+        );
     }
 
     public function boot(): void
@@ -75,6 +82,11 @@ final class DirectoriesServiceProvider extends ServiceProvider
         $handler->renderable(fn(DirectoryExternalException $e) => new JsonResponse(
             $e->getMessage() ? ['message' => $e->getMessage()] : null,
             $e->statusCode(),
+        ));
+
+        $handler->renderable(fn(DirectoryImportException $e) => new JsonResponse(
+            ['message' => $e->getMessage()],
+            422,
         ));
     }
 }

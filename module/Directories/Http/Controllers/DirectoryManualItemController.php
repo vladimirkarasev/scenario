@@ -10,13 +10,13 @@ use Module\Directories\DTO\DirectoryManualItemData;
 use Module\Directories\Http\Requests\StoreDirectoryManualItemRequest;
 use Module\Directories\Http\Resources\JsonApi\DirectoryItemResource;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DirectoryManualItemService;
+use Module\Directories\Services\DirectoryItemService;
 use Module\Directories\Services\DirectoryService;
 
 final class DirectoryManualItemController extends Controller
 {
     public function __construct(
-        private readonly DirectoryManualItemService $directoryManualItemService,
+        private readonly DirectoryItemService $directoryItems,
         private readonly DirectoryService $directoryService,
     ) {
     }
@@ -29,7 +29,7 @@ final class DirectoryManualItemController extends Controller
         );
 
         return (new DirectoryItemResource(
-            $this->directoryManualItemService->create(
+            $this->directoryItems->create(
                 $directory,
                 DirectoryManualItemData::fromRequest($request),
             ),

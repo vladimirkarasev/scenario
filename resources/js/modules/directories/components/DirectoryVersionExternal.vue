@@ -95,6 +95,7 @@ async function saveSettings(): Promise<void> {
         :vers-ctx="versCtx"
         :can-manage="canManage"
         :version-number="currentVersion?.version_number ?? String(versionId)"
+        :directory-id="directoryId"
         @save="versCtx.saveSchema(versionId)"
     />
 

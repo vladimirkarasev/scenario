@@ -24,7 +24,7 @@ abstract class DaDataCleanEndpointHandler extends ProxyHandler
         return DaDataCredential::class;
     }
 
-    public function fields(): iterable
+    public function requestFields(): iterable
     {
         yield ProxyFieldString::make('value')
             ->label('Значение')

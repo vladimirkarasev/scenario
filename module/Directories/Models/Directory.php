@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
+use Module\Directories\Enums\DirectorySourceType;
 use Module\Projects\Models\Project;
 
 /**
@@ -26,6 +27,7 @@ use Module\Projects\Models\Project;
  * @property string|null $default_sort
  * @property string|null $sync_status
  * @property string|null $sync_error
+ * @property int|null $cache_ttl_seconds
  * @property array<string, mixed>|null $api_config_json
  * @property array<string, mixed>|null $import_settings_json
  * @property Carbon|null $last_sync_at
@@ -48,10 +50,17 @@ use Module\Projects\Models\Project;
     'next_sync_at',
     'sync_status',
     'sync_error',
+    'cache_ttl_seconds',
 )]
 final class Directory extends Model
 {
     use HasUuids;
+
+    public function sourceType(): DirectorySourceType
+    {
+        return DirectorySourceType::tryFrom($this->source_type ?? '')
+            ?? DirectorySourceType::Manual;
+    }
 
     /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo

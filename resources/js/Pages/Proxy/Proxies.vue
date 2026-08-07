@@ -5,6 +5,7 @@ import EmptyState from '@/components/EmptyState.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import CopyButton from '@/components/CopyButton.vue'
 import {
   FormAutoSlug, FormBody, FormError, FormField, FormInput, FormJsonInput, FormMockVariants,
   FormSection, FormSelect, FormTextarea, FormToggle,
@@ -28,7 +29,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Check, ChevronRight, ChevronsUpDown, Copy, FlaskConical, Folder, FolderPlus, FolderTree, KeyRound, List, Loader2,
+  ChevronRight, ChevronsUpDown, FlaskConical, Folder, FolderPlus, FolderTree, KeyRound, List, Loader2,
   MoreHorizontal, Pencil, Plus, RefreshCw, Shield, ShieldOff, Trash2, Zap,
 } from 'lucide-vue-next'
 import {computed, ref} from 'vue'
@@ -94,17 +95,6 @@ async function toggleEndpoint(row: FeedEndpointRow): Promise<void> {
 
 async function deleteEndpoint(row: FeedEndpointRow): Promise<void> {
   await remove({id: row.id, name: row.name} as WebhookEndpoint)
-}
-
-const copied = ref<string | null>(null)
-
-async function copyText(text: string, key: string) {
-  await navigator.clipboard.writeText(text).catch(() => {
-  })
-  copied.value = key
-  setTimeout(() => {
-    copied.value = null
-  }, 1500)
 }
 
 const showHandlerPicker = ref(false)
@@ -426,7 +416,7 @@ function onHandlerSelected(handler: HandlerOption): void {
               <KeyRound :size="13" class="text-violet-600" />
               Доступ
             </div>
-            <a href="/proxy/connections" target="_blank"
+            <a href="/proxy/connections" target="_blank" rel="noopener noreferrer"
                class="text-[11px] font-medium text-blue-600 transition hover:text-blue-700">
               Управление доступами →
             </a>
@@ -442,7 +432,7 @@ function onHandlerSelected(handler: HandlerOption): void {
           </FormSelect>
           <p v-if="!availableConnections.length" class="mt-1.5 text-[11px] text-slate-400">
             Подходящих доступов нет.
-            <a href="/proxy/connections" target="_blank" class="text-blue-600 hover:text-blue-700">Создайте доступ</a>
+            <a href="/proxy/connections" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700">Создайте доступ</a>
             и обновите страницу.
           </p>
         </div>
@@ -453,11 +443,11 @@ function onHandlerSelected(handler: HandlerOption): void {
         <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[12px]">
           <span class="w-24 shrink-0 text-slate-400">Приёмник</span>
           <span class="min-w-0 flex-1 truncate font-mono text-slate-700">{{ receiveUrl }}</span>
-          <button type="button" class="shrink-0 text-slate-400 transition hover:text-slate-700"
-                  @click="copyText(receiveUrl, 'receive')">
-            <Check v-if="copied === 'receive'" :size="13" class="text-emerald-500" />
-            <Copy v-else :size="13" />
-          </button>
+          <CopyButton
+              :text="receiveUrl"
+              class="shrink-0 text-slate-400 transition hover:text-slate-700"
+              title="Скопировать адрес приёмника"
+          />
         </div>
       </template>
 

@@ -18,6 +18,8 @@ resources/js/
       use<Resource>Filters.ts ← фильтры и dropdown-данные (если нужно)
     repositories/
       <resource>Repository.ts ← все HTTP-вызовы
+    schemas/
+      <resource>Schema.ts     ← Zod-схема и inferred form type
     types/
       <resource>.ts           ← интерфейсы и типы
 
@@ -126,28 +128,28 @@ HTTP-функции `getJson`, `sendJson`, `destroyJson` из `@/lib/http` — �
 ```ts
 // resources/js/modules/widgets/composables/useWidgetList.ts
 import { onMounted, ref, watch } from 'vue'
+import { useLatestRequest } from '@/composables/useLatestRequest'
 import { widgetRepository } from '@/modules/widgets/repositories/widgetRepository'
 import type { Widget, WidgetsPage } from '@/modules/widgets/types/widget'
 
 export function useWidgetList() {
   const search  = ref('')
   const page    = ref(1)
-  const loading = ref(false)
   const items   = ref<Widget[]>([])
   const meta    = ref<WidgetsPage['meta']>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
+  const { loading, error, execute } = useLatestRequest('Не удалось загрузить виджеты.')
 
   let searchTimer: ReturnType<typeof setTimeout> | null = null
 
   async function load(): Promise<void> {
-    loading.value = true
-    try {
+    const result = await execute(async () => {
       const qs = new URLSearchParams({ 'page[number]': String(page.value), 'page[size]': '15' })
       if (search.value) qs.set('filter[search]', search.value)
-      const result = await widgetRepository.list(qs)
-      items.value = result.data
-      meta.value  = result.meta
-    } catch { /* silent */ }
-    finally { loading.value = false }
+      return widgetRepository.list(qs)
+    })
+    if (!result) return
+    items.value = result.data
+    meta.value = result.meta
   }
 
   onMounted(load)
@@ -157,9 +159,11 @@ export function useWidgetList() {
     searchTimer = setTimeout(() => { page.value = 1; load() }, 300)
   })
 
-  return { search, page, loading, items, meta, load }
+  return { search, page, loading, error, items, meta, load }
 }
 ```
+
+`useLatestRequest` сам инвалидирует pending read при dispose scope. Debounce не заменяет защиту от гонки. Для save/delete использовать отдельную mutation-семантику, не latest-wins.
 
 ### useWidgetModal
 
@@ -278,14 +282,16 @@ import PageHeader from '@/components/PageHeader.vue'
 import ListPagination from '@/components/ListPagination.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import EmptyState from '@/components/EmptyState.vue'
+import { Button } from '@/components/ui/button'
 import { useDashboardNavigation } from '@/composables/useDashboardNavigation'
 import { useWidgetList } from '@/modules/widgets/composables/useWidgetList'
 import { useWidgetModal } from '@/modules/widgets/composables/useWidgetModal'
 import { Head } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 
+const props = defineProps<{ canCreate: boolean }>()
 const { navigationItems } = useDashboardNavigation()
-const { search, page, loading, items, meta, load } = useWidgetList()
+const { search, page, loading, error, items, meta, load } = useWidgetList()
 const { showModal, editing, form, openCreate, openEdit, save, openDeleteConfirm, closeDeleteConfirm, confirmDelete, deleting, deleteError, doDelete } = useWidgetModal(load)
 </script>
 
@@ -293,15 +299,16 @@ const { showModal, editing, form, openCreate, openEdit, save, openDeleteConfirm,
   <Head title="Виджеты" />
 
   <AppShell title="Виджеты" :navigation-items="navigationItems">
-    <div class="mx-auto max-w-6xl px-6 py-8">
+    <main class="app-page">
+      <div class="app-page-container max-w-6xl">
       <PageHeader title="Виджеты" subtitle="Управление виджетами.">
         <template #actions>
-          <button
-            class="inline-flex h-9 items-center gap-2 rounded-xl bg-blue-600 px-4 text-[13px] font-medium text-white hover:bg-blue-700"
+          <Button
+            v-if="props.canCreate"
             @click="openCreate"
           >
             <Plus :size="15" /> Новый виджет
-          </button>
+          </Button>
         </template>
       </PageHeader>
 
@@ -309,15 +316,17 @@ const { showModal, editing, form, openCreate, openEdit, save, openDeleteConfirm,
         <SearchInput v-model="search" placeholder="Поиск..." />
       </div>
 
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div v-if="loading" class="flex items-center justify-center py-12 text-slate-400">Загрузка…</div>
+      <div v-if="error" class="app-error">{{ error }}</div>
+      <section class="app-panel overflow-hidden">
+        <div v-if="loading" class="flex items-center justify-center py-12 text-muted-foreground">Загрузка…</div>
         <EmptyState v-else-if="!items.length" title="Нет виджетов" subtitle="Создайте первый виджет" />
-        <div v-for="item in items" :key="item.id" class="border-b border-slate-100 px-5 py-3.5">
+        <div v-for="item in items" :key="item.id" class="border-b border-border px-5 py-3.5">
           {{ item.name }}
         </div>
         <ListPagination v-model:current-page="page" :total-pages="meta.last_page" :total="meta.total" :per-page="meta.per_page" />
+      </section>
       </div>
-    </div>
+    </main>
   </AppShell>
 </template>
 ```
@@ -373,6 +382,8 @@ Route::middleware('web')
 |---|---|
 | Нужны фильтры (dropdown, checkbox) | Создай `useWidgetFilters.ts` — хранит состояние фильтров + загружает справочные данные |
 | Страница с вкладками | Отдельный composable на каждую вкладку, переключение через `activeTab` ref |
+| Несколько родственных страниц модуля | Вынеси общий `<ModuleTabs>` и используй одинаковые page tokens |
+| Поиск/фильтр запускает параллельные reads | Используй `useLatestRequest`; debounce оставь только для снижения трафика |
 | Данные нужны немедленно (SSR) | Передай через `Inertia::render('...', [...])`, прими через `defineProps` |
 | Нужна навигация между страницами | `router.visit('/widgets')` из `@inertiajs/vue3` |
 | Пагинация на URL (для share-able links) | Читай `page[number]` из `window.location.search` в `onMounted` |

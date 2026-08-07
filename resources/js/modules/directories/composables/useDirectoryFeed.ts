@@ -1,6 +1,7 @@
 import {useUrlSearchParams} from '@vueuse/core'
 import {computed, ref, watch} from 'vue'
 import type {Ref} from 'vue'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 import {
     directoryFeedRepository,
     type DirectoryFeedResponse,
@@ -21,11 +22,11 @@ function toArr(v: string | string[] | undefined): string[] {
 
 export function useDirectoryFeed(activeSection: Ref<string | 'all'>) {
     const params = useUrlSearchParams<FeedParams>('history', {removeNullishValues: true})
-    const loading = ref(false)
     const rows = ref<DirectoryFeedRow[]>([])
     const meta = ref<DirectoryFeedResponse['pagination']>({
         current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0, folders_total: 0, items_total: 0,
     })
+    const {loading, error, execute} = useLatestRequest('Не удалось загрузить справочники.')
 
     const page = computed({
         get: () => Number(toArr(params['page[number]'])[0]) || 1,
@@ -43,31 +44,26 @@ export function useDirectoryFeed(activeSection: Ref<string | 'all'>) {
     })
 
     async function load(): Promise<void> {
-        loading.value = true
-        try {
-            const qs = new URLSearchParams()
-            qs.set('page[number]', String(page.value))
-            qs.set('page[size]', String(PAGE_SIZE))
-            const searchTrim = search.value.trim()
-            if (searchTrim) {
-                qs.set('filter[search]', searchTrim)
-            } else if (activeSection.value === 'all') {
-                qs.set('filter[parent_id]', 'null')
-            } else {
-                qs.set('filter[parent_id]', activeSection.value)
-            }
-            const res = await directoryFeedRepository.fetch(qs)
-            rows.value = res.data
-            meta.value = res.pagination
-        } catch { /* silent */
-        } finally {
-            loading.value = false
+        const qs = new URLSearchParams()
+        qs.set('page[number]', String(page.value))
+        qs.set('page[size]', String(PAGE_SIZE))
+        const searchTrim = search.value.trim()
+        if (searchTrim) {
+            qs.set('filter[search]', searchTrim)
+        } else if (activeSection.value === 'all') {
+            qs.set('filter[parent_id]', 'null')
+        } else {
+            qs.set('filter[parent_id]', activeSection.value)
         }
+        const res = await execute(() => directoryFeedRepository.fetch(qs))
+        if (!res) return
+        rows.value = res.data
+        meta.value = res.pagination
     }
 
     watch([page, search, activeSection], () => {
         void load()
     }, {immediate: true})
 
-    return {rows, meta, loading, page, search, load}
+    return {rows, meta, loading, error, page, search, load}
 }

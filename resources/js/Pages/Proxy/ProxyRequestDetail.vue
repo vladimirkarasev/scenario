@@ -85,8 +85,8 @@ function fmt(iso: string | null) {
   <Head title="Webhook запрос"/>
 
   <AppShell title="Webhook запрос" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-4xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-4xl">
         <Link
             href="/proxy/requests"
             class="mb-6 inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-900"

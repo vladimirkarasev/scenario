@@ -38,6 +38,12 @@ Route::get('scenarios/{scenario}/edit', [ScenarioWebController::class, 'editScen
 Route::get('scenario-versions/{version}/edit', [ScenarioWebController::class, 'editScenarioVersion'])
     ->name('scenario-versions.edit');
 
+Route::get('scenario-versions/{version}/settings', [ScenarioWebController::class, 'scenarioVersionSettings'])
+    ->name('scenario-versions.settings');
+
+Route::get('scenario-versions/{version}/history', [ScenarioWebController::class, 'scenarioVersionHistory'])
+    ->name('scenario-versions.history');
+
 Route::get('scenario-versions/{version}/blocks/{block}/edit', [ScenarioWebController::class, 'editScenarioVersionBlock']
 )
     ->name('scenario-version-blocks.edit');

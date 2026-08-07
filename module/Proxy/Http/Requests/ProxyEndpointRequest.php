@@ -7,7 +7,7 @@ namespace Module\Proxy\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Module\Proxy\Enums\ProxyEndpointType;
-use Module\Proxy\Services\HandlerCatalog;
+use Module\Proxy\Proxies\HandlerCatalog;
 
 final class ProxyEndpointRequest extends FormRequest
 {
@@ -19,6 +19,9 @@ final class ProxyEndpointRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $allowedHandlersRaw = config('proxy.allowed_handlers', []);
+        $allowedHandlers = is_array($allowedHandlersRaw) ? $allowedHandlersRaw : [];
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:255'],
@@ -28,7 +31,7 @@ final class ProxyEndpointRequest extends FormRequest
             'handler_class' => [
                 'required',
                 'string',
-                HandlerCatalog::classes() |> Rule::in(...),
+                [...HandlerCatalog::classes(), ...$allowedHandlers] |> Rule::in(...),
             ],
             'connection_id' => ['nullable', 'integer', 'exists:proxy_connections,id'],
             'category_ids' => ['sometimes', 'array'],

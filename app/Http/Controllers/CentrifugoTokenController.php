@@ -11,7 +11,7 @@ use Module\Users\Models\User;
 
 final class CentrifugoTokenController extends Controller
 {
-    private const TOKEN_TTL_SECONDS = 3600;
+    private const int TOKEN_TTL_SECONDS = 3600;
 
     public function connectionToken(Request $request): JsonResponse
     {

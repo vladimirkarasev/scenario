@@ -3,6 +3,8 @@ import {computed} from 'vue'
 import {X} from 'lucide-vue-next'
 import BlockRenderer from '@/modules/scenario/components/player/BlockRenderer.vue'
 import ActionPipeline from '@/modules/scenario/components/player/ActionPipeline.vue'
+import TiptapTextRenderer from '@/modules/scenario/components/tiptap/TiptapTextRenderer.vue'
+import {hasTiptapDocumentContent} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
 import type {
   ActionStageStatus,
   ScenarioRenderedAction,
@@ -37,6 +39,8 @@ function conditionTitle(): string {
   return asCondition(props.entry.rendered).question || 'Условие'
 }
 
+const hasConditionContent = computed(() => hasTiptapDocumentContent(asCondition(props.entry.rendered)?.content))
+
 const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
   const result: Record<string, ActionStageStatus> = {}
   for (const stage of asAction(props.entry.rendered).stages ?? []) {
@@ -54,6 +58,7 @@ const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
   >
     <BlockRenderer
         :title="asBlock(entry.rendered).title"
+        :hide-title="asBlock(entry.rendered).hideTitle"
         :blocks="asBlock(entry.rendered).blocks"
         :layout-document="asBlock(entry.rendered).layoutDocument"
         :context="entry.context"
@@ -82,6 +87,7 @@ const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
   >
     <ActionPipeline
         :title="String(asAction(entry.rendered).data?.title || 'Выполнение действий')"
+        :hide-title="Boolean(asAction(entry.rendered).data?.hideTitle ?? true)"
         :stages="asAction(entry.rendered).stages ?? []"
         :statuses="pastActionStatuses"
     />
@@ -93,13 +99,16 @@ const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
       class="past-entry overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
   >
     <!-- Header -->
-    <div class="border-b border-slate-100 px-6 py-5">
+    <div v-if="!asCondition(entry.rendered).hideTitle" class="border-b border-slate-100 px-6 py-5">
       <h2 class="text-[18px] font-semibold leading-snug text-slate-900">
         {{ conditionTitle() }}
       </h2>
     </div>
 
-    <!-- Options (read-only) -->
+    <div v-if="hasConditionContent" class="border-b border-slate-100 px-6 py-5">
+      <TiptapTextRenderer :document="asCondition(entry.rendered).content" />
+    </div>
+
     <div class="flex flex-wrap items-center gap-2 px-6 py-5">
             <span
                 v-for="(option, index) in asCondition(entry.rendered).options"

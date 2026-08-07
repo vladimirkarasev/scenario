@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Proxy\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -16,7 +15,7 @@ use Module\Proxy\Http\Resources\JsonApi\ProxyEndpointResource;
 use Module\Proxy\Http\Resources\JsonApi\ProxyFieldResource;
 use Module\Proxy\Http\Resources\JsonApi\ProxyHandlerResource;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Services\HandlerCatalog;
+use Module\Proxy\Proxies\HandlerCatalog;
 use Module\Proxy\Services\HandlerResolver;
 use Module\Proxy\Services\ProxyEndpointService;
 use Module\Proxy\Support\IntegrationCredentials;
@@ -68,7 +67,7 @@ final readonly class ProxyEndpointController
     {
         $handler = $this->handlers->resolve($this->service->find($proxy));
         $fields = [];
-        foreach ($handler->fields() as $field) {
+        foreach ($handler->requestFields() as $field) {
             if ($field instanceof ProxyField) {
                 $fields[] = $field->toArray();
             }

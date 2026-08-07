@@ -1,0 +1,24 @@
+includes:
+    - vendor/phpat/phpat/extension.neon
+
+parameters:
+    customRulesetUsed: true
+    paths:
+        - module
+
+services:
+    -
+        class: Tests\Architecture\ControllersAreLeafTest
+        tags: [phpat.test]
+    -
+        class: Tests\Architecture\DtoIsPureTest
+        tags: [phpat.test]
+    -
+        class: Tests\Architecture\ServicesDontUseRequestTest
+        tags: [phpat.test]
+    -
+        class: Tests\Architecture\ScenarioNodeHandlersTest
+        tags: [phpat.test]
+    -
+        class: Tests\Architecture\EnumsAreBackedTest
+        tags: [phpat.test]

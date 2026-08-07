@@ -11,7 +11,6 @@ use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
 use Module\Proxy\Gateway\DaData\DTO\DaDataCleanResult;
 use Module\Proxy\Gateway\DaData\Methods\CleanMethod;
 use Module\Proxy\Gateway\DaData\Methods\CleanRecordMethod;
-use Psr\Log\LoggerInterface;
 
 final class DaDataCleanGateway extends BaseApiGateway
 {
@@ -19,13 +18,11 @@ final class DaDataCleanGateway extends BaseApiGateway
         ApiGatewayConfig $config,
         GuzzleApiTransport $transport,
         MockApiTransport $mockTransport,
-        LoggerInterface $logger,
     ) {
         parent::__construct(
             config: $config,
             transport: $transport,
             mockTransport: $mockTransport,
-            logger: $logger,
         );
     }
 

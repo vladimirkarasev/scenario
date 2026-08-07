@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Proxy\Http;
 
-use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,8 +11,9 @@ use Module\Proxy\Credentials\AutoCrm\AutoCrmCredential;
 use Module\Proxy\Credentials\BearerCredential;
 use Module\Proxy\Models\ProxyConnection;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Base\AutoCrm\ModelsProxyHandler;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler;
+use Module\Users\Models\User;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class ProxyConnectionControllerTest extends TestCase

@@ -19,11 +19,9 @@ import {
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {NativeSelect} from '@/components/ui/native-select'
-import {Separator} from '@/components/ui/separator'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import {Textarea} from '@/components/ui/textarea'
 import {Head, Link} from '@inertiajs/vue3'
 import {useAuthStore} from '@/stores/auth'
 import {
@@ -115,6 +113,9 @@ function addSchemaField(): void {
     sort_order: 0,
     rules: [],
     options: [],
+    related_directory_id: null,
+    related_match_key: null,
+    related_template: null,
   })
 }
 
@@ -503,12 +504,12 @@ async function doApiSync(): Promise<void> {
               <div class="grid grid-cols-3 gap-3">
                 <label
                     class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-                    :class="impCtx.syncOptions.add_new ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
-                    @click="impCtx.syncOptions.add_new = !impCtx.syncOptions.add_new"
+                    :class="impCtx.importOptions.addNew ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
+                    @click="impCtx.importOptions.addNew = !impCtx.importOptions.addNew"
                 >
                   <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-                       :class="impCtx.syncOptions.add_new ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
-                    <Check v-if="impCtx.syncOptions.add_new" class="size-2.5"/>
+                       :class="impCtx.importOptions.addNew ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
+                    <Check v-if="impCtx.importOptions.addNew" class="size-2.5"/>
                   </div>
                   <div>
                     <div class="font-medium">Добавить новые</div>
@@ -517,12 +518,12 @@ async function doApiSync(): Promise<void> {
                 </label>
                 <label
                     class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-                    :class="impCtx.syncOptions.update_existing ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
-                    @click="impCtx.syncOptions.update_existing = !impCtx.syncOptions.update_existing"
+                    :class="impCtx.importOptions.updateExisting ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
+                    @click="impCtx.importOptions.updateExisting = !impCtx.importOptions.updateExisting"
                 >
                   <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-                       :class="impCtx.syncOptions.update_existing ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
-                    <Check v-if="impCtx.syncOptions.update_existing" class="size-2.5"/>
+                       :class="impCtx.importOptions.updateExisting ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
+                    <Check v-if="impCtx.importOptions.updateExisting" class="size-2.5"/>
                   </div>
                   <div>
                     <div class="font-medium">Обновить текущие</div>
@@ -531,12 +532,12 @@ async function doApiSync(): Promise<void> {
                 </label>
                 <label
                     class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-                    :class="impCtx.syncOptions.delete_unused ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 hover:border-primary/30'"
-                    @click="impCtx.syncOptions.delete_unused = !impCtx.syncOptions.delete_unused"
+                    :class="impCtx.importOptions.deleteUnused ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 hover:border-primary/30'"
+                    @click="impCtx.importOptions.deleteUnused = !impCtx.importOptions.deleteUnused"
                 >
                   <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-                       :class="impCtx.syncOptions.delete_unused ? 'border-destructive bg-destructive text-destructive-foreground' : 'border-border/60'">
-                    <Check v-if="impCtx.syncOptions.delete_unused" class="size-2.5"/>
+                       :class="impCtx.importOptions.deleteUnused ? 'border-destructive bg-destructive text-destructive-foreground' : 'border-border/60'">
+                    <Check v-if="impCtx.importOptions.deleteUnused" class="size-2.5"/>
                   </div>
                   <div>
                     <div class="font-medium">Удалить неиспользованные</div>
@@ -638,7 +639,7 @@ async function doApiSync(): Promise<void> {
 
               <div class="space-y-2">
                 <Label>Файл (.xlsx, .csv, .ods)</Label>
-                <Input type="file" accept=".xlsx,.csv,.ods,.xls" @change="impCtx.onFileSelect"/>
+                <Input type="file" multiple accept=".xlsx,.csv,.ods,.xls" @change="impCtx.onFileSelect"/>
               </div>
 
               <div v-if="impCtx.importError.value"
@@ -953,12 +954,12 @@ async function doApiSync(): Promise<void> {
       <div v-if="!impCtx.syncRunning.value && !impCtx.syncResult.value" class="grid gap-3 py-2">
         <label
             class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-            :class="impCtx.syncOptions.add_new ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
-            @click="impCtx.syncOptions.add_new = !impCtx.syncOptions.add_new"
+            :class="impCtx.importOptions.addNew ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
+            @click="impCtx.importOptions.addNew = !impCtx.importOptions.addNew"
         >
           <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-               :class="impCtx.syncOptions.add_new ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
-            <Check v-if="impCtx.syncOptions.add_new" class="size-2.5"/>
+               :class="impCtx.importOptions.addNew ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
+            <Check v-if="impCtx.importOptions.addNew" class="size-2.5"/>
           </div>
           <div>
             <div class="font-medium">Добавить новые</div>
@@ -967,12 +968,12 @@ async function doApiSync(): Promise<void> {
         </label>
         <label
             class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-            :class="impCtx.syncOptions.update_existing ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
-            @click="impCtx.syncOptions.update_existing = !impCtx.syncOptions.update_existing"
+            :class="impCtx.importOptions.updateExisting ? 'border-primary bg-primary/5' : 'border-border/60 hover:border-primary/30'"
+            @click="impCtx.importOptions.updateExisting = !impCtx.importOptions.updateExisting"
         >
           <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-               :class="impCtx.syncOptions.update_existing ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
-            <Check v-if="impCtx.syncOptions.update_existing" class="size-2.5"/>
+               :class="impCtx.importOptions.updateExisting ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60'">
+            <Check v-if="impCtx.importOptions.updateExisting" class="size-2.5"/>
           </div>
           <div>
             <div class="font-medium">Обновить текущие</div>
@@ -981,12 +982,12 @@ async function doApiSync(): Promise<void> {
         </label>
         <label
             class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
-            :class="impCtx.syncOptions.delete_unused ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 hover:border-primary/30'"
-            @click="impCtx.syncOptions.delete_unused = !impCtx.syncOptions.delete_unused"
+            :class="impCtx.importOptions.deleteUnused ? 'border-destructive/40 bg-destructive/5' : 'border-border/60 hover:border-primary/30'"
+            @click="impCtx.importOptions.deleteUnused = !impCtx.importOptions.deleteUnused"
         >
           <div class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border transition"
-               :class="impCtx.syncOptions.delete_unused ? 'border-destructive bg-destructive text-destructive-foreground' : 'border-border/60'">
-            <Check v-if="impCtx.syncOptions.delete_unused" class="size-2.5"/>
+               :class="impCtx.importOptions.deleteUnused ? 'border-destructive bg-destructive text-destructive-foreground' : 'border-border/60'">
+            <Check v-if="impCtx.importOptions.deleteUnused" class="size-2.5"/>
           </div>
           <div>
             <div class="font-medium">Удалить неиспользованные</div>
@@ -1018,7 +1019,7 @@ async function doApiSync(): Promise<void> {
         </Button>
         <Button
             v-if="!impCtx.syncResult.value"
-            :disabled="impCtx.syncRunning.value || (!impCtx.syncOptions.add_new && !impCtx.syncOptions.update_existing && !impCtx.syncOptions.delete_unused)"
+            :disabled="impCtx.syncRunning.value || (!impCtx.importOptions.addNew && !impCtx.importOptions.updateExisting && !impCtx.importOptions.deleteUnused)"
             class="gap-2"
             @click="impCtx.runSync()"
         >

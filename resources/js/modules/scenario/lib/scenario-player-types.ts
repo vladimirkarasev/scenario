@@ -4,7 +4,7 @@ export type ConditionMode = 'manual' | 'auto'
 
 export interface SurveyBlock {
     id: string
-    type: 'paragraph' | 'rich_text' | 'heading' | 'image' | 'button' | 'input' | 'email' | 'phone' | 'textarea' | 'number' | 'select' | 'date' | 'datetime' | 'checkbox' | 'hidden' | 'variable' | 'collapse' | 'container' | 'group' | 'directory_list' | 'directory_table' | 'suggest'
+    type: 'paragraph' | 'rich_text' | 'heading' | 'image' | 'button' | 'input' | 'email' | 'phone' | 'vin' | 'grz' | 'textarea' | 'number' | 'select' | 'date' | 'datetime' | 'checkbox' | 'hidden' | 'variable' | 'collapse' | 'container' | 'group' | 'directory_list' | 'directory_table' | 'suggest' | 'map_point' | 'route' | 'directory_map'
     props?: Record<string, unknown>
     children?: SurveyBlock[]
 }
@@ -18,6 +18,7 @@ export interface ScenarioNode {
 export interface ScenarioRenderedBlock {
     type: 'block'
     title: string
+    hideTitle: boolean
     blocks: SurveyBlock[]
     layoutDocument?: unknown
 }
@@ -31,6 +32,8 @@ export interface ScenarioRenderedCondition {
     type: 'condition'
     mode: ConditionMode
     question: string
+    hideTitle: boolean
+    content?: unknown
     options: ScenarioRenderedConditionOption[]
     expression?: string | null
 }
@@ -38,6 +41,7 @@ export interface ScenarioRenderedCondition {
 export interface ScenarioRenderedEnd {
     type: 'end'
     title: string
+    hideTitle: boolean
     description: string
     blocks: SurveyBlock[]
 }

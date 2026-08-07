@@ -34,4 +34,14 @@ final class DirectoryVersionException extends RuntimeException
     {
         return new self(422, 'Нельзя удалить активную версию.');
     }
+
+    public static function relatedDirectoryNotFound(): self
+    {
+        return new self(422, 'Связанный справочник не найден.');
+    }
+
+    public static function relatedDirectorySelfReference(): self
+    {
+        return new self(422, 'Справочник не может ссылаться сам на себя.');
+    }
 }

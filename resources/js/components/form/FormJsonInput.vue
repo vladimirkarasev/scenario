@@ -20,12 +20,12 @@ const props = withDefaults(defineProps<{
   placeholder: '{}',
 })
 
-const fieldId = useFieldId(() => props.id, () => props.name)
-
 const emit = defineEmits<{
   'update:modelValue': [value: Record<string, unknown> | unknown[]]
   'parse-error': [message: string | null]
 }>()
+
+const fieldId = useFieldId(() => props.id, () => props.name)
 
 function stringify(v: Record<string, unknown> | unknown[] | null | undefined): string {
   return JSON.stringify(v ?? {}, null, 2)

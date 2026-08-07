@@ -9,7 +9,7 @@ export function useSuggestResultFields(proxyUuidRef: Ref<string>) {
     async function load(uuid: string): Promise<void> {
         loading.value = true
         try {
-            fields.value = await webhookRepository.resultFields(uuid)
+            fields.value = await webhookRepository.responseFields(uuid)
         } catch {
             fields.value = []
         } finally {

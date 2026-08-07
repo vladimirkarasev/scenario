@@ -10,12 +10,14 @@ use Module\Actions\DTO\ActionResult;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\Concerns\HasNoConfigFields;
+use Module\Actions\Services\Handlers\Concerns\MasksSensitiveHeaders;
 use Module\Proxy\DTO\ProxyResponse;
 use Module\Proxy\Services\ProxyReceiverService;
 
 final readonly class ProxyRequestActionHandler implements ActionHandlerInterface
 {
     use HasNoConfigFields;
+    use MasksSensitiveHeaders;
 
     public function __construct(
         private ActionDataResolver $dataResolver,
@@ -36,37 +38,45 @@ final readonly class ProxyRequestActionHandler implements ActionHandlerInterface
             return ActionResult::failed('Proxy action requires `endpoint_uuid` in config.');
         }
 
+        $method = strtoupper($this->stringValue($config['method'] ?? null, 'POST'));
+        $payload = $config['payload'] ?? $input;
+        $query = is_array($config['query'] ?? null) ? $this->stringKeyed($config['query']) : [];
+        $headers = is_array($config['headers'] ?? null) ? $this->stringKeyed($config['headers']) : [];
+
+        $requestInfo = [
+            'method' => $method,
+            'endpoint_uuid' => $endpointUuid,
+            'headers' => $this->maskSensitive($headers),
+            'query' => $this->maskSensitive($query),
+            'payload' => $payload,
+        ];
+
         $response = $this->proxyReceiver->receiveHttp(
-            $this->requestFromConfig($endpointUuid, $config, $input),
+            $this->requestFromConfig($endpointUuid, $method, $payload, $query, $headers),
             $endpointUuid,
         );
 
-        return $this->resultFromProxyResponse($response);
+        return $this->resultFromProxyResponse($response, $requestInfo);
     }
 
     /**
-     * @param array<string, mixed> $config
-     * @param array<string, mixed> $input
+     * @param array<string, mixed>|mixed $payload
+     * @param array<string, mixed> $query
+     * @param array<string, mixed> $headers
      */
-    private function requestFromConfig(string $endpointUuid, array $config, array $input): Request
+    private function requestFromConfig(string $endpointUuid, string $method, mixed $payload, array $query, array $headers): Request
     {
-        $method = strtoupper($this->stringValue($config['method'] ?? null, 'POST'));
-        $payload = $config['payload'] ?? $input;
-        $query = $config['query'] ?? [];
-        $headers = $config['headers'] ?? [];
         $request = Request::create(
             uri: "/proxy/{$endpointUuid}",
             method: $method,
             parameters: is_array($payload) ? $payload : ['value' => $payload],
-            server: $this->serverHeaders(is_array($headers) ? $headers : []),
+            server: $this->serverHeaders($headers),
             content: $method === 'GET'
                 ? null
                 : (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null),
         );
 
-        if (is_array($query)) {
-            $request->query->replace($this->stringKeyed($query));
-        }
+        $request->query->replace($query);
 
         if ($method !== 'GET') {
             $request->headers->set('content-type', 'application/json');
@@ -75,13 +85,15 @@ final readonly class ProxyRequestActionHandler implements ActionHandlerInterface
         return $request;
     }
 
-    private function resultFromProxyResponse(ProxyResponse $response): ActionResult
+    /** @param array<string, mixed> $requestInfo */
+    private function resultFromProxyResponse(ProxyResponse $response, array $requestInfo): ActionResult
     {
         if ($response->statusCode >= 400) {
             return ActionResult::failed('Proxy request failed.', [
                 'status' => $response->statusCode,
                 'headers' => $response->headers,
                 'body' => $response->body,
+                'request' => $requestInfo,
             ]);
         }
 
@@ -89,6 +101,7 @@ final readonly class ProxyRequestActionHandler implements ActionHandlerInterface
             'status' => $response->statusCode,
             'headers' => $response->headers,
             'body' => $response->body,
+            'request' => $requestInfo,
         ]);
     }
 

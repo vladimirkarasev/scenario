@@ -10,7 +10,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Directories\Models\Directory;
 use Module\Projects\Models\Project;
+use Module\Proxy\Models\ProxyEndpoint;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Spatie\Permission\Models\Permission;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class DirectoryControllerTest extends TestCase
@@ -21,6 +25,7 @@ final class DirectoryControllerTest extends TestCase
     {
         parent::setUp();
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app->instance(LoggerInterface::class, new NullLogger());
     }
 
     public function test_index_returns_directories_for_user_project(): void
@@ -155,6 +160,54 @@ final class DirectoryControllerTest extends TestCase
         $this->assertDatabaseHas('directories', ['id' => $directory->id, 'name' => 'Новое']);
     }
 
+    public function test_update_accepts_external_key_outside_directory_schema(): void
+    {
+        [$user, $project] = $this->makeUserWithProject('directory_create');
+        $directory = $this->makeDirectory($project);
+        $endpoint = $this->makeProxyEndpoint($project);
+
+        $this->actingAs($user)
+            ->putJson("/api/directories/{$directory->id}", [
+                'name' => $directory->name,
+                'slug' => $directory->slug,
+                'source_type' => 'api',
+                'fields' => [
+                    ['key' => 'name', 'name' => 'Name', 'type' => 'string'],
+                ],
+                'api_config' => [
+                    'proxy_uuid' => $endpoint->uuid,
+                    'field_mapping' => ['name' => 'name'],
+                    'external_key_field' => 'id',
+                ],
+            ])
+            ->assertOk();
+
+        $directory->refresh();
+        $this->assertSame('id', $directory->api_config_json['external_key_field']);
+    }
+
+    public function test_update_rejects_unknown_proxy_external_key(): void
+    {
+        [$user, $project] = $this->makeUserWithProject('directory_create');
+        $directory = $this->makeDirectory($project);
+        $endpoint = $this->makeProxyEndpoint($project);
+
+        $this->actingAs($user)
+            ->putJson("/api/directories/{$directory->id}", [
+                'name' => $directory->name,
+                'slug' => $directory->slug,
+                'source_type' => 'api',
+                'fields' => [['key' => 'name', 'name' => 'Name', 'type' => 'string']],
+                'api_config' => [
+                    'proxy_uuid' => $endpoint->uuid,
+                    'field_mapping' => ['name' => 'name'],
+                    'external_key_field' => 'unknown',
+                ],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('api_config.external_key_field');
+    }
+
     public function test_destroy_deletes_directory_and_returns_204(): void
     {
         [$user, $project] = $this->makeUserWithProject('directory_delete');
@@ -211,6 +264,18 @@ final class DirectoryControllerTest extends TestCase
             'name' => $name,
             'slug' => $slug ?: 'dir-'.Str::random(6),
             'source_type' => 'manual',
+        ]);
+    }
+
+    private function makeProxyEndpoint(Project $project): ProxyEndpoint
+    {
+        return ProxyEndpoint::query()->create([
+            'project_id' => $project->id,
+            'uuid' => Str::uuid()->toString(),
+            'name' => 'Directory source',
+            'code' => 'directory-source-'.Str::random(6),
+            'is_active' => true,
+            'handler_class' => TestLeadProxyHandler::class,
         ]);
     }
 }

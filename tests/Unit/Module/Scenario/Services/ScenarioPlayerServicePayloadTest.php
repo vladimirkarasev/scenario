@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Scenario\Services;
 
-use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Projects\Models\Project;
 use Module\Scenario\DTO\ScenarioRunData;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Users\Models\User;
 use Tests\TestCase;
 
 final class ScenarioPlayerServicePayloadTest extends TestCase
@@ -37,9 +38,9 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
                     'id' => 'node_block',
                     'type' => 'block',
                     'data' => [
-                        'title' => '#{{ run.number_formatted }} · {{ operator.login }} · {{ project.name }}'
-                            . ' · {{ call.incoming_phone }} · {{ call.outgoing_phone }}'
-                            . ' · {{ call.internal_phone }} · {{ call.id }}',
+                        'title' => '#{{ _run.number_formatted }} · {{ _operator.login }} · {{ _project.name }}'
+                            . ' · {{ _call.incoming_phone }} · {{ _call.outgoing_phone }}'
+                            . ' · {{ _call.internal_phone }} · {{ _call.id }}',
                     ],
                 ],
                 ['id' => 'node_end', 'type' => 'end', 'data' => ['title' => 'Готово']],
@@ -59,7 +60,13 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
             'host' => 'example.com',
             'is_active' => true,
         ]);
-        $operator = User::factory()->create(['login' => 'op_login', 'project_id' => $project->id]);
+        $operator = User::query()->create([
+            'name' => 'Оператор',
+            'email' => 'operator@example.test',
+            'password' => 'secret',
+            'login' => 'op_login',
+            'project_id' => $project->id,
+        ]);
 
         $run = $this->player->createRun(new ScenarioRunData(
             scenarioId: $this->scenario->id,
@@ -100,7 +107,7 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
             scenarioId: $this->scenario->id,
             scenarioVersionId: null,
             context: [
-                'call' => [
+                ScenarioContextKey::Call->value => [
                     'incoming_phone' => '+7 999 111-22-33',
                     'outgoing_phone' => '+7 495 000-00-00',
                     'internal_phone' => '1234',
@@ -119,6 +126,22 @@ final class ScenarioPlayerServicePayloadTest extends TestCase
             ),
             $this->renderedTitle($payload),
         );
+    }
+
+    public function test_survey_data_excludes_system_variables_by_prefix(): void
+    {
+        $run = $this->player->createRun(new ScenarioRunData(
+            scenarioId: $this->scenario->id,
+            scenarioVersionId: null,
+            context: [
+                'answer' => 'visible',
+                ScenarioContextKey::Call->value => ['id' => 'call-42'],
+                '_custom_system' => 'hidden',
+            ],
+            userData: [],
+        ));
+
+        $this->assertSame(['answer' => 'visible'], $this->player->surveyData($run));
     }
 
     /** @param  array<string, mixed>  $payload */

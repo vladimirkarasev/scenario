@@ -10,9 +10,9 @@ use Temporal\Activity\ActivityMethod;
 #[ActivityInterface(prefix: 'DirectoryImport.')]
 interface FinalizeDirectoryImportActivityInterface
 {
-    /** @return mixed */
+    /** @return array{deleted: int} */
     #[ActivityMethod(name: 'CompleteDirectoryImport')]
-    public function complete(int $directoryImportId);
+    public function complete(int $directoryImportId): array;
 
     /** @return mixed */
     #[ActivityMethod(name: 'FailDirectoryImport')]

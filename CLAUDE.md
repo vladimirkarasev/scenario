@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> Детальные правила и паттерны — в `skills/` (auto-trigger по frontmatter). Здесь —
+> Детальные правила и паттерны — в `skills/` (auto-trigger по frontmatter; `.claude/skills` и `.codex/skills` — симлинки на эту папку, см. `task skills:link`). Здесь —
 > карта проекта, команды и инварианты; за глубиной идём в указанный skill.
 
 ## Commands

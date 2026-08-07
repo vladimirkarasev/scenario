@@ -7,6 +7,7 @@ namespace Module\Scenario\Services\Nodes\ScenarioLink;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Module\Scenario\DTO\ScenarioRunContinueData;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Events\ScenarioLinkFollowed;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
@@ -15,7 +16,6 @@ use Module\Scenario\Repositories\ScenarioVersionRepository;
 use Module\Scenario\Services\Nodes\NodeAdvanceResult;
 use Module\Scenario\Services\Nodes\NodeHandlerInterface;
 use Module\Scenario\Services\Nodes\NodeHelpers;
-use Module\Scenario\Services\RunContextKeys;
 use Module\Scenario\Services\ScenarioGraphResolver;
 use Module\Scenario\Services\ScenarioVariableMapBuilder;
 use RuntimeException;
@@ -100,11 +100,11 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
 
         $context = is_array($run->context) ? $run->context : [];
         $targetVariableMap = $this->variableMapBuilder->build($targetRevision->schema_json ?? []);
-        $currentVariableMap = is_array($context[RunContextKeys::VARIABLE_MAP] ?? null)
-            ? $context[RunContextKeys::VARIABLE_MAP]
+        $currentVariableMap = is_array($context[ScenarioContextKey::VariableMap->value] ?? null)
+            ? $context[ScenarioContextKey::VariableMap->value]
             : [];
-        $callStack = is_array($context[RunContextKeys::CALL_STACK] ?? null)
-            ? $context[RunContextKeys::CALL_STACK]
+        $callStack = is_array($context[ScenarioContextKey::CallStack->value] ?? null)
+            ? $context[ScenarioContextKey::CallStack->value]
             : [];
 
         $callStack[] = [
@@ -119,8 +119,8 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             'current_node_id' => $startNodeId,
             'context' => [
                 ...$context,
-                RunContextKeys::CALL_STACK => $callStack,
-                RunContextKeys::VARIABLE_MAP => [...$currentVariableMap, ...$targetVariableMap],
+                ScenarioContextKey::CallStack->value => $callStack,
+                ScenarioContextKey::VariableMap->value => [...$currentVariableMap, ...$targetVariableMap],
             ],
         ])->save();
 

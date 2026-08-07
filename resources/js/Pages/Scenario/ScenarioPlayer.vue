@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppShell from '@/layouts/AppShell.vue'
+import CopyButton from '@/components/CopyButton.vue'
 import ScenarioPlayer from '@/modules/scenario/components/player/ScenarioPlayer.vue'
 import RunHistory from '@/modules/scenario/components/player/RunHistory.vue'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {scenarioRunRepository} from '@/modules/scenario/repositories/scenarioRunRepository'
 import {Head} from '@inertiajs/vue3'
 import {computed, ref} from 'vue'
-import {Check, Copy, History, X} from 'lucide-vue-next'
+import {History, X} from 'lucide-vue-next'
 import type {RunHistoryEvent, ScenarioRunPayload, ScenarioRunParty} from '@/modules/scenario/lib/scenario-player-types'
 
 defineProps<{
@@ -71,14 +72,6 @@ const createdAt = computed(() => {
   })
 })
 
-const copied = ref(false)
-
-async function copyUuid() {
-  if (!run.value?.id) return
-  await navigator.clipboard.writeText(run.value.id)
-  copied.value = true
-  setTimeout(() => { copied.value = false }, 1500)
-}
 </script>
 
 <template>
@@ -97,15 +90,13 @@ async function copyUuid() {
               <div class="truncate text-[14px] font-semibold tracking-[-0.01em] text-slate-900">
                 {{ scenarioName }}
               </div>
-              <button
-                  type="button"
+              <CopyButton
+                  :text="run.id"
+                  :label="run.id"
+                  :copied-label="run.id"
                   class="mt-0.5 inline-flex items-center gap-1 font-mono text-[10.5px] text-slate-400 transition hover:text-slate-600"
-                  :title="copied ? 'Скопировано' : 'Скопировать UUID'"
-                  @click="copyUuid"
-              >
-                {{ run.id }}
-                <component :is="copied ? Check : Copy" class="size-3" :class="copied ? 'text-emerald-500' : ''"/>
-              </button>
+                  title="Скопировать UUID"
+              />
             </div>
 
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-x-4 gap-y-0.5 text-[11px] leading-5">

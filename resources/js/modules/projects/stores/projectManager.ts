@@ -1,25 +1,11 @@
 import {computed, reactive, ref} from 'vue'
 import {defineStore} from 'pinia'
-import {destroyJson, sendJson} from '@/lib/http'
-
-interface Project {
-    id: string
-    name: string
-    sitekey: string
-    host: string
-    shared_secret: string
-    is_active: boolean
-}
-
-interface ProjectEndpoints {
-    store: string
-    update: string
-    destroy: string
-}
+import {projectRepository} from '@/modules/projects/repositories/projectRepository'
+import type {ProjectManagerEndpoints, ProjectManagerItem} from '@/modules/projects/types/project'
 
 export const useProjectManagerStore = defineStore('projectManager', () => {
-    const items = ref<Project[]>([])
-    const endpoints = ref<ProjectEndpoints | null>(null)
+    const items = ref<ProjectManagerItem[]>([])
+    const endpoints = ref<ProjectManagerEndpoints | null>(null)
     const loading = ref(false)
     const error = ref('')
     const isDialogOpen = ref(false)
@@ -34,7 +20,7 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
 
     const dialogTitle = computed(() => editingId.value ? 'Edit project' : 'Create project')
 
-    function initialize(nextItems: Project[], nextEndpoints: ProjectEndpoints): void {
+    function initialize(nextItems: ProjectManagerItem[], nextEndpoints: ProjectManagerEndpoints): void {
         items.value = [...nextItems]
         endpoints.value = nextEndpoints
     }
@@ -54,7 +40,7 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
         isDialogOpen.value = true
     }
 
-    function openEditDialog(item: Project): void {
+    function openEditDialog(item: ProjectManagerItem): void {
         form.name = item.name
         form.sitekey = item.sitekey
         form.host = item.host
@@ -70,18 +56,12 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
         error.value = ''
 
         try {
-            const payload = await sendJson<Record<string, unknown>>(
-                editingId.value
-                    ? `${endpoints.value!.update}/${editingId.value}`
-                    : endpoints.value!.store,
-                {
-                    method: editingId.value ? 'PUT' : 'POST',
-                    body: {...form},
-                    fallbackMessage: 'Failed to save project.',
-                },
+            const isUpdate = editingId.value !== null
+            const item = await projectRepository.saveAt(
+                isUpdate ? `${endpoints.value!.update}/${editingId.value}` : endpoints.value!.store,
+                {...form},
+                isUpdate,
             )
-
-            const item = payload.item as Project
 
             items.value = editingId.value
                 ? items.value.map((project) => project.id === item.id ? item : project)
@@ -96,7 +76,7 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
         }
     }
 
-    async function remove(item: Project): Promise<void> {
+    async function remove(item: ProjectManagerItem): Promise<void> {
         if (!window.confirm(`Delete project "${item.name}"?`)) {
             return
         }
@@ -105,7 +85,7 @@ export const useProjectManagerStore = defineStore('projectManager', () => {
         error.value = ''
 
         try {
-            await destroyJson(`${endpoints.value!.destroy}/${item.id}`, 'Failed to delete project.')
+            await projectRepository.removeAt(`${endpoints.value!.destroy}/${item.id}`)
             items.value = items.value.filter((project) => project.id !== item.id)
         } catch (e: unknown) {
             error.value = e instanceof Error ? e.message : String(e)

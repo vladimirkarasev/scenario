@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Module\Proxy\Gateway\Base\Transports;
 
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Arr;
 use JsonException;
 use Module\Proxy\Gateway\Base\Contracts\ApiMethod;
@@ -13,6 +15,7 @@ use Module\Proxy\Gateway\Base\Contracts\ApiTransport;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 use Module\Proxy\Gateway\Base\DTO\ApiGatewayResponse;
 use Module\Proxy\Gateway\Base\Exceptions\ApiGatewayException;
+use Module\Proxy\Gateway\Base\Exceptions\ApiGatewayTimeoutException;
 
 final readonly class GuzzleApiTransport implements ApiTransport
 {
@@ -23,6 +26,10 @@ final readonly class GuzzleApiTransport implements ApiTransport
         try {
             $response = $this->client->request($method->method(), $method->uri(), $this->options($config, $method));
         } catch (GuzzleException $exception) {
+            if ($this->isTimeout($exception)) {
+                throw new ApiGatewayTimeoutException($exception);
+            }
+
             throw new ApiGatewayException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
 
@@ -33,6 +40,21 @@ final readonly class GuzzleApiTransport implements ApiTransport
             body: $this->decodeBody($contents),
             headers: $this->normalizeHeaders($response->getHeaders()),
         );
+    }
+
+    private function isTimeout(GuzzleException $exception): bool
+    {
+        if ($exception instanceof ConnectException || $exception instanceof RequestException) {
+            $errno = $exception->getHandlerContext()['errno'] ?? null;
+
+            if ($errno === 28) {
+                return true;
+            }
+        }
+
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'curl error 28') || str_contains($message, 'timed out');
     }
 
     /** @return array<string, mixed> */

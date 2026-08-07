@@ -3,21 +3,21 @@
 ## Backend
 
 ```bash
-composer run test
-./vendor/bin/pint module/<Module>
-./vendor/bin/phpstan analyse module/<Module> --memory-limit=512M --error-format=table
+task test
+task rector:check -- module/<Module>
+task phpstan -- module/<Module>
 ```
 
 - [ ] Все тесты зелёные
 - [ ] PHPStan: 0 ошибок
-- [ ] Pint: нет изменений (или изменения закоммичены)
+- [ ] Rector dry-run: предложения просмотрены, нужные изменения применены
 
 ## Frontend
 
 ```bash
-npm run lint:fix
-npx tsc --noEmit
-npm run lint
+task lint:fix
+task typecheck
+task lint
 ```
 
 - [ ] TypeScript: 0 ошибок

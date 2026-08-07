@@ -26,7 +26,7 @@ abstract class DaDataSuggestEndpointHandler extends ProxyHandler
         return DaDataCredential::class;
     }
 
-    public function fields(): iterable
+    public function requestFields(): iterable
     {
         yield ProxyFieldString::make('query')
             ->label('Запрос')
@@ -70,7 +70,7 @@ abstract class DaDataSuggestEndpointHandler extends ProxyHandler
     {
         $options = [];
 
-        foreach ($this->fields() as $field) {
+        foreach ($this->requestFields() as $field) {
             if (! $field instanceof ProxyField || in_array($field->key(), ['query', 'count'], true)) {
                 continue;
             }

@@ -1,15 +1,8 @@
-import {getJson} from '@/lib/http'
 import {markForbidden} from '@/lib/auth-state'
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-
-interface AuthUser {
-    id: number
-    name: string
-    email: string
-    project_id: string | null
-    permissions: string[]
-}
+import {authRepository} from '@/modules/auth/repositories/authRepository'
+import type {AuthUser} from '@/modules/auth/types/auth'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<AuthUser | null>(null)
@@ -36,8 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
             return
         }
         try {
-            const {data} = await getJson('/api/user', 'Failed to load user') as { data: AuthUser }
-            user.value = data
+            user.value = await authRepository.currentUser()
         } catch {
             sessionStorage.removeItem('access_token')
         } finally {

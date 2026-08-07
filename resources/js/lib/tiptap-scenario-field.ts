@@ -1,4 +1,5 @@
 import {Node, mergeAttributes} from '@tiptap/core'
+import {Selection} from '@tiptap/pm/state'
 import {VueNodeViewRenderer} from '@tiptap/vue-3'
 import TiptapScenarioFieldNodeView from '@/modules/scenario/components/tiptap/TiptapScenarioFieldNodeView.vue'
 import type {BlockField, BlockFieldType} from '@/modules/scenario/lib/scenario-block-fields'
@@ -14,8 +15,35 @@ export interface ScenarioFieldOptions {
     onDeleteField: (fieldId: string) => void
 }
 
+export const SCENARIO_FIELD_NODE_NAME = 'scenarioField'
+
+export function shouldConsumeEnterInScenarioField(parentNodeTypeName: string): boolean {
+    return parentNodeTypeName === SCENARIO_FIELD_NODE_NAME
+}
+
+export interface EnterInScenarioFieldAction {
+    insertAt: number
+    focusAt: number | null
+}
+
+export function computeEnterInScenarioFieldAction(params: {
+    parentOffset: number
+    parentContentSize: number
+    beforePos: number
+    afterPos: number
+}): EnterInScenarioFieldAction {
+    const atEnd = params.parentOffset === params.parentContentSize
+
+    return atEnd
+        ? {insertAt: params.afterPos, focusAt: params.afterPos + 1}
+        : {insertAt: params.beforePos, focusAt: null}
+}
+
 export const ScenarioField = Node.create<ScenarioFieldOptions>({
-    name: 'scenarioField',
+    name: SCENARIO_FIELD_NODE_NAME,
+    // Выше приоритета core-расширения Keymap (100), иначе его дефолтный
+    // Enter -> splitBlock срабатывает первым и наш обработчик ниже не вызывается.
+    priority: 1000,
     group: 'block',
     content: 'inline*',
     draggable: true,
@@ -41,6 +69,11 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
                 parseHTML: (element) => element.getAttribute('data-field-id'),
                 renderHTML: (attrs) => ({'data-field-id': attrs.fieldId}),
             },
+            hideLabel: {
+                default: false,
+                parseHTML: (element) => element.getAttribute('data-hide-label') === 'true',
+                renderHTML: (attrs) => ({'data-hide-label': attrs.hideLabel ? 'true' : null}),
+            },
         }
     },
 
@@ -52,12 +85,64 @@ export const ScenarioField = Node.create<ScenarioFieldOptions>({
         return ['div', mergeAttributes(HTMLAttributes, {'data-type': 'scenario-field'}), 0]
     },
 
+    /**
+     * selectedOnTextSelection: без него props.selected реагирует только на NodeSelection
+     * (весь узел целиком), а не на курсор внутри лейбла — см. TiptapScenarioFieldNodeView.vue.
+     */
     addNodeView() {
-        return VueNodeViewRenderer(TiptapScenarioFieldNodeView)
+        return VueNodeViewRenderer(TiptapScenarioFieldNodeView, {selectedOnTextSelection: true})
     },
 
     addKeyboardShortcuts() {
         return {
+            Enter: () => {
+                const {$from} = this.editor.state.selection
+
+                if (!shouldConsumeEnterInScenarioField($from.parent.type.name)) return false
+
+                const action = computeEnterInScenarioFieldAction({
+                    parentOffset: $from.parentOffset,
+                    parentContentSize: $from.parent.content.size,
+                    beforePos: $from.before($from.depth),
+                    afterPos: $from.after($from.depth),
+                })
+
+                const chain = this.editor.chain().focus().insertContentAt(
+                    action.insertAt,
+                    {type: 'paragraph'},
+                    {updateSelection: action.focusAt !== null},
+                )
+
+                return (action.focusAt !== null ? chain.setTextSelection(action.focusAt) : chain).run()
+            },
+
+            // Между двумя isolating-нодами (лейбл поля) ProseMirror по умолчанию
+            // ставит gap-cursor вместо перехода в соседнюю ноду; ArrowDown/Up
+            // явно ищут ближайшую валидную текстовую позицию за пределами узла.
+            ArrowDown: () => {
+                const {$from} = this.editor.state.selection
+                if ($from.parent.type.name !== this.name) return false
+
+                const afterPos = $from.after($from.depth)
+                if (afterPos >= this.editor.state.doc.content.size) return false
+
+                const target = Selection.near(this.editor.state.doc.resolve(afterPos), 1)
+
+                return this.editor.chain().focus().setTextSelection({from: target.from, to: target.to}).run()
+            },
+
+            ArrowUp: () => {
+                const {$from} = this.editor.state.selection
+                if ($from.parent.type.name !== this.name) return false
+
+                const beforePos = $from.before($from.depth)
+                if (beforePos <= 0) return false
+
+                const target = Selection.near(this.editor.state.doc.resolve(beforePos), -1)
+
+                return this.editor.chain().focus().setTextSelection({from: target.from, to: target.to}).run()
+            },
+
             Backspace: () => {
                 const {selection} = this.editor.state
                 if (!selection.empty) return false

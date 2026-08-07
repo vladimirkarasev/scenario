@@ -30,12 +30,35 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
 
     public function isInteractive(array $node): bool
     {
-        return $this->strField($this->nodeData($node), 'mode', 'manual') === 'manual';
+        $data = $this->nodeData($node);
+
+        return $this->strField($data, 'mode', 'manual') === 'manual'
+            && trim($this->strField($data, 'value')) === '';
     }
 
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
     {
-        $targetNodeId = $this->conditionEvaluator->resolveTarget($this->nodeData($node), $run->context ?? []);
+        $nodeData = $this->nodeData($node);
+
+        if ($this->strField($nodeData, 'mode', 'manual') === 'manual') {
+            $version = $this->runVersion($run);
+            $targetNodeId = $this->conditionEvaluator->resolveEdgeTarget(
+                $nodeData,
+                $this->graphResolver->outgoingEdges($version, $this->nodeId($node)),
+                $run->context ?? [],
+            );
+
+            if ($targetNodeId === null) {
+                return NodeAdvanceResult::pause();
+            }
+
+            $label = $this->manualOptionLabel($version, $node, $targetNodeId);
+            Event::dispatch(new ScenarioConditionEvaluated($run, $node, 'auto', $label, $targetNodeId));
+
+            return NodeAdvanceResult::next($targetNodeId);
+        }
+
+        $targetNodeId = $this->conditionEvaluator->resolveTarget($nodeData, $run->context ?? []);
 
         Event::dispatch(new ScenarioConditionEvaluated($run, $node, 'auto', null, $targetNodeId));
 
@@ -66,6 +89,7 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
     public function render(ScenarioVersion $version, array $node, array $context): array
     {
         $data = $this->nodeData($node);
+        $content = $data['content'] ?? null;
 
         $question = $this->strField($data, 'question')
             ?: $this->strField($data, 'title')
@@ -75,6 +99,8 @@ final readonly class ConditionNodeHandler implements NodeHandlerInterface
             'type' => 'condition',
             'mode' => $this->strField($data, 'mode', 'manual'),
             'question' => $this->variableResolver->resolve($question, $context),
+            'hideTitle' => $this->boolField($data, 'hideTitle', true),
+            'content' => is_array($content) ? $this->variableResolver->resolve($content, $context) : null,
             'options' => $this->variableResolver->resolve($this->manualConditionOptions($version, $node), $context),
             'expression' => $data['expression'] ?? null,
         ];

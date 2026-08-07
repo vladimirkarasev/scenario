@@ -1,6 +1,7 @@
 import {useUrlSearchParams} from '@vueuse/core'
 import {computed, onMounted, ref, watch} from 'vue'
 import type {Ref} from 'vue'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
 import type {Directory, DirectoryListMeta} from '@/modules/directories/types/directory'
 
@@ -18,9 +19,9 @@ function toArr(v: string | string[] | undefined): string[] {
 
 export function useDirectoryList(categoryIds: Ref<string[]>, rootOnly: Ref<boolean>) {
     const params = useUrlSearchParams<DirectoryListParams>('history', {removeNullishValues: true})
-    const loading = ref(false)
     const directories = ref<Directory[]>([])
     const meta = ref<DirectoryListMeta>({current_page: 1, last_page: 1, per_page: PAGE_SIZE, total: 0})
+    const {loading, error, execute} = useLatestRequest('Не удалось загрузить справочники.')
 
     const page = computed({
         get: () => Number(toArr(params['page[number]'])[0]) || 1,
@@ -38,21 +39,16 @@ export function useDirectoryList(categoryIds: Ref<string[]>, rootOnly: Ref<boole
     })
 
     async function load(): Promise<void> {
-        loading.value = true
-        try {
-            const qs = new URLSearchParams()
-            qs.set('page[number]', String(page.value))
-            qs.set('page[size]', String(PAGE_SIZE))
-            if (search.value) qs.set('filter[search]', search.value)
-            if (rootOnly.value) qs.set('filter[uncategorized]', 'true')
-            categoryIds.value.forEach(id => qs.append('filter[category_ids][]', id))
-            const result = await directoryRepository.list(qs)
-            directories.value = result.items
-            meta.value = result.meta
-        } catch { /* silent */
-        } finally {
-            loading.value = false
-        }
+        const qs = new URLSearchParams()
+        qs.set('page[number]', String(page.value))
+        qs.set('page[size]', String(PAGE_SIZE))
+        if (search.value) qs.set('filter[search]', search.value)
+        if (rootOnly.value) qs.set('filter[uncategorized]', 'true')
+        categoryIds.value.forEach(id => qs.append('filter[category_ids][]', id))
+        const result = await execute(() => directoryRepository.list(qs))
+        if (!result) return
+        directories.value = result.items
+        meta.value = result.meta
     }
 
     async function removeDirectory(id: string): Promise<void> {
@@ -82,5 +78,5 @@ export function useDirectoryList(categoryIds: Ref<string[]>, rootOnly: Ref<boole
 
     onMounted(load)
 
-    return {directories, loading, meta, page, search, load, removeDirectory}
+    return {directories, loading, error, meta, page, search, load, removeDirectory}
 }

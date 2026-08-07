@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {ref, reactive, computed} from 'vue'
-import {Check, Copy, Sparkles} from 'lucide-vue-next'
+import {Sparkles} from 'lucide-vue-next'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
+import CopyButton from '@/components/CopyButton.vue'
+import {copyText} from '@/lib/clipboard'
 import DateVariableHints from './variable-hints/DateVariableHints.vue'
 import SelectVariableHints from './variable-hints/SelectVariableHints.vue'
 import DirectoryVariableHints from './variable-hints/DirectoryVariableHints.vue'
@@ -10,6 +12,7 @@ import SuggestVariableHints from './variable-hints/SuggestVariableHints.vue'
 import SystemVariableHints from './variable-hints/SystemVariableHints.vue'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
 import {webhookRepository} from '@/modules/proxy/repositories/webhookRepository'
+import {useSelectExpressionPreview} from '@/modules/scenario/composables/useSelectExpressionPreview'
 import type {DirectorySchemaField} from '@/modules/directories/types/directory'
 import type {WebhookField} from '@/modules/proxy/types/webhook'
 import {
@@ -56,12 +59,19 @@ const blocksWithVars = computed(() => {
 
 const copiedId = ref<string | null>(null)
 
-async function copy(text: string, id: string): Promise<void> {
-  await navigator.clipboard.writeText(text)
+function markCopied(id: string): void {
   copiedId.value = id
   setTimeout(() => {
-    copiedId.value = null
+    if (copiedId.value === id) {
+      copiedId.value = null
+    }
   }, 1500)
+}
+
+async function copy(text: string, id: string): Promise<void> {
+  if (await copyText(text)) {
+    markCopied(id)
+  }
 }
 
 const schemaCache = reactive<Record<string, DirectorySchemaField[]>>({})
@@ -105,7 +115,7 @@ async function loadSuggestFields(proxyUuid: string): Promise<void> {
   if (suggestFieldsCache[proxyUuid] || suggestFieldsLoading[proxyUuid]) return
   suggestFieldsLoading[proxyUuid] = true
   try {
-    suggestFieldsCache[proxyUuid] = await webhookRepository.resultFields(proxyUuid)
+    suggestFieldsCache[proxyUuid] = await webhookRepository.responseFields(proxyUuid)
   } catch {
     suggestFieldsCache[proxyUuid] = []
   } finally {
@@ -122,11 +132,24 @@ function isLoadingSuggestFields(v: VarLike): boolean {
 }
 
 const openVarId = ref<string | null>(null)
+const {
+  preview: selectExpressionPreview,
+  loading: selectExpressionPreviewLoading,
+  error: selectExpressionPreviewError,
+  load: loadSelectExpressionPreview,
+  clear: clearSelectExpressionPreview,
+} = useSelectExpressionPreview()
 
 function onPopoverOpen(v: VarLike, open: boolean): void {
-  openVarId.value = open ? v.fieldId : null
+  if (open) {
+    openVarId.value = v.fieldId
+  } else if (openVarId.value === v.fieldId) {
+    openVarId.value = null
+    clearSelectExpressionPreview()
+  }
   if (open && v.directoryId) void loadSchema(v.directoryId, v.versionId ?? '')
   if (open && v.proxyUuid) void loadSuggestFields(v.proxyUuid)
+  if (open && isSelectVar(v) && v.multiple) void loadSelectExpressionPreview(v)
 }
 
 const openSysGroup = ref<string | null>(null)
@@ -156,15 +179,13 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
         </button>
 
         <div class="flex shrink-0 items-center gap-0.5">
-          <button
-              type="button"
+          <CopyButton
+              :text="systemGroupRef(group)"
+              :copied="copiedId === `sys:${group.name}`"
               title="Скопировать переменную"
               class="flex size-5 items-center justify-center rounded-md text-slate-300 transition hover:bg-slate-100 hover:text-slate-700"
-              @click="copy(systemGroupRef(group), `sys:${group.name}`)"
-          >
-            <Check v-if="copiedId === `sys:${group.name}`" class="size-3 text-emerald-500"/>
-            <Copy v-else class="size-3"/>
-          </button>
+              @copied="markCopied(`sys:${group.name}`)"
+          />
 
           <Popover
               :open="openSysGroup === group.name"
@@ -234,15 +255,13 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
             </button>
 
             <div class="flex shrink-0 items-center gap-0.5">
-              <button
-                  type="button"
+              <CopyButton
+                  :text="v.varRef"
+                  :copied="copiedId === v.fieldId"
                   title="Скопировать переменную"
                   class="flex size-5 items-center justify-center rounded-md text-slate-300 transition hover:bg-slate-100 hover:text-slate-700"
-                  @click="copy(v.varRef, v.fieldId)"
-              >
-                <Check v-if="copiedId === v.fieldId" class="size-3 text-emerald-500"/>
-                <Copy v-else class="size-3"/>
-              </button>
+                  @copied="markCopied(v.fieldId)"
+              />
 
               <Popover
                   v-if="hasHints(v)"
@@ -293,6 +312,9 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
                       v-else-if="isSelectVar(v)"
                       :v="v"
                       :copied-id="copiedId"
+                      :expression-preview="selectExpressionPreview"
+                      :expression-preview-loading="selectExpressionPreviewLoading"
+                      :expression-preview-error="selectExpressionPreviewError"
                       @copy="copy"
                   />
                   <PhoneVariableHints

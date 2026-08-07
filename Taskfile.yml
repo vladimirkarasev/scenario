@@ -3,6 +3,7 @@ version: "3"
 vars:
   COMPOSE: docker compose
   APP_SERVICE: laravel
+  NODE_RUN: "{{.COMPOSE}} --profile tools run --rm node"
 
 tasks:
   default:
@@ -80,11 +81,82 @@ tasks:
       - "{{.COMPOSE}} logs -f {{default .APP_SERVICE .CLI_ARGS}}"
 
   rector:
-    desc: Run Rector (refactoring). Use "-- --dry-run" to preview.
+    desc: Apply Rector refactoring; pass paths after -- and use rector:check for preview
     cmds:
       - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/rector process {{.CLI_ARGS}}"
 
+  rector:check:
+    desc: Preview Rector changes without modifying files; pass paths after --
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/rector process --dry-run {{.CLI_ARGS}}"
+
   test:
-    desc: Run PHPUnit test suite
+    desc: Run the full backend PHPUnit test suite; pass options after --
     cmds:
       - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan test {{.CLI_ARGS}}"
+
+  test:unit:
+    desc: Run backend Unit tests; pass --filter or a test path after --
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan test --testsuite=Unit {{.CLI_ARGS}}"
+
+  test:feature:
+    desc: Run backend Feature tests; pass --filter or a test path after --
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} php artisan test --testsuite=Feature {{.CLI_ARGS}}"
+
+  test:frontend:
+    desc: Run frontend Vitest tests once; pass test paths or Vitest options after --
+    cmds:
+      - "{{.NODE_RUN}} npm run test:run -- {{.CLI_ARGS}}"
+
+  phpstan:
+    desc: Run PHPStan level 10; pass paths or PHPStan options after --
+    cmds:
+      - "{{.COMPOSE}} exec {{.APP_SERVICE}} ./vendor/bin/phpstan analyse {{.CLI_ARGS}} --memory-limit=512M --error-format=table"
+
+  typecheck:
+    desc: Run Vue and TypeScript type checking
+    cmds:
+      - "{{.NODE_RUN}} npm exec vue-tsc -- --noEmit"
+
+  lint:
+    desc: Run frontend ESLint; pass paths after --
+    cmds:
+      - "{{.NODE_RUN}} npm run lint -- {{.CLI_ARGS}}"
+
+  lint:fix:
+    desc: Run frontend ESLint fixes; pass paths after --
+    cmds:
+      - "{{.NODE_RUN}} npm run lint:fix -- {{.CLI_ARGS}}"
+
+  knip:
+    desc: Find unused frontend files and exports
+    cmds:
+      - "{{.NODE_RUN}} npm run knip"
+
+  audit:frontend:
+    desc: Audit production frontend dependencies
+    cmds:
+      - "{{.NODE_RUN}} npm audit --omit=dev"
+
+  build:frontend:
+    desc: Build the production frontend bundle
+    cmds:
+      - "{{.NODE_RUN}} npm run build"
+
+  check:frontend:
+    desc: Run frontend unit tests, type checking, lint and production build
+    cmds:
+      - task: test:frontend
+      - task: typecheck
+      - task: lint
+      - task: build:frontend
+
+  skills:link:
+    desc: Symlink .claude/skills and .codex/skills to the shared skills/ directory (single source for Claude Code + Codex CLI, both read the Agent Skills SKILL.md format)
+    cmds:
+      - mkdir -p .claude .codex
+      - rm -rf .claude/skills .codex/skills
+      - ln -s ../skills .claude/skills
+      - ln -s ../skills .codex/skills

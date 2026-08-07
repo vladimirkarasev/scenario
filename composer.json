@@ -28,6 +28,7 @@
         "laravel/pail": "^1.2.5",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "phpat/phpat": "^0.12.4",
         "phpunit/phpunit": "^12.5.12",
         "rector/rector": "^2.4",
         "roadrunner-php/laravel-bridge": "^6.5",
@@ -63,6 +64,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "test:arch": [
+            "phpstan analyse -c phpat.neon --memory-limit=512M"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

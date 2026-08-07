@@ -34,6 +34,7 @@ final readonly class ProxyReceiverService
         private ProxyContextFactory $proxyContextFactory,
         private ProxyRequestLoggerService $requestLogger,
         private ProxyExecutor $executor,
+        private ProxyFailureResponseFactory $failureResponses,
         private LoggerInterface $logger,
     ) {}
 
@@ -59,7 +60,7 @@ final readonly class ProxyReceiverService
         $headers = $this->normalizeHeaders($request->headers->all());
         $files = $request->allFiles();
         $system = $this->system($requestId, $request->ip());
-        $fields = $this->fields($handler->fields());
+        $fields = $this->fields($handler->requestFields());
         $normalizedData = $this->fieldResolver->resolve($fields, $payload, $query, $headers, $system, $files);
 
         $proxyRequest = $this->requestLogger->createFromHttp(
@@ -145,7 +146,7 @@ final readonly class ProxyReceiverService
 
             Event::dispatch(new ProxyRequestFailed($proxyRequest, $box, $exception));
 
-            return ProxyResponse::error('Proxy processing failed', 500)->withRequestId($box->requestId());
+            return $this->failureResponses->make($exception)->withRequestId($box->requestId());
         }
     }
 

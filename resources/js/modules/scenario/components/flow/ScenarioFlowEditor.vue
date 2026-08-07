@@ -1,433 +1,166 @@
-<script setup>
-import {computed, markRaw, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
-import {VueFlow, addEdge, ConnectionMode, MarkerType} from '@vue-flow/core'
-import {Background} from '@vue-flow/background'
-import {Controls} from '@vue-flow/controls'
-import {MiniMap} from '@vue-flow/minimap'
-import ScenarioBlockEditorDrawer from '@/modules/scenario/components/block-editor/ScenarioBlockEditorDrawer.vue'
-import ActionNodeEditorDrawer from '@/modules/scenario/components/actions/ActionNodeEditorDrawer.vue'
-import BlockInspector from './inspectors/BlockInspector.vue'
-import ConditionInspector from './inspectors/ConditionInspector.vue'
-import DefaultInspector from './inspectors/DefaultInspector.vue'
-import EndInspector from './inspectors/EndInspector.vue'
-import ScenarioLinkInspector from './inspectors/ScenarioLinkInspector.vue'
+<script setup lang="ts">
+import {ref, shallowRef} from 'vue'
+import {
+  addEdge,
+  type Connection,
+  type EdgeUpdateEvent,
+  type ViewportTransform,
+} from '@vue-flow/core'
 import FlowPalette from './FlowPalette.vue'
 import FlowJsonTab from './FlowJsonTab.vue'
-import FlowSelectionToolbar from './FlowSelectionToolbar.vue'
-import ConditionEdgeSettingsDialog from './ConditionEdgeSettingsDialog.vue'
-import StartNode from '@/modules/scenario/components/flow/nodes/StartNode.vue'
-import BlockNode from '@/modules/scenario/components/flow/nodes/BlockNode.vue'
-import ActionNode from '@/modules/scenario/components/flow/nodes/ActionNode.vue'
-import ConditionNode from '@/modules/scenario/components/flow/nodes/ConditionNode.vue'
-import EndNode from '@/modules/scenario/components/flow/nodes/EndNode.vue'
-import ScenarioLinkNode from '@/modules/scenario/components/flow/nodes/ScenarioLinkNode.vue'
-import {Button} from '@/components/ui/button'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
+import ScenarioFlowCanvas from './ScenarioFlowCanvas.vue'
+import ScenarioFlowOverlays from './ScenarioFlowOverlays.vue'
 import {
   blockVariableFromId,
-  cloneScenarioFlowDocument,
   createEmptyScenarioFlowDocument,
   createScenarioFlowNode,
-  duplicateScenarioFlowBlocks,
-  fromVueFlowState,
   normalizeScenarioFlowDocument,
-  stringifyScenarioFlowDocument,
-  toVueFlowState,
 } from '@/modules/scenario/lib/scenario-flow-document'
 import {saveScenarioVersionDraft} from '@/modules/scenario/lib/scenario-version-draft'
 import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
-import {useNodeClipboard} from '@/modules/scenario/composables/useNodeClipboard'
-import {USER_VARIABLES} from '@/modules/scenario/lib/scenario-flow-constants'
-import {X} from 'lucide-vue-next'
+import {useScenarioFlowClipboard} from '@/modules/scenario/composables/useScenarioFlowClipboard'
+import {useScenarioFlowDocument} from '@/modules/scenario/composables/useScenarioFlowDocument'
+import type {EditorTab} from '@/modules/scenario/composables/useScenarioFlowDocument'
+import {useScenarioFlowInspector} from '@/modules/scenario/composables/useScenarioFlowInspector'
+import {useScenarioFlowSelection} from '@/modules/scenario/composables/useScenarioFlowSelection'
+import type {ScenarioBlock, ScenarioBlockData, NodeType} from '@/modules/scenario/lib/scenario-flow-document'
+import type {
+  ScenarioFlowEdge,
+  ScenarioFlowCanvasExpose,
+  ScenarioFlowEditorExpose,
+  ScenarioFlowEditorProps,
+  ScenarioFlowNode,
+} from '@/modules/scenario/types/scenario-flow-editor'
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => createEmptyScenarioFlowDocument(),
-  },
-  scenarios: {
-    type: Array,
-    default: () => [],
-  },
-  editable: {
-    type: Boolean,
-    default: false,
-  },
-  scenarioId: {
-    type: String,
-    default: null,
-  },
-  versionId: {
-    type: String,
-    default: null,
-  },
+const props = withDefaults(defineProps<ScenarioFlowEditorProps>(), {
+  modelValue: () => createEmptyScenarioFlowDocument(),
+  scenarios: () => [],
+  editable: false,
+  scenarioId: null,
+  versionId: null,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits<{
+  dirtyChange: [dirty: boolean]
+}>()
 
-const nodeTypes = {
-  start: markRaw(StartNode),
-  block: markRaw(BlockNode),
-  action: markRaw(ActionNode),
-  condition: markRaw(ConditionNode),
-  end: markRaw(EndNode),
-  scenario_link: markRaw(ScenarioLinkNode),
-}
-
-const nodes = ref([])
-const edges = ref([])
-const viewport = ref({x: 0, y: 0, zoom: 1})
-const flowContainerRef = ref(null)
-const flowInstance = ref(null)
-const selectedNodeId = ref(null)
-const selectedEdgeId = ref(null)
-const syncingFromModel = ref(false)
-const draggingNode = ref(false)
-const pendingModelSync = ref(false)
+const nodes = ref<ScenarioFlowNode[]>([])
+const edges = ref<ScenarioFlowEdge[]>([])
+const variableNodes = shallowRef<ScenarioFlowNode[]>([])
+const viewport = ref<ViewportTransform>({x: 0, y: 0, zoom: 1})
+const canvasRef = ref<ScenarioFlowCanvasExpose | null>(null)
 const drawerOpen = ref(false)
 const blockEditorDrawerOpen = ref(false)
 const conditionSettingsOpen = ref(false)
 const actionEditorOpen = ref(false)
-const editingBlockId = ref(null)
-const inspectorDraft = reactive({})
+const editingBlockId = ref<string | null>(null)
+const editorTabs: Array<{id: EditorTab; label: string}> = [
+  {id: 'editor', label: 'Редактор'},
+  {id: 'json', label: 'JSON схема'},
+]
+const {variables: variableEntries, blocks: variableListBlocks} = useScenarioVariables(() => variableNodes.value)
+let notifyChanged: () => void = () => undefined
 
-const schemaPreview = ref('')
-const activeRightTab = ref('editor')
-const copiedConditionVariableId = ref(null)
+function refreshVariableNodes(): void {
+  variableNodes.value = [...nodes.value]
+}
 
-const selectedNode = computed(() => nodes.value.find((node) => node.id === selectedNodeId.value) ?? null)
-const selectedNodes = computed(() => nodes.value.filter((node) => node.selected))
-const selectedEdge = computed(() => edges.value.find((edge) => edge.id === selectedEdgeId.value) ?? null)
-const selectedEdgeSourceNode = computed(() => selectedEdge.value
-    ? nodes.value.find((node) => node.id === selectedEdge.value.source) ?? null
-    : null)
-const selectedEdgeFromCondition = computed(() => selectedEdgeSourceNode.value?.type === 'condition')
-
-const conditionPreviewQuestion = computed(() =>
-    String(selectedEdgeSourceNode.value?.data?.title || 'Условие'),
-)
-const conditionPreviewOptions = computed(() => {
-  if (!selectedEdgeSourceNode.value) return []
-  return edges.value
-      .filter((e) => e.source === selectedEdgeSourceNode.value?.id)
-      .map((e) => ({
-        label: String(e.data?.value || e.label || '—'),
-        targetNodeId: String(e.target),
-      }))
+const {
+  selectedNodeId,
+  selectedEdgeId,
+  copiedConditionVariableId,
+  selectedNode,
+  selectedNodes,
+  selectedEdge,
+  selectedEdgeFromCondition,
+  conditionPreviewQuestion,
+  conditionPreviewHideTitle,
+  conditionPreviewContent,
+  conditionPreviewOptions,
+  resetFlowSelection,
+  syncSelectionFromFlow,
+  deleteSelected,
+  onNodeClick,
+  onNodeDoubleClick,
+  onEdgeClick,
+  onPaneClick,
+  updateConditionEdgeSetting,
+  openSelectedConditionSettings,
+  applyConditionLogicalVariable,
+} = useScenarioFlowSelection({
+  nodes,
+  edges,
+  editable: () => props.editable,
+  drawerOpen,
+  conditionSettingsOpen,
+  actionEditorOpen,
+  resetInspectorDraft: () => resetInspectorDraft(),
+  openBlockEditor,
+  onChanged: () => notifyChanged(),
 })
 
-const {variables: variableEntries, blocks: variableListBlocks} = useScenarioVariables(() => nodes.value)
-const currentFlowDocument = () => fromVueFlowState({
-  nodes: nodes.value,
-  edges: edges.value,
-  viewport: viewport.value,
+const {
+  inspectorDraft,
+  resetInspectorDraft,
+  commitInspector,
+  cancelInspector,
+  syncSelectedNode,
+  updateBlockVariable,
+} = useScenarioFlowInspector({
+  nodes,
+  selectedNode,
+  drawerOpen,
+  scenarios: () => props.scenarios,
+  onChanged: () => notifyChanged(),
 })
 
-function buildSchemaPreview() {
-  const doc = currentFlowDocument()
-  return JSON.stringify({
-    format: doc.format,
-    version: doc.version,
-    viewport: doc.viewport,
-    blocks: doc.blocks,
-    edges: edges.value.map((e) => ({
-      id: e.id,
-      source: e.source,
-      sourceHandle: e.sourceHandle ?? null,
-      target: e.target,
-      targetHandle: e.targetHandle ?? null,
-      label: e.label ?? null,
-      data: e.data ?? {},
-    })),
-  }, null, 2)
+const {
+  activeRightTab,
+  draggingNode,
+  schemaPreview,
+  currentFlowDocument,
+  markChanged,
+  markSaved,
+  onNodeDragStart,
+  onNodeDragStop,
+  switchToJsonTab,
+  applyJsonEdit,
+} = useScenarioFlowDocument({
+  modelValue: () => props.modelValue,
+  scenarios: () => props.scenarios,
+  nodes,
+  edges,
+  viewport,
+  resetSelection: resetFlowSelection,
+  onDirtyChange: (dirty) => emit('dirtyChange', dirty),
+  onFlowStateApplied: refreshVariableNodes,
+})
+notifyChanged = () => {
+  refreshVariableNodes()
+  markChanged()
 }
 
-function updateSchemaPreview() {
-  if (activeRightTab.value !== 'json') {
+function selectRightTab(tab: EditorTab): void {
+  if (tab === 'json') {
+    switchToJsonTab()
     return
   }
 
-  schemaPreview.value = buildSchemaPreview()
+  activeRightTab.value = tab
 }
 
-function switchToJsonTab() {
-  activeRightTab.value = 'json'
-  schemaPreview.value = buildSchemaPreview()
-}
-
-function emitDocumentUpdate() {
-  emit('update:modelValue', currentFlowDocument())
-  updateSchemaPreview()
-}
-
-function flushPendingModelSync() {
-  if (!pendingModelSync.value || syncingFromModel.value) {
-    return
-  }
-
-  pendingModelSync.value = false
-  emitDocumentUpdate()
-}
-
-function onNodeDragStart() {
-  draggingNode.value = true
-}
-
-function onNodeDragStop() {
-  draggingNode.value = false
-  flushPendingModelSync()
-}
-
-const currentSerializedDocument = () => stringifyScenarioFlowDocument(
-    fromVueFlowState({
-      nodes: nodes.value,
-      edges: edges.value,
-      viewport: viewport.value,
-    }),
-)
-
-function syncSelectionFromFlow() {
-  const activeNode = nodes.value.find((node) => node.selected) ?? null
-  const activeEdge = edges.value.find((edge) => edge.selected) ?? null
-
-  if (activeNode) {
-    if (selectedNodeId.value !== activeNode.id) {
-      selectedNodeId.value = activeNode.id
-    }
-
-    if (selectedEdgeId.value !== null) {
-      selectedEdgeId.value = null
-    }
-
-    return
-  }
-
-  if (activeEdge) {
-    if (selectedEdgeId.value !== activeEdge.id) {
-      selectedEdgeId.value = activeEdge.id
-    }
-
-    if (selectedNodeId.value !== null) {
-      selectedNodeId.value = null
-    }
-
-    return
-  }
-
-  if (selectedNodeId.value !== null || selectedEdgeId.value !== null) {
-    selectedNodeId.value = null
-    selectedEdgeId.value = null
-    drawerOpen.value = false
-    resetInspectorDraft()
-  }
-}
-
-watch(
-    () => props.modelValue,
-    async (value) => {
-      const nextSerializedDocument = stringifyScenarioFlowDocument(value)
-      const serializedCurrentDocument = currentSerializedDocument()
-
-      if (nextSerializedDocument === serializedCurrentDocument) {
-        return
-      }
-
-      syncingFromModel.value = true
-
-      const flowState = toVueFlowState(value, props.scenarios)
-      nodes.value = flowState.nodes
-      edges.value = flowState.edges
-      viewport.value = flowState.viewport
-      selectedNodeId.value = null
-      selectedEdgeId.value = null
-      resetInspectorDraft()
-
-      await nextTick()
-      syncingFromModel.value = false
-      pendingModelSync.value = false
-      updateSchemaPreview()
-    },
-    {immediate: true, deep: true},
-)
-
-watch(
-    () => props.scenarios,
-    (scenarios) => {
-      const scenarioById = new Map(scenarios.map((scenario) => [scenario.id, scenario.name]))
-
-      nodes.value = nodes.value.map((node) => node.type === 'scenario_link'
-          ? {
-            ...node,
-            data: {
-              ...node.data,
-              targetScenarioName: node.data.targetScenarioId
-                  ? scenarioById.get(node.data.targetScenarioId) ?? null
-                  : null,
-            },
-          }
-          : node)
-    },
-    {deep: true},
-)
-
-watch(
-    [nodes, edges, viewport],
-    () => {
-      syncSelectionFromFlow()
-
-      if (syncingFromModel.value) {
-        return
-      }
-
-      if (draggingNode.value) {
-        pendingModelSync.value = true
-
-        return
-      }
-
-      pendingModelSync.value = false
-      emitDocumentUpdate()
-    },
-    {deep: true},
-)
-
-const inspectorSnapshot = ref(null)
-
-watch(
-    () => selectedNodeId.value,
-    (nodeId) => {
-      const node = nodeId
-          ? nodes.value.find((item) => item.id === nodeId) ?? null
-          : null
-
-      if (!node) {
-        resetInspectorDraft()
-        inspectorSnapshot.value = null
-
-        return
-      }
-
-      Object.assign(inspectorDraft, cloneScenarioFlowDocument({
-        format: 'scenario-flow',
-        version: 1,
-        viewport: {x: 0, y: 0, zoom: 1},
-        blocks: [{
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data,
-        }],
-        connections: [],
-      }).blocks[0].data)
-
-      inspectorSnapshot.value = JSON.parse(JSON.stringify(node.data))
-    },
-)
-
-function resetInspectorDraft() {
-  Object.keys(inspectorDraft).forEach((key) => {
-    delete inspectorDraft[key]
-  })
-}
-
-function commitInspector() {
-  drawerOpen.value = false
-}
-
-function cancelInspector() {
-  if (!selectedNode.value || !inspectorSnapshot.value) {
-    drawerOpen.value = false
-    return
-  }
-  const snapshot = inspectorSnapshot.value
-  nodes.value = nodes.value.map((node) =>
-      node.id === selectedNode.value.id
-          ? {...node, data: JSON.parse(JSON.stringify(snapshot))}
-          : node,
-  )
-  drawerOpen.value = false
-}
-
-function syncSelectedNode() {
-  if (!selectedNode.value) {
-    return
-  }
-
-  let nextNode = null
-
-  nodes.value = nodes.value.map((node) => {
-    if (node.id !== selectedNode.value.id) {
-      return node
-    }
-
-    nextNode = {
-      ...node,
-      data: {
-        ...node.data,
-        ...normalizeScenarioFlowDocument({
-          format: 'scenario-flow',
-          version: 1,
-          viewport: {x: 0, y: 0, zoom: 1},
-          blocks: [{
-            id: node.id,
-            type: node.type,
-            position: node.position,
-            data: inspectorDraft,
-          }],
-          connections: [],
-        }).blocks[0].data,
-        targetScenarioName: inspectorDraft.targetScenarioId
-            ? inspectorDraft.targetScenarioName
-            ?? props.scenarios.find((scenario) => scenario.id === inspectorDraft.targetScenarioId)?.name
-            ?? null
-            : null,
-        targetVersionName: inspectorDraft.targetVersionId
-            ? inspectorDraft.targetVersionName ?? null
-            : null,
-      },
-    }
-
-    return nextNode
-  })
-
-}
-
-function normalizeVariableName(value) {
-  return String(value ?? '').replace(/\s+/g, '_')
-}
-
-function updateBlockVariable(value) {
-  inspectorDraft.variable = normalizeVariableName(value)
-  syncSelectedNode()
-}
-
-function addNode(type) {
+function addNode(type: NodeType): void {
   if (!props.editable) {
     return
   }
 
   const offset = nodes.value.length * 36
 
-  let cx = 120 + (offset % 220)
-  let cy = 120 + offset
-
-  if (flowInstance.value && flowContainerRef.value) {
-    const rect = flowContainerRef.value.getBoundingClientRect()
-    const center = flowInstance.value.screenToFlowCoordinate({
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    })
-    cx = center.x + (offset % 220) - 110
-    cy = center.y + (offset % 110) - 55
+  const position = canvasRef.value?.nodePosition(offset) ?? {
+    x: 120 + (offset % 220),
+    y: 120 + offset,
   }
-
-  const block = createScenarioFlowNode(type, {x: cx, y: cy})
+  const block = createScenarioFlowNode(type, position)
 
   if (type === 'block') {
     block.data.variable = blockVariableFromId(block.id)
@@ -444,113 +177,10 @@ function addNode(type) {
   ]
   selectedNodeId.value = block.id
   selectedEdgeId.value = null
+  notifyChanged()
 }
 
-function deleteSelected() {
-  if (!props.editable) {
-    return
-  }
-
-  if (selectedNodes.value.length > 1) {
-    const nodeIds = new Set(selectedNodes.value.map((node) => node.id))
-    nodes.value = nodes.value.filter((node) => !nodeIds.has(node.id))
-    edges.value = edges.value.filter((edge) => !nodeIds.has(edge.source) && !nodeIds.has(edge.target))
-    selectedNodeId.value = null
-    conditionSettingsOpen.value = false
-    actionEditorOpen.value = false
-    drawerOpen.value = false
-    resetInspectorDraft()
-
-    return
-  }
-
-  if (selectedNode.value) {
-    const nodeId = selectedNode.value.id
-    nodes.value = nodes.value.filter((node) => node.id !== nodeId)
-    edges.value = edges.value.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
-    selectedNodeId.value = null
-    conditionSettingsOpen.value = false
-    actionEditorOpen.value = false
-    drawerOpen.value = false
-    resetInspectorDraft()
-
-    return
-  }
-
-  if (selectedEdge.value) {
-    edges.value = edges.value.filter((edge) => edge.id !== selectedEdge.value.id)
-    selectedEdgeId.value = null
-    drawerOpen.value = false
-  }
-}
-
-const {copyToClipboard, readFromClipboard} = useNodeClipboard()
-const pasteCascade = ref(0)
-
-function copySelectedNodes() {
-  if (!selectedNodes.value.length) {
-    return
-  }
-
-  const nodeIds = new Set(selectedNodes.value.map((node) => node.id))
-  const blocks = selectedNodes.value.map((node) => ({
-    id: node.id,
-    type: node.type,
-    position: node.position,
-    data: node.data,
-  }))
-  const connections = edges.value
-      .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-      .map((edge) => ({
-        id: edge.id,
-        source: {blockId: edge.source, port: edge.sourceHandle ?? null},
-        target: {blockId: edge.target, port: edge.targetHandle ?? null},
-        label: edge.label ?? null,
-        data: edge.data ?? {},
-      }))
-
-  pasteCascade.value = 0
-  copyToClipboard(blocks, connections)
-}
-
-async function pasteClipboardNodes() {
-  if (!props.editable) {
-    return
-  }
-
-  const payload = await readFromClipboard()
-
-  if (!payload || !payload.blocks.length) {
-    return
-  }
-
-  pasteCascade.value += 1
-
-  const {blocks, connections} = duplicateScenarioFlowBlocks(
-      payload.blocks,
-      payload.connections,
-      {x: 48 * pasteCascade.value, y: 48 * pasteCascade.value},
-  )
-
-  const pastedState = toVueFlowState({
-    format: 'scenario-flow',
-    version: 1,
-    viewport: viewport.value,
-    blocks,
-    connections,
-  }, props.scenarios)
-
-  nodes.value = [
-    ...nodes.value.map((node) => ({...node, selected: false})),
-    ...pastedState.nodes.map((node) => ({...node, selected: true})),
-  ]
-  edges.value = [
-    ...edges.value.map((edge) => ({...edge, selected: false})),
-    ...pastedState.edges,
-  ]
-}
-
-function onConnect(connection) {
+function onConnect(connection: Connection): void {
   if (!props.editable) {
     return
   }
@@ -558,219 +188,77 @@ function onConnect(connection) {
   edges.value = addEdge({
     ...connection,
     id: `edge_${Date.now()}`,
-    label: null,
     data: {value: ''},
     type: 'smoothstep',
-  }, edges.value)
+  }, edges.value) as ScenarioFlowEdge[]
+  markChanged()
 }
 
-function onNodeClick({event, node}) {
-  event?.stopPropagation?.()
-
-  if (!isPointInsideNodeShape(event, node)) {
-    return
-  }
-
-  selectedNodeId.value = node.id
-  selectedEdgeId.value = null
-}
-
-function onNodeDoubleClick({event, node}) {
-  event?.stopPropagation?.()
-
-  if (!isPointInsideNodeShape(event, node)) {
-    return
-  }
-
-  selectedNodeId.value = node.id
-  selectedEdgeId.value = null
-
-  if (node.type === 'block') {
-    openSelectedBlockEditor()
-    return
-  }
-
-  if (node.type === 'action') {
-    actionEditorOpen.value = true
-    return
-  }
-
-  drawerOpen.value = true
-}
-
-function isPointInsideNodeShape(event, node) {
-  if (event?.target?.closest?.('.vue-flow__handle')) {
-    return true
-  }
-
-  if (!['condition', 'end', 'scenario_link'].includes(node.type)) {
-    return true
-  }
-
-  const element = event?.target?.closest?.('.scenario-flow-node')
-  if (!element) {
-    return true
-  }
-
-  const rect = element.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
-  const halfWidth = rect.width / 2
-  const halfHeight = rect.height / 2
-  const dx = Math.abs(x - halfWidth)
-  const dy = Math.abs(y - halfHeight)
-
-  if (node.type === 'condition') {
-    return dx / halfWidth + dy / halfHeight <= 1
-  }
-
-  return (dx * dx) / (halfWidth * halfWidth) + (dy * dy) / (halfHeight * halfHeight) <= 1
-}
-
-function onEdgeClick({event, edge}) {
-  event?.stopPropagation?.()
-  selectedEdgeId.value = edge.id
-  selectedNodeId.value = null
-  conditionSettingsOpen.value = false
-  drawerOpen.value = false
-  resetInspectorDraft()
-}
-
-watch(selectedEdgeId, (id) => {
-  for (const edge of edges.value) {
-    const isSelected = edge.id === id
-    const color = isSelected ? '#2563eb' : '#94a3b8'
-    edge.style = {...(edge.style ?? {}), stroke: color}
-    edge.markerEnd = {...(edge.markerEnd ?? {}), type: 'arrowclosed', width: 18, height: 18, color}
-  }
-})
-
-function onPaneClick(event) {
-  if (event?.target?.closest?.('.vue-flow__node, .vue-flow__edge')) {
-    return
-  }
-
-  selectedNodeId.value = null
-  selectedEdgeId.value = null
-  conditionSettingsOpen.value = false
-  drawerOpen.value = false
-  resetInspectorDraft()
-}
-
-function onPaneReady(instance) {
-  flowInstance.value = instance
-  instance.setViewport(viewport.value)
-}
-
-function onViewportChangeEnd(nextViewport) {
-  viewport.value = nextViewport
-}
-
-function updateConditionEdgeSetting(key, value) {
-  if (!selectedEdge.value) {
-    return
-  }
-
-  edges.value = edges.value.map((edge) => edge.id === selectedEdge.value.id
-      ? {
-        ...edge,
-        label: key === 'value' ? (value || null) : edge.label,
-        data: {...(edge.data ?? {}), [key]: value},
-      }
-      : edge)
-}
-
-function openSelectedConditionSettings() {
-  if (!selectedEdgeFromCondition.value) {
-    return
-  }
-
-  conditionSettingsOpen.value = true
-}
-
-function applyConditionLogicalVariable(variable) {
-  updateConditionEdgeSetting('value', variable.value)
-  copiedConditionVariableId.value = variable.id
-  setTimeout(() => {
-    copiedConditionVariableId.value = null
-  }, 1500)
-}
-
-function handleFlowKeyboardShortcut(event) {
-  const target = event.target
-
+function onViewportChangeEnd(nextViewport: ViewportTransform): void {
   if (
-      target instanceof HTMLElement
-      && (
-          ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
-          || target.isContentEditable
-      )
+    viewport.value.x === nextViewport.x
+    && viewport.value.y === nextViewport.y
+    && viewport.value.zoom === nextViewport.zoom
   ) {
     return
   }
 
-  if (event.key === 'Delete' || event.key === 'Backspace') {
-    if (!selectedNode.value && !selectedEdge.value) {
-      return
-    }
-
-    event.preventDefault()
-    deleteSelected()
-    return
-  }
-
-  const isModifierPressed = event.ctrlKey || event.metaKey
-
-  if (isModifierPressed && event.code === 'KeyC') {
-    if (!selectedNodes.value.length) {
-      return
-    }
-
-    event.preventDefault()
-    copySelectedNodes()
-    return
-  }
-
-  if (isModifierPressed && event.code === 'KeyV') {
-    if (!props.editable) {
-      return
-    }
-
-    event.preventDefault()
-    pasteClipboardNodes()
-  }
+  viewport.value = nextViewport
+  markChanged()
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', handleFlowKeyboardShortcut)
+function onEdgeUpdate({edge, connection}: EdgeUpdateEvent): void {
+  edges.value = edges.value.map((item) => item.id === edge.id
+    ? {...item, ...connection}
+    : item)
+  markChanged()
+}
+
+function onSelectionDragStop(): void {
+  syncSelectionFromFlow()
+  markChanged()
+}
+
+function onConditionEdgeUpdate(payload: {key: string; value: unknown}): void {
+  updateConditionEdgeSetting(payload.key, payload.value)
+}
+
+const {copySelectedNodes} = useScenarioFlowClipboard({
+  nodes,
+  edges,
+  viewport,
+  selectedNodes,
+  selectedNode,
+  selectedEdge,
+  scenarios: () => props.scenarios,
+  editable: () => props.editable,
+  deleteSelected,
+  onChanged: () => notifyChanged(),
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleFlowKeyboardShortcut)
-})
-
-function onBlockUpdate(block) {
+function onBlockUpdate(block: ScenarioBlock): void {
   nodes.value = nodes.value.map((node) => node.id !== block.id ? node : {
     ...node,
     data: {...node.data, ...block.data},
   })
-  emitDocumentUpdate()
+  notifyChanged()
 }
 
-function onActionNodeUpdate(data) {
+function onActionNodeUpdate(data: Partial<ScenarioBlockData>): void {
   if (!selectedNode.value) return
-  nodes.value = nodes.value.map((node) => node.id !== selectedNode.value.id ? node : {
+  const nodeId = selectedNode.value.id
+  nodes.value = nodes.value.map((node) => node.id !== nodeId ? node : {
     ...node,
     data: {...node.data, ...data},
   })
-  emitDocumentUpdate()
+  notifyChanged()
 }
 
-function openSelectedNodeEditor() {
+function openSelectedNodeEditor(): void {
   if (!selectedNode.value) return
 
   if (selectedNode.value.type === 'block') {
-    openSelectedBlockEditor()
+    openBlockEditor(selectedNode.value.id)
     return
   }
 
@@ -782,16 +270,14 @@ function openSelectedNodeEditor() {
   drawerOpen.value = true
 }
 
-function openSelectedBlockEditor() {
-  if (!selectedNode.value || selectedNode.value.type !== 'block') {
+function openBlockEditor(blockId?: string): void {
+  const block = nodes.value.find((node) => node.id === (blockId ?? selectedNode.value?.id))
+
+  if (!block || block.type !== 'block' || !props.scenarioId) {
     return
   }
 
-  const currentDocument = normalizeScenarioFlowDocument(fromVueFlowState({
-    nodes: nodes.value,
-    edges: edges.value,
-    viewport: viewport.value,
-  }))
+  const currentDocument = normalizeScenarioFlowDocument(currentFlowDocument())
 
   saveScenarioVersionDraft(
       {
@@ -801,84 +287,30 @@ function openSelectedBlockEditor() {
       currentDocument,
   )
 
-  editingBlockId.value = selectedNode.value.id
+  editingBlockId.value = block.id
   blockEditorDrawerOpen.value = true
 }
 
-function onToolbarEnter(el) {
-  el.style.overflow = 'hidden'
-  el.style.height = '0'
-  el.style.opacity = '0'
-  el.style.transform = 'translateY(-4px)'
-  requestAnimationFrame(() => {
-    el.style.transition = 'height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease, transform 0.25s cubic-bezier(0.4,0,0.2,1)'
-    el.style.height = el.scrollHeight + 'px'
-    el.style.opacity = '1'
-    el.style.transform = 'translateY(0)'
-  })
-}
+defineExpose<ScenarioFlowEditorExpose>({
+  getDocument: currentFlowDocument,
+  markSaved,
+})
 
-function onToolbarAfterEnter(el) {
-  el.style.transition = ''
-  el.style.height = ''
-  el.style.overflow = ''
-  el.style.opacity = ''
-  el.style.transform = ''
-}
-
-function onToolbarLeave(el) {
-  el.style.overflow = 'hidden'
-  el.style.height = el.scrollHeight + 'px'
-  el.style.opacity = '1'
-  el.style.transform = 'translateY(0)'
-  requestAnimationFrame(() => {
-    el.style.transition = 'height 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease, transform 0.25s cubic-bezier(0.4,0,0.2,1)'
-    el.style.height = '0'
-    el.style.opacity = '0'
-    el.style.transform = 'translateY(-4px)'
-  })
-}
-
-function onToolbarAfterLeave(el) {
-  el.style.transition = ''
-  el.style.height = ''
-  el.style.overflow = ''
-  el.style.opacity = ''
-  el.style.transform = ''
-}
-
-function applyJsonEdit(parsed) {
-  const normalized = normalizeScenarioFlowDocument(parsed)
-  const flowState = toVueFlowState(normalized, props.scenarios)
-
-  syncingFromModel.value = true
-  nodes.value = flowState.nodes
-  edges.value = flowState.edges
-  viewport.value = flowState.viewport
-  selectedNodeId.value = null
-  selectedEdgeId.value = null
-  resetInspectorDraft()
-
-  nextTick(() => {
-    syncingFromModel.value = false
-    emitDocumentUpdate()
-  })
-}
 </script>
 
 <template>
   <div class="grid h-full xl:grid-cols-[224px_minmax(0,1fr)]">
-    <FlowPalette :editable="editable" @add="addNode"/>
+    <FlowPalette :editable="editable" @add="addNode" />
 
     <div class="flex h-full flex-col">
       <div class="flex h-11 shrink-0 items-center gap-0.5 border-b border-border/60 bg-white px-4">
         <button
-            v-for="tab in [{ id: 'editor', label: 'Редактор' }, { id: 'json', label: 'JSON схема' }]"
+            v-for="tab in editorTabs"
             :key="tab.id"
             type="button"
             class="relative inline-flex h-11 items-center px-3.5 text-sm font-medium transition"
             :class="activeRightTab === tab.id ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'"
-            @click="tab.id === 'json' ? switchToJsonTab() : (activeRightTab = tab.id)"
+            @click="selectRightTab(tab.id)"
         >
           {{ tab.label }}
           <span
@@ -888,70 +320,34 @@ function applyJsonEdit(parsed) {
         </button>
       </div>
 
-      <div v-show="activeRightTab === 'editor'" class="relative flex-1 min-h-0 overflow-hidden bg-[#f8fbff]">
-        <Transition
-            @enter="onToolbarEnter"
-            @after-enter="onToolbarAfterEnter"
-            @leave="onToolbarLeave"
-            @after-leave="onToolbarAfterLeave"
-        >
-          <FlowSelectionToolbar
-              v-if="editable"
-              :selected-node="selectedNode"
-              :selected-edge="selectedEdge"
-              :selected-nodes="selectedNodes"
-              :selected-edge-from-condition="selectedEdgeFromCondition"
-              @edit-node="openSelectedNodeEditor"
-              @open-condition="openSelectedConditionSettings"
-              @copy="copySelectedNodes"
-              @delete="deleteSelected"
-          />
-        </Transition>
-
-        <div ref="flowContainerRef" class="h-full select-none">
-          <VueFlow
-              v-model:nodes="nodes"
-              v-model:edges="edges"
-              class="size-full"
-              :node-types="nodeTypes"
-              :nodes-draggable="editable"
-              :nodes-connectable="editable"
-              elements-selectable
-              :edges-updatable="editable"
-              :nodes-focusable="false"
-              :edges-focusable="false"
-              connect-on-click
-              :connection-mode="ConnectionMode.Loose"
-              :connection-radius="80"
-              :default-viewport="viewport"
-              :default-edge-options="{
-                        type: 'smoothstep',
-                        markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: '#94a3b8' },
-                        style: { stroke: '#94a3b8', strokeWidth: 1.5 },
-                    }"
-              @connect="onConnect"
-              @node-click="onNodeClick"
-              @node-double-click="onNodeDoubleClick"
-              @node-drag-start="onNodeDragStart"
-              @node-drag-stop="onNodeDragStop"
-              @edge-click="onEdgeClick"
-              @pane-click="onPaneClick"
-              @pane-ready="onPaneReady"
-              @viewport-change-end="onViewportChangeEnd"
-          >
-            <Background pattern-color="#d7e3f1" :gap="28"/>
-            <MiniMap
-                v-if="!draggingNode"
-                class="!bottom-5 !right-5 !left-auto !top-auto overflow-hidden !rounded-2xl !border !border-slate-200 !bg-white/95 !shadow-lg"
-                :node-stroke-width="3"
-                :mask-color="'rgb(15 23 42 / 0.08)'"
-                pannable
-                zoomable
-            />
-            <Controls class="!bottom-5 !left-5 !top-auto !shadow-md"/>
-          </VueFlow>
-        </div>
-      </div>
+      <ScenarioFlowCanvas
+          v-show="activeRightTab === 'editor'"
+          ref="canvasRef"
+          v-model:nodes="nodes"
+          v-model:edges="edges"
+          :viewport="viewport"
+          :editable="editable"
+          :dragging-node="draggingNode"
+          :selected-node="selectedNode"
+          :selected-nodes="selectedNodes"
+          :selected-edge="selectedEdge"
+          :selected-edge-from-condition="selectedEdgeFromCondition"
+          @connect="onConnect"
+          @node-click="onNodeClick"
+          @node-double-click="onNodeDoubleClick"
+          @node-drag-start="onNodeDragStart"
+          @node-drag-stop="onNodeDragStop"
+          @edge-update="onEdgeUpdate"
+          @selection-end="syncSelectionFromFlow"
+          @selection-drag-stop="onSelectionDragStop"
+          @edge-click="onEdgeClick"
+          @pane-click="onPaneClick"
+          @viewport-change-end="onViewportChangeEnd"
+          @edit-node="openSelectedNodeEditor"
+          @open-condition="openSelectedConditionSettings"
+          @copy="copySelectedNodes"
+          @delete="deleteSelected"
+      />
 
       <FlowJsonTab
           v-show="activeRightTab === 'json'"
@@ -961,134 +357,35 @@ function applyJsonEdit(parsed) {
       />
     </div>
 
-    <Drawer v-model:open="drawerOpen" direction="right" handle-only>
-      <DrawerContent
-          class="h-full"
-          :class="selectedNode?.type === 'condition' || selectedNode?.type === 'end'
-                    ? '!w-[45vw] !max-w-[45vw]'
-                    : 'sm:max-w-md'"
-          @pointer-down-outside="$event.preventDefault()"
-          @focus-outside="$event.preventDefault()"
-          @interact-outside="$event.preventDefault()"
-      >
-        <template v-if="selectedNode?.type === 'condition'">
-          <DrawerTitle class="sr-only">Inspector: Condition</DrawerTitle>
-          <DrawerDescription class="sr-only">Condition editor</DrawerDescription>
-
-          <div class="flex shrink-0 items-center justify-end border-b border-slate-200 px-3" style="height:40px">
-            <button
-                type="button"
-                class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                @click="drawerOpen = false"
-            >
-              <X class="size-4"/>
-            </button>
-          </div>
-        </template>
-
-        <DrawerHeader v-else class="border-b border-slate-200 text-left">
-          <DrawerTitle>Инспектор</DrawerTitle>
-          <DrawerDescription class="sr-only">Inspector</DrawerDescription>
-        </DrawerHeader>
-
-        <div class="min-h-0 flex-1 overflow-hidden">
-          <ConditionInspector
-              v-if="selectedNode?.type === 'condition'"
-              :node="selectedNode"
-              :draft="inspectorDraft"
-              :editable="editable"
-              :variables="variableEntries"
-              :blocks="variableListBlocks"
-              @sync="syncSelectedNode"
-          />
-
-          <EndInspector
-              v-else-if="selectedNode?.type === 'end'"
-              :node="selectedNode"
-              :draft="inspectorDraft"
-              :editable="editable"
-              :variables="variableEntries"
-              :blocks="variableListBlocks"
-              @sync="syncSelectedNode"
-          />
-
-          <div v-else-if="selectedNode" class="space-y-4 overflow-y-auto px-4 py-4">
-            <BlockInspector
-                v-if="selectedNode.type === 'block'"
-                :node="selectedNode"
-                :draft="inspectorDraft"
-                :editable="editable"
-                :scenario-id="scenarioId"
-                :version-id="versionId"
-                @sync="syncSelectedNode"
-                @update-variable="updateBlockVariable"
-                @open-editor="openSelectedBlockEditor"
-            />
-
-            <ScenarioLinkInspector
-                v-else-if="selectedNode.type === 'scenario_link'"
-                :node="selectedNode"
-                :draft="inspectorDraft"
-                :editable="editable"
-                :scenario-id="scenarioId"
-                @sync="syncSelectedNode"
-            />
-
-            <template v-else>
-              <DefaultInspector :node="selectedNode"/>
-
-              <div v-if="selectedNode.type === 'action'" class="rounded-2xl border border-blue-100 bg-blue-50 p-3">
-                <div class="flex flex-col gap-3">
-                  <div class="text-sm font-medium text-blue-900">Редактор шага</div>
-                  <Button class="w-full gap-2" @click="actionEditorOpen = true">
-                    Редактировать
-                  </Button>
-                </div>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <div v-if="selectedNode && selectedNode.type !== 'condition'"
-             class="shrink-0 flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
-          <Button type="button" variant="outline" @click="cancelInspector">Отменить</Button>
-          <Button type="button" :disabled="!editable" @click="commitInspector">Сохранить</Button>
-        </div>
-      </DrawerContent>
-    </Drawer>
-
-    <ConditionEdgeSettingsDialog
-        v-model:open="conditionSettingsOpen"
+    <ScenarioFlowOverlays
+        v-model:drawer-open="drawerOpen"
+        v-model:block-editor-drawer-open="blockEditorDrawerOpen"
+        v-model:condition-settings-open="conditionSettingsOpen"
+        v-model:action-editor-open="actionEditorOpen"
+        :selected-node="selectedNode"
         :selected-edge="selectedEdge"
         :selected-edge-from-condition="selectedEdgeFromCondition"
         :condition-preview-question="conditionPreviewQuestion"
+        :condition-preview-hide-title="conditionPreviewHideTitle"
+        :condition-preview-content="conditionPreviewContent"
         :condition-preview-options="conditionPreviewOptions"
-        :editable="editable"
         :copied-condition-variable-id="copiedConditionVariableId"
-        @apply-logical="applyConditionLogicalVariable"
-        @update-edge="(p) => updateConditionEdgeSetting(p.key, p.value)"
-    />
-
-    <ScenarioBlockEditorDrawer
-        v-if="editingBlockId"
-        v-model:open="blockEditorDrawerOpen"
+        :inspector-draft="inspectorDraft"
+        :variable-entries="variableEntries"
+        :variable-list-blocks="variableListBlocks"
+        :editing-block-id="editingBlockId"
+        :editable="editable"
         :scenario-id="scenarioId"
         :version-id="versionId"
-        :block-id="editingBlockId"
-        @update:block="onBlockUpdate"
+        @sync-selected-node="syncSelectedNode"
+        @update-block-variable="updateBlockVariable"
+        @open-block-editor="openBlockEditor"
+        @commit-inspector="commitInspector"
+        @cancel-inspector="cancelInspector"
+        @apply-condition-logical-variable="applyConditionLogicalVariable"
+        @update-condition-edge="onConditionEdgeUpdate"
+        @block-update="onBlockUpdate"
+        @action-update="onActionNodeUpdate"
     />
-
-    <ActionNodeEditorDrawer
-        v-if="selectedNode?.type === 'action'"
-        v-model:open="actionEditorOpen"
-        :node-id="selectedNode.id"
-        :node-data="selectedNode.data"
-        :editable="editable"
-        :variables="variableEntries"
-        :blocks="variableListBlocks"
-        :user-variables="USER_VARIABLES"
-        @update="onActionNodeUpdate"
-    />
-
-  </div>
+</div>
 </template>

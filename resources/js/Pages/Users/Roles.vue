@@ -3,6 +3,7 @@ import AppShell from '@/layouts/AppShell.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import CopyButton from '@/components/CopyButton.vue'
 import UsersTabs from '@/modules/users/components/UsersTabs.vue'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -17,15 +18,13 @@ import {useRoleList} from '@/modules/roles/composables/useRoleList'
 import {useRoleModal} from '@/modules/roles/composables/useRoleModal'
 import type {Role} from '@/modules/roles/types/role'
 import {Head, Link} from '@inertiajs/vue3'
-import {Check, Copy, Layers, Lock, MoreHorizontal, Pencil, Plus, Shield, Trash2, Users, X} from 'lucide-vue-next'
-import {computed, ref} from 'vue'
+import {Layers, Lock, MoreHorizontal, Pencil, Plus, Shield, Trash2, Users, X} from 'lucide-vue-next'
+import {computed} from 'vue'
 
 const {navigationItems} = useDashboardNavigation()
 const auth = useAuthStore()
 const canManage = computed(() => auth.hasPermission('role_create'))
 const canDelete = computed(() => auth.hasPermission('role_delete'))
-
-const copiedId = ref<string | null>(null)
 
 const {search, loading, roles, availablePermissions, filteredRoles, permissionGroups, load} = useRoleList()
 
@@ -43,15 +42,6 @@ const permissionGroupsForFormPermissions = computed(() =>
     })),
 )
 
-function copyText(text: string, key: string): void {
-  navigator.clipboard.writeText(text).catch(() => {
-  })
-  copiedId.value = key
-  setTimeout(() => {
-    copiedId.value = null
-  }, 1500)
-}
-
 function displayTitle(r: Role): string {
   return r.title ?? r.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
@@ -61,8 +51,8 @@ function displayTitle(r: Role): string {
   <Head title="Роли"/>
 
   <AppShell title="Роли" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
         <PageHeader title="Пользователи и роли" subtitle="Управление пользователями, группами и ролями доступа.">
           <template #actions>
             <button
@@ -119,8 +109,7 @@ function displayTitle(r: Role): string {
         </div>
 
         <!-- Table -->
-        <div
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div class="app-panel">
           <div class="grid border-b border-slate-100 px-5 py-3" style="grid-template-columns: 1fr 1fr 80px 40px">
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Роль</div>
             <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Описание</div>
@@ -152,13 +141,13 @@ function displayTitle(r: Role): string {
                   <span class="text-[13px] font-semibold text-slate-900">{{ displayTitle(r) }}</span>
                   <Lock v-if="r.is_system" :size="12" class="shrink-0 text-amber-500"/>
                 </div>
-                <button
+                <CopyButton
+                    :text="r.name"
+                    :label="r.name"
+                    :copied-label="r.name"
                     class="mt-0.5 flex items-center gap-1 font-mono text-[11px] text-slate-400 transition hover:text-slate-700"
-                    @click="copyText(r.name, `role-${r.id}`)"
-                >
-                  <component :is="copiedId === `role-${r.id}` ? Check : Copy" :size="10"/>
-                  {{ r.name }}
-                </button>
+                    title="Скопировать название роли"
+                />
               </div>
             </div>
 

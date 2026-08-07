@@ -1,5 +1,6 @@
 import {useUrlSearchParams} from '@vueuse/core'
 import {computed, onMounted, ref, watch} from 'vue'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 import {webhookRequestRepository} from '@/modules/proxy/repositories/webhookRequestRepository'
 import type {WebhookRequestLog, WebhookRequestPage} from '@/modules/proxy/types/webhook'
 
@@ -20,23 +21,18 @@ function first(v: string | string[] | undefined): string {
 
 export function useWebhookRequestList() {
     const params = useUrlSearchParams<WebhookRequestListParams>('history', {removeNullishValues: true})
-    const loading = ref(false)
     const items = ref<WebhookRequestLog[]>([])
     const meta = ref<WebhookRequestPage['meta']>({current_page: 1, last_page: 1, per_page: PER_PAGE, total: 0})
+    const {loading, error, execute} = useLatestRequest('Не удалось загрузить запросы.')
 
     async function load(): Promise<void> {
-        loading.value = true
-        try {
-            const qs = new URLSearchParams(window.location.search)
-            qs.set('page[size]', String(PER_PAGE))
-            if (!qs.has('page[number]')) qs.set('page[number]', '1')
-            const result = await webhookRequestRepository.list(qs)
-            items.value = result.data
-            meta.value = result.meta
-        } catch { /* silent */
-        } finally {
-            loading.value = false
-        }
+        const qs = new URLSearchParams(window.location.search)
+        qs.set('page[size]', String(PER_PAGE))
+        if (!qs.has('page[number]')) qs.set('page[number]', '1')
+        const result = await execute(() => webhookRequestRepository.list(qs))
+        if (!result) return
+        items.value = result.data
+        meta.value = result.meta
     }
 
     const search = computed({
@@ -66,5 +62,5 @@ export function useWebhookRequestList() {
 
     onMounted(load)
 
-    return {params, loading, items, meta, search, page, load}
+    return {params, loading, error, items, meta, search, page, load}
 }

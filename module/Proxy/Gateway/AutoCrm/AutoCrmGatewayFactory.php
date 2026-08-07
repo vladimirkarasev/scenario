@@ -8,14 +8,12 @@ use Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig;
 use Module\Proxy\Gateway\Base\Transports\GuzzleApiTransport;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
 use Module\Proxy\Models\ProxyEndpoint;
-use Psr\Log\LoggerInterface;
 
 final readonly class AutoCrmGatewayFactory
 {
     public function __construct(
         private GuzzleApiTransport $transport,
         private MockApiTransport $mockTransport,
-        private LoggerInterface $logger,
     ) {}
 
     public function forEndpoint(ProxyEndpoint $endpoint): AutoCrmGateway
@@ -24,7 +22,6 @@ final readonly class AutoCrmGatewayFactory
             config: ApiGatewayConfig::forEndpoint($endpoint),
             transport: $this->transport,
             mockTransport: $this->mockTransport,
-            logger: $this->logger,
         );
     }
 }

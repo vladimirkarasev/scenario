@@ -18,6 +18,7 @@ final class ExpressionServiceTest extends TestCase
         $this->expressions = app(ExpressionService::class);
     }
 
+    /** @param array<string, mixed> $context */
     #[DataProvider('arithmeticExpressions')]
     public function test_evaluates_arithmetic_and_boolean_expressions(
         string $expression,
@@ -27,6 +28,7 @@ final class ExpressionServiceTest extends TestCase
         $this->assertSame($expected, $this->expressions->evaluate($expression, $context));
     }
 
+    /** @return iterable<string, array{string, array<string, mixed>, mixed}> */
     public static function arithmeticExpressions(): iterable
     {
         yield 'addition and multiplication precedence' => ['price + count * 2', ['price' => 10, 'count' => 5], 20];
@@ -43,12 +45,30 @@ final class ExpressionServiceTest extends TestCase
         yield 'dollar wrapped expression' => ['${ a * b }', ['a' => 4, 'b' => 3], 12];
     }
 
+    #[DataProvider('wrappedExpressionCases')]
+    public function test_detects_fully_wrapped_expressions(string $value, bool $expected): void
+    {
+        $this->assertSame($expected, $this->expressions->isWrappedExpression($value));
+    }
+
+    /** @return iterable<string, array{string, bool}> */
+    public static function wrappedExpressionCases(): iterable
+    {
+        yield 'braces' => ['{{ _condition.value >= 18 }}', true];
+        yield 'dollar braces' => ['${ _condition.value >= 18 }', true];
+        yield 'trimmed' => ['  {{ value }}  ', true];
+        yield 'plain expression' => ['_condition.value >= 18', false];
+        yield 'template text' => ['Age: {{ _condition.value }}', false];
+    }
+
+    /** @param array<string, mixed> $context */
     #[DataProvider('functionExpressions')]
     public function test_registered_functions(string $expression, array $context, mixed $expected): void
     {
         $this->assertSame($expected, $this->expressions->evaluate($expression, $context));
     }
 
+    /** @return iterable<string, array{string, array<string, mixed>, mixed}> */
     public static function functionExpressions(): iterable
     {
         yield 'upper' => ['upper(name)', ['name' => 'Иван'], 'ИВАН'];

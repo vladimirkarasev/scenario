@@ -82,14 +82,14 @@ final class DirectoryExternalDataServiceTest extends TestCase
 
         $result = $this->service->activeData($directory);
 
-        $this->assertSame($directory->id, $result['dictionary']['id']);
-        $this->assertSame($directory->slug, $result['dictionary']['code']);
-        $this->assertSame($version->id, $result['dictionary']['active_version_id']);
-        $this->assertSame($version->version_number, $result['dictionary']['active_version_number']);
-        $this->assertCount(2, $result['data']);
-        $this->assertSame(['id' => 1, 'city' => 'Moscow', 'age' => '30'], $result['data'][0]);
-        $this->assertSame(['id' => 2, 'city' => 'Berlin', 'age' => '25'], $result['data'][1]);
-        $this->assertSame(['total' => 2], $result['meta']);
+        $this->assertSame($directory->id, $result->dictionary['id']);
+        $this->assertSame($directory->slug, $result->dictionary['code']);
+        $this->assertSame($version->id, $result->dictionary['active_version_id']);
+        $this->assertSame($version->version_number, $result->dictionary['active_version_number']);
+        $this->assertCount(2, $result->items);
+        $this->assertSame(['id' => 1, 'city' => 'Moscow', 'age' => '30'], $result->items[0]);
+        $this->assertSame(['id' => 2, 'city' => 'Berlin', 'age' => '25'], $result->items[1]);
+        $this->assertSame(2, $result->pagination->total);
     }
 
     public function test_returns_empty_data_when_proxy_response_is_not_array(): void
@@ -101,8 +101,8 @@ final class DirectoryExternalDataServiceTest extends TestCase
 
         $result = $this->service->activeData($directory);
 
-        $this->assertSame([], $result['data']);
-        $this->assertSame([], $result['meta']);
+        $this->assertSame([], $result->items);
+        $this->assertSame(0, $result->pagination->total);
     }
 
     public function test_field_mapping_skips_entries_with_empty_proxy_field(): void
@@ -121,8 +121,8 @@ final class DirectoryExternalDataServiceTest extends TestCase
 
         $result = $this->service->activeData($directory);
 
-        $this->assertSame('Ivan', $result['data'][0]['name']);
-        $this->assertArrayNotHasKey('skip_me', $result['data'][0]);
+        $this->assertSame('Ivan', $result->items[0]['name']);
+        $this->assertArrayNotHasKey('skip_me', $result->items[0]);
     }
 
     public function test_item_id_is_always_included_even_without_mapping(): void
@@ -138,8 +138,8 @@ final class DirectoryExternalDataServiceTest extends TestCase
 
         $result = $this->service->activeData($directory);
 
-        $this->assertSame(42, $result['data'][0]['id']);
-        $this->assertArrayNotHasKey('name', $result['data'][0]);
+        $this->assertSame(42, $result->items[0]['id']);
+        $this->assertArrayNotHasKey('name', $result->items[0]);
     }
 
     public function test_meta_defaults_to_empty_when_absent_from_response(): void
@@ -151,7 +151,7 @@ final class DirectoryExternalDataServiceTest extends TestCase
 
         $result = $this->service->activeData($directory);
 
-        $this->assertSame([], $result['meta']);
+        $this->assertSame(0, $result->pagination->total);
     }
 
     private function makeDirectory(array $attrs = []): Directory

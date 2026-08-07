@@ -105,7 +105,7 @@ export function useWebhookModal(onSaved: () => void) {
     async function loadFields(uuid: string): Promise<void> {
         loadingFields.value = true
         try {
-            fields.value = await webhookRepository.fields(uuid)
+            fields.value = await webhookRepository.requestFields(uuid)
         } catch {
             fields.value = []
         } finally {

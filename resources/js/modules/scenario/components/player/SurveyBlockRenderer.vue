@@ -7,6 +7,9 @@ import {Label} from '@/components/ui/label'
 import {Textarea} from '@/components/ui/textarea'
 import DatePicker from '@/components/ui/date-picker/DatePicker.vue'
 import PhoneInput, {type PhoneValue} from '@/components/ui/phone-input/PhoneInput.vue'
+import VinInput from '@/components/ui/vin-input/VinInput.vue'
+import type {VinShape} from '@/lib/vin-shape'
+import GrzInput, {type GrzValue} from '@/components/ui/grz-input/GrzInput.vue'
 import type {DirectoryListShape} from '@/lib/directory-list-shape'
 import type {SelectShape} from '@/lib/select-shape'
 import NumberInput from '@/components/ui/number-input/NumberInput.vue'
@@ -15,7 +18,12 @@ import SurveyDirectoryListField from '@/modules/scenario/components/player/Surve
 import SurveyDirectoryTableField from '@/modules/scenario/components/player/SurveyDirectoryTableField.vue'
 import SurveySelectField from '@/modules/scenario/components/player/SurveySelectField.vue'
 import SurveySuggestField from '@/modules/scenario/components/player/SurveySuggestField.vue'
+import SurveyMapPointField from '@/modules/scenario/components/player/SurveyMapPointField.vue'
+import SurveyRouteField from '@/modules/scenario/components/player/SurveyRouteField.vue'
+import SurveyDirectoryMapField from '@/modules/scenario/components/player/SurveyDirectoryMapField.vue'
 import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
+import type {RoutingMode} from '@/modules/scenario/lib/scenario-block-fields'
+import type {MapPointValue, RouteValue} from '@/modules/scenario/types/yandex-map'
 import {ChevronDown} from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -111,6 +119,9 @@ const suggestFields = computed(() => Array.isArray(resolvedProps.value.fields) ?
 const isCollapseOpen = ref(!(props.block.props?.defaultCollapsed ?? false))
 
 const fieldName = computed(() => String(resolvedProps.value.name ?? resolvedProps.value.key ?? props.block.id))
+const showFieldLabel = computed(() =>
+    resolvedProps.value.hideLabel !== true && String(resolvedProps.value.label ?? '').trim() !== '',
+)
 const fieldError = computed(() => props.errors?.[fieldName.value] ?? '')
 const hasError = computed(() => Boolean(fieldError.value))
 
@@ -152,7 +163,7 @@ watch(
   </Button>
 
   <div v-else-if="block.type === 'input'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -168,7 +179,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'email'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <Input
@@ -186,7 +197,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'phone'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <PhoneInput
@@ -198,9 +209,35 @@ watch(
     <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
   </div>
 
+  <div v-else-if="block.type === 'vin'" class="grid gap-1.5">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <VinInput
+        :model-value="(formData[fieldName] as VinShape | string | null) ?? null"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'grz'" class="grid gap-1.5">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <GrzInput
+        :model-value="(formData[fieldName] as GrzValue | string | null) ?? null"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
   <div v-else-if="block.type === 'textarea'" class="grid gap-1.5">
     <div class="flex items-baseline justify-between">
-      <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+      <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
           resolvedProps.label ?? fieldName
         }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
       <span class="text-[11px] tabular-nums" :class="hasError ? 'text-destructive' : 'text-muted-foreground'">
@@ -222,7 +259,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'number'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <NumberInput
@@ -240,7 +277,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'select'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySelectField
@@ -257,7 +294,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'date' || block.type === 'datetime'" class="grid gap-1.5">
-    <Label :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" :for="`field-${fieldName}`" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <DatePicker
@@ -285,7 +322,7 @@ watch(
           :required="Boolean(resolvedProps.required)"
           class="mt-0.5 size-4 shrink-0 rounded border-border accent-primary disabled:cursor-not-allowed"
       />
-      <span class="text-sm text-foreground" :style="labelStyle">
+      <span v-if="showFieldLabel" class="text-sm text-foreground" :style="labelStyle">
                 {{ resolvedProps.label ?? fieldName }}
                 <span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span>
             </span>
@@ -294,7 +331,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_list'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryListField
@@ -317,7 +354,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'directory_table'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveyDirectoryTableField
@@ -338,7 +375,7 @@ watch(
   </div>
 
   <div v-else-if="block.type === 'suggest'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
         resolvedProps.label ?? fieldName
       }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
     <SurveySuggestField
@@ -353,6 +390,51 @@ watch(
         @update:model-value="formData[fieldName] = $event"
     />
     <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'map_point'" class="grid gap-1.5">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <SurveyMapPointField
+        :model-value="(formData[fieldName] as MapPointValue | null) ?? null"
+        :default-zoom="Number(resolvedProps.defaultZoom ?? 15)"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'route'" class="grid gap-1.5">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">{{
+        resolvedProps.label ?? fieldName
+      }}<span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span></Label>
+    <SurveyRouteField
+        :model-value="(formData[fieldName] as RouteValue | null) ?? null"
+        :routing-mode="(resolvedProps.routingMode as RoutingMode) ?? 'auto'"
+        :show-alternatives="Boolean(resolvedProps.showAlternatives ?? true)"
+        :max-waypoints="Number(resolvedProps.maxWaypoints ?? 10)"
+        :disabled="disabled"
+        :error="hasError"
+        @update:model-value="formData[fieldName] = $event"
+    />
+    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
+  </div>
+
+  <div v-else-if="block.type === 'directory_map'" class="grid gap-1.5">
+    <Label v-if="showFieldLabel" class="text-[11px] font-semibold uppercase tracking-wide text-slate-500" :style="labelStyle">
+      {{ resolvedProps.label }}
+    </Label>
+    <SurveyDirectoryMapField
+        :directory-id="String(resolvedProps.directoryId ?? '')"
+        :version-id="String(resolvedProps.versionId ?? '')"
+        :lat-key="String(resolvedProps.latKey ?? '')"
+        :lng-key="String(resolvedProps.lngKey ?? '')"
+        :detail-document="resolvedProps.detailDocument ?? null"
+        :default-zoom="Number(resolvedProps.defaultZoom ?? 12)"
+        :disabled="disabled"
+    />
   </div>
 
   <input

@@ -92,7 +92,7 @@ async function saveApiSettings(): Promise<void> {
 }
 
 async function doRunSync(): Promise<void> {
-  await impCtx.runSync()
+  await impCtx.runSync({...syncOpts})
   await historyTabRef.value?.reload()
 }
 
@@ -170,7 +170,7 @@ onMounted(() => {
             {{ detail.saveError.value || versCtx.settingsError.value }}
           </div>
           <DirectorySettingsApi
-              v-model:match-by="detail.meta.match_by"
+              v-model:external-key-field="detail.meta.external_key_field"
               :schema-fields="schemaFields"
               :field-mapping="detail.meta.field_mapping"
               :proxy-picker="proxyPicker"
@@ -253,6 +253,7 @@ onMounted(() => {
         :vers-ctx="versCtx"
         :can-manage="canManage"
         :version-number="currentVersion?.version_number ?? String(versionId)"
+        :directory-id="directoryId"
         @save="saveSchemaAndReload()"
     />
 
@@ -272,7 +273,7 @@ onMounted(() => {
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
           <RefreshCw class="size-4"/>
-          Синхронизация с Remote API
+          Синхронизация через proxy
         </DialogTitle>
         <DialogDescription>Будут применены режимы, настроенные во вкладке «Настройки».</DialogDescription>
       </DialogHeader>
@@ -281,7 +282,7 @@ onMounted(() => {
         <Loader2 class="size-10 animate-spin text-primary"/>
         <div class="text-center">
           <div class="font-medium">Синхронизация...</div>
-          <div class="text-sm text-muted-foreground">Подключаемся к Remote API</div>
+          <div class="text-sm text-muted-foreground">Получаем данные через proxy</div>
         </div>
       </div>
 

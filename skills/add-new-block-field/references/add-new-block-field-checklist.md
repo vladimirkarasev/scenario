@@ -9,6 +9,10 @@ Replace `my_field` / `MyField` / `myFieldMeta` with your actual type string and 
 - [ ] Add `MyBlockField` to `BlockField` union
 - [ ] Add entry in `createScenarioBlockField()` → `byType` record (all required props, sensible defaults)
 - [ ] Add `case 'my_field':` in `normalizeScenarioBlockField()` → reads from raw `f`, falls back to `base`
+- [ ] Add `'my_field'` to `module/Scenario/Enums/BlockFieldType.php`
+- [ ] Verify normalization works when a preset snapshot has no top-level `id`
+- [ ] Regenerate all owned nested IDs and remap their internal references in `duplicateBlockFieldIds()`
+- [ ] Preserve external resource IDs; handle missing referenced resources in settings UI
 
 ## Block editor UI
 
@@ -33,6 +37,14 @@ Replace `my_field` / `MyField` / `myFieldMeta` with your actual type string and 
 - [ ] Add `'my_field'` to the `match ($type)` expression that sets `$blockType`
 - [ ] Add `'my_field' => [...]` arm in the `$props` assignment with all props the frontend needs
 - [ ] (Optional) Add validation rules in `BlockNodeValidator.php`
+
+## Project field presets
+
+- [ ] Save the configured field as a project preset
+- [ ] Insert the preset twice and verify field, rule, option and action-item IDs do not overlap
+- [ ] Verify duplicate `varName` values receive deterministic `_2`, `_3` suffixes
+- [ ] Update the preset from a configured field and verify existing block fields remain unchanged
+- [ ] Delete the preset and verify existing block fields remain unchanged
 
 ## Decision table
 

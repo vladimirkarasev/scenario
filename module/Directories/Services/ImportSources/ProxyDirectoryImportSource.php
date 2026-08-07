@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Module\Directories\Services\ImportSources;
 
 use Illuminate\Support\Collection;
-use Module\Directories\DTO\DirectoryImportData;
 use Module\Directories\Enums\DirectoryImportSourceType;
+use Module\Directories\DTO\DirectoryImportPage;
 use Module\Directories\Exceptions\DirectoryImportException;
 use Module\Directories\Models\DirectoryImport;
+use Module\Proxy\DTO\ProxyPagination;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Services\ProxyContextFactory;
 use Module\Proxy\Services\ProxyExecutor;
@@ -26,24 +27,10 @@ final readonly class ProxyDirectoryImportSource implements PagedDirectoryImportS
         return DirectoryImportSourceType::Proxy;
     }
 
-    /** @return array<string, mixed> */
-    public function buildPayload(DirectoryImportData $data): array
+    /** @throws \Throwable */
+    public function fetchPage(DirectoryImport $import, int $page): DirectoryImportPage
     {
-        $proxyEndpointId = $data->remote['proxy_endpoint_id'] ?? null;
-
-        return [
-            'file_disk' => 'proxy',
-            'file_path' => is_int($proxyEndpointId) ? "proxy:{$proxyEndpointId}" : 'proxy',
-            'remote_config_json' => [
-                'proxy_endpoint_id' => $proxyEndpointId,
-            ],
-        ];
-    }
-
-    /** @return array{rows: Collection<int, array<string, mixed>>, hasMore: bool} */
-    public function fetchPage(DirectoryImport $import, int $page): array
-    {
-        $config = $import->remote_config_json;
+        $config = $import->source_config_json;
         $proxyEndpointId = $config['proxy_endpoint_id'] ?? null;
 
         if (!is_int($proxyEndpointId)) {
@@ -68,17 +55,26 @@ final readonly class ProxyDirectoryImportSource implements PagedDirectoryImportS
 
         $items = $this->extractItems($response->body);
 
-        if ($items === []) {
-            /** @var Collection<int, array<string, mixed>> $empty */
-            $empty = collect();
-
-            return ['rows' => $empty, 'hasMore' => false];
-        }
-
         /** @var Collection<int, array<string, mixed>> $rows */
         $rows = collect($items)->map(static fn(mixed $item): array => is_array($item) ? $item : []);
 
-        return ['rows' => $rows, 'hasMore' => $rows->count() >= $perPage];
+        $hasMore = false;
+        $paginateRaw = $response->body['paginate'] ?? null;
+
+        if (is_array($paginateRaw)) {
+            $pagination = ProxyPagination::fromArray($paginateRaw);
+            $hasMore = $pagination->currentPage < $pagination->lastPage;
+        }
+
+        $requestIdRaw = $response->headers['X-Request-Id'] ?? null;
+
+        return new DirectoryImportPage(
+            rows: $rows,
+            hasMore: $hasMore,
+            endpointName: $endpoint->name,
+            requestId: is_string($requestIdRaw) ? $requestIdRaw : null,
+            receivedCount: $rows->count(),
+        );
     }
 
     /**

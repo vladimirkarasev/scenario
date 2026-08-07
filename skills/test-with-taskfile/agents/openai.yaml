@@ -1,0 +1,4 @@
+interface:
+  display_name: "Тестирование через Taskfile"
+  short_description: "Запуск проверок проекта только через Taskfile"
+  default_prompt: "Используй $test-with-taskfile, чтобы выбрать и запустить необходимые проверки через Taskfile."

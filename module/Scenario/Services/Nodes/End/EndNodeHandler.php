@@ -46,6 +46,7 @@ final readonly class EndNodeHandler implements NodeHandlerInterface
                 $this->strField($data, 'title', 'Все шаги успешно пройдены'),
                 $context
             ),
+            'hideTitle' => $this->boolField($data, 'hideTitle', true),
             'description' => $this->variableResolver->resolve($this->strField($data, 'description', ''), $context),
             'blocks' => $this->variableResolver->resolve($this->arrayField($data, 'blocks'), $context),
         ];

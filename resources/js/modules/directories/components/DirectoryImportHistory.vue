@@ -103,7 +103,7 @@ function fmtDateTime(iso: string | null): string {
                     {{ imp.version_number != null ? `v${imp.version_number}` : '—' }}
                   </TableCell>
                   <TableCell class="text-sm">
-                    {{ imp.source_type === 'proxy' ? 'Proxy' : imp.source_type === 'remote' ? 'Remote API' : 'Excel' }}
+                    {{ imp.source_type === 'proxy' ? 'Proxy' : 'Excel' }}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{{ imp.mode }}</Badge>

@@ -25,6 +25,7 @@ final readonly class DirectoryData
         public ?string $description,
         public string $sourceType,
         public ?string $matchBy,
+        public ?int $cacheTtlSeconds,
         public ?array $apiConfig,
         public array $fields,
         public bool $canManageDirectories,
@@ -54,6 +55,7 @@ final readonly class DirectoryData
             sourceType: $request->str('source_type')->toString(
             ) ?: ($directory !== null ? ($directory->source_type ?? 'manual') : 'manual'),
             matchBy: $request->filled('match_by') ? $request->str('match_by')->toString() : null,
+            cacheTtlSeconds: $request->filled('cache_ttl_seconds') ? $request->integer('cache_ttl_seconds') : null,
             apiConfig: is_array($rawApiConfig) ? $rawApiConfig : null,
             fields: collect($rawFields)
                 ->map(static function (mixed $field): array {

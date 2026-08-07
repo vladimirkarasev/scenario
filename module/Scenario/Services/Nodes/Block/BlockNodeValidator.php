@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\Block;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Validator;
+use Module\Scenario\Services\Nodes\Block\Rules\GrzRule;
+use Module\Scenario\Services\Nodes\Block\Rules\MapPointRule;
+use Module\Scenario\Services\Nodes\Block\Rules\RouteRule;
+use Module\Scenario\Services\Nodes\Block\Rules\VinRule;
 use Module\Scenario\Services\Nodes\NodeHelpers;
 
 final class BlockNodeValidator
@@ -37,7 +42,7 @@ final class BlockNodeValidator
 
     /**
      * @param  array<string, mixed>  $nodeData
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, string|ValidationRule>>
      */
     private function buildRules(array $nodeData): array
     {
@@ -62,14 +67,32 @@ final class BlockNodeValidator
 
     /**
      * @param  array<array-key, mixed>  $field
-     * @return array<int, string>
+     * @return array<int, string|ValidationRule>
      */
     private function fieldRules(array $field): array
     {
         $type = $this->strField($field, 'type', 'input');
+        $required = $this->boolField($field, 'required');
+
+        if ($type === 'vin') {
+            return [new VinRule($required)];
+        }
+
+        if ($type === 'grz') {
+            return [new GrzRule($required)];
+        }
+
+        if ($type === 'map_point') {
+            return [new MapPointRule($required)];
+        }
+
+        if ($type === 'route') {
+            return [new RouteRule($required)];
+        }
+
         $rules = [];
 
-        $rules[] = $this->boolField($field, 'required')
+        $rules[] = $required
             ? ($type === 'checkbox' ? 'accepted' : 'required')
             : 'nullable';
 

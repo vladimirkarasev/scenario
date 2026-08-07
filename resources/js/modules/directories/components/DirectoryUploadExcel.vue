@@ -36,8 +36,7 @@ function openFilePicker(): void {
 }
 
 function handleNativeSelect(e: Event): void {
-  const file = (e.target as HTMLInputElement).files?.[0] ?? null
-  if (file) imp.importFile.value = file
+  imp.importFiles.value = Array.from((e.target as HTMLInputElement).files ?? [])
 }
 
 function handleDragOver(e: DragEvent): void {
@@ -52,20 +51,23 @@ function handleDragLeave(e: DragEvent): void {
 function handleDrop(e: DragEvent): void {
   e.preventDefault()
   isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (!file) return
-  if (!ACCEPTED_MIME.includes(file.type) && !ACCEPTED.some(ext => file.name.toLowerCase().endsWith(ext))) {
+  const files = Array.from(e.dataTransfer?.files ?? [])
+  if (files.length === 0) return
+  const invalidFile = files.find(file =>
+      !ACCEPTED_MIME.includes(file.type) && !ACCEPTED.some(ext => file.name.toLowerCase().endsWith(ext))
+  )
+  if (invalidFile) {
     imp.importError.value = `Неподдерживаемый формат. Используйте: ${ACCEPTED.join(', ')}`
     return
   }
   imp.importError.value = ''
-  imp.importFile.value = file
+  imp.importFiles.value = files
 }
 
-function clearFile(): void {
-  imp.importFile.value = null
+function clearFile(index: number): void {
+  imp.importFiles.value = imp.importFiles.value.filter((_, fileIndex) => fileIndex !== index)
   imp.importError.value = ''
-  if (fileInputRef.value) fileInputRef.value.value = ''
+  if (imp.importFiles.value.length === 0 && fileInputRef.value) fileInputRef.value.value = ''
 }
 
 function formatSize(bytes: number): string {
@@ -88,10 +90,10 @@ async function handleSubmit(): Promise<void> {
       <CardDescription>Загрузите файл — колонки будут прочитаны автоматически.</CardDescription>
     </CardHeader>
     <CardContent class="grid gap-5">
-      <input ref="fileInputRef" type="file" :accept="ACCEPTED.join(',')" class="sr-only" @change="handleNativeSelect"/>
+      <input ref="fileInputRef" type="file" multiple :accept="ACCEPTED.join(',')" class="sr-only" @change="handleNativeSelect"/>
 
       <div
-          v-if="!imp.importFile.value"
+          v-if="imp.importFiles.value.length === 0"
           role="button" tabindex="0"
           class="relative flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-all duration-150 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           :class="isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-border/60 bg-muted/10 hover:border-primary/50 hover:bg-muted/20'"
@@ -105,7 +107,7 @@ async function handleSubmit(): Promise<void> {
         </div>
         <div class="space-y-1">
           <p class="text-sm font-medium" :class="isDragging ? 'text-primary' : 'text-foreground'">
-            {{ isDragging ? 'Отпустите для загрузки' : 'Перетащите файл сюда' }}
+            {{ isDragging ? 'Отпустите для загрузки' : 'Перетащите файлы сюда' }}
           </p>
           <p class="text-xs text-muted-foreground">или <span class="text-primary underline-offset-2 hover:underline">нажмите для выбора</span>
           </p>
@@ -118,27 +120,29 @@ async function handleSubmit(): Promise<void> {
         </div>
       </div>
 
-      <div v-else
-           class="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 transition-all">
+      <div v-else class="grid gap-2">
+        <div v-for="(file, index) in imp.importFiles.value" :key="`${file.name}-${file.size}-${index}`"
+             class="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 transition-all">
         <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
           <FileSpreadsheet class="size-5 text-primary"/>
         </div>
         <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-foreground">{{ imp.importFile.value.name }}</p>
-          <p class="text-xs text-muted-foreground">{{ formatSize(imp.importFile.value.size) }}</p>
+          <p class="truncate text-sm font-medium text-foreground">{{ file.name }}</p>
+          <p class="text-xs text-muted-foreground">{{ formatSize(file.size) }}</p>
         </div>
         <button type="button"
                 class="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                @click="clearFile">
+                @click="clearFile(index)">
           <X class="size-4"/>
         </button>
+        </div>
       </div>
 
       <div v-if="imp.importError.value"
            class="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
         {{ imp.importError.value }}
       </div>
-      <Button :disabled="!imp.importFile.value" class="gap-2 self-start" @click="imp.goToMapping(schemaFields)">
+      <Button :disabled="imp.importFiles.value.length === 0" class="gap-2 self-start" @click="imp.goToMapping(schemaFields)">
         <Upload class="size-4"/>
         Читать колонки
       </Button>
@@ -150,7 +154,9 @@ async function handleSubmit(): Promise<void> {
     <CardHeader class="flex flex-row items-start justify-between gap-4">
       <div class="space-y-1">
         <CardTitle>Сопоставление колонок</CardTitle>
-        <CardDescription>Обнаружено {{ imp.parsedHeaders.value.length }} колонок в файле.</CardDescription>
+        <CardDescription>
+          Обнаружено {{ imp.parsedHeaders.value.length }} колонок, файлов: {{ imp.importFiles.value.length }}.
+        </CardDescription>
       </div>
       <Button variant="outline" size="sm" class="shrink-0 gap-2" @click="imp.importStep.value = 1">
         <ArrowLeft class="size-4"/>

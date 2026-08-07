@@ -22,3 +22,18 @@ export interface ProjectPayload {
     shared_secret: string
     is_active: boolean
 }
+
+export interface ProjectManagerItem {
+    id: string
+    name: string
+    sitekey: string
+    host: string
+    shared_secret: string
+    is_active: boolean
+}
+
+export interface ProjectManagerEndpoints {
+    store: string
+    update: string
+    destroy: string
+}

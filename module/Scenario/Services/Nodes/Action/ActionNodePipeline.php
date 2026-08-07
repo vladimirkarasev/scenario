@@ -6,8 +6,8 @@ namespace Module\Scenario\Services\Nodes\Action;
 
 use Module\Actions\DTO\RunActionsData;
 use Module\Actions\Services\ActionOrchestratorService;
+use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\ScenarioRun;
-use Module\Scenario\Services\Nodes\NodeContextKeys;
 use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\VariableResolver;
 
@@ -26,7 +26,7 @@ final readonly class ActionNodePipeline
      */
     public function state(array $context, string $nodeId): ?ActionStatus
     {
-        $runs = $context[NodeContextKeys::ACTION_RUNS] ?? null;
+        $runs = $context[ScenarioContextKey::ActionRuns->value] ?? null;
         $state = is_array($runs) ? ($runs[$nodeId] ?? null) : null;
 
         return is_string($state) ? ActionStatus::tryFrom($state) : null;
@@ -35,9 +35,11 @@ final readonly class ActionNodePipeline
     public function markState(ScenarioRun $run, string $nodeId, ActionStatus $state): void
     {
         $context = $this->runContext($run);
-        $runs = is_array($context[NodeContextKeys::ACTION_RUNS] ?? null) ? $context[NodeContextKeys::ACTION_RUNS] : [];
+        $runs = is_array($context[ScenarioContextKey::ActionRuns->value] ?? null)
+            ? $context[ScenarioContextKey::ActionRuns->value]
+            : [];
         $runs[$nodeId] = $state->value;
-        $context[NodeContextKeys::ACTION_RUNS] = $runs;
+        $context[ScenarioContextKey::ActionRuns->value] = $runs;
 
         $run->forceFill(['context' => $context])->save();
     }
@@ -48,7 +50,7 @@ final readonly class ActionNodePipeline
      */
     public function stageResults(array $context, string $nodeId): array
     {
-        $stages = $context[NodeContextKeys::ACTION_STAGES] ?? null;
+        $stages = $context[ScenarioContextKey::ActionStages->value] ?? null;
         $nodeStages = is_array($stages) && is_array($stages[$nodeId] ?? null) ? $stages[$nodeId] : [];
 
         $result = [];
@@ -249,8 +251,8 @@ final readonly class ActionNodePipeline
     {
         $context = $this->runContext($run);
         $stagesMap = is_array(
-            $context[NodeContextKeys::ACTION_STAGES] ?? null
-        ) ? $context[NodeContextKeys::ACTION_STAGES] : [];
+            $context[ScenarioContextKey::ActionStages->value] ?? null
+        ) ? $context[ScenarioContextKey::ActionStages->value] : [];
         $nodeStages = is_array($stagesMap[$nodeId] ?? null) ? $stagesMap[$nodeId] : [];
 
         foreach ($codes as $code) {
@@ -258,7 +260,7 @@ final readonly class ActionNodePipeline
         }
 
         $stagesMap[$nodeId] = $nodeStages;
-        $context[NodeContextKeys::ACTION_STAGES] = $stagesMap;
+        $context[ScenarioContextKey::ActionStages->value] = $stagesMap;
 
         $run->forceFill(['context' => $context])->save();
     }

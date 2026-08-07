@@ -2,6 +2,7 @@
 import AppShell from '@/layouts/AppShell.vue'
 import TiptapTextEditor from '@/modules/scenario/components/tiptap/TiptapTextEditor.vue'
 import {Button} from '@/components/ui/button'
+import {copyText} from '@/lib/clipboard'
 import {Skeleton} from '@/components/ui/skeleton'
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useScenarioBlockEditorStore} from '@/modules/scenario/stores/scenarioBlockEditor'
@@ -108,7 +109,7 @@ const copiedUserId = ref(null)
 const copiedVarId = ref(null)
 
 async function copyUserVariable(v) {
-  await navigator.clipboard.writeText(`{{ ${v.name} }}`)
+  if (!await copyText(`{{ ${v.name} }}`)) return
   copiedUserId.value = v.id
   setTimeout(() => {
     copiedUserId.value = null
@@ -116,7 +117,7 @@ async function copyUserVariable(v) {
 }
 
 async function copyBlockVariable(v) {
-  await navigator.clipboard.writeText(`{{ ${v.name} }}`)
+  if (!await copyText(`{{ ${v.name} }}`)) return
   copiedVarId.value = v.fieldId
   setTimeout(() => {
     copiedVarId.value = null
@@ -200,7 +201,7 @@ const copiedInspectorFieldId = ref(null)
 
 async function copyFieldVarName(field) {
   if (!field?.name) return
-  await navigator.clipboard.writeText(`{{ ${props.blockId}.${field.name} }}`)
+  if (!await copyText(`{{ ${props.blockId}.${field.name} }}`)) return
   copiedInspectorFieldId.value = field.id
   setTimeout(() => {
     copiedInspectorFieldId.value = null

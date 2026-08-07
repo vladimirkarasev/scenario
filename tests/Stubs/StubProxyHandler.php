@@ -15,7 +15,7 @@ final class StubProxyHandler extends ProxyHandler
     {
     }
 
-    public function fields(): iterable
+    public function requestFields(): iterable
     {
         return [];
     }

@@ -6,12 +6,13 @@ namespace Module\Directories\Listeners;
 
 use Illuminate\Support\Facades\Log;
 use Module\Directories\Events\DirectoryImportStatusUpdated;
+use Psr\Log\LoggerInterface;
 use RoadRunner\Centrifugo\CentrifugoApiInterface;
 use Throwable;
 
 final readonly class PublishDirectoryImportStatusUpdate
 {
-    public function __construct(private CentrifugoApiInterface $centrifugo)
+    public function __construct(private CentrifugoApiInterface $centrifugo, private LoggerInterface $logger)
     {
     }
 
@@ -20,7 +21,7 @@ final readonly class PublishDirectoryImportStatusUpdate
         try {
             $this->centrifugo->publish($event->channel(), json_encode($event->payload(), JSON_THROW_ON_ERROR));
         } catch (Throwable $exception) {
-            Log::warning(
+            $this->logger->warning(
                 'Failed to publish directory import status update.',
                 $event->logContext() + [
                     'exception' => $exception::class,

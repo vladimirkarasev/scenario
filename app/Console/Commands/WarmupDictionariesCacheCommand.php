@@ -6,7 +6,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DirectoryCacheService;
+use Module\Directories\Repositories\DirectoryCacheRepository;
 
 final class WarmupDictionariesCacheCommand extends Command
 {
@@ -14,7 +14,7 @@ final class WarmupDictionariesCacheCommand extends Command
 
     protected $description = 'Warm active dictionary data cache';
 
-    public function handle(DirectoryCacheService $cacheService): int
+    public function handle(DirectoryCacheRepository $cacheService): int
     {
         $query = Directory::query()->whereHas('activeVersion');
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Audit"
+  short_description: "Аудит архитектуры, UX и безопасности frontend"
+  default_prompt: "Используй $frontend-audit для аудита архитектуры, дизайна, конкурентности, unit-тестов и безопасности frontend."

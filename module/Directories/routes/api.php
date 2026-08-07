@@ -11,7 +11,6 @@ use Module\Directories\Http\Controllers\DirectoryDataController;
 use Module\Directories\Http\Controllers\DirectoryDetailController;
 use Module\Directories\Http\Controllers\DirectoryFeedController;
 use Module\Directories\Http\Controllers\DirectoryImportController;
-use Module\Directories\Http\Controllers\DirectoryImportPreviewController;
 use Module\Directories\Http\Controllers\DirectoryImportSettingsController;
 use Module\Directories\Http\Controllers\DirectoryItemController;
 use Module\Directories\Http\Controllers\DirectoryListController;
@@ -60,9 +59,6 @@ Route::prefix('api/directories')
             Route::post('/{directory}/imports', [DirectoryImportController::class, 'store'])->name('imports.store');
             Route::post('/{directory}/import/excel', [DirectoryImportController::class, 'store'])->name(
                 'imports.excel'
-            );
-            Route::post('/{directory}/imports/preview', [DirectoryImportPreviewController::class, 'store'])->name(
-                'imports.preview'
             );
             Route::post('/{directory}/sync-api', [DirectoryApiSyncController::class, 'store'])->name('sync-api');
             Route::post('/{directory}/cache/warmup', [DirectoryCacheController::class, 'warmup'])->name('cache.warmup');

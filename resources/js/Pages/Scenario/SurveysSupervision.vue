@@ -2,6 +2,7 @@
 import AppShell from '@/layouts/AppShell.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
+import {copyText} from '@/lib/clipboard'
 import DatePickerFilter from '@/components/ui/date-picker/DatePickerFilter.vue'
 import SupervisionStatsCards from './supervision/SupervisionStatsCards.vue'
 import SupervisionRunsTable from './supervision/SupervisionRunsTable.vue'
@@ -248,14 +249,12 @@ function avatarColor(name: string): string {
 
 const copiedVersionId = ref<string | null>(null)
 
-async function copyVersionId(id: string) {
-  try {
-    await navigator.clipboard.writeText(id)
+async function copyVersionId(id: string): Promise<void> {
+  if (await copyText(id)) {
     copiedVersionId.value = id
     setTimeout(() => {
       copiedVersionId.value = null
     }, 1500)
-  } catch { /* ignore */
   }
 }
 
@@ -313,8 +312,8 @@ onMounted(async () => {
   <Head title="Опросы"/>
 
   <AppShell title="Опросы" :navigation-items="navigationItems">
-    <div class="min-h-full bg-slate-50">
-      <div class="mx-auto max-w-6xl px-6 py-8">
+    <div class="app-page">
+      <div class="app-page-container max-w-6xl">
 
         <PageHeader title="Опросы" subtitle="Мониторинг и управление всеми запущенными сценариями."/>
 

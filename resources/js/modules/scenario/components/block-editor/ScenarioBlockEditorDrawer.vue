@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {computed, markRaw, nextTick, ref, watch} from 'vue'
 import {
-  AlignJustify, Eye, Layers,
+  AlignJustify, Eye, Layers, LoaderCircle, Pencil, Plus, Trash2,
 } from 'lucide-vue-next'
 import AppEditorDrawer from '@/components/AppEditorDrawer.vue'
+import {copyText} from '@/lib/clipboard'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Skeleton} from '@/components/ui/skeleton'
@@ -12,7 +13,10 @@ import BlockEditorPreviewTab from '@/modules/scenario/components/block-editor/Bl
 import BlockEditorDeleteFieldDialog from '@/modules/scenario/components/block-editor/BlockEditorDeleteFieldDialog.vue'
 import BlockEditorFieldSettingsDialog
   from '@/modules/scenario/components/block-editor/BlockEditorFieldSettingsDialog.vue'
+import FieldPresetDeleteDialog from '@/modules/scenario/components/block-editor/FieldPresetDeleteDialog.vue'
+import FieldPresetFormDialog from '@/modules/scenario/components/block-editor/FieldPresetFormDialog.vue'
 import ScenarioVariableList from '@/modules/scenario/components/ScenarioVariableList.vue'
+import NodeTitleSettings from '@/modules/scenario/components/flow/NodeTitleSettings.vue'
 import InputFieldSettings, {
   fieldMeta as inputMeta
 } from '@/modules/scenario/components/block-editor/field-settings/InputFieldSettings.vue'
@@ -22,6 +26,12 @@ import EmailFieldSettings, {
 import PhoneFieldSettings, {
   fieldMeta as phoneMeta
 } from '@/modules/scenario/components/block-editor/field-settings/PhoneFieldSettings.vue'
+import VinFieldSettings, {
+  fieldMeta as vinMeta
+} from '@/modules/scenario/components/block-editor/field-settings/VinFieldSettings.vue'
+import GrzFieldSettings, {
+  fieldMeta as grzMeta
+} from '@/modules/scenario/components/block-editor/field-settings/GrzFieldSettings.vue'
 import TextareaFieldSettings, {
   fieldMeta as textareaMeta
 } from '@/modules/scenario/components/block-editor/field-settings/TextareaFieldSettings.vue'
@@ -49,12 +59,30 @@ import DirectoryTableFieldSettings, {
 import SuggestFieldSettings, {
   fieldMeta as suggestMeta
 } from '@/modules/scenario/components/block-editor/field-settings/SuggestFieldSettings.vue'
+import MapPointFieldSettings, {
+  fieldMeta as mapPointMeta
+} from '@/modules/scenario/components/block-editor/field-settings/MapPointFieldSettings.vue'
+import RouteFieldSettings, {
+  fieldMeta as routeMeta
+} from '@/modules/scenario/components/block-editor/field-settings/RouteFieldSettings.vue'
+import DirectoryMapFieldSettings, {
+  fieldMeta as directoryMapMeta
+} from '@/modules/scenario/components/block-editor/field-settings/DirectoryMapFieldSettings.vue'
 import {useScenarioBlockEditorStore} from '@/modules/scenario/stores/scenarioBlockEditor'
 import {storeToRefs} from 'pinia'
 import {useScenarioVariables} from '@/modules/scenario/composables/useScenarioVariables'
-import type {BlockField, BlockFieldType} from '@/modules/scenario/lib/scenario-block-fields'
+import {syncScenarioFieldPresentations} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
+import type {TiptapJsonNode} from '@/modules/scenario/lib/tiptap-gutenberg-doc'
+import {
+  instantiateScenarioBlockField,
+  type BlockField,
+  type BlockFieldType,
+} from '@/modules/scenario/lib/scenario-block-fields'
 import type {ScenarioBlock} from '@/modules/scenario/lib/scenario-flow-document'
 import type {Component} from 'vue'
+import {useFieldPresets} from '@/modules/scenario/composables/useFieldPresets'
+import type {ScenarioFieldPreset} from '@/modules/scenario/types/field-preset'
+import {isBlockFieldVarNameUnique} from '@/modules/scenario/lib/block-field-validation'
 
 interface FieldPaletteItem {
   type: BlockFieldType
@@ -76,6 +104,15 @@ const emit = defineEmits<{
 
 const blockEditorStore = useScenarioBlockEditorStore()
 const {loading, loadError, canManageCatalog, versionDocument, blockDraft} = storeToRefs(blockEditorStore)
+const {
+  presets: fieldPresets,
+  loading: fieldPresetsLoading,
+  loadError: fieldPresetsLoadError,
+  load: loadFieldPresets,
+  save: saveFieldPreset,
+  remove: removeFieldPreset,
+  formToast: fieldPresetToast,
+} = useFieldPresets()
 
 const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   {
@@ -84,12 +121,21 @@ const fieldGroups: Array<{ title: string; items: FieldPaletteItem[] }> = [
   },
   {title: 'Удалённые справочники', items: [directoryListMeta, directoryTableMeta] as FieldPaletteItem[]},
   {title: 'Подсказки', items: [suggestMeta] as FieldPaletteItem[]},
+  {title: 'Тех. помощь', items: [vinMeta, grzMeta] as FieldPaletteItem[]},
 ]
+
+const temporarilyHiddenFieldItems = [
+  mapPointMeta,
+  routeMeta,
+  directoryMapMeta,
+] as FieldPaletteItem[]
 
 const fieldSettingsComponents: Record<string, Component> = {
   input: markRaw(InputFieldSettings),
   email: markRaw(EmailFieldSettings),
   phone: markRaw(PhoneFieldSettings),
+  vin: markRaw(VinFieldSettings),
+  grz: markRaw(GrzFieldSettings),
   textarea: markRaw(TextareaFieldSettings),
   number: markRaw(NumberFieldSettings),
   hidden: markRaw(HiddenFieldSettings),
@@ -99,12 +145,19 @@ const fieldSettingsComponents: Record<string, Component> = {
   directory_list: markRaw(DirectoryListFieldSettings),
   directory_table: markRaw(DirectoryTableFieldSettings),
   suggest: markRaw(SuggestFieldSettings),
+  map_point: markRaw(MapPointFieldSettings),
+  route: markRaw(RouteFieldSettings),
+  directory_map: markRaw(DirectoryMapFieldSettings),
 }
 
 const fieldTypeMap: Partial<Record<BlockFieldType, { type: BlockFieldType; label: string; icon: Component }>> = {}
-fieldGroups.forEach((g) => g.items.forEach((item) => {
+const registeredFieldItems = [
+  ...fieldGroups.flatMap(group => group.items),
+  ...temporarilyHiddenFieldItems,
+]
+registeredFieldItems.forEach((item) => {
   fieldTypeMap[item.type] = item
-}))
+})
 
 function fieldTypeLabel(type: BlockFieldType): string {
   return fieldTypeMap[type]?.label ?? type
@@ -131,28 +184,77 @@ const {variables: allVariables, blocks: variableListBlocks} = useScenarioVariabl
 
 const copiedFieldVarId = ref<string | null>(null)
 
-async function copyFieldVarName(field: BlockField) {
+async function copyFieldVarName(field: BlockField): Promise<void> {
   if (!field?.varName) return
-  await navigator.clipboard.writeText(`{{ ${field.varName} }}`)
+  if (!await copyText(`{{ ${field.varName} }}`)) return
   copiedFieldVarId.value = field.id
   setTimeout(() => {
     copiedFieldVarId.value = null
   }, 1500)
 }
 
+const gutenbergEditorRef = ref<InstanceType<typeof BlockEditorGutenbergEditor> | null>(null)
+const hasUnsavedChanges = ref(false)
+
 function addFieldAndScroll(type: BlockFieldType) {
-  blockEditorStore.addField(type)
+  const reservedPos = gutenbergEditorRef.value?.reserveInsertPosition()
+  const newField = blockEditorStore.addField(type)
+  if (!newField) return
+
+  if (reservedPos !== undefined) {
+    gutenbergEditorRef.value?.assignReservedPosition(newField.id, reservedPos)
+  }
+
   nextTick(() => {
-    const fields = blockDraft.value?.data.fields ?? []
-    if (!fields.length) return
-    const lastId = fields[fields.length - 1].id
-    document.querySelector(`[data-field-id="${lastId}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'})
+    document.querySelector(`[data-field-id="${newField.id}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'})
   })
 }
 
-function updateFieldSettings(field: BlockField, patch: Partial<BlockField>) {
-  if (!field) return
-  blockEditorStore.updateField(field.id, {...field, ...patch} as BlockField)
+function scrollToField(field: BlockField): void {
+  nextTick(() => {
+    document.querySelector(`[data-field-id="${field.id}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'})
+  })
+}
+
+function addPresetAndScroll(preset: ScenarioFieldPreset): void {
+  const reservedPos = gutenbergEditorRef.value?.reserveInsertPosition()
+  const newField = blockEditorStore.addFieldFromPreset(preset.field)
+  if (!newField) return
+
+  if (reservedPos !== undefined) {
+    gutenbergEditorRef.value?.assignReservedPosition(newField.id, reservedPos)
+  }
+
+  scrollToField(newField)
+}
+
+function applyFieldPatch(fieldId: string, patch: Partial<BlockField>): BlockField | null {
+  const currentField = blockDraft.value?.data.fields.find((item) => item.id === fieldId)
+
+  if (!currentField) return null
+
+  const nextField = {...currentField, ...patch} as BlockField
+
+  blockEditorStore.updateField(fieldId, nextField)
+  hasUnsavedChanges.value = true
+
+  return nextField
+}
+
+function updateFieldSettings(field: BlockField, patch: Partial<BlockField>): void {
+  const nextField = applyFieldPatch(field.id, patch)
+
+  if (!nextField) return
+
+  if ('label' in patch || 'hideLabel' in patch || 'labelFontSize' in patch || 'labelColor' in patch || 'labelHighlight' in patch) {
+    if (gutenbergEditorRef.value) {
+      gutenbergEditorRef.value.updateFieldPresentation(nextField)
+    } else if (blockDraft.value) {
+      blockEditorStore.updateBlockData({
+        layoutDocument: syncScenarioFieldPresentations(blockDraft.value.data.layoutDocument as TiptapJsonNode, [nextField]),
+      })
+    }
+  }
 }
 
 function addSelectOption(field: BlockField) {
@@ -195,7 +297,7 @@ const confirmDeleteDialogOpen = computed({
   },
 })
 const confirmDeleteField = computed(() =>
-    blockDraft.value?.data.fields.find((f: BlockField) => f.id === confirmDeleteFieldId.value) ?? null,
+    blockDraft.value?.data.fields.find((field) => field?.id === confirmDeleteFieldId.value) ?? null,
 )
 
 function askDeleteField(fieldId: string) {
@@ -217,14 +319,21 @@ const settingsDialogOpen = computed({
     if (!val) settingsFieldId.value = null
   },
 })
-const settingsField = computed(() => blockDraft.value?.data.fields.find((f: BlockField) => f.id === settingsFieldId.value) ?? null)
-const settingsFieldIndex = computed(() => blockDraft.value?.data.fields.findIndex((f: BlockField) => f.id === settingsFieldId.value) ?? -1)
-const settingsComponent = computed(() => settingsField.value ? (fieldSettingsComponents[settingsField.value.type] ?? null) : null)
-const isVarNameUnique = computed(() => {
-  if (!settingsField.value) return true
-  const fields = blockDraft.value?.data.fields ?? []
-  return !fields.some((f: BlockField) => f.id !== settingsField.value!.id && f.varName === settingsField.value!.varName && settingsField.value!.varName !== '')
+const settingsField = computed(() =>
+    blockDraft.value?.data.fields.find((field) => field?.id === settingsFieldId.value) ?? null,
+)
+const settingsFieldIndex = computed(() =>
+    blockDraft.value?.data.fields.findIndex((field) => field?.id === settingsFieldId.value) ?? -1,
+)
+const settingsComponent = computed(() => {
+  const field = settingsField.value
+
+  return field ? (fieldSettingsComponents[field.type] ?? null) : null
 })
+const isVarNameUnique = computed(() => isBlockFieldVarNameUnique(
+    settingsField.value,
+    blockDraft.value?.data.fields ?? [],
+))
 
 function openSettings(fieldId: string) {
   settingsFieldId.value = fieldId
@@ -234,9 +343,63 @@ function closeSettings() {
   settingsFieldId.value = null
 }
 
-function updateFieldById(fieldId: string, patch: Partial<BlockField>) {
-  const field = blockDraft.value?.data.fields.find((f: BlockField) => f.id === fieldId)
-  if (field) updateFieldSettings(field, patch)
+const presetFormOpen = ref(false)
+const presetFormPreset = ref<ScenarioFieldPreset | null>(null)
+const presetFormField = ref<BlockField | null>(null)
+const presetFormAllowsSelection = ref(false)
+const presetSaving = ref(false)
+const presetFormError = ref<string | null>(null)
+const presetPendingDelete = ref<ScenarioFieldPreset | null>(null)
+const presetDeleting = ref(false)
+
+function openSavePreset(field: BlockField): void {
+  closeSettings()
+  presetFormPreset.value = null
+  presetFormField.value = field
+  presetFormAllowsSelection.value = true
+  presetFormError.value = null
+  presetFormOpen.value = true
+}
+
+function openEditPreset(preset: ScenarioFieldPreset): void {
+  presetFormPreset.value = preset
+  presetFormField.value = instantiateScenarioBlockField(preset.field)
+  presetFormAllowsSelection.value = false
+  presetFormError.value = null
+  presetFormOpen.value = true
+}
+
+async function submitPreset(payload: {name: string; field: BlockField; preset: ScenarioFieldPreset | null}): Promise<void> {
+  presetSaving.value = true
+  presetFormError.value = null
+
+  try {
+    await saveFieldPreset(payload.name, payload.field, payload.preset)
+    presetFormOpen.value = false
+  } catch (error: unknown) {
+    presetFormError.value = error instanceof Error ? error.message : 'Не удалось сохранить пользовательское поле.'
+    fieldPresetToast.error(error, presetFormError.value)
+  } finally {
+    presetSaving.value = false
+  }
+}
+
+async function confirmDeletePreset(): Promise<void> {
+  if (!presetPendingDelete.value) return
+  presetDeleting.value = true
+
+  try {
+    await removeFieldPreset(presetPendingDelete.value)
+    presetPendingDelete.value = null
+  } catch (error: unknown) {
+    fieldPresetToast.error(error, 'Не удалось удалить пользовательское поле.')
+  } finally {
+    presetDeleting.value = false
+  }
+}
+
+function updateFieldById(fieldId: string, patch: Partial<BlockField>): void {
+  applyFieldPatch(fieldId, patch)
 }
 
 const activeDrawerTab = ref<'editor' | 'preview'>('editor')
@@ -247,28 +410,39 @@ watch(
     ([open]) => {
       if (!open) return
       isLoaded.value = false
+      hasUnsavedChanges.value = false
       settingsFieldId.value = null
       activeDrawerTab.value = 'editor'
       blockEditorStore.initialize(props.scenarioId, props.versionId ?? null, props.blockId)
       blockEditorStore.load().then(() => {
         isLoaded.value = true
       })
+      loadFieldPresets()
     },
     {immediate: true},
 )
-
-const hasUnsavedChanges = ref(false)
 
 watch(blockDraft, () => {
   if (!isLoaded.value) return
   hasUnsavedChanges.value = true
 }, {deep: true})
 
-function saveChanges() {
+function saveChanges(): void {
   if (!blockDraft.value) return
+
+  gutenbergEditorRef.value?.flushChanges()
   blockEditorStore.syncBlockIntoDocument()
   emit('update:block', blockDraft.value)
   hasUnsavedChanges.value = false
+  emit('update:open', false)
+}
+
+function updateBlockTitle(title: string): void {
+  blockEditorStore.updateBlockData({title})
+}
+
+function updateBlockTitleVisibility(hideTitle: boolean): void {
+  blockEditorStore.updateBlockData({hideTitle})
 }
 
 function cancelChanges() {
@@ -282,7 +456,7 @@ function cancelChanges() {
     <Transition enter-from-class="opacity-0" enter-active-class="transition-opacity duration-300"
                 leave-to-class="opacity-0" leave-active-class="transition-opacity duration-200">
       <div v-if="open" class="fixed inset-0 z-[49] bg-black/40 backdrop-blur-sm"
-           @mousedown="emit('update:open', false)"/>
+           @mousedown="emit('update:open', false)" />
     </Transition>
   </Teleport>
 
@@ -302,7 +476,7 @@ function cancelChanges() {
       @save="saveChanges"
   >
     <template #icon>
-      <AlignJustify class="size-3.5 text-blue-600"/>
+      <AlignJustify class="size-3.5 text-blue-600" />
     </template>
     <template v-if="blockDraft?.data.fields.length" #title-badge>
       <span class="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-slate-500">{{
@@ -314,9 +488,9 @@ function cancelChanges() {
     <div v-if="loading" class="flex flex-1 items-center justify-center p-8">
       <div class="flex flex-col items-center gap-3">
         <div class="flex gap-1.5">
-          <Skeleton class="h-2 w-2 rounded-full"/>
-          <Skeleton class="h-2 w-2 rounded-full"/>
-          <Skeleton class="h-2 w-2 rounded-full"/>
+          <Skeleton class="h-2 w-2 rounded-full" />
+          <Skeleton class="h-2 w-2 rounded-full" />
+          <Skeleton class="h-2 w-2 rounded-full" />
         </div>
         <span class="text-[12px] text-slate-400">Загрузка...</span>
       </div>
@@ -334,7 +508,7 @@ function cancelChanges() {
     <div v-else-if="blockDraft" class="flex min-h-0 flex-1">
       <!-- Sidebar: field palette + variables -->
       <aside class="flex w-52 shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white">
-        <div class="flex-1 overflow-y-auto">
+        <div class="max-h-[45%] shrink-0 overflow-y-auto">
           <div class="space-y-4 p-3">
             <div v-for="group in fieldGroups" :key="group.title" class="space-y-1.5">
               <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ group.title }}</div>
@@ -347,15 +521,62 @@ function cancelChanges() {
                     :disabled="!canManageCatalog"
                     @click="addFieldAndScroll(fieldType.type)"
                 >
-                  <component :is="fieldType.icon" class="size-3.5 shrink-0 text-slate-400"/>
+                  <component :is="fieldType.icon" class="size-3.5 shrink-0 text-slate-400" />
                   <span class="truncate text-[11px] font-medium text-slate-700">{{ fieldType.label }}</span>
                 </button>
               </div>
             </div>
-          </div>
 
-          <div class="border-t border-slate-100 p-3 space-y-3">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Переменные</div>
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Пользовательские поля</div>
+                <LoaderCircle v-if="fieldPresetsLoading" class="size-3 animate-spin text-slate-400" />
+              </div>
+              <p v-if="fieldPresetsLoadError" class="text-[10px] leading-4 text-red-500">{{ fieldPresetsLoadError }}</p>
+              <p v-else-if="!fieldPresetsLoading && !fieldPresets.length" class="text-[10px] leading-4 text-slate-400">
+                Сохраните настроенное поле, и оно появится здесь.
+              </p>
+              <div v-else class="space-y-1">
+                <div
+                    v-for="preset in fieldPresets"
+                    :key="preset.id"
+                    class="group flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50/80 p-1"
+                >
+                  <button
+                      type="button"
+                      class="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg px-1.5 py-1.5 text-left hover:bg-blue-50"
+                      :disabled="!canManageCatalog"
+                      :title="`Добавить поле «${preset.name}»`"
+                      @click="addPresetAndScroll(preset)"
+                  >
+                    <Plus class="size-3.5 shrink-0 text-blue-500" />
+                    <span class="break-words text-[11px] font-medium leading-4 text-slate-700">{{ preset.name }}</span>
+                  </button>
+                  <button
+                      type="button"
+                      class="rounded-md p-1 text-slate-400 hover:bg-white hover:text-blue-600"
+                      title="Редактировать шаблон"
+                      @click="openEditPreset(preset)"
+                  >
+                    <Pencil class="size-3" />
+                  </button>
+                  <button
+                      type="button"
+                      class="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                      title="Удалить шаблон"
+                      @click="presetPendingDelete = preset"
+                  >
+                    <Trash2 class="size-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex min-h-0 flex-1 flex-col border-t border-slate-100">
+          <div class="shrink-0 px-3 pt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Переменные</div>
+          <div class="min-h-0 flex-1 overflow-y-auto p-3 pt-2">
             <ScenarioVariableList
                 :variables="allVariables"
                 :blocks="variableListBlocks"
@@ -382,7 +603,7 @@ function cancelChanges() {
                                     : 'text-slate-500 hover:text-slate-700'"
                 @click="activeDrawerTab = tab.key"
             >
-              <component :is="tab.icon" class="size-3.5"/>
+              <component :is="tab.icon" class="size-3.5" />
               {{ tab.label }}
               <span
                   v-if="tab.key === 'editor' && blockDraft.data.fields.length"
@@ -397,9 +618,16 @@ function cancelChanges() {
         <div class="flex-1 overflow-y-auto bg-slate-50">
           <!-- Editor tab -->
           <div v-if="activeDrawerTab === 'editor'" class="mx-auto max-w-2xl space-y-2 px-6 py-6">
-
             <!-- Block settings (variable + skip) -->
             <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+              <NodeTitleSettings
+                  :title="blockDraft.data.title"
+                  :hide-title="blockDraft.data.hideTitle"
+                  :editable="canManageCatalog"
+                  @update:title="updateBlockTitle"
+                  @update:hide-title="updateBlockTitleVisibility"
+              />
+
               <div class="space-y-1.5">
                 <Label for="step-variable" class="text-[10px] font-bold uppercase tracking-wider text-slate-400">ID
                   ноды</Label>
@@ -433,6 +661,7 @@ function cancelChanges() {
                  edited inline (Gutenberg-style), full configuration stays behind
                  the settings gear. -->
             <BlockEditorGutenbergEditor
+                ref="gutenbergEditorRef"
                 :model-value="blockDraft.data.layoutDocument"
                 :fields="blockDraft.data.fields"
                 :can-edit="canManageCatalog"
@@ -450,13 +679,13 @@ function cancelChanges() {
           <BlockEditorPreviewTab
               v-else
               :title="blockDraft.data.title"
+              :hide-title="blockDraft.data.hideTitle"
               :fields="blockDraft.data.fields"
               :layout-document="blockDraft.data.layoutDocument"
           />
         </div>
       </main>
     </div>
-
   </AppEditorDrawer>
 
   <!-- Dialogs -->
@@ -492,5 +721,25 @@ function cancelChanges() {
       @move-to-index="settingsField && blockEditorStore.moveFieldToIndex(settingsField.id, $event)"
       @copy-var-name="settingsField && copyFieldVarName(settingsField)"
       @delete="settingsField && (askDeleteField(settingsField.id), closeSettings())"
+      @save-preset="settingsField && openSavePreset(settingsField)"
+  />
+
+  <FieldPresetFormDialog
+      v-model:open="presetFormOpen"
+      :preset="presetFormPreset"
+      :field="presetFormField"
+      :presets="fieldPresets"
+      :allow-preset-selection="presetFormAllowsSelection"
+      :saving="presetSaving"
+      :external-error="presetFormError"
+      @save="submitPreset"
+  />
+
+  <FieldPresetDeleteDialog
+      :open="presetPendingDelete !== null"
+      :preset="presetPendingDelete"
+      :deleting="presetDeleting"
+      @update:open="!$event && (presetPendingDelete = null)"
+      @confirm="confirmDeletePreset"
   />
 </template>

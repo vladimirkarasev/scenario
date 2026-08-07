@@ -8,15 +8,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Directories\Http\Resources\JsonApi\DirectoryDataItemResource;
+use Module\Directories\DTO\DirectoryQuery;
 use Module\Directories\Models\Directory;
-use Module\Directories\Services\DirectoryCacheService;
-use Module\Directories\Services\DirectoryExternalDataService;
+use Module\Directories\Models\DirectoryVersion;
+use Module\Directories\Services\DirectoryManager;
+use Module\Directories\Services\RelatedDirectoryFieldResolver;
 
 final class DirectoryDataController extends Controller
 {
     public function __construct(
-        private readonly DirectoryCacheService $cacheService,
-        private readonly DirectoryExternalDataService $externalDataService,
+        private readonly DirectoryManager $directories,
+        private readonly RelatedDirectoryFieldResolver $relatedFieldResolver,
     ) {
     }
 
@@ -27,28 +29,19 @@ final class DirectoryDataController extends Controller
             ->whereHas('activeVersion')
             ->firstOrFail();
 
-        /** @var array<string, mixed> $query */
-        $query = $request->query();
-
-        $result = $directory->source_type === 'external'
-            ? $this->externalDataService->activeData($directory, $query)
-            : $this->cacheService->activeData($directory, $query);
+        $page = $this->directories->paginate($directory, DirectoryQuery::fromRequest($request));
 
         /** @var array<int, array<string, mixed>> $data */
-        $data = $result['data'];
+        $data = $page->items;
 
-        /** @var array<string, mixed> $paginationMeta */
-        $paginationMeta = $result['meta'];
-
-        /** @var array<string, mixed> $dictionary */
-        $dictionary = $result['dictionary'];
+        $version = $directory->activeVersion()->first();
+        $schema = $version instanceof DirectoryVersion ? $version->schema_json : [];
+        $related = $this->relatedFieldResolver->resolve($data, $schema);
+        foreach ($data as $index => $row) {
+            $data[$index]['related'] = $related[$index] ?? [];
+        }
 
         return DirectoryDataItemResource::collection($data)
-            ->additional([
-                'meta' => [
-                    ...$paginationMeta,
-                    'dictionary' => $dictionary,
-                ],
-            ]);
+            ->additional($page->additional());
     }
 }

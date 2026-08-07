@@ -11,14 +11,7 @@ final class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PermissionSeeder::class,
-            RoleSeeder::class,
-            DemoProjectSeeder::class,
-            AdminUserSeeder::class,
-            TestUsersSeeder::class,
-            DemoDirectorySeeder::class,
-            DemoScenarioSeeder::class,
-            DemoProxySeeder::class,
+            DevSeeder::class,
         ]);
     }
 }

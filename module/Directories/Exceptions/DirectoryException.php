@@ -34,4 +34,9 @@ final class DirectoryException extends RuntimeException
     {
         return new self(403);
     }
+
+    public static function unsupportedType(string $type): self
+    {
+        return new self(422, "Unsupported directory type [{$type}].");
+    }
 }

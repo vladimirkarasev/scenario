@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Module\Proxy\DTO;
 
+/** @phpstan-consistent-constructor */
 class ProxyField
 {
     private ?string $label = null;
@@ -30,6 +31,8 @@ class ProxyField
     private ?string $sourceFilterable = null;
 
     private bool $secret = false;
+
+    private bool $identity = false;
 
     protected function __construct(private readonly string $key)
     {
@@ -121,6 +124,13 @@ class ProxyField
         return $this;
     }
 
+    public function identity(): static
+    {
+        $this->identity = true;
+
+        return $this;
+    }
+
     public function key(): string
     {
         return $this->key;
@@ -149,6 +159,11 @@ class ProxyField
     public function isSecret(): bool
     {
         return $this->secret;
+    }
+
+    public function isIdentity(): bool
+    {
+        return $this->identity;
     }
 
     public function filterKey(): string
@@ -184,6 +199,7 @@ class ProxyField
             'filterable' => $this->filterable,
             'filter_key' => $this->filterable ? ($this->sourceFilterable ?? $this->key) : null,
             'secret' => $this->secret,
+            'identity' => $this->identity,
         ];
     }
 }

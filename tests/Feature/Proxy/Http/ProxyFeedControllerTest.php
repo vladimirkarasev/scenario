@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class ProxyFeedControllerTest extends TestCase

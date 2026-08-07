@@ -15,13 +15,32 @@ use Module\Directories\Temporal\RunDirectoryImportWorkflowStarterInterface;
 use Module\Projects\Models\Project;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Models\ProxyRequest;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
 use Tests\Stubs\FakeRunDirectoryImportWorkflowStarter;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
+use Tests\Stubs\FakeRebuildDirectorySearchTextWorkflowStarter;
+use Tests\Stubs\FakeTemporalScheduleSyncer;
+use Module\Directories\Temporal\RebuildDirectorySearchTextWorkflowStarterInterface;
+use Module\Schedule\Services\TemporalScheduleSyncerInterface;
 use Tests\TestCase;
+use RoadRunner\Centrifugo\CentrifugoApiInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class ProxyImportSyncTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->instance(CentrifugoApiInterface::class, $this->createMock(CentrifugoApiInterface::class));
+        $this->instance(LoggerInterface::class, new NullLogger());
+        $this->instance(
+            RebuildDirectorySearchTextWorkflowStarterInterface::class,
+            new FakeRebuildDirectorySearchTextWorkflowStarter(),
+        );
+        $this->instance(TemporalScheduleSyncerInterface::class, new FakeTemporalScheduleSyncer());
+    }
 
     public function test_proxy_import_with_mock_creates_items_with_data(): void
     {
@@ -37,6 +56,7 @@ final class ProxyImportSyncTest extends TestCase
         ]);
 
         $endpoint = ProxyEndpoint::query()->create([
+            'project_id' => $project->id,
             'uuid' => Str::uuid()->toString(),
             'name' => 'Test Brands Mock',
             'code' => 'test-brands',
@@ -65,9 +85,10 @@ final class ProxyImportSyncTest extends TestCase
             'name' => 'Brands',
             'slug' => 'brands',
             'source_type' => 'api',
-            'match_by' => 'id',
             'api_config_json' => [
                 'proxy_uuid' => $endpoint->uuid,
+                'field_mapping' => ['name' => 'name'],
+                'external_key_field' => 'id',
             ],
         ]);
 
@@ -77,8 +98,12 @@ final class ProxyImportSyncTest extends TestCase
             'is_active' => true,
             'status' => 'active',
             'source_type' => 'api',
+            'sync_options' => [
+                'add_new' => true,
+                'update_existing' => true,
+                'delete_unused' => false,
+            ],
             'schema_json' => [
-                ['key' => 'id', 'name' => 'ID', 'type' => 'string', 'rules' => ['nullable', 'string']],
                 ['key' => 'name', 'name' => 'Name', 'type' => 'string', 'rules' => ['nullable', 'string']],
             ],
         ]);
@@ -94,7 +119,8 @@ final class ProxyImportSyncTest extends TestCase
         $this->assertSame(3, $import->imported_rows);
         $this->assertSame(0, $import->failed_rows);
 
-        $this->assertSame(['id' => 'id', 'name' => 'name'], $import->mapping_json);
+        $this->assertSame(['name' => 'name'], $import->mapping_json);
+        $this->assertSame('id', $import->external_key_field);
 
         $items = DirectoryItem::query()
             ->where('directory_version_id', $version->id)
@@ -103,9 +129,9 @@ final class ProxyImportSyncTest extends TestCase
 
         $this->assertCount(3, $items);
         $this->assertSame('1', $items[0]->external_key);
-        $this->assertSame(['id' => '1', 'name' => 'Belgee'], $items[0]->data_json);
-        $this->assertSame(['id' => '2', 'name' => 'Geely'], $items[1]->data_json);
-        $this->assertSame(['id' => '3', 'name' => 'Chery'], $items[2]->data_json);
+        $this->assertSame(['name' => 'Belgee'], $items[0]->data_json);
+        $this->assertSame(['name' => 'Geely'], $items[1]->data_json);
+        $this->assertSame(['name' => 'Chery'], $items[2]->data_json);
 
         $proxyRequests = ProxyRequest::query()
             ->where('proxy_endpoint_id', $endpoint->id)
@@ -115,6 +141,31 @@ final class ProxyImportSyncTest extends TestCase
         $this->assertSame('processed', $proxyRequests[0]->status->value);
         $this->assertSame('INTERNAL', $proxyRequests[0]->request['method']);
         $this->assertSame('directory-import', $proxyRequests[0]->request['user_agent']);
+
+        DirectoryItem::query()
+            ->where('directory_version_id', $version->id)
+            ->whereIn('external_key', ['1', '2'])
+            ->delete();
+
+        $this->assertSame(1, DirectoryItem::query()
+            ->where('directory_version_id', $version->id)
+            ->count());
+
+        $secondImport = $sync->queue($directory, $user->id);
+        $secondImport->refresh();
+
+        $this->assertSame('completed', $secondImport->status, "Import failed: {$secondImport->error_message}");
+        $this->assertSame(3, DirectoryItem::query()
+            ->where('directory_version_id', $version->id)
+            ->count());
+        $this->assertSame(
+            ['1', '2', '3'],
+            DirectoryItem::query()
+                ->where('directory_version_id', $version->id)
+                ->orderBy('external_key')
+                ->pluck('external_key')
+                ->all(),
+        );
     }
 
     private function makeProject(): Project

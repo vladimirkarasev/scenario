@@ -10,13 +10,6 @@ use Module\Actions\Services\ActionScheduleService;
 use Module\Directories\Models\Directory;
 use Module\Directories\Services\DirectorySyncScheduleService;
 
-/**
- * One-off migration: the directory API-sync cron used to be modeled as a hidden
- * `Action` (code `directory_sync_<directory_id>`) + `ActionSchedule`, piggybacking on the
- * Actions module's Temporal Schedule wiring. It now has its own native `DirectorySyncSchedule`
- * table/Temporal Schedule (`directory-sync-<directory_id>`) — run this once after deploy to
- * carry over existing schedules and clean up the old hidden Actions.
- */
 final class MigrateDirectorySyncSchedulesCommand extends Command
 {
     protected $signature = 'directories:migrate-sync-schedules';

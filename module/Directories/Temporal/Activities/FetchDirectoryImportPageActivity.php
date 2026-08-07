@@ -6,7 +6,7 @@ namespace Module\Directories\Temporal\Activities;
 
 use Module\Directories\Enums\DirectoryImportStatus;
 use Module\Directories\Models\DirectoryImport;
-use Module\Directories\Services\ImportService;
+use Module\Directories\Services\Importing\DirectoryImportCoordinator;
 use Module\Directories\Services\ImportSources\DirectoryImportSourceResolver;
 use Module\Directories\Services\ImportSources\PagedDirectoryImportSource;
 use Temporal\DataConverter\EncodedValues;
@@ -17,7 +17,7 @@ final readonly class FetchDirectoryImportPageActivity implements FetchDirectoryI
 {
     public function __construct(
         private DirectoryImportSourceResolver $sourceResolver,
-        private ImportService $importService,
+        private DirectoryImportCoordinator $importService,
     ) {}
 
     public function fetchPage(int $directoryImportId, int $page): array
@@ -49,11 +49,21 @@ final readonly class FetchDirectoryImportPageActivity implements FetchDirectoryI
             );
         }
 
-        if ($result['rows']->isNotEmpty()) {
+        $chunkResult = ['added' => 0, 'updated' => 0, 'failed' => 0];
+
+        if ($result->rows->isNotEmpty()) {
             $baseRowNumber = 2 + $import->processed_rows;
-            $this->importService->importChunk($directoryImportId, $result['rows'], $baseRowNumber);
+            $chunkResult = $this->importService->importChunk($directoryImportId, $result->rows, $baseRowNumber);
         }
 
-        return ['hasMore' => $result['hasMore']];
+        return [
+            'hasMore' => $result->hasMore,
+            'endpoint' => $result->endpointName,
+            'requestId' => $result->requestId,
+            'received' => $result->receivedCount,
+            'added' => $chunkResult['added'],
+            'updated' => $chunkResult['updated'],
+            'failed' => $chunkResult['failed'],
+        ];
     }
 }

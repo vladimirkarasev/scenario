@@ -8,7 +8,9 @@ use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Module\Proxy\Models\ProxyEndpoint;
-use Module\Proxy\Proxies\Test\TestLeadProxyHandler;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Tests\Stubs\Proxy\TestLeadProxyHandler;
 use Tests\TestCase;
 
 final class ProxyFieldsControllerTest extends TestCase
@@ -21,6 +23,7 @@ final class ProxyFieldsControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->app->instance(LoggerInterface::class, new NullLogger());
         $this->user = $this->createProxyUser();
     }
 
@@ -67,6 +70,22 @@ final class ProxyFieldsControllerTest extends TestCase
 
         $this->assertNotNull($phoneField, 'Поле phone должно присутствовать в списке');
         $this->assertTrue($phoneField['required'], 'Поле phone должно быть обязательным');
+    }
+
+    public function test_result_fields_expose_recommended_external_key(): void
+    {
+        $endpoint = $this->makeEndpoint(isActive: true);
+
+        $response = $this->actingAs($this->user)
+            ->getJson("/api/proxies/{$endpoint->uuid}/result-fields")
+            ->assertOk();
+
+        $idField = collect($response->json('data'))
+            ->pluck('attributes')
+            ->firstWhere('key', 'id');
+
+        $this->assertIsArray($idField);
+        $this->assertTrue($idField['identity']);
     }
 
     public function test_inactive_endpoint_returns_404(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Directories\Http;
 
+use App\Http\Middleware\LogHttpRequest;
 use Spatie\Permission\PermissionRegistrar;
 use Module\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +23,7 @@ final class DirectoryDataControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(LogHttpRequest::class);
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
@@ -51,6 +53,49 @@ final class DirectoryDataControllerTest extends TestCase
 
         $this->assertSame($directory->id, $response->json('meta.dictionary.id'));
         $this->assertSame('meta-catalog', $response->json('meta.dictionary.code'));
+    }
+
+    public function test_response_includes_resolved_related_field(): void
+    {
+        [$user, $project] = $this->makeUserWithProject('directory_view');
+
+        $city = Directory::query()->create([
+            'project_id' => $project->id,
+            'name' => 'Cities',
+            'slug' => 'cities',
+            'source_type' => 'manual',
+        ]);
+        $cityVersion = $this->makeVersion($city, isActive: true);
+        $cityItem = $this->makeItem($cityVersion, ['name' => 'Moscow']);
+
+        $dealers = Directory::query()->create([
+            'project_id' => $project->id,
+            'name' => 'Dealers',
+            'slug' => 'dealers',
+            'source_type' => 'manual',
+        ]);
+        $dealerVersion = DirectoryVersion::query()->create([
+            'directory_id' => $dealers->id,
+            'version_number' => 1,
+            'is_active' => true,
+            'source_type' => 'manual',
+            'status' => 'active',
+            'schema_json' => [[
+                'key' => 'city_id',
+                'name' => 'City',
+                'type' => 'related_directory',
+                'related_directory_id' => $city->id,
+                'related_match_key' => 'id',
+                'related_template' => '{{ name }}',
+            ]],
+        ]);
+        $this->makeItem($dealerVersion, ['city_id' => (string)$cityItem->id]);
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/directories/dealers/data')
+            ->assertOk();
+
+        $this->assertSame('Moscow', $response->json('data.0.attributes.related.city_id.label'));
     }
 
     public function test_returns_empty_data_when_no_items(): void

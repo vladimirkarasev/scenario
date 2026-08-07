@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Dev;
 
 use App\Http\Controllers\Controller;
-use Module\Users\Models\User;
+use App\Http\Responses\ApiResponse;
 use App\Services\EmbedAuth\EmbedAuthTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Module\Projects\Models\Project;
 use Module\Users\Models\Role;
+use Module\Users\Models\User;
 
 final class DevAuthApiController extends Controller
 {
@@ -58,6 +61,44 @@ final class DevAuthApiController extends Controller
         $result = $this->tokenService->createLaunchToken($user, $project, '');
 
         return response()->json(['_token' => $result['launch_token']]);
+    }
+
+    public function impersonate(Request $request): ApiResponse
+    {
+        $request->validate([
+            'project_id' => [
+                'required',
+                'string',
+                Rule::exists('projects', 'id')->where('is_active', true),
+            ],
+            'user_id' => ['required', 'integer'],
+        ]);
+
+        $projectId = $request->string('project_id')->toString();
+        $userId = $request->integer('user_id');
+
+        $project = Project::query()
+            ->whereKey($projectId)
+            ->where('is_active', true)
+            ->first();
+        $user = User::query()
+            ->whereKey($userId)
+            ->where('project_id', $projectId)
+            ->where('is_system', false)
+            ->first();
+
+        if ($project === null || $user === null) {
+            throw ValidationException::withMessages([
+                'user_id' => ['Выбранный пользователь не принадлежит проекту.'],
+            ]);
+        }
+
+        $result = $this->tokenService->createLaunchToken($user, $project, '');
+
+        return new ApiResponse([
+            '_token' => $result['launch_token'],
+            'expires_in' => $result['expires_in'],
+        ]);
     }
 
     public function devLogin(Request $request): JsonResponse

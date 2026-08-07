@@ -39,8 +39,8 @@ final class ConditionNodeHandlerTest extends TestCase
                 ['id' => 'node_end', 'type' => 'end', 'data' => []],
             ],
             'edges_json' => [
-                ['id' => 'e1', 'source' => 'node_condition', 'target' => 'node_a', 'sourceHandle' => 'branch_a'],
-                ['id' => 'e2', 'source' => 'node_condition', 'target' => 'node_b', 'sourceHandle' => 'branch_b'],
+                ['id' => 'e1', 'source' => 'node_condition', 'target' => 'node_a', 'sourceHandle' => 'branch_a', 'data' => ['value' => '10']],
+                ['id' => 'e2', 'source' => 'node_condition', 'target' => 'node_b', 'sourceHandle' => 'branch_b', 'data' => ['value' => '20']],
                 ['id' => 'e3', 'source' => 'node_a', 'target' => 'node_end'],
                 ['id' => 'e4', 'source' => 'node_b', 'target' => 'node_end'],
             ],
@@ -77,6 +77,17 @@ final class ConditionNodeHandlerTest extends TestCase
         $this->assertFalse($this->handler->isInteractive($node));
     }
 
+    public function test_is_interactive_false_for_manual_mode_with_value_expression(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => ['mode' => 'manual', 'value' => '{{ score }}'],
+        ];
+
+        $this->assertFalse($this->handler->isInteractive($node));
+    }
+
     public function test_render_returns_options_from_explicit_list(): void
     {
         $node = [
@@ -97,9 +108,27 @@ final class ConditionNodeHandlerTest extends TestCase
         $this->assertSame('condition', $result['type']);
         $this->assertSame('manual', $result['mode']);
         $this->assertSame('Which way?', $result['question']);
-        $this->assertCount(2, $result['options']);
-        $this->assertSame('Left', $result['options'][0]['label']);
-        $this->assertSame('node_a', $result['options'][0]['targetNodeId']);
+        $this->assertTrue($result['hideTitle']);
+        $options = $result['options'] ?? null;
+        $this->assertIsArray($options);
+        $this->assertCount(2, $options);
+        $firstOption = $options[0] ?? null;
+        $this->assertIsArray($firstOption);
+        $this->assertSame('Left', $firstOption['label'] ?? null);
+        $this->assertSame('node_a', $firstOption['targetNodeId'] ?? null);
+    }
+
+    public function test_render_can_show_title(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => ['hideTitle' => false],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $this->assertFalse($result['hideTitle']);
     }
 
     public function test_render_uses_condition_branches_when_no_explicit_options(): void
@@ -117,9 +146,34 @@ final class ConditionNodeHandlerTest extends TestCase
 
         $result = $this->handler->render($this->version, $node, []);
 
-        $this->assertCount(2, $result['options']);
-        $this->assertSame('Option A', $result['options'][0]['label']);
-        $this->assertSame('node_a', $result['options'][0]['targetNodeId']);
+        $options = $result['options'] ?? null;
+        $this->assertIsArray($options);
+        $this->assertCount(2, $options);
+        $firstOption = $options[0] ?? null;
+        $this->assertIsArray($firstOption);
+        $this->assertSame('Option A', $firstOption['label'] ?? null);
+        $this->assertSame('node_a', $firstOption['targetNodeId'] ?? null);
+    }
+
+    public function test_render_resolves_variables_in_tiptap_content(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'content' => [
+                    'type' => 'doc',
+                    'content' => [[
+                        'type' => 'paragraph',
+                        'content' => [['type' => 'text', 'text' => 'Возраст: {{ age }}']],
+                    ]],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, ['age' => 21]);
+
+        $this->assertSame('Возраст: 21', $result['content']['content'][0]['content'][0]['text']);
     }
 
     public function test_render_falls_back_to_question_title_text_in_order(): void
@@ -217,6 +271,34 @@ final class ConditionNodeHandlerTest extends TestCase
         );
 
         $this->assertSame('node_a', $result);
+    }
+
+    public function test_advance_manual_value_selects_matching_edge(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => ['mode' => 'manual', 'value' => '{{ score }}'],
+        ];
+
+        $result = $this->handler->advance($this->run, $node);
+
+        $this->assertSame('node_a', $result->nextNodeId);
+        $this->assertFalse($result->pause);
+    }
+
+    public function test_advance_manual_value_pauses_when_no_edge_matches(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => ['mode' => 'manual', 'value' => '{{ score + 1 }}'],
+        ];
+
+        $result = $this->handler->advance($this->run, $node);
+
+        $this->assertNull($result->nextNodeId);
+        $this->assertTrue($result->pause);
     }
 
     public function test_advance_auto_evaluates_arithmetic_expression(): void

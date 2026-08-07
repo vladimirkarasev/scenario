@@ -1,5 +1,5 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-import type {Role, PermissionOption, RolePayload} from '@/modules/roles/types/role'
+import type {PermissionOption, Role, RolePayload} from '@/modules/roles/types/role'
 
 interface RawRole {
     id: string
@@ -60,5 +60,18 @@ export const roleRepository = {
 
     async remove(id: number): Promise<void> {
         await destroyJson(`/api/roles/${id}`, 'Не удалось удалить роль.')
+    },
+
+    async saveAt(url: string, name: string, isUpdate: boolean): Promise<Pick<Role, 'id' | 'name'>> {
+        const response = await sendJson<{item: Pick<Role, 'id' | 'name'>}>(url, {
+            method: isUpdate ? 'PUT' : 'POST',
+            body: {name},
+            fallbackMessage: 'Не удалось сохранить роль.',
+        })
+        return response.item
+    },
+
+    async removeAt(url: string): Promise<void> {
+        await destroyJson(url, 'Не удалось удалить роль.')
     },
 }

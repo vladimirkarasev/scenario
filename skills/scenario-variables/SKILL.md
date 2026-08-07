@@ -28,6 +28,31 @@ description: Scenario variable system uses FLAT names ({{ varName }}, not {{ Blo
 
 `{{ Категория }}` для select-поля возвращает **label** (не код опции). Это делает `ScenarioExpressionService::resolveFlatValue` через `selectLabels` при инъекции переменных в контекст.
 
+## Рендер подписей через API
+
+Frontend не интерпретирует ExpressionLanguage самостоятельно. Подписи select/suggest и chips рендерятся через repository:
+
+- `POST /api/expression/render` — один шаблон и один `context`;
+- `POST /api/expression/render-batch` — один шаблон для списка контекстов с уникальными `id`;
+- batch возвращает объект `data`, где ключ — строковое представление `id`, значение — готовая подпись;
+- исходная строка доступна выражению как через плоские поля, так и через `item`, например `{{ item["city-name"] }}`;
+- отсутствующие в отдельных строках поля нормализуются по общей форме batch;
+- `??` сохраняет стандартную null-семантику ExpressionLanguage; для первой непустой строки используется `?:`.
+
+```json
+{
+  "item": {"template": "{{ region ?: city ?: category }}"},
+  "context": [
+    {"id": 1, "data": {"region": "", "city": "Москва"}},
+    {"id": 2, "data": {"category": "СПБ"}}
+  ]
+}
+```
+
+```json
+{"data": {"1": "Москва", "2": "СПБ"}}
+```
+
 ## PHP DTO
 
 `module/Scenario/DTO/Variables/`:

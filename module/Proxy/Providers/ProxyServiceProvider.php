@@ -19,6 +19,8 @@ use Module\Projects\Http\Middleware\RequireCurrentProject;
 use Module\Proxy\Console\Commands\MakeProxyCredentialCommand;
 use Module\Proxy\Console\Commands\MakeProxyGatewayCommand;
 use Module\Proxy\Enums\ProxyPermission;
+use Module\Proxy\Events\ProxyGatewayRequestFailed;
+use Module\Proxy\Events\ProxyGatewayRequestSucceeded;
 use Module\Proxy\Events\ProxyRequestAccepted;
 use Module\Proxy\Events\ProxyRequestFailed;
 use Module\Proxy\Events\ProxyRequestProcessed;
@@ -27,6 +29,7 @@ use Module\Proxy\Exceptions\ProxyEndpointInactiveException;
 use Module\Proxy\Exceptions\ProxyMethodNotAllowedException;
 use Module\Proxy\Exceptions\ProxyPayloadTooLargeException;
 use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
+use Module\Proxy\Listeners\LogProxyGatewayRequest;
 use Module\Proxy\Listeners\LogProxyRequestStatus;
 use Module\Proxy\Listeners\PersistProxyContext;
 
@@ -73,6 +76,9 @@ final class ProxyServiceProvider extends ServiceProvider
         Event::listen(ProxyRequestProcessed::class, [PersistProxyContext::class, 'handleProcessed']);
         Event::listen(ProxyRequestRejected::class, [PersistProxyContext::class, 'handleRejected']);
         Event::listen(ProxyRequestFailed::class, [PersistProxyContext::class, 'handleFailed']);
+
+        Event::listen(ProxyGatewayRequestSucceeded::class, [LogProxyGatewayRequest::class, 'handleSucceeded']);
+        Event::listen(ProxyGatewayRequestFailed::class, [LogProxyGatewayRequest::class, 'handleFailed']);
     }
 
     /**

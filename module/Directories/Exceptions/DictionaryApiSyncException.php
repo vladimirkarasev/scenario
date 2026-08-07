@@ -29,4 +29,9 @@ final class DictionaryApiSyncException extends RuntimeException
     {
         return new self(422, "Proxy endpoint [{$uuid}] not found.");
     }
+
+    public static function proxyNotConfigured(): self
+    {
+        return new self(422, 'API directory has no proxy configured.');
+    }
 }

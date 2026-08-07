@@ -9,6 +9,7 @@ import type {SurveyBlock} from '@/modules/scenario/lib/scenario-player-types'
 
 const props = withDefaults(defineProps<{
   title: string
+  hideTitle?: boolean
   blocks: SurveyBlock[]
   context: Record<string, unknown>
   loading?: boolean
@@ -51,7 +52,7 @@ function handleContinue() {
 <template>
   <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <!-- Header -->
-    <div class="border-b border-slate-100 px-6 py-5">
+    <div v-if="!hideTitle" class="border-b border-slate-100 px-6 py-5">
       <h2 class="text-[18px] font-semibold leading-snug text-slate-900">
         {{ title || 'Шаг' }}
       </h2>

@@ -1,20 +1,16 @@
 import {computed, onMounted, ref} from 'vue'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 import {proxyConnectionRepository} from '@/modules/proxy/repositories/proxyConnectionRepository'
 import type {ProxyConnection} from '@/modules/proxy/types/connection'
 
 export function useConnectionList() {
-    const loading = ref(false)
     const connections = ref<ProxyConnection[]>([])
     const search = ref('')
+    const {loading, error, execute} = useLatestRequest('Не удалось загрузить доступы.')
 
     async function load(): Promise<void> {
-        loading.value = true
-        try {
-            connections.value = await proxyConnectionRepository.list()
-        } catch { /* silent */
-        } finally {
-            loading.value = false
-        }
+        const result = await execute(() => proxyConnectionRepository.list())
+        if (result) connections.value = result
     }
 
     onMounted(load)
@@ -28,5 +24,5 @@ export function useConnectionList() {
         )
     })
 
-    return {loading, connections, search, filtered, load}
+    return {loading, error, connections, search, filtered, load}
 }

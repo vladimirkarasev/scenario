@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, type Component} from 'vue'
-import {Settings, Trash2} from 'lucide-vue-next'
+import {Save, Settings, Trash2} from 'lucide-vue-next'
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
@@ -55,10 +55,11 @@ const emit = defineEmits<{
   moveToIndex: [number]
   copyVarName: []
   delete: []
+  savePreset: []
 }>()
 
 const requiredToggleVisible = computed(() =>
-    !['rich_text', 'collapse', 'hidden'].includes(props.field?.type ?? ''),
+    !['rich_text', 'collapse', 'hidden', 'directory_map'].includes(props.field?.type ?? ''),
 )
 </script>
 
@@ -68,7 +69,7 @@ const requiredToggleVisible = computed(() =>
       <DialogHeader class="shrink-0 border-b border-slate-100 px-6 py-4">
         <DialogTitle class="flex items-center gap-2.5">
           <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
-            <component :is="field ? fieldTypeIcon : Settings" class="size-3.5 text-slate-600"/>
+            <component :is="field ? fieldTypeIcon : Settings" class="size-3.5 text-slate-600" />
           </div>
           <span class="text-[15px] font-semibold text-slate-900">
                         {{ field ? fieldTypeLabel : 'Настройки поля' }}
@@ -81,7 +82,8 @@ const requiredToggleVisible = computed(() =>
         <!-- Variables column -->
         <div class="flex w-60 shrink-0 flex-col border-r border-slate-100">
           <p class="shrink-0 border-b border-slate-100 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Переменные</p>
+            Переменные
+</p>
           <div class="flex-1 overflow-y-auto p-3">
             <ScenarioVariableList
                 :variables="allVariables"
@@ -133,7 +135,7 @@ const requiredToggleVisible = computed(() =>
             </div>
           </div>
 
-          <Separator class="bg-slate-100"/>
+          <Separator class="bg-slate-100" />
 
           <component
               :is="settingsComponent"
@@ -153,10 +155,18 @@ const requiredToggleVisible = computed(() =>
            class="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 px-6 py-4">
         <button
             type="button"
+            class="mr-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[12px] font-medium text-blue-600 ring-1 ring-blue-200 transition hover:bg-blue-50"
+            @click="emit('savePreset')"
+        >
+          <Save class="size-3.5" />
+          Сохранить шаблон
+        </button>
+        <button
+            type="button"
             class="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[12px] font-medium text-red-500 ring-1 ring-red-200 transition hover:bg-red-50"
             @click="emit('delete')"
         >
-          <Trash2 class="size-3.5"/>
+          <Trash2 class="size-3.5" />
           Удалить поле
         </button>
         <button

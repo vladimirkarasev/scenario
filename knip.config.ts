@@ -3,6 +3,7 @@ import type { KnipConfig } from 'knip'
 const config: KnipConfig = {
     entry: [
         'resources/js/app.ts',
+        'resources/js/swagger.ts',
         'resources/js/Pages/**/*.vue',
     ],
     project: ['resources/js/**/*.{ts,vue}'],

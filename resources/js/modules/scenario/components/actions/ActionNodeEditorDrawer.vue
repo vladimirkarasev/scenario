@@ -13,6 +13,8 @@ import ActionItemCard from './ActionItemCard.vue'
 import ScenarioVariableList from '@/modules/scenario/components/ScenarioVariableList.vue'
 import type {VarLike} from '@/modules/scenario/lib/scenario-variable-hints'
 import type {FlowUserVariable} from '@/modules/scenario/lib/scenario-flow-constants'
+import type {ScenarioBlockData} from '@/modules/scenario/lib/scenario-flow-document'
+import NodeTitleSettings from '@/modules/scenario/components/flow/NodeTitleSettings.vue'
 
 interface BlockEntry {
   id: string
@@ -23,7 +25,7 @@ interface BlockEntry {
 const props = withDefaults(defineProps<{
   open: boolean
   nodeId?: string
-  nodeData: ActionNodeData
+  nodeData: ScenarioBlockData
   editable?: boolean
   variables?: VarLike[]
   blocks?: BlockEntry[]
@@ -54,6 +56,7 @@ interface ActionItem {
 
 interface ActionNodeData {
   title: string
+  hideTitle: boolean
   variable: string
   skipInSurvey: boolean
   wait_for_result: boolean
@@ -73,6 +76,7 @@ interface ActionNodeData {
 
 const draft = reactive<ActionNodeData>({
   title: '',
+  hideTitle: true,
   variable: '',
   skipInSurvey: false,
   wait_for_result: false,
@@ -110,6 +114,7 @@ function hydrateItems(raw: unknown): ActionItem[] {
 
 function hydrateFromProps(): void {
   draft.title = asString(props.nodeData.title)
+  draft.hideTitle = Boolean(props.nodeData.hideTitle ?? true)
   draft.variable = asString(props.nodeData.variable)
   draft.skipInSurvey = Boolean(props.nodeData.skipInSurvey)
   draft.wait_for_result = Boolean(props.nodeData.wait_for_result)
@@ -157,6 +162,7 @@ function save(): void {
   const cloneItems = (items: ActionItem[]) => items.map(item => ({...item, input: {...item.input}, backoff: [...item.backoff]}))
   emit('update', {
     title: draft.title,
+    hideTitle: draft.hideTitle,
     variable: draft.variable,
     skipInSurvey: draft.skipInSurvey,
     wait_for_result: draft.wait_for_result,
@@ -335,6 +341,12 @@ function itemFields(item: ActionItem): ActionInputField[] {
 
       <!-- Right: Editor -->
       <FormBody class="min-w-0 flex-1">
+        <NodeTitleSettings
+            v-model:title="draft.title"
+            v-model:hide-title="draft.hideTitle"
+            :editable="editable"
+        />
+
         <FormRow>
           <FormField label="ID ноды">
             <p class="select-all rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12px] text-slate-700">

@@ -11,6 +11,8 @@ use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 
 final class DirectoryImportPayloadNormalizer
 {
+    public const string EXTERNAL_KEY = '__external_key';
+
     /**
      * @param  array<string, mixed>  $mapping
      * @return array<string, string>
@@ -116,6 +118,16 @@ final class DirectoryImportPayloadNormalizer
         }
 
         return $result;
+    }
+
+    /** @param array<string, mixed> $rawRow */
+    public function externalKey(array $rawRow, string $field): ?string
+    {
+        $value = array_key_exists($field, $rawRow)
+            ? $rawRow[$field]
+            : data_get($rawRow, $field);
+
+        return $this->normalizeCellValue($value);
     }
 
     private function normalizeCellValue(mixed $value): ?string
