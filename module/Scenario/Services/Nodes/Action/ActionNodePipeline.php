@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\Action;
 
-use Module\Actions\DTO\RunActionsData;
 use Module\Actions\Services\ActionOrchestratorService;
 use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\ScenarioRun;
-use Module\Scenario\Services\Nodes\NodeHelpers;
-use Module\Scenario\Services\VariableResolver;
+use Module\Scenario\Services\Nodes\NodeDataReader;
+use Module\Scenario\Services\Variables\VariableResolver;
 
 final readonly class ActionNodePipeline
 {
-    use NodeHelpers;
-
     public function __construct(
         private VariableResolver $variableResolver,
         private ActionOrchestratorService $orchestrator,
+        private NodeDataReader $nodeData,
     ) {
     }
 
@@ -69,11 +67,11 @@ final readonly class ActionNodePipeline
      */
     public function stages(array $node): array
     {
-        $data = $this->nodeData($node);
+        $data = $this->nodeData->data($node);
         $stages = [];
 
         foreach (['before_items', 'action_items'] as $itemsKey) {
-            foreach ($this->arrayField($data, $itemsKey) as $item) {
+            foreach ($this->nodeData->array($data, $itemsKey) as $item) {
                 if (!is_array($item)) {
                     continue;
                 }
@@ -83,8 +81,8 @@ final readonly class ActionNodePipeline
                     continue;
                 }
 
-                $name = $this->strField($item, 'name');
-                $scope = $this->strField($item, 'code');
+                $name = $this->nodeData->string($item, 'name');
+                $scope = $this->nodeData->string($item, 'code');
                 $stages[] = [
                     'code' => $code,
                     'name' => $name !== '' ? $name : ($scope !== '' ? $scope : $code),
@@ -100,62 +98,48 @@ final readonly class ActionNodePipeline
      */
     public function dispatch(ScenarioRun $run, array $node, ?string $scenarioNodeId = null): bool
     {
-        $data = $this->nodeData($node);
+        $data = $this->nodeData->data($node);
         $context = $this->runContext($run);
 
-        /** @var array<string, mixed> $input */
-        $input = [];
-        /** @var array<string, string> $scopeMap */
-        $scopeMap = [];
-        /** @var array<string, list<int>> $backoffMap */
-        $backoffMap = [];
-        /** @var array<string, int> $delayBeforeMap */
-        $delayBeforeMap = [];
-
-        $actions = $this->collectScopedItems(
-            $this->arrayField($data, 'action_items'),
+        $plan = new ActionPipelinePlan();
+        $this->collectScopedItems(
+            $this->nodeData->array($data, 'action_items'),
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            ActionPipelineStage::Action,
         );
-        $before = $this->collectHookItems(
+        $this->collectHookItems(
             $data,
             'before_items',
             'before_code',
             'before_action_id',
             'before_input',
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            ActionPipelineStage::Before,
         );
-        $onError = $this->collectHookItems(
+        $this->collectHookItems(
             $data,
             'error_items',
             'error_code',
             'error_action_id',
             'error_input',
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            ActionPipelineStage::OnError,
         );
 
-        if ($actions === [] && $before === [] && $onError === []) {
+        if ($plan->isEmpty()) {
             return false;
         }
 
-        $mode = $this->strField($data, 'execution_mode', 'sequential');
+        $mode = $this->nodeData->string($data, 'execution_mode', 'sequential');
 
         if ($scenarioNodeId !== null) {
             $mode = 'sequential';
         }
 
-        $this->run($run, $mode, $actions, $before, $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $scenarioNodeId, $this->nodeId($node));
+        $this->run($run, $mode, $plan, $this->nodeData->id($node), $scenarioNodeId);
 
         return true;
     }
@@ -165,45 +149,34 @@ final readonly class ActionNodePipeline
      */
     public function retry(ScenarioRun $run, array $node): bool
     {
-        $data = $this->nodeData($node);
-        $nodeId = $this->nodeId($node);
+        $data = $this->nodeData->data($node);
+        $nodeId = $this->nodeData->id($node);
 
-        if (!$this->boolField($data, 'wait_for_result')) {
+        if (!$this->nodeData->boolean($data, 'wait_for_result')) {
             return false;
         }
 
         $context = $this->runContext($run);
 
-        /** @var array<string, mixed> $input */
-        $input = [];
-        /** @var array<string, string> $scopeMap */
-        $scopeMap = [];
-        /** @var array<string, list<int>> $backoffMap */
-        $backoffMap = [];
-        /** @var array<string, int> $delayBeforeMap */
-        $delayBeforeMap = [];
-
-        $ordered = $this->collectScopedItems(
-            [...$this->arrayField($data, 'before_items'), ...$this->arrayField($data, 'action_items')],
+        $plan = new ActionPipelinePlan();
+        $this->collectScopedItems(
+            [...$this->nodeData->array($data, 'before_items'), ...$this->nodeData->array($data, 'action_items')],
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            ActionPipelineStage::Action,
         );
-        $onError = $this->collectHookItems(
+        $this->collectHookItems(
             $data,
             'error_items',
             'error_code',
             'error_action_id',
             'error_input',
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            ActionPipelineStage::OnError,
         );
 
+        $ordered = $plan->actions(ActionPipelineStage::Action);
         $codes = array_keys($ordered);
         $failedCode = $this->firstFailedStage($context, $nodeId, $codes);
 
@@ -222,7 +195,7 @@ final readonly class ActionNodePipeline
         $this->resetStages($run, $nodeId, $sliceCodes);
         $this->markState($run, $nodeId, ActionStatus::Running);
 
-        $this->run($run, 'sequential', $retryActions, [], $onError, $input, $scopeMap, $backoffMap, $delayBeforeMap, $nodeId, $nodeId);
+        $this->run($run, 'sequential', $plan, $nodeId, $nodeId, $retryActions);
 
         return true;
     }
@@ -266,48 +239,18 @@ final readonly class ActionNodePipeline
     }
 
     /**
-     * @param  array<string, string>     $actions  orchCode => actionId
-     * @param  array<string, string>     $before
-     * @param  array<string, string>     $onError
-     * @param  array<string, mixed>      $input
-     * @param  array<string, string>     $scopeMap
-     * @param  array<string, list<int>>  $backoffMap
-     * @param  array<string, int>        $delayBeforeMap
+     * @param  array<string, string>|null  $actions
      */
     private function run(
         ScenarioRun $run,
         string $mode,
-        array $actions,
-        array $before,
-        array $onError,
-        array $input,
-        array $scopeMap,
-        array $backoffMap,
-        array $delayBeforeMap,
-        ?string $scenarioNodeId,
+        ActionPipelinePlan $plan,
         string $actionNodeId,
+        ?string $scenarioNodeId = null,
+        ?array $actions = null,
     ): void {
-        $input['scenario_run_id'] = (string)$run->id;
-        $input['scenario_action_node_id'] = $actionNodeId;
-
-        if ($scenarioNodeId !== null) {
-            $input['scenario_node_id'] = $scenarioNodeId;
-        }
-
         $this->orchestrator->runFromData(
-            new RunActionsData(
-                mode: $mode === 'parallel' ? 'parallel' : 'sequential',
-                actions: $actions,
-                before: $before,
-                after: [],
-                onError: $onError,
-                input: $input,
-                schedule: null,
-                canManageActions: true,
-                scopeMap: $scopeMap,
-                backoffMap: $backoffMap,
-                delayBeforeMap: $delayBeforeMap,
-            )
+            $plan->toRunActionsData($run, $mode, $actionNodeId, $scenarioNodeId, $actions),
         );
     }
 
@@ -322,60 +265,48 @@ final readonly class ActionNodePipeline
      */
     private function itemOrchCode(array $item): string
     {
-        $code = $this->strField($item, 'action_code');
+        $code = $this->nodeData->string($item, 'action_code');
 
-        return $code !== '' ? $code : $this->strField($item, 'code');
+        return $code !== '' ? $code : $this->nodeData->string($item, 'code');
     }
 
     /**
      * @param  array<array-key, mixed>   $items
      * @param  array<string, mixed>      $context
-     * @param  array<string, mixed>      $input
-     * @param  array<string, string>     $scopeMap
-     * @param  array<string, list<int>>  $backoffMap
-     * @param  array<string, int>        $delayBeforeMap
-     * @return array<string, string>
      */
     private function collectScopedItems(
         array $items,
         array $context,
-        array &$input,
-        array &$scopeMap,
-        array &$backoffMap,
-        array &$delayBeforeMap,
-    ): array {
-        $result = [];
-
+        ActionPipelinePlan $plan,
+        ActionPipelineStage $stage,
+    ): void {
         foreach ($items as $item) {
             if (!is_array($item)) {
                 continue;
             }
 
-            $actionId = $this->strField($item, 'action_id');
+            $actionId = $this->nodeData->string($item, 'action_id');
             $orchCode = $this->itemOrchCode($item);
 
             if ($actionId === '' || $orchCode === '') {
                 continue;
             }
 
-            $result[$orchCode] = $actionId;
-            $input[$orchCode] = $this->resolveInput($item, 'input', $context);
-            $scopeMap[$orchCode] = $this->strField($item, 'code');
-            $backoffMap[$orchCode] = $this->intListField($item, 'backoff');
-            $delayBeforeMap[$orchCode] = $this->intField($item, 'delay_before');
+            $plan->add(
+                $stage,
+                $orchCode,
+                $actionId,
+                $this->resolveInput($item, 'input', $context),
+                $this->nodeData->string($item, 'code'),
+                $this->nodeData->integerList($item, 'backoff'),
+                $this->nodeData->integer($item, 'delay_before'),
+            );
         }
-
-        return $result;
     }
 
     /**
      * @param  array<string, mixed>      $data
      * @param  array<string, mixed>      $context
-     * @param  array<string, mixed>      $input
-     * @param  array<string, string>     $scopeMap
-     * @param  array<string, list<int>>  $backoffMap
-     * @param  array<string, int>        $delayBeforeMap
-     * @return array<string, string>
      */
     private function collectHookItems(
         array $data,
@@ -384,36 +315,24 @@ final readonly class ActionNodePipeline
         string $legacyIdKey,
         string $legacyInputKey,
         array $context,
-        array &$input,
-        array &$scopeMap,
-        array &$backoffMap,
-        array &$delayBeforeMap,
-    ): array {
-        $result = $this->collectScopedItems(
-            $this->arrayField($data, $itemsKey),
+        ActionPipelinePlan $plan,
+        ActionPipelineStage $stage,
+    ): void {
+        $this->collectScopedItems(
+            $this->nodeData->array($data, $itemsKey),
             $context,
-            $input,
-            $scopeMap,
-            $backoffMap,
-            $delayBeforeMap,
+            $plan,
+            $stage,
         );
 
-        if ($result === []) {
-            $result = $this->collectLegacyHook($data, $legacyCodeKey, $legacyIdKey, $legacyInputKey, $context, $input);
-
-            foreach ($result as $code => $_actionId) {
-                $scopeMap[$code] = $code;
-            }
+        if ($plan->actions($stage) === []) {
+            $this->collectLegacyHook($data, $legacyCodeKey, $legacyIdKey, $legacyInputKey, $context, $plan, $stage);
         }
-
-        return $result;
     }
 
     /**
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>  $context
-     * @param  array<string, mixed>  $input
-     * @return array<string, string>
      */
     private function collectLegacyHook(
         array $data,
@@ -421,18 +340,23 @@ final readonly class ActionNodePipeline
         string $idKey,
         string $inputKey,
         array $context,
-        array &$input
-    ): array {
-        $code = $this->strField($data, $codeKey);
-        $actionId = $this->strField($data, $idKey);
+        ActionPipelinePlan $plan,
+        ActionPipelineStage $stage,
+    ): void {
+        $code = $this->nodeData->string($data, $codeKey);
+        $actionId = $this->nodeData->string($data, $idKey);
 
         if ($code === '' || $actionId === '') {
-            return [];
+            return;
         }
 
-        $input[$code] = $this->resolveInput($data, $inputKey, $context);
-
-        return [$code => $actionId];
+        $plan->add(
+            $stage,
+            $code,
+            $actionId,
+            $this->resolveInput($data, $inputKey, $context),
+            $code,
+        );
     }
 
     /**

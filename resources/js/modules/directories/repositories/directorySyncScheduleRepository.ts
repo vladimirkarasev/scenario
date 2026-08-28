@@ -1,18 +1,5 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-
-export interface DirectorySyncSchedule {
-    enabled: boolean
-    cron: string | null
-    timezone: string
-    last_run_at: string | null
-    next_run_at: string | null
-}
-
-export interface DirectorySyncSchedulePayload {
-    enabled: boolean
-    cron: string | null
-    timezone?: string | null
-}
+import type {DirectorySyncSchedule, DirectorySyncSchedulePayload} from '@/modules/directories/types/sync-schedule'
 
 export const directorySyncScheduleRepository = {
     async get(directoryId: string): Promise<DirectorySyncSchedule | null> {

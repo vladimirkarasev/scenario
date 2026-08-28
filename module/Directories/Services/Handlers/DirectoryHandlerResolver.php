@@ -4,41 +4,32 @@ declare(strict_types=1);
 
 namespace Module\Directories\Services\Handlers;
 
-use Illuminate\Contracts\Container\Container;
 use Module\Directories\Enums\DirectorySourceType;
 use Module\Directories\Exceptions\DirectoryException;
 use Module\Directories\Exceptions\DirectoryImportException;
-use LogicException;
 
-final class DirectoryHandlerResolver
+final readonly class DirectoryHandlerResolver
 {
     /** @var array<string, DirectoryHandler> */
-    private array $resolved = [];
+    private array $resolved;
 
     public function __construct(
-        private readonly Container $container,
+        ManualDirectoryHandler $manual,
+        ExcelDirectoryHandler $excel,
+        ApiDirectoryHandler $api,
+        ExternalDirectoryHandler $external,
     ) {
+        $this->resolved = [
+            $manual->type()->value => $manual,
+            $excel->type()->value => $excel,
+            $api->type()->value => $api,
+            $external->type()->value => $external,
+        ];
     }
 
     public function resolve(DirectorySourceType $type): DirectoryHandler
     {
-        if (isset($this->resolved[$type->value])) {
-            return $this->resolved[$type->value];
-        }
-
-        foreach (DirectoryHandlerRegistry::handlers() as $handlerClass) {
-            $handler = $this->container->make($handlerClass);
-
-            if (!$handler instanceof DirectoryHandler) {
-                throw new LogicException("Directory handler [{$handlerClass}] must implement DirectoryHandler.");
-            }
-
-            if ($handler->type() === $type) {
-                return $this->resolved[$type->value] = $handler;
-            }
-        }
-
-        throw DirectoryException::unsupportedType($type->value);
+        return $this->resolved[$type->value] ?? throw DirectoryException::unsupportedType($type->value);
     }
 
     public function resolveImporter(DirectorySourceType $type): DirectoryHandler&ImportHandler

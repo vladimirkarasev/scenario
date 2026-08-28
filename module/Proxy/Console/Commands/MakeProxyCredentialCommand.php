@@ -49,7 +49,7 @@ final class MakeProxyCredentialCommand extends ProxyGeneratorCommand
         $this->newLine();
         $this->components->warn('Register it manually in module/Proxy/Services/CredentialCatalog.php:');
         $this->line("  use Module\\Proxy\\Credentials\\{$gateway}\\{$name}Credential;");
-        $this->line("  // add {$name}Credential::class to the array returned by CredentialCatalog::all()");
+        $this->line("  // inject {$name}Credential into CredentialCatalog::__construct()");
 
         return self::SUCCESS;
     }

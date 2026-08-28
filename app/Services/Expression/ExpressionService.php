@@ -8,6 +8,7 @@ use App\Services\Expression\Functions\AddTimeFunction;
 use App\Services\Expression\Functions\ConcatFunction;
 use App\Services\Expression\Functions\DateFormatFunction;
 use App\Services\Expression\Functions\ImplodeFunction;
+use App\Services\Expression\Functions\IsElseFunction;
 use App\Services\Expression\Functions\PluckFunction;
 use App\Services\Expression\Functions\LengthFunction;
 use App\Services\Expression\Functions\LowerFunction;
@@ -153,6 +154,7 @@ final readonly class ExpressionService
         yield new PluckFunction;
         yield new DateFormatFunction;
         yield new AddTimeFunction;
+        yield new IsElseFunction;
     }
 
     /**

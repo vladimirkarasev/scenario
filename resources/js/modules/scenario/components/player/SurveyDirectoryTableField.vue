@@ -198,7 +198,7 @@ watch([
       currentItems.value.map((item) => ({id: item.id, data: item.data})),
       props.context,
   )
-}, {immediate: true, deep: true})
+}, {immediate: true})
 
 const fieldConfigMap = computed(() =>
     Object.fromEntries((props.fields ?? []).map((f) => [f.key, f])),

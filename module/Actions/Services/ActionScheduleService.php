@@ -72,6 +72,28 @@ final readonly class ActionScheduleService
         $this->syncer->delete($scheduleId);
     }
 
+    /** @return list<array<string, mixed>> */
+    public function listPayload(): array
+    {
+        return array_values($this->schedules->orderedWithAction()
+            ->map(static fn (ActionSchedule $schedule): array => [
+                'id' => $schedule->id,
+                'enabled' => $schedule->enabled,
+                'cron' => $schedule->cron,
+                'timezone' => $schedule->timezone,
+                'last_run_at' => $schedule->last_run_at?->toIso8601String(),
+                'next_run_at' => $schedule->next_run_at?->toIso8601String(),
+                'action' => $schedule->action ? [
+                    'id' => $schedule->action->id,
+                    'name' => $schedule->action->name,
+                    'code' => $schedule->action->code,
+                    'type' => $schedule->action->type,
+                    'is_active' => $schedule->action->is_active,
+                ] : null,
+            ])
+            ->all());
+    }
+
     /** @return array<string, mixed>|null */
     public function payload(?ActionSchedule $schedule): ?array
     {

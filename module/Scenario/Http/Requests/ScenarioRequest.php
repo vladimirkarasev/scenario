@@ -8,6 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Module\Projects\CurrentProject;
 use Module\Scenario\Models\Scenario;
+use Module\Scenario\Enums\ScenarioType;
 
 final class ScenarioRequest extends FormRequest
 {
@@ -25,6 +26,7 @@ final class ScenarioRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['sometimes', Rule::enum(ScenarioType::class)],
             'is_active' => ['nullable', 'boolean'],
             'description' => ['nullable', 'string'],
             'alias' => [

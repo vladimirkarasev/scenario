@@ -12,7 +12,7 @@ use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use Tests\TestCase;
 
 final class ScenarioPlayerServiceJumpTest extends TestCase

@@ -48,6 +48,14 @@ final class DirectoryRepository
         return Directory::query()->create($attributes);
     }
 
+    public function findActiveBySlugOrFail(string $slug): Directory
+    {
+        return Directory::query()
+            ->where('slug', $slug)
+            ->whereHas('activeVersion')
+            ->firstOrFail();
+    }
+
     /** @param  array<string, mixed>  $attributes */
     public function update(Directory $directory, array $attributes): Directory
     {
@@ -55,6 +63,11 @@ final class DirectoryRepository
         $directory->save();
 
         return $directory;
+    }
+
+    public function delete(Directory $directory): void
+    {
+        $directory->delete();
     }
 
     public function loadDetail(Directory $directory): Directory

@@ -10,6 +10,7 @@ enum ActionErrorCode: string implements ErrorText
 {
     case CategoryNotFound = 'ACTION_CATEGORY_NOT_FOUND';
     case SystemCategoryDeleteForbidden = 'ACTION_SYSTEM_CATEGORY_DELETE_FORBIDDEN';
+    case ManageForbidden = 'ACTION_MANAGE_FORBIDDEN';
 
     #[\Override]
     public function code(): string

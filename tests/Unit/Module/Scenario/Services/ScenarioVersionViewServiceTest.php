@@ -10,7 +10,7 @@ use Module\Scenario\DTO\ScenarioVersionHistoryData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
-use Module\Scenario\Services\ScenarioVersionViewService;
+use Module\Scenario\Services\Definition\ScenarioVersionViewService;
 use Tests\TestCase;
 
 final class ScenarioVersionViewServiceTest extends TestCase

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Module\Actions\Services;
 
+use App\Exceptions\ForbiddenException;
 use Module\Actions\DTO\ActionCredentialData;
+use Module\Actions\Enums\ActionErrorCode;
 use Module\Actions\Models\ActionCredential;
 use Module\Actions\Repositories\ActionCredentialRepository;
 
@@ -85,6 +87,8 @@ final readonly class ActionCredentialService
 
     private function ensureManageAccess(bool $canManageActions): void
     {
-        abort_unless($canManageActions, 403);
+        if (! $canManageActions) {
+            throw ForbiddenException::from(ActionErrorCode::ManageForbidden);
+        }
     }
 }

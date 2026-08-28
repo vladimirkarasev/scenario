@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import {computed} from 'vue'
 import {Handle, Position} from '@vue-flow/core'
+import {ExternalLink} from 'lucide-vue-next'
+import FlowNodeCard from '@/modules/scenario/components/flow/nodes/FlowNodeCard.vue'
 import type {ScenarioBlockData} from '@/modules/scenario/lib/scenario-flow-document'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
+  id: string
   data: ScenarioBlockData
   selected?: boolean
 }>(), {
   selected: false,
 })
 
-const hasTarget = computed(() => Boolean(props.data.targetScenarioId))
 </script>
 
 <template>
-  <div class="scenario-flow-node relative">
+  <div class="scenario-flow-node relative w-[280px]">
     <!-- 4 handles so any arc on the circle can start or receive a connection.   -->
     <!-- Connections from in/in_b/left/right_i get reversed in the editor so     -->
     <Handle id="in" type="source" :position="Position.Top" class="scenario-flow-handle !h-[10%] !w-full"
@@ -26,31 +27,11 @@ const hasTarget = computed(() => Boolean(props.data.targetScenarioId))
     <Handle id="right_i" type="source" :position="Position.Right" class="scenario-flow-handle !h-full !w-[10%]"
             connectable-start connectable-end />
 
-    <div
-        class="relative flex size-[160px] items-center justify-center rounded-full border-[4px] border-emerald-400 bg-emerald-500 text-center text-white shadow-[0_16px_36px_rgba(16,185,129,0.24)] transition">
-      <div class="space-y-1 px-4">
-        <div class="line-clamp-1 text-[12px] font-semibold text-white">
-          {{ data.title || 'Переход' }}
-        </div>
-        <template v-if="hasTarget">
-          <div class="text-[10px] font-medium uppercase tracking-wide text-emerald-100/70">
-            Переход к
-          </div>
-          <div class="text-[14px] font-semibold leading-tight text-white line-clamp-2 break-words">
-            {{ data.targetScenarioName || 'Сценарий' }}
-          </div>
-          <div class="text-[11px] font-medium leading-4 text-emerald-50">
-            ({{ data.targetVersionName || 'последняя активная версия' }})
-          </div>
-        </template>
-        <div v-else class="text-[12px] italic text-emerald-50/80">
-          Сценарий не выбран
-        </div>
-      </div>
-    </div>
-
-    <div class="scenario-flow-connector scenario-flow-connector--circle"
-         :class="{ 'scenario-flow-connector--selected': selected }" />
+    <FlowNodeCard :node-id="id" label="Переход" tone="emerald" :selected="selected">
+      <template #icon>
+          <ExternalLink class="size-3" />
+      </template>
+    </FlowNodeCard>
   </div>
 </template>
 

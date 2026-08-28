@@ -2,6 +2,7 @@
 import SearchInput from '@/components/SearchInput.vue'
 import {Link} from '@inertiajs/vue3'
 import {ChevronRight, Folder, FolderOpen, Loader2} from 'lucide-vue-next'
+import HighlightedText from '@/components/HighlightedText.vue'
 
 interface ScenarioItem {
   id: string
@@ -41,7 +42,6 @@ defineProps<{
   selectedScenarioId: string | null
   pathFor: (id: string | null | undefined) => string
   parentPathFor: (id: string | null | undefined) => string
-  highlight: (text: string, query: string) => string
 }>()
 
 defineEmits<{
@@ -100,8 +100,7 @@ const STATUS_DOT: Record<string, string> = {
                             <Folder :size="14"/>
                         </span>
             <span class="min-w-0 flex-1">
-                            <!-- eslint-disable-next-line vue/no-v-html -->
-                            <span class="block truncate" v-html="highlight(folder.name, searchQuery)"/>
+                            <HighlightedText class="block truncate" :text="folder.name" :query="searchQuery" />
                             <span v-if="parentPathFor(folder.id)"
                                   class="mt-0.5 block truncate text-[11px] text-slate-400">
                                 {{ parentPathFor(folder.id) }}
@@ -121,8 +120,7 @@ const STATUS_DOT: Record<string, string> = {
           >
             <span class="mt-1.5 inline-block h-2 w-2 flex-none rounded-full" :class="STATUS_DOT[s.status]"/>
             <span class="min-w-0 flex-1">
-                            <!-- eslint-disable-next-line vue/no-v-html -->
-                            <span class="block truncate" v-html="highlight(s.name, searchQuery)"/>
+                            <HighlightedText class="block truncate" :text="s.name" :query="searchQuery" />
                             <span v-if="pathFor(s.folderId) || !s.folderId"
                                   class="mt-0.5 block truncate text-[11px] text-slate-400">
                                 {{ pathFor(s.folderId) || 'Без раздела' }}

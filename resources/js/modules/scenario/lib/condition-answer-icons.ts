@@ -1,0 +1,90 @@
+import type {Component} from 'vue'
+import {
+    ArrowRight,
+    BadgeRussianRuble,
+    Banknote,
+    Bell,
+    Briefcase,
+    Calendar,
+    Check,
+    CircleAlert,
+    CircleHelp,
+    Clock,
+    Download,
+    Gift,
+    Heart,
+    Info,
+    Link,
+    Mail,
+    MapPin,
+    MessageCircle,
+    Phone,
+    Play,
+    Rocket,
+    Send,
+    ShieldCheck,
+    ShoppingCart,
+    Smile,
+    Sparkles,
+    Star,
+    ThumbsDown,
+    ThumbsUp,
+    Trophy,
+    Upload,
+    User,
+    Users,
+    Wallet,
+    X,
+    Zap,
+} from 'lucide-vue-next'
+
+export const CONDITION_ANSWER_ICONS = [
+    {value: 'message', label: 'Сообщение', icon: MessageCircle},
+    {value: 'check', label: 'Да', icon: Check},
+    {value: 'x', label: 'Нет', icon: X},
+    {value: 'thumbs-up', label: 'Нравится', icon: ThumbsUp},
+    {value: 'thumbs-down', label: 'Не нравится', icon: ThumbsDown},
+    {value: 'heart', label: 'Сердце', icon: Heart},
+    {value: 'star', label: 'Звезда', icon: Star},
+    {value: 'smile', label: 'Улыбка', icon: Smile},
+    {value: 'help', label: 'Вопрос', icon: CircleHelp},
+    {value: 'info', label: 'Информация', icon: Info},
+    {value: 'alert', label: 'Внимание', icon: CircleAlert},
+    {value: 'arrow-right', label: 'Далее', icon: ArrowRight},
+    {value: 'play', label: 'Запустить', icon: Play},
+    {value: 'rocket', label: 'Ракета', icon: Rocket},
+    {value: 'zap', label: 'Молния', icon: Zap},
+    {value: 'sparkles', label: 'Искры', icon: Sparkles},
+    {value: 'trophy', label: 'Награда', icon: Trophy},
+    {value: 'gift', label: 'Подарок', icon: Gift},
+    {value: 'banknote', label: 'Деньги', icon: Banknote},
+    {value: 'ruble', label: 'Рубли', icon: BadgeRussianRuble},
+    {value: 'wallet', label: 'Кошелёк', icon: Wallet},
+    {value: 'cart', label: 'Корзина', icon: ShoppingCart},
+    {value: 'briefcase', label: 'Работа', icon: Briefcase},
+    {value: 'user', label: 'Пользователь', icon: User},
+    {value: 'users', label: 'Пользователи', icon: Users},
+    {value: 'phone', label: 'Телефон', icon: Phone},
+    {value: 'mail', label: 'Письмо', icon: Mail},
+    {value: 'send', label: 'Отправить', icon: Send},
+    {value: 'link', label: 'Ссылка', icon: Link},
+    {value: 'calendar', label: 'Календарь', icon: Calendar},
+    {value: 'clock', label: 'Время', icon: Clock},
+    {value: 'bell', label: 'Уведомление', icon: Bell},
+    {value: 'map-pin', label: 'Место', icon: MapPin},
+    {value: 'download', label: 'Скачать', icon: Download},
+    {value: 'upload', label: 'Загрузить', icon: Upload},
+    {value: 'shield-check', label: 'Подтверждено', icon: ShieldCheck},
+] as const
+
+const iconComponents = new Map<string, Component>(
+    CONDITION_ANSWER_ICONS.map((item) => [item.value, item.icon]),
+)
+
+export function conditionAnswerIcon(value: unknown): Component | null {
+    return typeof value === 'string' ? iconComponents.get(value) ?? null : null
+}
+
+export function normalizeConditionAnswerIcon(value: unknown): string | null {
+    return typeof value === 'string' && iconComponents.has(value) ? value : null
+}

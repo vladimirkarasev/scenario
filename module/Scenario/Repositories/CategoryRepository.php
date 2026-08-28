@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Module\Scenario\Repositories;
 
 use App\Models\Category;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -17,15 +16,8 @@ final class CategoryRepository
     public function workspaceForModel(string $modelType, ?string $projectId): Collection
     {
         return Category::query()
-            ->where('is_workspace', true)
-            ->whereExists(static function (QueryBuilder $q) use ($modelType, $projectId): void {
-                $q->from('model_has_categories')
-                    ->whereColumn('model_has_categories.category_id', 'categories.id')
-                    ->where('model_has_categories.model_type', $modelType);
-                if ($projectId !== null) {
-                    $q->where('model_has_categories.project_id', $projectId);
-                }
-            })
+            ->workspaceOnly()
+            ->boundToModelType($modelType, $projectId)
             ->orderBy('name')
             ->get();
     }
@@ -45,17 +37,9 @@ final class CategoryRepository
     public function demoteOtherWorkspaces(Category $category, string $modelType, ?string $projectId): void
     {
         Category::query()
-            ->where('categories.id', '!=', $category->id)
-            ->where('is_workspace', true)
-            ->whereExists(static function (QueryBuilder $q) use ($modelType, $projectId): void {
-                $q->from('model_has_categories')
-                    ->whereColumn('model_has_categories.category_id', 'categories.id')
-                    ->where('model_has_categories.model_type', $modelType);
-
-                $projectId === null
-                    ? $q->whereNull('model_has_categories.project_id')
-                    : $q->where('model_has_categories.project_id', $projectId);
-            })
+            ->excluding($category->id)
+            ->workspaceOnly()
+            ->boundToModelType($modelType, $projectId, matchNullProject: true)
             ->update(['is_workspace' => false]);
     }
 

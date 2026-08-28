@@ -1,16 +1,5 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-
-export interface CategoryRef {
-    id: string
-    parent_id: string | null
-    name: string
-    is_active: boolean
-    is_workspace?: boolean
-    children_count: number
-    group_ids?: string[]
-    created_at?: string | null
-    updated_at?: string | null
-}
+import type {CategoryOption, CategoryRef} from '@/modules/scenario/types/category'
 
 interface JsonApiItem {
     id: string
@@ -44,12 +33,6 @@ function normalize(item: JsonApiItem): CategoryRef {
         created_at: item.attributes?.created_at ?? null,
         updated_at: item.attributes?.updated_at ?? null,
     }
-}
-
-export interface CategoryOption {
-    id: string
-    name: string
-    parent_id: string | null
 }
 
 export const categoryRepository = {

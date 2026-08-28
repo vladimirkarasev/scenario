@@ -31,6 +31,7 @@ final class ScenariosResource extends JsonApiResource
             'description' => $this->description,
             'is_active' => $this->is_active,
             'status' => $this->status->value,
+            'type' => $this->type->value,
             'alias' => $this->alias,
             'tags' => $this->tags ?? [],
             'active_version_id' => $this->active_version_id,

@@ -28,6 +28,10 @@ export function useScenarioFlowInspector(options: ScenarioFlowInspectorOptions) 
     }
 
     function commitInspector(): void {
+        const node = options.selectedNode.value
+        if (node) {
+            inspectorSnapshot.value = JSON.parse(JSON.stringify(node.data)) as ScenarioBlockData
+        }
         options.drawerOpen.value = false
     }
 
@@ -43,6 +47,8 @@ export function useScenarioFlowInspector(options: ScenarioFlowInspectorOptions) 
         options.nodes.value = options.nodes.value.map((item) => item.id === node.id
             ? {...item, data: JSON.parse(JSON.stringify(snapshot)) as ScenarioBlockData}
             : item)
+        resetInspectorDraft()
+        Object.assign(inspectorDraft, JSON.parse(JSON.stringify(snapshot)) as ScenarioBlockData)
         options.drawerOpen.value = false
     }
 

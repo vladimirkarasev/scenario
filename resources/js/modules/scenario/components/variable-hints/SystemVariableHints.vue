@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import {Check, Copy} from 'lucide-vue-next'
-import {
-  type SystemVariableGroup, systemFieldRef,
-} from '@/modules/scenario/lib/scenario-variable-hints'
+import {systemFieldRef} from '@/modules/scenario/lib/scenario-variable-hints'
+import type {SystemVariableGroup} from '@/modules/scenario/types/scenario-system-variable'
 
 const props = defineProps<{
   group: SystemVariableGroup

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Module\Proxy\Credentials\AutoCrm\AutoCrmCredential;
 use Module\Proxy\Credentials\BearerCredential;
+use Module\Proxy\Gateway\Base\ApiGatewayConfigFactory;
 use Module\Proxy\Models\ProxyConnection;
 use Module\Proxy\Models\ProxyEndpoint;
 use Module\Proxy\Proxies\AutoCrm\ModelsProxyHandler;
@@ -187,7 +188,7 @@ final class ProxyConnectionControllerTest extends TestCase
             'connection_id' => $connection->id,
         ]);
 
-        $config = \Module\Proxy\Gateway\Base\DTO\ApiGatewayConfig::forEndpoint($endpoint->refresh());
+        $config = $this->app->make(ApiGatewayConfigFactory::class)->forEndpoint($endpoint->refresh());
 
         $this->assertSame('https://crm.example.com', $config->baseUri);
         $this->assertSame('bearer', $config->auth['type']);

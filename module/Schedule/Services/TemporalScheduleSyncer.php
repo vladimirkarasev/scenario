@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Module\Schedule\Services;
 
-use Illuminate\Contracts\Container\Container;
 use Temporal\Client\Schedule\Action\StartWorkflowAction;
 use Temporal\Client\Schedule\Policy\ScheduleOverlapPolicy;
 use Temporal\Client\Schedule\Policy\SchedulePolicies;
@@ -16,7 +15,7 @@ use Throwable;
 final readonly class TemporalScheduleSyncer implements TemporalScheduleSyncerInterface
 {
     public function __construct(
-        private Container $container,
+        private ScheduleClientInterface $client,
     ) {}
 
     public function upsert(
@@ -40,8 +39,7 @@ final readonly class TemporalScheduleSyncer implements TemporalScheduleSyncerInt
             )
             ->withPolicies(SchedulePolicies::new()->withOverlapPolicy(ScheduleOverlapPolicy::Skip));
 
-        $client = $this->client();
-        $handle = $client->getHandle($scheduleId);
+        $handle = $this->client->getHandle($scheduleId);
 
         $exists = true;
 
@@ -54,20 +52,16 @@ final readonly class TemporalScheduleSyncer implements TemporalScheduleSyncerInt
         if ($exists) {
             $handle->update($definition);
         } else {
-            $client->createSchedule($definition, scheduleId: $scheduleId);
+            $this->client->createSchedule($definition, scheduleId: $scheduleId);
         }
     }
 
     public function delete(string $scheduleId): void
     {
         try {
-            $this->client()->getHandle($scheduleId)->delete();
+            $this->client->getHandle($scheduleId)->delete();
         } catch (Throwable) {
         }
     }
 
-    private function client(): ScheduleClientInterface
-    {
-        return $this->container->make(ScheduleClientInterface::class);
-    }
 }

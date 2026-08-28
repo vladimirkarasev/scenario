@@ -26,7 +26,8 @@ import {directoryRepository} from '@/modules/directories/repositories/directoryR
 import {useDirectoryModal} from '@/modules/directories/composables/useDirectoryModal'
 import {useDirectorySectionModal} from '@/modules/directories/composables/useDirectorySectionModal'
 import {useDirectorySectionTree} from '@/modules/directories/composables/useDirectorySectionTree'
-import {categoryRepository, type CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import {categoryRepository} from '@/modules/scenario/repositories/categoryRepository'
+import type {CategoryRef} from '@/modules/scenario/types/category'
 import {pluralRu} from '@/lib/pluralize'
 import {Head, Link} from '@inertiajs/vue3'
 import {

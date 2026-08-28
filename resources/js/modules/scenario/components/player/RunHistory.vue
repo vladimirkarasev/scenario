@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const NODE_TYPE_LABELS: Record<string, string> = {
     block: 'блок',
+    question: 'вопрос',
     condition: 'условие',
     action: 'действие',
     end: 'конец',

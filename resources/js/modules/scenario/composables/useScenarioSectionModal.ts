@@ -1,7 +1,7 @@
 import {ref} from 'vue'
 import {useSectionModal} from '@/composables/useSectionModal'
-import {scenarioCategoryRepository, type ScenarioCategoryPayload} from '@/modules/scenario/repositories/scenarioCategoryRepository'
-import type {CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import {scenarioCategoryRepository} from '@/modules/scenario/repositories/scenarioCategoryRepository'
+import type {CategoryRef, ScenarioCategoryPayload} from '@/modules/scenario/types/category'
 import {scenarioSectionSchema} from '@/modules/scenario/schemas/scenarioSectionSchema'
 
 export function useScenarioSectionModal(

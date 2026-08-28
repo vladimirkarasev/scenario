@@ -16,9 +16,17 @@ const props = defineProps<{
 const emit = defineEmits<{ importStarted: [] }>()
 
 const imp = useDirectoryImport(props.directoryId, props.versionId)
-watch(() => props.importOptions, opts => {
-  Object.assign(imp.importOptions, opts)
-}, {immediate: true, deep: true})
+watch(
+    [
+      () => props.importOptions.addNew,
+      () => props.importOptions.updateExisting,
+      () => props.importOptions.deleteUnused,
+    ],
+    ([addNew, updateExisting, deleteUnused]) => {
+      Object.assign(imp.importOptions, {addNew, updateExisting, deleteUnused})
+    },
+    {immediate: true},
+)
 
 const ACCEPTED = ['.xlsx', '.xls', '.csv', '.ods']
 const ACCEPTED_MIME = [

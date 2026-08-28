@@ -1,5 +1,5 @@
 import type {BlockField} from '@/modules/scenario/lib/scenario-block-fields'
-import type {ScenarioBlock} from '@/modules/scenario/lib/scenario-flow-document'
+import {isContentNodeType, type ScenarioBlock} from '@/modules/scenario/lib/scenario-flow-document'
 import type {VariableEntry} from '@/modules/scenario/types/scenario-variable-entry'
 
 const NON_VARIABLE_FIELD_TYPES = new Set(['rich_text', 'collapse', 'action', 'action_list'])
@@ -39,7 +39,7 @@ export function blocksToVariableEntries(
     currentBlockId = '',
 ): VariableEntry[] {
     return blocks
-        .filter((b) => b.type === 'block')
+        .filter((block) => isContentNodeType(block.type))
         .flatMap((b) => fieldsToVariableEntries(
             b.data.fields ?? [],
             b.id,

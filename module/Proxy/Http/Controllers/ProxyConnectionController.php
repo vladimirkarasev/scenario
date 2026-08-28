@@ -16,15 +16,20 @@ use Module\Proxy\Http\Resources\JsonApi\ProxyCredentialTypeResource;
 use Module\Proxy\Models\ProxyConnection;
 use Module\Proxy\Services\CredentialCatalog;
 use Module\Proxy\Services\ProxyConnectionService;
+use Module\Proxy\Services\ProxyConnectionViewFactory;
 
 final class ProxyConnectionController extends Controller
 {
-    public function __construct(private readonly ProxyConnectionService $service) {}
+    public function __construct(
+        private readonly ProxyConnectionService $service,
+        private readonly ProxyConnectionViewFactory $views,
+        private readonly CredentialCatalog $credentials,
+    ) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {
         return ProxyConnectionResource::collection(
-            $this->service->paginate(ProxyConnectionIndexData::fromRequest($request)),
+            $this->views->paginate($this->service->paginate(ProxyConnectionIndexData::fromRequest($request))),
         );
     }
 
@@ -32,12 +37,12 @@ final class ProxyConnectionController extends Controller
     {
         $connection = $this->service->create(ProxyConnectionData::fromRequest($request));
 
-        return (new ProxyConnectionResource($connection))->response()->setStatusCode(201);
+        return (new ProxyConnectionResource($this->views->make($connection)))->response()->setStatusCode(201);
     }
 
     public function show(ProxyConnection $connection): ProxyConnectionResource
     {
-        return new ProxyConnectionResource($this->service->find($connection));
+        return new ProxyConnectionResource($this->views->make($this->service->find($connection)));
     }
 
     public function update(
@@ -45,7 +50,7 @@ final class ProxyConnectionController extends Controller
         ProxyConnection $connection,
     ): ProxyConnectionResource {
         return new ProxyConnectionResource(
-            $this->service->update(ProxyConnectionData::fromRequest($request), $connection),
+            $this->views->make($this->service->update(ProxyConnectionData::fromRequest($request), $connection)),
         );
     }
 
@@ -58,6 +63,6 @@ final class ProxyConnectionController extends Controller
 
     public function types(): AnonymousResourceCollection
     {
-        return ProxyCredentialTypeResource::collection(CredentialCatalog::options());
+        return ProxyCredentialTypeResource::collection($this->credentials->options());
     }
 }

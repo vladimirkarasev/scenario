@@ -1,4 +1,7 @@
-import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
+import type {
+    SystemVariableField,
+    SystemVariableGroup,
+} from '@/modules/scenario/types/scenario-system-variable'
 
 export interface VarLike {
     fieldId: string
@@ -31,18 +34,6 @@ export interface DateFormatItem {
 export interface DateShiftItem {
     duration: string;
     name: string
-}
-
-export interface SystemVariableField {
-    suffix: string;
-    label: string;
-    description: string
-}
-
-export interface SystemVariableGroup {
-    name: string;
-    label: string;
-    fields: SystemVariableField[]
 }
 
 export const DIRECTORY_FIELD_TYPES = new Set(['directory_list', 'directory_table'])
@@ -100,47 +91,6 @@ export const DATETIME_SHIFTS: DateShiftItem[] = [
     {duration: '30m', name: '+30 минут'},
     {duration: '-30m', name: '−30 минут'},
     ...DATE_SHIFTS,
-]
-
-export const SYSTEM_VARIABLE_GROUPS: SystemVariableGroup[] = [
-    {
-        name: ScenarioContextKey.Run,
-        label: 'Опрос',
-        fields: [
-            {suffix: 'id', label: 'UUID опроса', description: 'Уникальный идентификатор прогона'},
-            {suffix: 'number', label: 'Номер опроса', description: 'Порядковый номер'},
-            {suffix: 'number_formatted', label: 'Номер опроса (с нулями)', description: 'Номер с ведущими нулями'},
-            {suffix: 'created_at', label: 'Дата создания опроса', description: 'Когда опрос был начат'},
-            {suffix: 'completed_at', label: 'Дата окончания опроса', description: 'Когда опрос был завершён'},
-        ],
-    },
-    {
-        name: ScenarioContextKey.Operator,
-        label: 'Оператор',
-        fields: [
-            {suffix: 'login', label: 'Логин оператора', description: 'Логин учётной записи'},
-            {suffix: 'name', label: 'Имя оператора', description: 'Отображаемое имя'},
-            {suffix: 'fio', label: 'ФИО оператора', description: 'Полное имя'},
-        ],
-    },
-    {
-        name: ScenarioContextKey.Project,
-        label: 'Проект',
-        fields: [
-            {suffix: 'name', label: 'Название проекта', description: 'Имя проекта оператора'},
-            {suffix: 'id', label: 'ID проекта', description: 'Идентификатор проекта'},
-        ],
-    },
-    {
-        name: ScenarioContextKey.Call,
-        label: 'Звонок',
-        fields: [
-            {suffix: 'incoming_phone', label: 'Входящий номер телефона', description: 'Номер входящего звонка'},
-            {suffix: 'outgoing_phone', label: 'Исходящий номер телефона', description: 'Номер исходящего звонка'},
-            {suffix: 'internal_phone', label: 'Внутренний номер', description: 'Внутренний номер сотрудника'},
-            {suffix: 'id', label: 'Идентификатор звонка', description: 'Уникальный идентификатор звонка'},
-        ],
-    },
 ]
 
 export function extractVarName(varRef: string): string {

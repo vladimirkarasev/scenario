@@ -11,6 +11,7 @@ import type {
     ScenarioFlowDocument,
     Viewport,
 } from '@/modules/scenario/lib/scenario-flow-document'
+import type {ScenarioType} from '@/modules/scenario/types/scenario'
 
 export interface ScenarioFlowScenario {
     id: string
@@ -37,6 +38,7 @@ export interface ScenarioFlowEdge {
     type?: string
     style?: Styles
     markerEnd?: EdgeMarkerType
+    zIndex?: number
 }
 
 export type ScenarioFlowNodeTypes = NodeTypesObject
@@ -46,6 +48,7 @@ export interface ScenarioFlowEditorProps {
     modelValue: ScenarioFlowDocument
     scenarios: ScenarioFlowScenario[]
     editable: boolean
+    scenarioType: ScenarioType
     scenarioId: string | null
     versionId: string | null
 }

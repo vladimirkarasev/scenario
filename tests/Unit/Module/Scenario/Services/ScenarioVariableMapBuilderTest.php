@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Scenario\Services;
 
-use Module\Scenario\Services\ScenarioVariableMapBuilder;
+use Module\Scenario\Services\Variables\ScenarioVariableMapBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -96,6 +96,21 @@ final class ScenarioVariableMapBuilderTest extends TestCase
         ]);
 
         $this->assertSame('legacy', $map['name']['_block_id'] ?? null);
+    }
+
+    public function test_builds_variables_from_question_node(): void
+    {
+        $map = $this->builder->build([
+            'blocks' => [[
+                'id' => 'question',
+                'type' => 'question',
+                'data' => ['fields' => [
+                    ['name' => 'answer', 'varName' => 'answer', 'type' => 'input'],
+                ]],
+            ]],
+        ]);
+
+        $this->assertSame('question', $map['answer']['_block_id'] ?? null);
     }
 
     public function test_skips_invalid_fields_and_non_block_nodes(): void

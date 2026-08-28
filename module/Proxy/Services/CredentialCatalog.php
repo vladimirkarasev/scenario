@@ -11,42 +11,50 @@ use Module\Proxy\Credentials\BearerCredential;
 use Module\Proxy\Credentials\DaData\DaDataCredential;
 use Module\Proxy\Credentials\ProxyCredential;
 
-final class CredentialCatalog
+final readonly class CredentialCatalog
 {
-    private function __construct() {}
+    /** @var array<class-string<ProxyCredential>, ProxyCredential> */
+    private array $credentials;
 
-    /** @return list<class-string<ProxyCredential>> */
-    public static function all(): array
-    {
-        return [
-            AutoCrmCredential::class,
-            BearerCredential::class,
-            BasicCredential::class,
-            DaDataCredential::class,
+    public function __construct(
+        AutoCrmCredential $autoCrm,
+        BearerCredential $bearer,
+        BasicCredential $basic,
+        DaDataCredential $daData,
+    ) {
+        $this->credentials = [
+            $autoCrm::class => $autoCrm,
+            $bearer::class => $bearer,
+            $basic::class => $basic,
+            $daData::class => $daData,
         ];
     }
 
-    public static function has(string $class): bool
+    /** @return list<class-string<ProxyCredential>> */
+    public function all(): array
     {
-        return in_array($class, self::all(), true);
+        return array_keys($this->credentials);
     }
 
-    public static function make(string $class): ProxyCredential
+    public function has(string $class): bool
     {
-        if (! self::has($class)) {
+        return isset($this->credentials[$class]);
+    }
+
+    public function get(string $class): ProxyCredential
+    {
+        if (! $this->has($class)) {
             throw new InvalidArgumentException('Unknown credential type: '.$class);
         }
 
-        /** @var ProxyCredential */
-        return app($class);
+        return $this->credentials[$class];
     }
 
     /** @return array<int, array{type: string, label: string, group: string, fields: list<array<string, mixed>>}> */
-    public static function options(): array
+    public function options(): array
     {
         $options = [];
-        foreach (self::all() as $class) {
-            $driver = self::make($class);
+        foreach ($this->credentials as $class => $driver) {
             $options[] = [
                 'type' => $class,
                 'label' => $driver->label(),

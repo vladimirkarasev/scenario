@@ -1,4 +1,4 @@
-import {onBeforeUnmount, ref, shallowRef} from 'vue'
+import {getCurrentScope, onScopeDispose, ref, shallowRef} from 'vue'
 import {userRepository} from '@/modules/users/repositories/userRepository'
 import {roleRepository} from '@/modules/roles/repositories/roleRepository'
 import {groupRepository} from '@/modules/groups/repositories/groupRepository'
@@ -237,13 +237,15 @@ export function useUserModal(onSaved: () => void) {
         }
     }
 
-    onBeforeUnmount(() => {
+    function dispose(): void {
         modalRequestId++
         roleRequestId++
         groupRequestId++
         if (roleTimer) clearTimeout(roleTimer)
         if (groupTimer) clearTimeout(groupTimer)
-    })
+    }
+
+    if (getCurrentScope()) onScopeDispose(dispose)
 
     return {
         showModal, editing, form, errors, formError, submitting, modalLoading,

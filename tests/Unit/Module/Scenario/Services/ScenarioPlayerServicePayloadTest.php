@@ -10,7 +10,7 @@ use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use Module\Users\Models\User;
 use Tests\TestCase;
 

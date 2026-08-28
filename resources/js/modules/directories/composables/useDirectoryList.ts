@@ -1,5 +1,5 @@
 import {useUrlSearchParams} from '@vueuse/core'
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, getCurrentScope, onMounted, onScopeDispose, ref, watch} from 'vue'
 import type {Ref} from 'vue'
 import {useLatestRequest} from '@/composables/useLatestRequest'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
@@ -57,10 +57,10 @@ export function useDirectoryList(categoryIds: Ref<string[]>, rootOnly: Ref<boole
         meta.value.total = Math.max(0, meta.value.total - 1)
     }
 
-    watch([categoryIds, rootOnly], () => {
+    watch([() => categoryIds.value.join('\u001f'), rootOnly], () => {
         params['page[number]'] = undefined
         void load()
-    }, {deep: true})
+    })
 
     watch(() => params['page[number]'], load)
 
@@ -77,6 +77,11 @@ export function useDirectoryList(categoryIds: Ref<string[]>, rootOnly: Ref<boole
     })
 
     onMounted(load)
+    if (getCurrentScope()) {
+        onScopeDispose(() => {
+            if (searchTimer) clearTimeout(searchTimer)
+        })
+    }
 
     return {directories, loading, error, meta, page, search, load, removeDirectory}
 }

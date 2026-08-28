@@ -26,7 +26,7 @@ final class DirectoryImportTemporalTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->app->make(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     public function test_file_import_starts_temporal_workflow_instead_of_running_inline(): void
@@ -49,7 +49,7 @@ final class DirectoryImportTemporalTest extends TestCase
             'project_id' => $project->id,
             'name' => 'Directory',
             'slug' => 'dir-temporal',
-            'source_type' => 'manual',
+            'source_type' => 'excel',
         ]);
 
         $file = $this->makeExcelFile([['name'], ['Item 1'], ['Item 2']]);

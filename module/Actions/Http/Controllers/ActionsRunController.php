@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Module\Actions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
+use App\Http\Responses\ApiResponse;
 use Module\Actions\DTO\RunActionsData;
 use Module\Actions\Http\Requests\RunActionsRequest;
 use Module\Actions\Services\ActionOrchestratorService;
@@ -16,11 +16,9 @@ final class ActionsRunController extends Controller
         private readonly ActionOrchestratorService $orchestrator,
     ) {}
 
-    public function __invoke(RunActionsRequest $request): JsonResponse
+    public function __invoke(RunActionsRequest $request): ApiResponse
     {
         $data = RunActionsData::fromRequest($request);
-
-        abort_unless($data->canManageActions, 403);
 
         $result = $this->orchestrator->runFromData($data);
 
@@ -30,6 +28,6 @@ final class ActionsRunController extends Controller
             default => 202,
         };
 
-        return new JsonResponse($result, $statusCode);
+        return new ApiResponse($result, $statusCode);
     }
 }

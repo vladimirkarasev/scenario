@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Module\Groups\Models\UserGroup;
 use Module\Projects\Models\Project;
 use Module\Scenario\Enums\ScenarioStatus;
+use Module\Scenario\Enums\ScenarioType;
 use Module\Scenario\QueryBuilders\ScenarioBuilder;
 
 /**
@@ -27,6 +28,7 @@ use Module\Scenario\QueryBuilders\ScenarioBuilder;
  * @property string|null $description
  * @property bool $is_active
  * @property ScenarioStatus $status
+ * @property ScenarioType $type
  * @property string|null $alias
  * @property array<int, string>|null $tags
  * @property int|null $created_by
@@ -44,7 +46,7 @@ use Module\Scenario\QueryBuilders\ScenarioBuilder;
  *
  * @method static ScenarioBuilder query()
  */
-#[Fillable('project_id', 'name', 'description', 'is_active', 'status', 'alias', 'tags', 'created_by', 'updated_by', 'active_version_id')]
+#[Fillable('project_id', 'name', 'description', 'is_active', 'status', 'type', 'alias', 'tags', 'created_by', 'updated_by', 'active_version_id')]
 #[UseEloquentBuilder(ScenarioBuilder::class)]
 final class Scenario extends Model
 {
@@ -52,6 +54,7 @@ final class Scenario extends Model
 
     protected $attributes = [
         'status' => 'draft',
+        'type' => 'colls',
     ];
 
     /** @return BelongsTo<Project, Scenario> */
@@ -123,6 +126,7 @@ final class Scenario extends Model
         return [
             'is_active' => 'boolean',
             'status' => ScenarioStatus::class,
+            'type' => ScenarioType::class,
             'tags' => 'array',
         ];
     }

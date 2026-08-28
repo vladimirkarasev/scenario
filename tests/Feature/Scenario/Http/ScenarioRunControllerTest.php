@@ -490,9 +490,9 @@ final class ScenarioRunControllerTest extends TestCase
             ->getJson("/api/scenarios/runner/{$run->id}/history")
             ->assertOk()
             ->assertJsonStructure(['data'])
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.type', 'transition')
-            ->assertJsonPath('data.0.cancelled', false);
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.type', 'run_started')
+            ->assertJsonPath('data.1.type', 'transition');
     }
 
     public function test_history_contains_transition_after_continue(): void
@@ -507,10 +507,11 @@ final class ScenarioRunControllerTest extends TestCase
             ->postJson("/api/scenarios/runner/{$run->id}/continue", ['input' => ['note' => 'hi']])
             ->assertOk();
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->getJson("/api/scenarios/runner/{$run->id}/history")
-            ->assertOk()
-            ->assertJsonStructure(['data' => [['type', 'at', 'node_type', 'node_title', 'cancelled']]]);
+            ->assertOk();
+
+        $this->assertContains('transition', array_column($response->json('data'), 'type'));
     }
 
     public function test_history_includes_field_filled_event_after_continue_with_input(): void

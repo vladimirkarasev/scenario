@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Module\Scenario\Services;
 
-use Module\Scenario\Services\VariableResolver;
+use Module\Scenario\Services\Variables\VariableResolver;
 use Tests\TestCase;
 
 final class VariableResolverTest extends TestCase

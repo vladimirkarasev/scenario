@@ -8,6 +8,7 @@ import {
 } from '@/modules/scenario/lib/scenario-block-fields'
 import {
     cloneScenarioFlowDocument,
+    isContentNodeType,
     normalizeScenarioFlowDocument,
     type ScenarioBlock,
     type ScenarioFlowDocument
@@ -42,7 +43,7 @@ export const useScenarioBlockEditorStore = defineStore('scenarioBlockEditor', ()
     }
 
     function hydrateBlockDraft(): void {
-        if (!currentBlock.value || currentBlock.value.type !== 'block') {
+        if (!currentBlock.value || !isContentNodeType(currentBlock.value.type)) {
             throw new Error('Step block not found.')
         }
 

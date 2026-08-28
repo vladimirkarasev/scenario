@@ -23,7 +23,7 @@ abstract class CategoryController extends Controller
         protected readonly CurrentProject $currentProject,
     ) {}
 
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
         return CategoryResource::collection(
             $this->categories->forModel($this->modelClass()),

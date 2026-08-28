@@ -12,7 +12,7 @@ use Module\Scenario\DTO\ScenarioVersionSettingsData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Models\ScenarioVersionRevision;
-use Module\Scenario\Services\ScenarioVersionService;
+use Module\Scenario\Services\Definition\ScenarioVersionService;
 use Tests\TestCase;
 
 final class ScenarioVersionServiceTest extends TestCase

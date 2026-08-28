@@ -86,6 +86,11 @@ function asBlock(value: unknown): ScenarioRenderedBlock {
   return value as ScenarioRenderedBlock
 }
 
+function isContentRendered(value: unknown): boolean {
+  const type = (value as Record<string, unknown> | null)?.type
+  return type === 'block' || type === 'question'
+}
+
 function asCondition(value: unknown): ScenarioRenderedCondition {
   return value as ScenarioRenderedCondition
 }
@@ -208,7 +213,7 @@ const activeDraftKey = computed(() => {
 
     <!-- Active block -->
     <BlockRenderer
-        v-if="rendered && (rendered as Record<string, unknown>).type === 'block' && !completed && !failed"
+        v-if="isContentRendered(rendered) && !completed && !failed"
         :title="asBlock(rendered).title"
         :hide-title="asBlock(rendered).hideTitle"
         :blocks="asBlock(rendered).blocks"

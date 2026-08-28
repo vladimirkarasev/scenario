@@ -52,11 +52,11 @@ const roleStore = useRoleManagerStore()
 const {items: roles, loading, error, isDialogOpen, form, dialogTitle} = storeToRefs(roleStore)
 
 watch(
-    () => props.items,
-    (items) => {
-      roleStore.initialize(items, props.endpoints)
+    [() => props.items, () => props.endpoints],
+    ([items, endpoints]) => {
+      roleStore.initialize(items, endpoints)
     },
-    {immediate: true, deep: true},
+    {immediate: true},
 )
 </script>
 

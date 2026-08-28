@@ -8,37 +8,38 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\Nodes\NodeAdvanceResult;
+use Module\Scenario\Services\Nodes\NodeDataReader;
 use Module\Scenario\Services\Nodes\NodeHandlerInterface;
-use Module\Scenario\Services\Nodes\NodeHelpers;
 use Module\Scenario\Services\Nodes\RetryableNodeHandler;
-use Module\Scenario\Services\ScenarioGraphResolver;
-use Module\Scenario\Services\VariableResolver;
+use Module\Scenario\Services\Graph\ScenarioGraphResolver;
+use Module\Scenario\Services\Runtime\ScenarioRunVersionResolver;
+use Module\Scenario\Services\Variables\VariableResolver;
 
 final readonly class ActionNodeHandler implements NodeHandlerInterface, RetryableNodeHandler
 {
-    use NodeHelpers;
-
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private VariableResolver $variableResolver,
         private ActionNodePipeline $pipeline,
+        private NodeDataReader $nodeData,
+        private ScenarioRunVersionResolver $runVersions,
     ) {
     }
 
     public function isInteractive(array $node): bool
     {
-        if ($this->boolField($this->nodeData($node), 'wait_for_result')) {
+        if ($this->nodeData->boolean($this->nodeData->data($node), 'wait_for_result')) {
             return false;
         }
 
-        return !$this->boolField($this->nodeData($node), 'skipInSurvey');
+        return !$this->nodeData->boolean($this->nodeData->data($node), 'skipInSurvey');
     }
 
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
     {
-        $nodeId = $this->nodeId($node);
+        $nodeId = $this->nodeData->id($node);
 
-        if (!$this->boolField($this->nodeData($node), 'wait_for_result')) {
+        if (!$this->nodeData->boolean($this->nodeData->data($node), 'wait_for_result')) {
             $this->pipeline->dispatch($run, $node);
 
             return NodeAdvanceResult::next($this->nextNodeId($run, $nodeId));
@@ -65,9 +66,9 @@ final readonly class ActionNodeHandler implements NodeHandlerInterface, Retryabl
 
     public function continueFrom(ScenarioRun $run, array $node, ScenarioRunContinueData $data): ?string
     {
-        $nodeId = $this->nodeId($node);
+        $nodeId = $this->nodeData->id($node);
 
-        if ($this->boolField($this->nodeData($node), 'wait_for_result')) {
+        if ($this->nodeData->boolean($this->nodeData->data($node), 'wait_for_result')) {
             $this->pipeline->markState($run, $nodeId, ActionStatus::Done);
 
             return $this->nextNodeId($run, $nodeId);
@@ -85,18 +86,18 @@ final readonly class ActionNodeHandler implements NodeHandlerInterface, Retryabl
 
     public function render(ScenarioVersion $version, array $node, array $context): array
     {
-        $data = $this->nodeData($node);
-        $data['hideTitle'] = $this->boolField($data, 'hideTitle', true);
-        $nodeId = $this->nodeId($node);
+        $data = $this->nodeData->data($node);
+        $data['hideTitle'] = $this->nodeData->boolean($data, 'hideTitle', true);
+        $nodeId = $this->nodeData->id($node);
 
         $results = $this->pipeline->stageResults($context, $nodeId);
         $failed = in_array(ActionStatus::Failed->value, $results, true)
             || $this->pipeline->state($context, $nodeId) === ActionStatus::Failed;
 
         return [
-            'type' => $this->nodeType($node),
+            'type' => $this->nodeData->type($node),
             'data' => $this->variableResolver->resolve($data, $context),
-            'wait_for_result' => $this->boolField($data, 'wait_for_result'),
+            'wait_for_result' => $this->nodeData->boolean($data, 'wait_for_result'),
             'stages' => $this->pipeline->stages($node),
             'results' => $results,
             'failed' => $failed,
@@ -105,7 +106,7 @@ final readonly class ActionNodeHandler implements NodeHandlerInterface, Retryabl
 
     private function nextNodeId(ScenarioRun $run, string $nodeId): ?string
     {
-        return $this->graphResolver->defaultNextNodeId($this->runVersion($run), $nodeId);
+        return $this->graphResolver->defaultNextNodeId($this->runVersions->resolve($run), $nodeId);
     }
 
     /** @return array<string, mixed> */

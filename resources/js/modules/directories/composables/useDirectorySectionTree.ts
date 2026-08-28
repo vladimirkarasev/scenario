@@ -1,5 +1,6 @@
 import {useSectionTree} from '@/composables/useSectionTree'
-import {categoryRepository, type CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import {categoryRepository} from '@/modules/scenario/repositories/categoryRepository'
+import type {CategoryRef} from '@/modules/scenario/types/category'
 
 export function useDirectorySectionTree() {
     return useSectionTree<CategoryRef>({

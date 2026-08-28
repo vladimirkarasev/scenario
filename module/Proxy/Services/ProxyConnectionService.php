@@ -18,6 +18,7 @@ final readonly class ProxyConnectionService
     public function __construct(
         private ProxyConnectionRepository $connections,
         private CurrentProject $currentProject,
+        private CredentialCatalog $credentials,
     ) {}
 
     /** @return LengthAwarePaginator<int, ProxyConnection> */
@@ -72,7 +73,7 @@ final readonly class ProxyConnectionService
      */
     private function values(string $type, array $incoming, array $existingSecrets = []): array
     {
-        $driver = CredentialCatalog::make($type);
+        $driver = $this->credentials->get($type);
         $secretKeys = array_flip($driver->secretKeys());
         $config = [];
         $secrets = [];

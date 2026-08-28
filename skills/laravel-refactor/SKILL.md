@@ -1,6 +1,6 @@
 ---
 name: laravel-refactor
-description: Refactor Laravel 13 + PHP 8.5 backend code — thin controllers, pure readonly services, typed DTOs, backed enums, PHPStan level 10. Use when asked to refactor PHP/Laravel code, move logic out of a controller, create a DTO or Form Request, fix PHPStan errors, or align module code with project conventions.
+description: Refactor Laravel 13 + PHP 8.5 backend code — thin controllers, constructor DI, pragmatic SOLID/GoF, pure readonly services, typed DTOs, backed enums, PHPStan level 10. Use when asked to refactor PHP/Laravel code, audit architecture, remove helpers/service locator, move logic out of a controller, create a DTO or Form Request, fix PHPStan errors, or align module code with project conventions.
 ---
 
 # Laravel Refactor
@@ -43,6 +43,14 @@ module/<ModuleName>/
 
 `app/` is only for cross-cutting concerns: `User` model, auth middleware, global providers.
 
+## Dependency direction and patterns
+
+- В `module/*` не использовать global helpers `app()`, `resolve()` и `request()`. Request приходит параметром контроллера; сервисы, репозитории, фабрики и стратегии — через constructor DI.
+- Service provider — composition root. Для регистрации допустим `$this->app`, но container lookup не должен утекать в модели, DTO, resources, services и handlers.
+- Модели не разрешают зависимости из контейнера и не создают сервисы. Передавать работу в сервис или DI-фабрику.
+- Не добавлять интерфейс к каждому классу автоматически. Интерфейс нужен на внешней границе, при нескольких реализациях или когда замена зависимости является частью дизайна.
+- Применять Strategy/Factory/Adapter/Repository только при реальной вариативности или инфраструктурной границе. Не внедрять GoF ради названия паттерна.
+
 ## Controllers
 
 Controllers validate only; delegate everything to services.
@@ -75,9 +83,11 @@ public function store(Request $request): JsonResponse
 Rules:
 - Use Form Request for all validation — `module/<Module>/Http/Requests/XxxRequest.php`
 - Inject dependencies via constructor — never `app()` / `resolve()`
+- Accept `Request` through the action parameter — never call the global `request()` helper
 - Return either `Inertia::render(...)` or `response()->json()` — never mix in one controller
 - Route model binding is fine in method signatures
 - No `DB::transaction()`, no event dispatch, no mail — those go in services
+- No Eloquent queries, `DB` facade calls, `save()` or `delete()` — persistence belongs in services/repositories
 
 ## Services
 

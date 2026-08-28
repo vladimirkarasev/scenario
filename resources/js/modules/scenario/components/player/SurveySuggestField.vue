@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {getCurrentScope, onScopeDispose, ref, watch} from 'vue'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {Input} from '@/components/ui/input'
 import {X, Loader2} from 'lucide-vue-next'
 import {suggestRepository} from '@/modules/scenario/repositories/suggestRepository'
 import {useExpressionLabelBatch} from '@/modules/expression/composables/useExpressionLabelBatch'
 import type {SuggestFieldConfig} from '@/modules/scenario/lib/scenario-block-fields'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 
 type SuggestItem = Record<string, unknown>
 
@@ -34,7 +35,7 @@ const emit = defineEmits<{
 const open = ref(false)
 const query = ref('')
 const items = ref<SuggestItem[]>([])
-const loading = ref(false)
+const {loading, error: loadError, execute} = useLatestRequest('Не удалось загрузить подсказки.')
 const expressionLabels = useExpressionLabelBatch()
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -99,7 +100,7 @@ watch([
     }
   }
   void expressionLabels.load(props.labelTemplate, sources)
-}, {immediate: true, deep: true})
+}, {immediate: true})
 
 watch(expressionLabels.labels, () => {
   if (props.modelValue) query.value = itemLabel(props.modelValue)
@@ -107,14 +108,9 @@ watch(expressionLabels.labels, () => {
 
 async function loadItems(value: string): Promise<void> {
   if (!props.proxyUuid) return
-  loading.value = true
-  try {
-    items.value = await suggestRepository.suggest(props.proxyUuid, value, extraSuggestParams())
-  } catch {
-    items.value = []
-  } finally {
-    loading.value = false
-  }
+  const result = await execute(() => suggestRepository.suggest(props.proxyUuid, value, extraSuggestParams()))
+  if (result) items.value = result
+  else if (loadError.value) items.value = []
 }
 
 function onInput(value: string): void {
@@ -147,6 +143,12 @@ function select(item: SuggestItem): void {
   emit('update:modelValue', withDefaults)
   query.value = itemLabel(withDefaults)
   open.value = false
+}
+
+if (getCurrentScope()) {
+  onScopeDispose(() => {
+    if (searchTimer) clearTimeout(searchTimer)
+  })
 }
 
 function clear(): void {

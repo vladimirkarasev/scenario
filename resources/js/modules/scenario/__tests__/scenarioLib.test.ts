@@ -57,6 +57,15 @@ describe('scenario library', () => {
         expect(visibleTitleFlow.blocks[0].data.hideTitle).toBe(false)
     })
 
+    it('создаёт condition node без вариантов перехода по умолчанию', () => {
+        const flow = normalizeScenarioFlowDocument({
+            blocks: [{id: 'condition', type: 'condition', data: {}}],
+            connections: [],
+        })
+
+        expect(flow.blocks[0].data.conditionBranches).toEqual([])
+    })
+
     it('дублирует блоки с новыми id и сдвигом позиции, ремапит только внутренние connections', () => {
         const blocks = [
             {id: 'a', type: 'block', position: {x: 0, y: 0}, data: {title: 'A', variable: 'block_a'}},
@@ -142,6 +151,40 @@ describe('scenario library', () => {
         const actionItems = result.blocks[0].data.action_items as { id: string; action_id: string }[]
         expect(actionItems[0].id).not.toBe('ali_1')
         expect(actionItems[0].action_id).toBe('real-action-uuid')
+    })
+
+    it('дублирует condition node вместе со стрелкой от новой кнопки', () => {
+        const blocks = [
+            {
+                id: 'condition',
+                type: 'condition',
+                position: {x: 0, y: 0},
+                data: {
+                    conditionBranches: [{
+                        id: 'answer',
+                        label: 'Дальше',
+                        icon: 'check',
+                        condition: '',
+                        action: 'transition',
+                        url: '',
+                    }],
+                },
+            },
+            {id: 'target', type: 'block', position: {x: 20, y: 20}, data: {title: 'Target'}},
+        ]
+        const connections = [{
+            id: 'edge',
+            source: {blockId: 'condition', port: 'answer'},
+            target: {blockId: 'target', port: 'in'},
+            label: null,
+            data: {},
+        }]
+
+        const result = duplicateScenarioFlowBlocks(blocks as never, connections as never, {x: 40, y: 40})
+        const answerId = result.blocks[0].data.conditionBranches[0].id
+
+        expect(answerId).not.toBe('answer')
+        expect(result.connections[0].source.port).toBe(answerId)
     })
 
     it('сериализует/парсит буфер обмена нод и отбрасывает чужой JSON', () => {

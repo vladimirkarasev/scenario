@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Module\Projects\Models\Project;
-use Module\Proxy\Credentials\ProxyCredential;
-use Module\Proxy\Services\CredentialCatalog;
 
 /**
  * @property int                       $id
@@ -45,11 +43,6 @@ final class ProxyConnection extends Model
     public function endpoints(): HasMany
     {
         return $this->hasMany(ProxyEndpoint::class, 'connection_id');
-    }
-
-    public function driver(): ProxyCredential
-    {
-        return CredentialCatalog::make($this->credential_type);
     }
 
     /**

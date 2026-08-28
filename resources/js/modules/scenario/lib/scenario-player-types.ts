@@ -1,5 +1,5 @@
 export type ScenarioRunStatus = 'active' | 'completed' | 'failed'
-export type ScenarioNodeType = 'start' | 'block' | 'condition' | 'end' | 'scenario_link'
+export type ScenarioNodeType = 'start' | 'block' | 'question' | 'action' | 'condition' | 'end' | 'scenario_link'
 export type ConditionMode = 'manual' | 'auto'
 
 export interface SurveyBlock {
@@ -16,7 +16,7 @@ export interface ScenarioNode {
 }
 
 export interface ScenarioRenderedBlock {
-    type: 'block'
+    type: 'block' | 'question'
     title: string
     hideTitle: boolean
     blocks: SurveyBlock[]
@@ -25,7 +25,10 @@ export interface ScenarioRenderedBlock {
 
 export interface ScenarioRenderedConditionOption {
     label: string
-    targetNodeId: string
+    icon?: string | null
+    targetNodeId?: string | null
+    url?: string | null
+    width?: 'full' | 'half'
 }
 
 export interface ScenarioRenderedCondition {

@@ -6,7 +6,7 @@ import type {ScenarioRunPayload} from '@/modules/scenario/lib/scenario-player-ty
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {useStartScenarioListener} from '@/modules/scenario/composables/useStartScenarioListener'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
-import type {FeedFolder, FeedScenario} from '@/modules/scenario/repositories/scenarioRepository'
+import type {FeedFolder, FeedScenario} from '@/modules/scenario/types/scenario-feed'
 import {useAuthStore} from '@/stores/auth'
 import {formatDateTime} from '@/lib/formatters'
 import {Head, router} from '@inertiajs/vue3'
@@ -206,20 +206,6 @@ function parentPathFor(catId: string | null | undefined): string {
 
 const searchFolderResults = computed<FeedFolder[]>(() => searchFolders.value)
 
-function escapeHtml(text: string): string {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function highlight(text: string, query: string): string {
-  const safe = escapeHtml(text)
-  const trimmed = query.trim()
-  if (!trimmed) return safe
-  const words = trimmed.split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).filter(Boolean)
-  if (!words.length) return safe
-  const re = new RegExp(`(${words.join('|')})`, 'gi')
-  return safe.replace(re, '<mark class="bg-amber-200 text-amber-900 rounded-[3px] not-italic">$1</mark>')
-}
-
 async function jumpToFolder(catId: string): Promise<void> {
   searchQuery.value = ''
   searchScenarios.value = []
@@ -291,7 +277,6 @@ function onRunUpdate(run: ScenarioRunPayload | null) {
           :selected-scenario-id="selectedScenarioId"
           :path-for="pathFor"
           :parent-path-for="parentPathFor"
-          :highlight="highlight"
           @update:search-query="searchQuery = $event"
           @pick-scenario="pickScenario"
           @toggle-expand="toggleExpand"

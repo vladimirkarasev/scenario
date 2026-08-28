@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Projects\CurrentProject;
 use Module\Proxy\DTO\ProxyField;
 use Module\Proxy\Http\Resources\JsonApi\ProxyFieldResource;
-use Module\Proxy\Models\ProxyEndpoint;
+use Module\Proxy\Repositories\ProxyEndpointRepository;
 use Module\Proxy\Services\HandlerResolver;
 
 final class ProxyFieldsController extends Controller
@@ -17,15 +17,12 @@ final class ProxyFieldsController extends Controller
     public function __construct(
         private readonly HandlerResolver $handlers,
         private readonly CurrentProject $currentProject,
+        private readonly ProxyEndpointRepository $endpoints,
     ) {}
 
     public function __invoke(string $uuid): AnonymousResourceCollection
     {
-        $endpoint = ProxyEndpoint::query()
-            ->where('uuid', $uuid)
-            ->where('project_id', $this->currentProject->id())
-            ->where('is_active', true)
-            ->firstOrFail();
+        $endpoint = $this->endpoints->findActiveByUuidForProjectOrFail($uuid, $this->currentProject->id());
 
         $handler = $this->handlers->resolve($endpoint);
         $fields = [];

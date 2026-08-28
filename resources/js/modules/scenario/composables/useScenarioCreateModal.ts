@@ -7,6 +7,7 @@ import {scenarioCreateSchema} from '@/modules/scenario/schemas/scenarioCreateSch
 
 const initial = () => ({
     name: '',
+    type: 'colls' as const,
     description: '',
     alias: '',
     tags: '',
@@ -40,6 +41,7 @@ export function useScenarioCreateModal(onCreated: (scenario: Scenario) => void) 
                 const tags = data.tags.split(/[\n,]/).map(s => s.trim()).filter(Boolean)
                 created = await scenarioRepository.create({
                     name: data.name,
+                    type: data.type,
                     description: data.description || null,
                     alias: data.alias || null,
                     tags,

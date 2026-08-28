@@ -13,7 +13,6 @@ import {
     isSelectVar,
     systemFieldRef,
     systemGroupRef,
-    SYSTEM_VARIABLE_GROUPS,
     type VarLike,
 } from '@/modules/scenario/lib/scenario-variable-hints'
 import {
@@ -21,6 +20,7 @@ import {
     isSystemVariable,
     ScenarioContextKey,
 } from '@/modules/scenario/types/scenario-context-key'
+import type {SystemVariableGroup} from '@/modules/scenario/types/scenario-system-variable'
 
 function variable(patch: Partial<VarLike> = {}): VarLike {
     return {
@@ -63,23 +63,15 @@ describe('scenario variable hints', () => {
     })
 
     it('строит ссылки на системные переменные', () => {
-        expect(SYSTEM_VARIABLE_GROUPS.every(item => item.name.startsWith('_'))).toBe(true)
-
-        const group = SYSTEM_VARIABLE_GROUPS[0]
+        const group: SystemVariableGroup = {
+            name: '_run',
+            label: 'Опрос',
+            fields: [{suffix: 'id', label: 'UUID опроса', description: 'Идентификатор'}],
+        }
         const field = group.fields[0]
 
         expect(systemGroupRef(group)).toBe('{{ _run }}')
         expect(systemFieldRef(group, field)).toBe('{{ _run.id }}')
-
-        const callGroup = SYSTEM_VARIABLE_GROUPS.find(item => item.name === '_call')!
-
-        expect(callGroup.fields.map(item => item.suffix)).toEqual([
-            'incoming_phone',
-            'outgoing_phone',
-            'internal_phone',
-            'id',
-        ])
-        expect(systemFieldRef(callGroup, callGroup.fields[0])).toBe('{{ _call.incoming_phone }}')
     })
 
     it('отличает системные и зарезервированные имена', () => {

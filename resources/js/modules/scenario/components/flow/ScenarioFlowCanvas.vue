@@ -8,6 +8,7 @@ import {
   type DefaultEdgeOptions,
   type EdgeMouseEvent,
   type EdgeUpdateEvent,
+  type NodeDragEvent,
   type NodeMouseEvent,
   type ViewportTransform,
   type XYPosition,
@@ -16,8 +17,10 @@ import {Background} from '@vue-flow/background'
 import {Controls} from '@vue-flow/controls'
 import {MiniMap} from '@vue-flow/minimap'
 import FlowSelectionToolbar from '@/modules/scenario/components/flow/FlowSelectionToolbar.vue'
+import ParallelSmoothStepEdge from '@/modules/scenario/components/flow/edges/ParallelSmoothStepEdge.vue'
 import StartNode from '@/modules/scenario/components/flow/nodes/StartNode.vue'
 import BlockNode from '@/modules/scenario/components/flow/nodes/BlockNode.vue'
+import QuestionNode from '@/modules/scenario/components/flow/nodes/QuestionNode.vue'
 import ActionNode from '@/modules/scenario/components/flow/nodes/ActionNode.vue'
 import ConditionNode from '@/modules/scenario/components/flow/nodes/ConditionNode.vue'
 import EndNode from '@/modules/scenario/components/flow/nodes/EndNode.vue'
@@ -54,7 +57,7 @@ const emit = defineEmits<{
   connect: [connection: Connection]
   nodeClick: [event: NodeMouseEvent]
   nodeDoubleClick: [event: NodeMouseEvent]
-  nodeDragStart: []
+  nodeDragStart: [event: NodeDragEvent]
   nodeDragStop: []
   edgeUpdate: [event: EdgeUpdateEvent]
   selectionEnd: []
@@ -71,11 +74,15 @@ const emit = defineEmits<{
 const nodeTypes = {
   start: markRaw(StartNode),
   block: markRaw(BlockNode),
+  question: markRaw(QuestionNode),
   action: markRaw(ActionNode),
   condition: markRaw(ConditionNode),
   end: markRaw(EndNode),
   scenario_link: markRaw(ScenarioLinkNode),
 } as ScenarioFlowNodeTypes
+const edgeTypes = {
+  smoothstep: markRaw(ParallelSmoothStepEdge),
+}
 const defaultEdgeOptions: DefaultEdgeOptions = {
   type: 'smoothstep',
   markerEnd: {type: MarkerType.ArrowClosed, width: 18, height: 18, color: '#94a3b8'},
@@ -180,6 +187,7 @@ defineExpose<ScenarioFlowCanvasExpose>({nodePosition})
           v-model:edges="edgesModel"
           class="size-full"
           :node-types="nodeTypes"
+          :edge-types="edgeTypes"
           :nodes-draggable="editable"
           :nodes-connectable="editable"
           elements-selectable
@@ -195,7 +203,7 @@ defineExpose<ScenarioFlowCanvasExpose>({nodePosition})
           @connect="emit('connect', $event)"
           @node-click="emit('nodeClick', $event)"
           @node-double-click="emit('nodeDoubleClick', $event)"
-          @node-drag-start="emit('nodeDragStart')"
+          @node-drag-start="emit('nodeDragStart', $event)"
           @node-drag-stop="emit('nodeDragStop')"
           @edge-update="emit('edgeUpdate', $event)"
           @selection-end="emit('selectionEnd')"

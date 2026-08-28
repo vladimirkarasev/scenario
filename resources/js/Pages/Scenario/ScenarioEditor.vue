@@ -4,7 +4,7 @@ import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
 import {scenarioVersionRepository} from '@/modules/scenario/repositories/scenarioVersionRepository'
 import type {ScenarioVersion} from '@/modules/scenario/types/scenario-version'
-import type {ScenarioCategory} from '@/modules/scenario/types/scenario'
+import type {ScenarioCategory, ScenarioType} from '@/modules/scenario/types/scenario'
 import {Badge} from '@/components/ui/badge'
 import {Button} from '@/components/ui/button'
 import {FormError} from '@/components/form'
@@ -47,6 +47,7 @@ const createVersionOpen = ref(false)
 const {formData: form, errors, formError: saveError, submitting: saving, submit, reset} =
     useZodForm(scenarioSchema, {
       name: '',
+      type: 'colls' as ScenarioType,
       description: '',
       alias: '',
       tags: '',
@@ -78,6 +79,7 @@ async function loadAll(): Promise<void> {
 
     reset({
       name: scenario.name,
+      type: scenario.type,
       description: scenario.description ?? '',
       alias: scenario.alias ?? '',
       tags: (scenario.tags ?? []).join(', '),
@@ -139,6 +141,7 @@ async function save(): Promise<void> {
     await submit(async (data) => {
       const updated = await scenarioRepository.update(props.scenarioId, {
         name: data.name,
+        type: data.type,
         description: data.description || null,
         is_active: data.status !== 'archived',
         alias: data.alias || null,

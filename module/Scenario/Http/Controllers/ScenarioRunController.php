@@ -14,7 +14,7 @@ use Module\Scenario\DTO\ScenarioRunJumpData;
 use Module\Scenario\Http\Requests\ContinueScenarioRunRequest;
 use Module\Scenario\Http\Requests\JumpScenarioRunRequest;
 use Module\Scenario\Http\Requests\StoreScenarioRunRequest;
-use Module\Scenario\Services\ScenarioRunsService;
+use Module\Scenario\Services\Runtime\ScenarioRunsService;
 
 final class ScenarioRunController extends Controller
 {

@@ -8,6 +8,7 @@ enum ScenarioNodeType: string
 {
     case Start = 'start';
     case Block = 'block';
+    case Question = 'question';
     case Action = 'action';
     case Condition = 'condition';
     case End = 'end';
@@ -24,10 +25,29 @@ enum ScenarioNodeType: string
         return match ($this) {
             self::Start => 'Старт',
             self::Block => 'Блок',
+            self::Question => 'Вопрос',
             self::Action => 'Действие',
             self::Condition => 'Условие',
             self::End => 'Конец',
             self::ScenarioLink => 'Связной сценарий',
         };
+    }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Start => 'play',
+            self::Block => 'layout-panel-top',
+            self::Question => 'message-circle-question',
+            self::Action => 'zap',
+            self::Condition => 'diamond',
+            self::End => 'circle-stop',
+            self::ScenarioLink => 'external-link',
+        };
+    }
+
+    public function isContent(): bool
+    {
+        return $this === self::Block || $this === self::Question;
     }
 }

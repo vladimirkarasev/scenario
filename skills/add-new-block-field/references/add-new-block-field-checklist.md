@@ -1,65 +1,33 @@
-# Add New Block Field — Quick Checklist
+# Add New Block Field — checklist
 
-Replace `my_field` / `MyField` / `myFieldMeta` with your actual type string and names throughout.
+## Contract
 
-## TypeScript (`resources/js/modules/scenario/lib/scenario-block-fields.ts`)
+- [ ] `BlockFieldType`, field interface и `BlockField` union обновлены.
+- [ ] `createScenarioBlockField()` задаёт все defaults.
+- [ ] Normalizer принимает raw JSON и preset без top-level `id`.
+- [ ] `duplicateBlockFieldIds()` меняет owned IDs и remap внутренних ссылок, сохраняя external IDs.
+- [ ] `BlockFieldType.php` содержит новый case.
 
-- [ ] Add `'my_field'` to `BlockFieldType` union
-- [ ] Add `MyBlockField extends BaseBlockField` interface with all type-specific properties
-- [ ] Add `MyBlockField` to `BlockField` union
-- [ ] Add entry in `createScenarioBlockField()` → `byType` record (all required props, sensible defaults)
-- [ ] Add `case 'my_field':` in `normalizeScenarioBlockField()` → reads from raw `f`, falls back to `base`
-- [ ] Add `'my_field'` to `module/Scenario/Enums/BlockFieldType.php`
-- [ ] Verify normalization works when a preset snapshot has no top-level `id`
-- [ ] Regenerate all owned nested IDs and remap their internal references in `duplicateBlockFieldIds()`
-- [ ] Preserve external resource IDs; handle missing referenced resources in settings UI
+## Editor и player
 
-## Block editor UI
+- [ ] Settings лежит в `components/block-editor/field-settings/` и отправляет typed partial patch.
+- [ ] `fieldMeta` зарегистрирован в palette/hidden list, component — в `fieldSettingsComponents`.
+- [ ] Сложный player вынесен в отдельный компонент; HTTP идёт через composable/repository.
+- [ ] Input обновляет только `formData[fieldName]`, показывает error и disabled state.
+- [ ] Нет deep watcher на поле, форму или весь document.
 
-- [ ] Create `resources/js/modules/scenario/components/field-settings/MyFieldSettings.vue`
-  - [ ] Non-setup `<script lang="ts">` block exports `fieldMeta = { type, label, icon }`
-  - [ ] Setup block: `defineProps<{ field: MyBlockField; disabled?: boolean }>()`
-  - [ ] Emits `update: [patch: Partial<MyBlockField>]` — partial patch only, not full object
-  - [ ] `defineOptions({ inheritAttrs: false })`
-- [ ] `resources/js/modules/scenario/components/ScenarioBlockEditorDrawer.vue`
-  - [ ] Import: `import MyFieldSettings, { fieldMeta as myFieldMeta } from '...'`
-  - [ ] Add `myFieldMeta` to the appropriate group in `fieldGroups`
-  - [ ] Add `my_field: markRaw(MyFieldSettings)` to `fieldSettingsComponents`
+## Backend Strategy
 
-## Player renderer (`resources/js/modules/scenario/components/SurveyBlockRenderer.vue`)
+- [ ] Новый `XxxBlockField` добавлен в `Services/Nodes/Block/Fields/`.
+- [ ] `BlockFieldFactory` нормализует type и выбирает Strategy.
+- [ ] Handler не содержит второго type-switch и не знает детали props.
+- [ ] Зависимости передаются через DI; отсутствуют `app()`, `resolve()`, `request()`.
+- [ ] Validation добавлена только для input и сложная проверка вынесена в `ValidationRule`.
 
-- [ ] Add `v-else-if="block.type === 'my_field'"` branch before the final `v-else`
-- [ ] Bind `formData[fieldName]` if field collects user input
-- [ ] Show `fieldError` / `hasError` if field is required-capable
+## Поведение и проверки
 
-## PHP backend (`module/Scenario/Services/Nodes/BlockNodeHandler.php`)
-
-- [ ] Add `'my_field'` to the `match ($type)` expression that sets `$blockType`
-- [ ] Add `'my_field' => [...]` arm in the `$props` assignment with all props the frontend needs
-- [ ] (Optional) Add validation rules in `BlockNodeValidator.php`
-
-## Project field presets
-
-- [ ] Save the configured field as a project preset
-- [ ] Insert the preset twice and verify field, rule, option and action-item IDs do not overlap
-- [ ] Verify duplicate `varName` values receive deterministic `_2`, `_3` suffixes
-- [ ] Update the preset from a configured field and verify existing block fields remain unchanged
-- [ ] Delete the preset and verify existing block fields remain unchanged
-
-## Decision table
-
-| Field characteristic | What to do |
-|---|---|
-| Collects user input (name/varName matters) | Set `varName` in factory + normalizer; bind `formData[fieldName]` in renderer |
-| Display-only (rich_text, collapse) | Set `varName: ''` in factory; skip `required`; no `formData` binding |
-| Configurable validation | Add to `AVAILABLE_VALIDATION_RULES` in `scenario-block-fields.ts` |
-| Shares UI with an existing field | Import the shared settings component and delegate to it |
-| New palette group | Add `{ title: '...', items: [...] }` entry to `fieldGroups` in `ScenarioBlockEditorDrawer.vue` |
-
-## Verification
-
-```bash
-npx tsc --noEmit
-npx eslint resources/js/modules/scenario/
-./vendor/bin/phpstan analyse module/Scenario --memory-limit=512M
-```
+- [ ] Две вставки preset независимы, включая nested IDs.
+- [ ] Missing external resource не ломает settings/player.
+- [ ] Добавлены frontend tests defaults/normalization/duplication.
+- [ ] Добавлены backend tests props/validation.
+- [ ] Прошли `task typecheck`, scenario lint, PHPStan, целевые тесты и frontend build.

@@ -9,7 +9,7 @@ use Module\Actions\Enums\ActionRunStatus;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Actions\Services\Handlers\ScenarioRunResultActionHandler;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use Tests\TestCase;
 
 final class ScenarioRunResultActionHandlerTest extends TestCase
