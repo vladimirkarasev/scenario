@@ -23,6 +23,7 @@ enum BlockFieldType: string
     case Action = 'action';
     case ActionList = 'action_list';
     case DirectoryList = 'directory_list';
+    case DirectoryTree = 'directory_tree';
     case DirectoryTable = 'directory_table';
     case Suggest = 'suggest';
     case MapPoint = 'map_point';

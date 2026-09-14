@@ -1,6 +1,7 @@
 import {computed, ref, watch, type Ref} from 'vue'
-import {MarkerType, type EdgeMouseEvent, type NodeMouseEvent} from '@vue-flow/core'
+import {MarkerType, type EdgeMouseEvent, type NodeDragEvent, type NodeMouseEvent} from '@vue-flow/core'
 import type {FlowLogicalVariable} from '@/modules/scenario/lib/scenario-flow-constants'
+import {isContentNodeType} from '@/modules/scenario/lib/scenario-flow-document'
 import type {
     ScenarioFlowEdge,
     ScenarioFlowNode,
@@ -17,6 +18,8 @@ interface ScenarioFlowSelectionOptions {
     openBlockEditor: (blockId: string) => void
     onChanged: () => void
 }
+
+const SELECTED_EDGE_Z_INDEX = 1000
 
 export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) {
     const selectedNodeId = ref<string | null>(null)
@@ -40,10 +43,15 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
             return []
         }
 
+        const answers = new Map(
+            selectedEdgeSourceNode.value.data.conditionBranches.map((answer) => [answer.id, answer]),
+        )
+
         return options.edges.value
             .filter((edge) => edge.source === selectedEdgeSourceNode.value?.id)
             .map((edge) => ({
-                label: String(edge.data?.value || edge.label || '—'),
+                label: answers.get(edge.sourceHandle ?? '')?.label || 'Ответ',
+                icon: answers.get(edge.sourceHandle ?? '')?.icon ?? null,
                 targetNodeId: edge.target,
             }))
     })
@@ -119,7 +127,7 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
     function isPointInsideNodeShape(event: MouseEvent | TouchEvent, node: {type: string}): boolean {
         const target = event.target instanceof Element ? event.target : null
 
-        if (target?.closest('.vue-flow__handle') || !['condition', 'end', 'scenario_link'].includes(node.type)) {
+        if (target?.closest('.vue-flow__handle') || !['end', 'scenario_link'].includes(node.type)) {
             return true
         }
 
@@ -133,10 +141,6 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
         const halfHeight = rect.height / 2
         const dx = Math.abs(event.clientX - rect.left - halfWidth)
         const dy = Math.abs(event.clientY - rect.top - halfHeight)
-
-        if (node.type === 'condition') {
-            return dx / halfWidth + dy / halfHeight <= 1
-        }
 
         return (dx * dx) / (halfWidth * halfWidth) + (dy * dy) / (halfHeight * halfHeight) <= 1
     }
@@ -160,13 +164,18 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
         selectedNodeId.value = node.id
         selectedEdgeId.value = null
 
-        if (node.type === 'block') {
+        if (isContentNodeType(node.type ?? '')) {
             options.openBlockEditor(node.id)
         } else if (node.type === 'action') {
             options.actionEditorOpen.value = true
         } else {
             options.drawerOpen.value = true
         }
+    }
+
+    function onNodeDragStart({node}: NodeDragEvent): void {
+        selectedNodeId.value = node.id
+        selectedEdgeId.value = null
     }
 
     function onEdgeClick({event, edge}: EdgeMouseEvent): void {
@@ -225,6 +234,7 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
             const color = edge.id === id ? '#2563eb' : '#94a3b8'
             edge.style = {...(edge.style ?? {}), stroke: color}
             edge.markerEnd = {type: MarkerType.ArrowClosed, width: 18, height: 18, color}
+            edge.zIndex = edge.id === id ? SELECTED_EDGE_Z_INDEX : 0
         }
     })
 
@@ -245,6 +255,7 @@ export function useScenarioFlowSelection(options: ScenarioFlowSelectionOptions) 
         deleteSelected,
         onNodeClick,
         onNodeDoubleClick,
+        onNodeDragStart,
         onEdgeClick,
         onPaneClick,
         updateConditionEdgeSetting,

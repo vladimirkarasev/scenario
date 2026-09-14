@@ -1,6 +1,7 @@
-import {computed, reactive, ref, watch} from 'vue'
+import {computed, getCurrentScope, onScopeDispose, reactive, ref, watch} from 'vue'
 import {directoryRepository} from '@/modules/directories/repositories/directoryRepository'
 import type {DirectoryItem, DirectorySchemaField} from '@/modules/directories/types/directory'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 
 export interface FlatTreeItem extends DirectoryItem {
     depth: number
@@ -13,7 +14,7 @@ const OTHER_ITEM_ID = -1
 export function useDirectoryItems(directoryId: string, defaultSort?: string | null, withOther = false) {
     const items = ref<DirectoryItem[]>([])
     const baseItems = ref<DirectoryItem[]>([])
-    const loading = ref(false)
+    const {loading, execute} = useLatestRequest('Не удалось загрузить элементы справочника.')
     const treeExpanded = reactive<Record<number, boolean>>({})
     const selectedIds = ref<Set<number>>(new Set())
 
@@ -85,38 +86,48 @@ export function useDirectoryItems(directoryId: string, defaultSort?: string | nu
             baseItems.value = []
             return
         }
-        loading.value = true
-        try {
-            const qs = new URLSearchParams()
-            if (versionId) qs.set('filter[version_id]', String(versionId))
-            if (withOther) qs.set('filter[with_other]', '1')
-            if (searchQuery.value.trim()) qs.set('filter[q]', searchQuery.value.trim())
-            if (sortKey.value) qs.set('sort', sortDir.value === 'desc' ? `-${sortKey.value}` : sortKey.value)
-            Object.entries(activeFilters).forEach(([key, val]) => {
-                const s = String(val ?? '').trim()
-                if (s) qs.set(`filter[${key}]`, s)
-            })
-            Object.entries(activeFiltersTo).forEach(([key, val]) => {
-                const s = String(val ?? '').trim()
-                if (s) qs.set(`filter_to[${key}]`, s)
-            })
-            Object.entries(activeFiltersMulti).forEach(([key, vals]) => {
-                vals.forEach(v => qs.append(`filter[${key}][]`, v))
-            })
-            const result = await directoryRepository.items(directoryId, qs)
-            items.value = result.items
-            if (!hasActiveFilters.value) baseItems.value = result.items
-        } finally {
-            loading.value = false
-        }
+        const qs = new URLSearchParams()
+        if (versionId) qs.set('filter[version_id]', String(versionId))
+        if (withOther) qs.set('filter[with_other]', '1')
+        if (searchQuery.value.trim()) qs.set('filter[q]', searchQuery.value.trim())
+        if (sortKey.value) qs.set('sort', sortDir.value === 'desc' ? `-${sortKey.value}` : sortKey.value)
+        Object.entries(activeFilters).forEach(([key, val]) => {
+            const s = String(val ?? '').trim()
+            if (s) qs.set(`filter[${key}]`, s)
+        })
+        Object.entries(activeFiltersTo).forEach(([key, val]) => {
+            const s = String(val ?? '').trim()
+            if (s) qs.set(`filter_to[${key}]`, s)
+        })
+        Object.entries(activeFiltersMulti).forEach(([key, vals]) => {
+            vals.forEach(v => qs.append(`filter[${key}][]`, v))
+        })
+        const result = await execute(() => directoryRepository.items(directoryId, qs))
+        if (!result) return
+        items.value = result.items
+        if (!hasActiveFilters.value) baseItems.value = result.items
     }
 
-    watch([activeFilters, activeFiltersTo, activeFiltersMulti, searchQuery, sortKey, sortDir], () => {
+    const filterSignature = computed(() => [
+        ...Object.entries(activeFilters).sort(([left], [right]) => left.localeCompare(right)),
+        ...Object.entries(activeFiltersTo).sort(([left], [right]) => left.localeCompare(right)),
+        ...Object.entries(activeFiltersMulti)
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([key, values]) => [key, values.join('\u001e')] as const),
+    ].map(([key, value]) => `${key}\u001d${value}`).join('\u001f'))
+
+    watch([filterSignature, searchQuery, sortKey, sortDir], () => {
         if (debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(() => {
             void loadItems(currentVersionId)
         }, 300)
-    }, {deep: true})
+    })
+
+    if (getCurrentScope()) {
+        onScopeDispose(() => {
+            if (debounceTimer) clearTimeout(debounceTimer)
+        })
+    }
 
     const flatTree = computed((): FlatTreeItem[] => {
         const childrenOf = (parentId: number | null) =>

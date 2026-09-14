@@ -10,7 +10,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioStartData;
 use Module\Scenario\Http\Requests\ContinueScenarioRunRequest;
 use Module\Scenario\Http\Requests\StartScenarioRunnerRequest;
-use Module\Scenario\Services\ScenarioRunsService;
+use Module\Scenario\Services\Runtime\ScenarioRunsService;
 
 final class ScenarioRunnerController extends Controller
 {

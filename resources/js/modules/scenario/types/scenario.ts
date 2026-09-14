@@ -31,6 +31,7 @@ export interface ScenarioActor {
 }
 
 export type ScenarioStatus = 'draft' | 'active' | 'archived'
+export type ScenarioType = 'colls' | 'telegram' | 'watsapp' | 'call_bots'
 
 export interface Scenario {
     id: string
@@ -38,6 +39,7 @@ export interface Scenario {
     description: string | null
     is_active: boolean
     status: ScenarioStatus
+    type: ScenarioType
     alias: string | null
     tags: string[]
     active_version_id: string | null
@@ -63,6 +65,7 @@ export interface ScenariosPage {
 
 export interface ScenarioPayload {
     name: string
+    type?: ScenarioType
     description?: string | null
     is_active?: boolean
     alias?: string | null

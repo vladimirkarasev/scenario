@@ -6,7 +6,6 @@ namespace Module\Users\Models;
 
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
-use Spatie\Permission\PermissionRegistrar;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Module\Users\QueryBuilders\RoleBuilder;
 
@@ -27,12 +26,13 @@ final class Role extends SpatieRole
     {
         $table = $this->permissionConfig('table_names.model_has_roles', 'model_has_roles');
         $morphKey = $this->permissionConfig('column_names.model_morph_key', 'model_id');
+        $pivotRole = $this->permissionConfig('column_names.role_pivot_key', 'role_id');
 
         return $this->morphedByMany(
             User::class,
             'model',
             $table,
-            app(PermissionRegistrar::class)->pivotRole,
+            $pivotRole,
             $morphKey,
         );
     }

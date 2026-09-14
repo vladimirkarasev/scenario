@@ -106,6 +106,7 @@ final class ScenarioRepository
 
             $copy = new Scenario($scenario->only([
                 'project_id',
+                'type',
                 'description',
                 'tags',
             ]));

@@ -2,12 +2,12 @@ import {useUrlSearchParams} from '@vueuse/core'
 import {computed, reactive, ref, watch} from 'vue'
 import type {Ref} from 'vue'
 import {useLatestRequest} from '@/composables/useLatestRequest'
-import {
-    scenarioFeedRepository,
-    type ScenarioFeedCounts,
-    type ScenarioFeedPagination,
-    type ScenarioFeedRow,
-} from '@/modules/scenario/repositories/scenarioFeedRepository'
+import {scenarioFeedRepository} from '@/modules/scenario/repositories/scenarioFeedRepository'
+import type {
+    ScenarioFeedCounts,
+    ScenarioFeedPagination,
+    ScenarioFeedRow,
+} from '@/modules/scenario/types/scenario-feed'
 
 const PAGE_SIZE = 20
 
@@ -75,9 +75,7 @@ export function useScenarioFeed(
         const searchTrim = search.value.trim()
         if (searchTrim) {
             qs.set('filter[search]', searchTrim)
-        } else if (activeFolder.value === 'all') {
-            qs.set('filter[parent_id]', 'null')
-        } else {
+        } else if (activeFolder.value !== 'all') {
             qs.set('filter[parent_id]', activeFolder.value)
         }
         if (statusTab.value !== 'all') qs.set('filter[status]', statusTab.value)

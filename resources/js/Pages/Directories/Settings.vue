@@ -21,7 +21,7 @@ import {
   ArrowLeft, GitBranch, Loader2, Settings, Star,
 } from 'lucide-vue-next'
 import {categoryRepository} from '@/modules/scenario/repositories/categoryRepository'
-import type {CategoryOption} from '@/modules/scenario/repositories/categoryRepository'
+import type {CategoryOption} from '@/modules/scenario/types/category'
 import {computed, onMounted, ref} from 'vue'
 
 const props = defineProps<{ directoryId: string }>()

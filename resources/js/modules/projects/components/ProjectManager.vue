@@ -60,11 +60,11 @@ const projectStore = useProjectManagerStore()
 const {items: projects, loading, error, isDialogOpen, form, dialogTitle} = storeToRefs(projectStore)
 
 watch(
-    () => props.items,
-    (items) => {
-      projectStore.initialize(items, props.endpoints)
+    [() => props.items, () => props.endpoints],
+    ([items, endpoints]) => {
+      projectStore.initialize(items, endpoints)
     },
-    {immediate: true, deep: true},
+    {immediate: true},
 )
 </script>
 

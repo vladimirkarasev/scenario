@@ -10,7 +10,7 @@ use Module\Actions\DTO\ActionResult;
 use Module\Actions\Models\Action;
 use Module\Actions\Services\ActionDataResolver;
 use Module\Scenario\Models\ScenarioRun;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 
 final readonly class ScenarioRunResultActionHandler implements ActionHandlerInterface
 {

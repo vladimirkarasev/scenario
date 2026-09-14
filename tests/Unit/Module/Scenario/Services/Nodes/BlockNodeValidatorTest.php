@@ -15,7 +15,7 @@ final class BlockNodeValidatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->validator = new BlockNodeValidator;
+        $this->validator = app(BlockNodeValidator::class);
     }
 
     public function test_no_fields_passes_any_input(): void

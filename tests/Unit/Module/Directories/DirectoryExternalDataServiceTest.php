@@ -25,8 +25,9 @@ final class DirectoryExternalDataServiceTest extends TestCase
         parent::setUp();
 
         config(['proxy.allowed_handlers' => [StubProxyHandler::class]]);
+        $this->app->tag([StubProxyHandler::class], 'proxy.handlers');
 
-        $this->service = app(DirectoryExternalDataService::class);
+        $this->service = $this->app->make(DirectoryExternalDataService::class);
     }
 
     public function test_throws_when_no_active_version(): void
@@ -188,6 +189,7 @@ final class DirectoryExternalDataServiceTest extends TestCase
     private function makeEndpoint(string $uuid, array $responseBody): ProxyEndpoint
     {
         $this->app->instance(StubProxyHandler::class, new StubProxyHandler($responseBody));
+        $this->service = $this->app->make(DirectoryExternalDataService::class);
 
         return ProxyEndpoint::query()->create([
             'uuid' => $uuid,

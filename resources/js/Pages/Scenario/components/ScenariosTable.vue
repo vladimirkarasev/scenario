@@ -14,7 +14,7 @@ import type {
   FeedFolderItem,
   ScenarioFeedRow,
   ScenarioFeedPagination
-} from '@/modules/scenario/repositories/scenarioFeedRepository'
+} from '@/modules/scenario/types/scenario-feed'
 import {formatDateTime} from '@/lib/formatters'
 import {pluralRu} from '@/lib/pluralize'
 

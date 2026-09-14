@@ -2,6 +2,7 @@ import {useUrlSearchParams} from '@vueuse/core'
 import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue'
 import {userRepository} from '@/modules/users/repositories/userRepository'
 import type {User, UsersPage} from '@/modules/users/types/user'
+import {useLatestRequest} from '@/composables/useLatestRequest'
 
 export type UserListParams = {
     'filter[search]'?: string | string[]
@@ -17,31 +18,17 @@ function toArr(v: string | string[] | undefined): string[] {
 
 export function useUserList() {
     const params = useUrlSearchParams<UserListParams>('history', {removeNullishValues: true})
-    const loading = ref(false)
-    const error = ref<string | null>(null)
     const users = ref<User[]>([])
     const meta = ref<UsersPage['meta']>({current_page: 1, last_page: 1, per_page: 20, total: 0})
-    let requestId = 0
+    const {loading, error, execute, cancel} = useLatestRequest('Не удалось загрузить пользователей.')
 
     async function load(): Promise<void> {
-        const currentRequestId = ++requestId
-        loading.value = true
-        error.value = null
-        try {
-            const qs = new URLSearchParams(window.location.search)
-            if (!qs.has('page[number]')) qs.set('page[number]', '1')
-            const result = await userRepository.list(qs)
-            if (currentRequestId === requestId) {
-                users.value = result.data
-                meta.value = result.meta
-            }
-        } catch (e: unknown) {
-            if (currentRequestId === requestId) {
-                error.value = e instanceof Error ? e.message : 'Не удалось загрузить пользователей.'
-            }
-        } finally {
-            if (currentRequestId === requestId) loading.value = false
-        }
+        const qs = new URLSearchParams(window.location.search)
+        if (!qs.has('page[number]')) qs.set('page[number]', '1')
+        const result = await execute(() => userRepository.list(qs))
+        if (!result) return
+        users.value = result.data
+        meta.value = result.meta
     }
 
     const search = computed({
@@ -71,13 +58,16 @@ export function useUserList() {
         }, 300)
     })
     watch(
-        [() => params['page[number]'], () => params['filter[group_ids][]'], () => params['filter[role_ids][]']],
+        [
+            () => params['page[number]'],
+            () => toArr(params['filter[group_ids][]']).join('\u001f'),
+            () => toArr(params['filter[role_ids][]']).join('\u001f'),
+        ],
         load,
-        {deep: true},
     )
     onMounted(load)
     onBeforeUnmount(() => {
-        requestId++
+        cancel()
         if (searchTimer) clearTimeout(searchTimer)
     })
 

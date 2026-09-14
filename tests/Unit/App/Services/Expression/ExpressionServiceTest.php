@@ -86,6 +86,7 @@ final class ExpressionServiceTest extends TestCase
         yield 'date format' => ['dateFormat(date, "DD.MM.YYYY")', ['date' => '2026-06-24T10:30:00+00:00'], '24.06.2026'];
         yield 'add time' => ['addTime(date, "1d")', ['date' => '2026-06-24T10:30:00+00:00'], '2026-06-25T10:30:00+00:00'];
         yield 'compound duration' => ['addTime(date, "1d 2h 30m")', ['date' => '2026-06-24T10:00:00+00:00'], '2026-06-25T12:30:00+00:00'];
+        yield 'else marker' => ['isElse()', [], true];
     }
 
     public function test_render_resolves_multiple_expressions_recursively(): void

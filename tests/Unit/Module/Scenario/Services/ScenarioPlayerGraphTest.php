@@ -11,7 +11,7 @@ use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use Tests\TestCase;
 
 final class ScenarioPlayerGraphTest extends TestCase
@@ -160,8 +160,8 @@ final class ScenarioPlayerGraphTest extends TestCase
                     'mode' => 'manual',
                     'question' => 'Куда перейти?',
                     'options' => [
-                        ['label' => 'Влево', 'targetNodeId' => 'left'],
-                        ['label' => 'Вправо', 'targetNodeId' => 'right'],
+                        ['label' => 'Влево', 'condition' => 'true', 'targetNodeId' => 'left'],
+                        ['label' => 'Вправо', 'condition' => 'true', 'targetNodeId' => 'right'],
                     ],
                 ]),
                 $this->node('left', 'end', ['title' => 'Left']),
@@ -194,10 +194,6 @@ final class ScenarioPlayerGraphTest extends TestCase
                 $this->node('choice', 'condition', [
                     'mode' => 'manual',
                     'value' => '{{ segment }}',
-                    'conditionBranches' => [
-                        ['id' => 'vip_branch', 'label' => 'VIP'],
-                        ['id' => 'regular_branch', 'label' => 'Обычный'],
-                    ],
                 ]),
                 $this->node('vip', 'end', ['title' => 'VIP']),
                 $this->node('regular', 'end', ['title' => 'Regular']),
@@ -253,7 +249,7 @@ final class ScenarioPlayerGraphTest extends TestCase
         $this->assertSame('Adult', $this->renderedTitle($run));
     }
 
-    public function test_manual_condition_without_else_shows_logical_branches_when_no_edge_matches(): void
+    public function test_manual_condition_shows_else_when_no_regular_condition_matches(): void
     {
         $scenario = $this->scenarioWithRevision(
             nodes: [
@@ -265,10 +261,10 @@ final class ScenarioPlayerGraphTest extends TestCase
                     'mode' => 'manual',
                     'value' => '{{ answer }}',
                     'question' => 'Выберите ответ',
-                    'conditionBranches' => [
-                        ['id' => 'yes_branch', 'label' => 'Да'],
-                        ['id' => 'no_branch', 'label' => 'Нет'],
-                        ['id' => 'empty_branch', 'label' => 'Пусто'],
+                    'options' => [
+                        ['label' => 'Да', 'condition' => 'false', 'targetNodeId' => 'yes'],
+                        ['label' => 'Нет', 'condition' => 'false', 'targetNodeId' => 'no'],
+                        ['label' => 'Иначе', 'condition' => '{{ isElse() }}', 'targetNodeId' => 'empty'],
                     ],
                 ]),
                 $this->node('yes', 'end', ['title' => 'Yes']),
@@ -299,8 +295,8 @@ final class ScenarioPlayerGraphTest extends TestCase
         $this->assertSame('condition', $rendered['type'] ?? null);
         $options = $rendered['options'] ?? null;
         $this->assertIsArray($options);
-        $this->assertCount(3, $options);
-        $this->assertSame(['Да', 'Нет', 'Пусто'], array_column($options, 'label'));
+        $this->assertCount(1, $options);
+        $this->assertSame(['Иначе'], array_column($options, 'label'));
     }
 
     public function test_scenario_link_switches_graph_and_continues_to_target_block(): void

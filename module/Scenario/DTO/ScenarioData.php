@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Module\Scenario\DTO;
 
 use Illuminate\Http\Request;
+use Module\Scenario\Enums\ScenarioType;
 
 final readonly class ScenarioData
 {
@@ -22,6 +23,8 @@ final readonly class ScenarioData
         public array $categoryIds,
         public array $groupIds,
         public ?int $actorId,
+        public ScenarioType $type = ScenarioType::Colls,
+        public bool $hasType = false,
         public ?string $activeVersionId = null,
         public bool $hasActiveVersion = false,
     ) {
@@ -38,6 +41,8 @@ final readonly class ScenarioData
             categoryIds: self::stringArray($request->input('category_ids')),
             groupIds: self::stringArray($request->input('group_ids')),
             actorId: $request->user()?->id,
+            type: $request->enum('type', ScenarioType::class) ?? ScenarioType::Colls,
+            hasType: $request->has('type'),
             activeVersionId: $request->filled('active_version_id') ? $request->string('active_version_id')->toString(
             ) : null,
             hasActiveVersion: $request->has('active_version_id'),
@@ -74,6 +79,10 @@ final readonly class ScenarioData
 
         if ($this->hasActiveVersion) {
             $attributes['active_version_id'] = $this->activeVersionId;
+        }
+
+        if ($this->hasType) {
+            $attributes['type'] = $this->type->value;
         }
 
         return $attributes;

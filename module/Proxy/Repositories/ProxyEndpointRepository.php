@@ -11,6 +11,15 @@ use Module\Proxy\Models\ProxyEndpoint;
 
 final class ProxyEndpointRepository
 {
+    public function findActiveByUuidForProjectOrFail(string $uuid, ?string $projectId): ProxyEndpoint
+    {
+        return ProxyEndpoint::query()
+            ->where('uuid', $uuid)
+            ->where('project_id', $projectId)
+            ->where('is_active', true)
+            ->firstOrFail();
+    }
+
     /** @return LengthAwarePaginator<int, ProxyEndpoint> */
     public function paginate(ProxyEndpointIndexData $data, string $projectId): LengthAwarePaginator
     {

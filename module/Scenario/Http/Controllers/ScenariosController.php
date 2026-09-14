@@ -18,8 +18,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Scenario\Http\Resources\JsonApi\ScenariosResource;
 use Module\Scenario\Models\Scenario;
 use Module\Projects\CurrentProject;
-use Module\Scenario\Services\ScenarioService;
-use Module\Scenario\Services\ScenariosService;
+use Module\Scenario\Services\Definition\ScenarioService;
+use Module\Scenario\Services\Definition\ScenariosService;
 
 final class ScenariosController extends Controller
 {

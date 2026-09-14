@@ -1,5 +1,5 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
-import type {CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import type {CategoryRef, ScenarioCategoryPayload} from '@/modules/scenario/types/category'
 
 interface JsonApiItem {
     id: string
@@ -33,15 +33,6 @@ function normalize(item: JsonApiItem): CategoryRef {
         created_at: item.attributes?.created_at ?? null,
         updated_at: item.attributes?.updated_at ?? null,
     }
-}
-
-export interface ScenarioCategoryPayload {
-    name: string
-    parent_id: string | null
-    is_active: boolean
-    group_ids?: string[]
-    inherit_to_descendants?: boolean
-    is_workspace?: boolean
 }
 
 export const scenarioCategoryRepository = {

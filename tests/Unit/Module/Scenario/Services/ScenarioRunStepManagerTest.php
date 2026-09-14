@@ -9,7 +9,7 @@ use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Models\ScenarioRunStep;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioRunStepManager;
+use Module\Scenario\Services\Runtime\ScenarioRunStepManager;
 use Tests\TestCase;
 
 final class ScenarioRunStepManagerTest extends TestCase

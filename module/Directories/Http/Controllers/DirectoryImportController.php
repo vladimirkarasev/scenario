@@ -14,6 +14,7 @@ use Module\Directories\Http\Requests\StoreDirectoryImportRequest;
 use Module\Directories\Http\Resources\JsonApi\DirectoryImportResource;
 use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryImport;
+use Module\Directories\Repositories\DirectoryImportRepository;
 use Module\Directories\Services\DirectoryService;
 use Module\Directories\Services\DirectoryManager;
 
@@ -22,6 +23,7 @@ final class DirectoryImportController extends Controller
     public function __construct(
         private readonly DirectoryManager $directories,
         private readonly DirectoryService $directoryService,
+        private readonly DirectoryImportRepository $imports,
     ) {
     }
 
@@ -32,20 +34,14 @@ final class DirectoryImportController extends Controller
             $this->directoryService->currentProjectForUser($request->user()),
         );
 
-        $query = DirectoryImport::query()
-            ->where('directory_id', $directory->id)
-            ->latest();
+        $rawVersionId = $request->query('version_id');
+        $versionId = is_numeric($rawVersionId) ? (int) $rawVersionId : null;
+        $imports = $this->imports->paginateForDirectory($directory, $versionId, 50);
+        $payloads = $imports->getCollection()
+            ->map(fn(DirectoryImport $import): array => $this->directoryService->importPayload($import))
+            ->values();
 
-        if ($versionId = $request->query('version_id')) {
-            $query->where('directory_version_id', (int)$versionId);
-        }
-
-        $imports = $query->paginate(50);
-
-        return DirectoryImportResource::collection(
-            $imports->map(fn(DirectoryImport $import): array => $this->directoryService->importPayload($import),
-            )->values()->all(),
-        )->additional([
+        return DirectoryImportResource::collection($payloads)->additional([
             'meta' => [
                 'current_page' => $imports->currentPage(),
                 'last_page' => $imports->lastPage(),

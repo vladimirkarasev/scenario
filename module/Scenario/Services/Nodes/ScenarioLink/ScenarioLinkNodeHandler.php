@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Module\Scenario\Services\Nodes\ScenarioLink;
 
-use Illuminate\Support\Facades\Event;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Str;
 use Module\Scenario\DTO\ScenarioRunContinueData;
+use Module\Scenario\DTO\ScenarioCallFrame;
+use Module\Scenario\DTO\ScenarioCallStack;
 use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Events\ScenarioLinkFollowed;
 use Module\Scenario\Models\ScenarioRun;
@@ -14,21 +16,21 @@ use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Repositories\ScenarioRunStepRepository;
 use Module\Scenario\Repositories\ScenarioVersionRepository;
 use Module\Scenario\Services\Nodes\NodeAdvanceResult;
+use Module\Scenario\Services\Nodes\NodeDataReader;
 use Module\Scenario\Services\Nodes\NodeHandlerInterface;
-use Module\Scenario\Services\Nodes\NodeHelpers;
-use Module\Scenario\Services\ScenarioGraphResolver;
-use Module\Scenario\Services\ScenarioVariableMapBuilder;
+use Module\Scenario\Services\Graph\ScenarioGraphResolver;
+use Module\Scenario\Services\Variables\ScenarioVariableMapBuilder;
 use RuntimeException;
 
 final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
 {
-    use NodeHelpers;
-
     public function __construct(
         private ScenarioGraphResolver $graphResolver,
         private ScenarioRunStepRepository $steps,
         private ScenarioVariableMapBuilder $variableMapBuilder,
         private ScenarioVersionRepository $versions,
+        private Dispatcher $events,
+        private NodeDataReader $nodeData,
     ) {
     }
 
@@ -39,9 +41,9 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
 
     public function advance(ScenarioRun $run, array $node): NodeAdvanceResult
     {
-        $data = $this->nodeData($node);
-        $targetScenarioId = $this->strField($data, 'targetScenarioId');
-        $targetVersionId = trim($this->strField($data, 'targetVersionId'));
+        $data = $this->nodeData->data($node);
+        $targetScenarioId = $this->nodeData->string($data, 'targetScenarioId');
+        $targetVersionId = trim($this->nodeData->string($data, 'targetVersionId'));
 
         if (!Str::isUuid($targetScenarioId)) {
             throw new RuntimeException('Scenario link target scenario id must be a valid UUID.');
@@ -68,9 +70,9 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         }
 
         $startNode = $this->graphResolver->findStartNode($targetVersion);
-        $startNodeId = $this->nodeId($startNode);
-        $nodeId = $this->nodeId($node);
-        $nodeType = $this->nodeType($node);
+        $startNodeId = $this->nodeData->id($startNode);
+        $nodeId = $this->nodeData->id($node);
+        $nodeType = $this->nodeData->type($node);
 
         $parentVersion = $this->parentVersion($run);
         $returnNodeId = $parentVersion !== null
@@ -88,7 +90,7 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             ],
         ]);
 
-        Event::dispatch(new ScenarioLinkFollowed(
+        $this->events->dispatch(new ScenarioLinkFollowed(
             $run,
             $node,
             $step,
@@ -103,15 +105,13 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
         $currentVariableMap = is_array($context[ScenarioContextKey::VariableMap->value] ?? null)
             ? $context[ScenarioContextKey::VariableMap->value]
             : [];
-        $callStack = is_array($context[ScenarioContextKey::CallStack->value] ?? null)
-            ? $context[ScenarioContextKey::CallStack->value]
-            : [];
-
-        $callStack[] = [
-            'version_id' => $run->scenario_version_id,
-            'revision_id' => $run->scenario_version_revision_id,
-            'return_node_id' => $returnNodeId,
-        ];
+        $callStack = ScenarioCallStack::from($context[ScenarioContextKey::CallStack->value] ?? null)->push(
+            new ScenarioCallFrame(
+                versionId: $run->scenario_version_id,
+                revisionId: $run->scenario_version_revision_id,
+                returnNodeId: $returnNodeId,
+            ),
+        );
 
         $run->forceFill([
             'scenario_version_id' => $targetVersion->id,
@@ -119,7 +119,7 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
             'current_node_id' => $startNodeId,
             'context' => [
                 ...$context,
-                ScenarioContextKey::CallStack->value => $callStack,
+                ScenarioContextKey::CallStack->value => $callStack->toArray(),
                 ScenarioContextKey::VariableMap->value => [...$currentVariableMap, ...$targetVariableMap],
             ],
         ])->save();
@@ -150,8 +150,8 @@ final readonly class ScenarioLinkNodeHandler implements NodeHandlerInterface
     public function render(ScenarioVersion $version, array $node, array $context): array
     {
         return [
-            'type' => $this->nodeType($node),
-            'data' => $this->nodeData($node),
+            'type' => $this->nodeData->type($node),
+            'data' => $this->nodeData->data($node),
         ];
     }
 }

@@ -1,11 +1,22 @@
 import {duplicateBlockFieldIds, normalizeScenarioBlockField, type BlockField} from '@/modules/scenario/lib/scenario-block-fields'
+import {normalizeConditionAnswerIcon} from '@/modules/scenario/lib/condition-answer-icons'
 import {ScenarioContextKey} from '@/modules/scenario/types/scenario-context-key'
 
-export type NodeType = 'start' | 'block' | 'action' | 'condition' | 'end' | 'scenario_link'
+export type NodeType = 'start' | 'block' | 'question' | 'action' | 'condition' | 'end' | 'scenario_link'
+
+export function isContentNodeType(type: string): type is 'block' | 'question' {
+    return type === 'block' || type === 'question'
+}
 
 export interface ConditionBranch {
     id: string
     label: string
+    icon: string | null
+    condition: string
+    action: 'transition' | 'url'
+    url: string
+    width: 'full' | 'half'
+    priority: number
 }
 
 export interface ScenarioBlockData {
@@ -113,6 +124,18 @@ function defaultNodeData(type: string): ScenarioBlockData {
             description: '',
             conditionBranches: []
         },
+        question: {
+            title: 'Вопрос',
+            hideTitle: false,
+            variable: 'Question',
+            skipInSurvey: false,
+            text: '',
+            fields: [],
+            targetScenarioId: null,
+            targetVersionId: null,
+            description: '',
+            conditionBranches: []
+        },
         action: {
             title: 'Действие',
             hideTitle: true,
@@ -168,14 +191,26 @@ function normalizeBlock(block: unknown, index: number): ScenarioBlock {
     const defaultData = defaultNodeData(type)
     const rawData = asRecord(b?.data)
     const rawPosition = asRecord(b?.position)
-    const rawBranches: unknown[] = Array.isArray(rawData.conditionBranches)
+    const rawBranches: unknown[] = Array.isArray(rawData.conditionBranches) && rawData.conditionBranches.length > 0
         ? rawData.conditionBranches as unknown[]
-        : type === 'condition'
-            ? [
-                {id: 'branch_yes', label: rawData.positiveLabel ?? defaultData.conditionBranches[0]?.label},
-                {id: 'branch_no', label: rawData.negativeLabel ?? defaultData.conditionBranches[1]?.label},
-            ]
+        : Array.isArray(rawData.options)
+            ? rawData.options as unknown[]
             : []
+    const conditionBranches = rawBranches.map((branch: unknown, branchIndex: number): ConditionBranch => {
+        const br = branch as Record<string, unknown> | null
+        const rawPriority = Number(br?.priority ?? branchIndex + 1)
+
+        return {
+            id: String(br?.id ?? uid(`condition_branch_${branchIndex}`)),
+            label: String(br?.label ?? (branchIndex === 0 ? 'Да' : branchIndex === 1 ? 'Нет' : `Вариант ${branchIndex + 1}`)),
+            icon: normalizeConditionAnswerIcon(br?.icon),
+            condition: String(br?.condition ?? 'true'),
+            action: br?.action === 'url' ? 'url' : 'transition',
+            url: String(br?.url ?? ''),
+            width: br?.width === 'half' ? 'half' : 'full',
+            priority: Number.isInteger(rawPriority) && rawPriority > 0 ? rawPriority : branchIndex + 1,
+        }
+    })
 
     return {
         id: String(b?.id ?? uid(`block_${index}`)),
@@ -188,7 +223,7 @@ function normalizeBlock(block: unknown, index: number): ScenarioBlock {
             ...defaultData,
             ...rawData,
             hideTitle: Boolean(rawData.hideTitle ?? true),
-            variable: String(rawData.variable ?? (type === 'block' ? (rawData.title ?? defaultData.title) : '')),
+            variable: String(rawData.variable ?? (isContentNodeType(type) ? (rawData.title ?? defaultData.title) : '')),
             skipInSurvey: Boolean(rawData.skipInSurvey ?? false),
             fields: Array.isArray(rawData.fields)
                 ? (rawData.fields as unknown[]).map(normalizeScenarioBlockField)
@@ -196,13 +231,8 @@ function normalizeBlock(block: unknown, index: number): ScenarioBlock {
             targetScenarioId: rawData.targetScenarioId ? String(rawData.targetScenarioId) : null,
             targetVersionId: rawData.targetVersionId ? String(rawData.targetVersionId) : null,
             description: typeof rawData.description === 'string' ? rawData.description : (defaultData.description ?? ''),
-            conditionBranches: rawBranches.map((branch: unknown, branchIndex: number) => {
-                const br = branch as Record<string, unknown> | null
-                return {
-                    id: String(br?.id ?? uid(`condition_branch_${branchIndex}`)),
-                    label: String(br?.label ?? (branchIndex === 0 ? 'Да' : branchIndex === 1 ? 'Нет' : `Вариант ${branchIndex + 1}`)),
-                }
-            }),
+            conditionBranches,
+            ...(type === 'condition' ? {options: conditionBranches} : {}),
         },
     }
 }
@@ -305,6 +335,7 @@ export function normalizeScenarioFlowDocument(value: unknown): ScenarioFlowDocum
 export function toVueFlowState(document: unknown, scenarios: Scenario[] = []) {
     const normalized = normalizeScenarioFlowDocument(document)
     const scenariosById = new Map(scenarios.map((scenario) => [scenario.id, scenario]))
+    const nodeTypesById = new Map(normalized.blocks.map((block) => [block.id, block.type]))
 
     return {
         nodes: normalized.blocks.map((block) => ({
@@ -326,7 +357,9 @@ export function toVueFlowState(document: unknown, scenarios: Scenario[] = []) {
                 sourceHandle: connection.source.port,
                 target: connection.target.blockId,
                 targetHandle: connection.target.port,
-                label: connection.label ?? undefined,
+                label: nodeTypesById.get(connection.source.blockId) === 'condition'
+                    ? undefined
+                    : connection.label ?? undefined,
                 data: connection.data,
                 type: 'smoothstep',
             })),
@@ -387,6 +420,7 @@ function duplicateBlockData(data: ScenarioBlockData): ScenarioBlockData {
             ...branch,
             id: uid('condition_branch'),
         }))
+        cloned.options = cloned.conditionBranches
     }
 
     const actionItems = cloned.action_items
@@ -409,13 +443,23 @@ export function duplicateScenarioFlowBlocks(
     offset: { x: number; y: number },
 ): { blocks: ScenarioBlock[]; connections: ScenarioConnection[] } {
     const idMap = new Map<string, string>()
+    const conditionBranchIdMaps = new Map<string, Map<string, string>>()
 
     const duplicatedBlocks = blocks.map((block) => {
         const newId = uid(block.type)
         idMap.set(block.id, newId)
         const data = duplicateBlockData(block.data)
 
-        if (block.type === 'block') {
+        if (block.type === 'condition') {
+            conditionBranchIdMaps.set(block.id, new Map(
+                block.data.conditionBranches.map((branch, index) => [
+                    branch.id,
+                    data.conditionBranches[index]?.id ?? branch.id,
+                ]),
+            ))
+        }
+
+        if (isContentNodeType(block.type)) {
             data.variable = blockVariableFromId(newId)
         }
 
@@ -432,7 +476,14 @@ export function duplicateScenarioFlowBlocks(
         .map((connection) => ({
             ...clone(connection),
             id: uid('connection'),
-            source: {...connection.source, blockId: idMap.get(connection.source.blockId)!},
+            source: {
+                ...connection.source,
+                blockId: idMap.get(connection.source.blockId)!,
+                port: connection.source.port
+                    ? conditionBranchIdMaps.get(connection.source.blockId)?.get(connection.source.port)
+                    ?? connection.source.port
+                    : null,
+            },
             target: {...connection.target, blockId: idMap.get(connection.target.blockId)!},
         }))
 

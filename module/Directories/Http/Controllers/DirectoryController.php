@@ -51,7 +51,7 @@ final class DirectoryController extends Controller
             $this->directoryService->currentProjectForUser($request->user()),
         );
 
-        $directory->delete();
+        $this->directoryService->delete($directory);
 
         return new JsonResponse(status: 204);
     }

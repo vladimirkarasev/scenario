@@ -97,8 +97,8 @@ final class ConditionNodeHandlerTest extends TestCase
                 'mode' => 'manual',
                 'question' => 'Which way?',
                 'options' => [
-                    ['label' => 'Left', 'targetNodeId' => 'node_a'],
-                    ['label' => 'Right', 'targetNodeId' => 'node_b'],
+                    ['label' => 'Left', 'condition' => 'true', 'targetNodeId' => 'node_a'],
+                    ['label' => 'Right', 'condition' => 'true', 'targetNodeId' => 'node_b'],
                 ],
             ],
         ];
@@ -131,7 +131,7 @@ final class ConditionNodeHandlerTest extends TestCase
         $this->assertFalse($result['hideTitle']);
     }
 
-    public function test_render_uses_condition_branches_when_no_explicit_options(): void
+    public function test_render_ignores_condition_branches_and_uses_outgoing_edges(): void
     {
         $node = [
             'id' => 'node_condition',
@@ -151,8 +151,137 @@ final class ConditionNodeHandlerTest extends TestCase
         $this->assertCount(2, $options);
         $firstOption = $options[0] ?? null;
         $this->assertIsArray($firstOption);
-        $this->assertSame('Option A', $firstOption['label'] ?? null);
+        $this->assertSame('Continue', $firstOption['label'] ?? null);
         $this->assertSame('node_a', $firstOption['targetNodeId'] ?? null);
+    }
+
+    public function test_render_filters_buttons_by_condition_and_includes_url_action(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'options' => [
+                    [
+                        'id' => 'branch_a',
+                        'label' => 'Продолжить',
+                        'icon' => 'check',
+                        'condition' => '{{ age >= 18 }}',
+                        'targetNodeId' => 'node_a',
+                    ],
+                    [
+                        'id' => 'branch_b',
+                        'label' => 'Для детей',
+                        'condition' => '{{ age < 18 }}',
+                        'targetNodeId' => 'node_b',
+                    ],
+                    [
+                        'id' => 'branch_url',
+                        'label' => 'Открыть сайт',
+                        'icon' => 'message',
+                        'condition' => '{{ age >= 18 }}',
+                        'action' => 'url',
+                        'url' => 'https://example.com/users/{{ age }}',
+                    ],
+                    [
+                        'id' => 'branch_unsafe_url',
+                        'label' => 'Опасная ссылка',
+                        'action' => 'url',
+                        'url' => 'javascript:alert(1)',
+                    ],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, ['age' => 20]);
+
+        $this->assertSame([
+            [
+                'label' => 'Продолжить',
+                'icon' => 'check',
+                'targetNodeId' => 'node_a',
+                'url' => null,
+                'width' => 'full',
+            ],
+            [
+                'label' => 'Открыть сайт',
+                'icon' => 'message',
+                'targetNodeId' => null,
+                'url' => 'https://example.com/users/20',
+                'width' => 'full',
+            ],
+        ], $result['options']);
+    }
+
+    public function test_render_uses_else_only_when_no_regular_condition_matches(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'options' => [
+                    [
+                        'label' => 'Иначе',
+                        'condition' => '{{ isElse() }}',
+                        'priority' => 1,
+                        'targetNodeId' => 'node_b',
+                    ],
+                    [
+                        'label' => 'Совершеннолетний',
+                        'condition' => '{{ age >= 18 }}',
+                        'priority' => 2,
+                        'targetNodeId' => 'node_a',
+                    ],
+                ],
+            ],
+        ];
+
+        $matched = $this->handler->render($this->version, $node, ['age' => 20]);
+        $fallback = $this->handler->render($this->version, $node, ['age' => 16]);
+
+        $this->assertSame(['Совершеннолетний'], array_column($matched['options'], 'label'));
+        $this->assertSame(['Иначе'], array_column($fallback['options'], 'label'));
+    }
+
+    public function test_render_orders_matching_options_by_priority(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'options' => [
+                    ['label' => 'Третий', 'condition' => 'true', 'priority' => 3, 'targetNodeId' => 'node_a'],
+                    ['label' => 'Первый', 'condition' => 'true', 'priority' => 1, 'targetNodeId' => 'node_b'],
+                ],
+            ],
+        ];
+
+        $result = $this->handler->render($this->version, $node, []);
+
+        $this->assertSame(['Первый', 'Третий'], array_column($result['options'], 'label'));
+    }
+
+    public function test_continue_from_manual_rejects_hidden_button_target(): void
+    {
+        $node = [
+            'id' => 'node_condition',
+            'type' => 'condition',
+            'data' => [
+                'options' => [
+                    ['id' => 'branch_a', 'label' => 'A', 'condition' => '{{ allowed }}', 'targetNodeId' => 'node_a'],
+                    ['id' => 'branch_b', 'label' => 'B', 'condition' => 'true', 'targetNodeId' => 'node_b'],
+                ],
+            ],
+        ];
+        $this->run->update(['context' => ['allowed' => false]]);
+
+        $this->expectException(ValidationException::class);
+
+        $this->handler->continueFrom(
+            $this->run->refresh(),
+            $node,
+            new ScenarioRunContinueData([], 'node_a'),
+        );
     }
 
     public function test_render_resolves_variables_in_tiptap_content(): void
@@ -185,18 +314,18 @@ final class ConditionNodeHandlerTest extends TestCase
                 'question' => 'Q',
                 'title' => 'T',
                 'text' => 'X',
-                'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]
+                'options' => [['label' => 'Go', 'condition' => 'true', 'targetNodeId' => 'node_a']]
             ],
         ];
         $nodeWithTitle = [
             'id' => 'node_condition',
             'type' => 'condition',
-            'data' => ['title' => 'T', 'text' => 'X', 'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]],
+            'data' => ['title' => 'T', 'text' => 'X', 'options' => [['label' => 'Go', 'condition' => 'true', 'targetNodeId' => 'node_a']]],
         ];
         $nodeWithText = [
             'id' => 'node_condition',
             'type' => 'condition',
-            'data' => ['text' => 'X', 'options' => [['label' => 'Go', 'targetNodeId' => 'node_a']]],
+            'data' => ['text' => 'X', 'options' => [['label' => 'Go', 'condition' => 'true', 'targetNodeId' => 'node_a']]],
         ];
 
         $this->assertSame('Q', $this->handler->render($this->version, $nodeWithQuestion, [])['question']);
@@ -212,8 +341,8 @@ final class ConditionNodeHandlerTest extends TestCase
             'data' => [
                 'mode' => 'manual',
                 'options' => [
-                    ['label' => 'A', 'targetNodeId' => 'node_a'],
-                    ['label' => 'B', 'targetNodeId' => 'node_b'],
+                    ['label' => 'A', 'condition' => 'true', 'targetNodeId' => 'node_a'],
+                    ['label' => 'B', 'condition' => 'true', 'targetNodeId' => 'node_b'],
                 ],
             ],
         ];
@@ -235,7 +364,7 @@ final class ConditionNodeHandlerTest extends TestCase
             'data' => [
                 'mode' => 'manual',
                 'options' => [
-                    ['label' => 'A', 'targetNodeId' => 'node_a'],
+                    ['label' => 'A', 'condition' => 'true', 'targetNodeId' => 'node_a'],
                 ],
             ],
         ];

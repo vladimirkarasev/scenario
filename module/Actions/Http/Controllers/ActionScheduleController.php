@@ -6,7 +6,6 @@ namespace Module\Actions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Module\Actions\Http\Requests\ActionScheduleRequest;
 use Module\Actions\Http\Resources\JsonApi\ActionScheduleResource;
 use Module\Actions\Models\Action;
@@ -45,10 +44,8 @@ final class ActionScheduleController extends Controller
         return new ActionScheduleResource($schedule);
     }
 
-    public function destroy(Request $request, Action $action): JsonResponse
+    public function destroy(Action $action): JsonResponse
     {
-        abort_unless($request->user() !== null, 403);
-
         $schedule = $action->schedule()->first();
 
         if ($schedule instanceof ActionSchedule) {

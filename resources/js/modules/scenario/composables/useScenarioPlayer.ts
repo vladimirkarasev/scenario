@@ -149,7 +149,7 @@ export function useScenarioPlayer() {
         ]
     }
 
-    const VISIBLE_NODE_TYPES = ['block', 'condition', 'action']
+    const VISIBLE_NODE_TYPES = ['block', 'question', 'condition', 'action']
 
     function buildTimelineFromSteps(nextRun: ScenarioRunPayload): void {
         const existingKeys = new Set(timeline.value.map((e) => e.key))

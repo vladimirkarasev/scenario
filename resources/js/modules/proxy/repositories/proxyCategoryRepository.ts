@@ -1,5 +1,6 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
 import type {ProxyCategory} from '@/modules/proxy/types/webhook'
+import type {ProxyCategoryPayload} from '@/modules/proxy/types/category'
 
 interface JsonApiItem {
     id: string
@@ -27,12 +28,6 @@ function normalize(item: JsonApiItem): ProxyCategory {
         created_at: item.attributes?.created_at ?? null,
         updated_at: item.attributes?.updated_at ?? null,
     }
-}
-
-export interface ProxyCategoryPayload {
-    name: string
-    parent_id: string | null
-    is_active: boolean
 }
 
 export const proxyCategoryRepository = {

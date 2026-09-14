@@ -7,14 +7,17 @@ import type {
     ScenarioVersionRef,
     ScenarioActor,
     ScenarioStatus,
+    ScenarioType,
     GroupRef
 } from '@/modules/scenario/types/scenario'
+import type {FeedFolder, FeedScenario, ScenarioFeedResult} from '@/modules/scenario/types/scenario-feed'
 
 interface RawScenarioAttributes {
     name: string
     description: string | null
     is_active: boolean
     status: ScenarioStatus
+    type: ScenarioType
     alias: string | null
     tags: string[] | null
     active_version_id: string | null
@@ -72,6 +75,7 @@ function normalizeScenario(raw: RawScenario, catMap: Map<string, ScenarioCategor
         description: a.description,
         is_active: a.is_active,
         status: a.status,
+        type: a.type ?? 'colls',
         alias: a.alias,
         tags: a.tags ?? [],
         active_version_id: a.active_version_id,
@@ -115,29 +119,6 @@ function normalizeCategory(r: RawCategory): ScenarioCategory {
     }
 }
 
-export interface FeedFolder {
-    id: string
-    name: string
-    parent_id: string | null
-    parent_path: string
-    path_ids: string[]
-    children_count: number
-}
-
-export interface FeedScenario {
-    id: string
-    name: string
-    status: ScenarioStatus
-    folder_id: string | null
-    folder_path: string
-    active_version_id: string | null
-}
-
-export interface ScenarioFeedResult {
-    folders: FeedFolder[]
-    scenarios: FeedScenario[]
-}
-
 interface FeedRow {
     type?: string
 
@@ -157,6 +138,7 @@ function parseFeedRows(rows: FeedRow[]): ScenarioFeedResult {
         id: String(r.id),
         name: typeof r.name === 'string' ? r.name : '',
         status: (typeof r.status === 'string' ? r.status : 'draft') as ScenarioStatus,
+        scenario_type: (typeof r.scenario_type === 'string' ? r.scenario_type : 'colls') as ScenarioType,
         folder_id: typeof r.folder_id === 'string' ? r.folder_id : null,
         folder_path: typeof r.folder_path === 'string' ? r.folder_path : '',
         active_version_id: typeof r.active_version_id === 'string' ? r.active_version_id : null,

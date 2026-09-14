@@ -4,6 +4,7 @@ import {
   addEdge,
   type Connection,
   type EdgeUpdateEvent,
+  type NodeDragEvent,
   type ViewportTransform,
 } from '@vue-flow/core'
 import FlowPalette from './FlowPalette.vue'
@@ -14,6 +15,7 @@ import {
   blockVariableFromId,
   createEmptyScenarioFlowDocument,
   createScenarioFlowNode,
+  isContentNodeType,
   normalizeScenarioFlowDocument,
 } from '@/modules/scenario/lib/scenario-flow-document'
 import {saveScenarioVersionDraft} from '@/modules/scenario/lib/scenario-version-draft'
@@ -31,11 +33,14 @@ import type {
   ScenarioFlowEditorProps,
   ScenarioFlowNode,
 } from '@/modules/scenario/types/scenario-flow-editor'
+import {provideScenarioSystemVariables} from '@/modules/scenario/composables/useScenarioSystemVariables'
+import {provideScenarioNodeCatalog} from '@/modules/scenario/composables/useScenarioNodeCatalog'
 
 const props = withDefaults(defineProps<ScenarioFlowEditorProps>(), {
   modelValue: () => createEmptyScenarioFlowDocument(),
   scenarios: () => [],
   editable: false,
+  scenarioType: 'colls',
   scenarioId: null,
   versionId: null,
 })
@@ -43,6 +48,9 @@ const props = withDefaults(defineProps<ScenarioFlowEditorProps>(), {
 const emit = defineEmits<{
   dirtyChange: [dirty: boolean]
 }>()
+
+provideScenarioSystemVariables(() => props.scenarioType)
+const {nodes: availableNodeTypes} = provideScenarioNodeCatalog(() => props.scenarioType)
 
 const nodes = ref<ScenarioFlowNode[]>([])
 const edges = ref<ScenarioFlowEdge[]>([])
@@ -82,6 +90,7 @@ const {
   deleteSelected,
   onNodeClick,
   onNodeDoubleClick,
+  onNodeDragStart: selectDraggedNode,
   onEdgeClick,
   onPaneClick,
   updateConditionEdgeSetting,
@@ -114,6 +123,27 @@ const {
   onChanged: () => notifyChanged(),
 })
 
+function syncSelectedNodeAndPruneConditionEdges(): void {
+  syncSelectedNode()
+
+  const node = selectedNode.value
+  if (node?.type !== 'condition') {
+    return
+  }
+
+  const answerIds = new Set(node.data.conditionBranches
+    .filter((answer) => answer.action === 'transition')
+    .map((answer) => answer.id))
+  edges.value = edges.value.filter((edge) => edge.source !== node.id
+    || !edge.sourceHandle
+    || answerIds.has(edge.sourceHandle))
+}
+
+function commitInspectorAndSyncGraph(): void {
+  syncSelectedNodeAndPruneConditionEdges()
+  commitInspector()
+}
+
 const {
   activeRightTab,
   draggingNode,
@@ -121,7 +151,7 @@ const {
   currentFlowDocument,
   markChanged,
   markSaved,
-  onNodeDragStart,
+  onNodeDragStart: startNodeDragTracking,
   onNodeDragStop,
   switchToJsonTab,
   applyJsonEdit,
@@ -150,7 +180,7 @@ function selectRightTab(tab: EditorTab): void {
 }
 
 function addNode(type: NodeType): void {
-  if (!props.editable) {
+  if (!props.editable || !availableNodeTypes.value.some((item) => item.type === type)) {
     return
   }
 
@@ -162,7 +192,7 @@ function addNode(type: NodeType): void {
   }
   const block = createScenarioFlowNode(type, position)
 
-  if (type === 'block') {
+  if (isContentNodeType(type)) {
     block.data.variable = blockVariableFromId(block.id)
   }
 
@@ -185,12 +215,17 @@ function onConnect(connection: Connection): void {
     return
   }
 
+  const sourceNode = nodes.value.find((node) => node.id === connection.source)
+  const remainingEdges = sourceNode?.type === 'condition' && connection.sourceHandle
+    ? edges.value.filter((edge) => edge.source !== connection.source || edge.sourceHandle !== connection.sourceHandle)
+    : edges.value
+
   edges.value = addEdge({
     ...connection,
     id: `edge_${Date.now()}`,
     data: {value: ''},
     type: 'smoothstep',
-  }, edges.value) as ScenarioFlowEdge[]
+  }, remainingEdges) as ScenarioFlowEdge[]
   markChanged()
 }
 
@@ -217,6 +252,11 @@ function onEdgeUpdate({edge, connection}: EdgeUpdateEvent): void {
 function onSelectionDragStop(): void {
   syncSelectionFromFlow()
   markChanged()
+}
+
+function onNodeDragStart(event: NodeDragEvent): void {
+  selectDraggedNode(event)
+  startNodeDragTracking()
 }
 
 function onConditionEdgeUpdate(payload: {key: string; value: unknown}): void {
@@ -257,7 +297,7 @@ function onActionNodeUpdate(data: Partial<ScenarioBlockData>): void {
 function openSelectedNodeEditor(): void {
   if (!selectedNode.value) return
 
-  if (selectedNode.value.type === 'block') {
+  if (isContentNodeType(selectedNode.value.type)) {
     openBlockEditor(selectedNode.value.id)
     return
   }
@@ -273,7 +313,7 @@ function openSelectedNodeEditor(): void {
 function openBlockEditor(blockId?: string): void {
   const block = nodes.value.find((node) => node.id === (blockId ?? selectedNode.value?.id))
 
-  if (!block || block.type !== 'block' || !props.scenarioId) {
+  if (!block || !isContentNodeType(block.type) || !props.scenarioId) {
     return
   }
 
@@ -377,10 +417,10 @@ defineExpose<ScenarioFlowEditorExpose>({
         :editable="editable"
         :scenario-id="scenarioId"
         :version-id="versionId"
-        @sync-selected-node="syncSelectedNode"
+        @sync-selected-node="syncSelectedNodeAndPruneConditionEdges"
         @update-block-variable="updateBlockVariable"
         @open-block-editor="openBlockEditor"
-        @commit-inspector="commitInspector"
+        @commit-inspector="commitInspectorAndSyncGraph"
         @cancel-inspector="cancelInspector"
         @apply-condition-logical-variable="applyConditionLogicalVariable"
         @update-condition-edge="onConditionEdgeUpdate"

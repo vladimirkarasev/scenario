@@ -42,6 +42,7 @@ final class ScenarioFeedResource extends JsonApiResource
                 'alias' => $this->resource->alias,
                 'description' => $this->resource->description,
                 'status' => $this->resource->status,
+                'scenario_type' => $this->resource->scenarioType,
                 'folder_id' => $this->resource->folderId,
                 'folder_path' => $this->resource->folderPath,
                 'tags' => $this->resource->tags,

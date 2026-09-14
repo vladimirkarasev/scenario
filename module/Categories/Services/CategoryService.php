@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Module\Categories\Services;
 
+use App\Exceptions\ConflictException;
+use App\Exceptions\ForbiddenException;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
 use Module\Categories\DTO\CategoryActionData;
 use Module\Categories\DTO\CategoryData;
+use Module\Categories\Enums\CategoryErrorCode;
 use Module\Categories\Repositories\CategoryRepositoryContract;
 
 final readonly class CategoryService
@@ -91,11 +94,9 @@ final readonly class CategoryService
             return;
         }
 
-        abort_if(
-            in_array($parentId, $this->descendantIds($category), true),
-            422,
-            'Category cannot be moved inside its own subtree.',
-        );
+        if (in_array($parentId, $this->descendantIds($category), true)) {
+            throw ConflictException::from(CategoryErrorCode::ParentCycle);
+        }
     }
 
     /** @return array<int, string> */
@@ -116,6 +117,8 @@ final readonly class CategoryService
 
     private function ensureManageAccess(bool $canManageCatalog): void
     {
-        abort_unless($canManageCatalog, 403);
+        if (! $canManageCatalog) {
+            throw ForbiddenException::from(CategoryErrorCode::ManageForbidden);
+        }
     }
 }

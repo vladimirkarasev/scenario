@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Module\Actions\Services;
 
-use Illuminate\Contracts\Container\Container;
+use App\Exceptions\ForbiddenException;
 use Module\Actions\DTO\RunActionsData;
+use Module\Actions\Enums\ActionErrorCode;
 use Module\Actions\Models\Action;
 use Module\Actions\Temporal\RunActionsParallelWorkflowInput;
 use Module\Actions\Temporal\RunActionsWorkflowInput;
@@ -14,13 +15,17 @@ use Module\Actions\Temporal\RunActionsWorkflowStarterInterface;
 final readonly class ActionOrchestratorService
 {
     public function __construct(
-        private Container $container,
+        private ActionScheduleService $schedules,
         private RunActionsWorkflowStarterInterface $workflowStarter,
     ) {}
 
     /** @return array<string, mixed> */
     public function runFromData(RunActionsData $data): array
     {
+        if (! $data->canManageActions) {
+            throw ForbiddenException::from(ActionErrorCode::ManageForbidden);
+        }
+
         $missing = $this->validateRequiredInputs($data);
 
         if ($missing !== []) {
@@ -35,11 +40,6 @@ final readonly class ActionOrchestratorService
             'parallel' => $this->runParallel($data),
             default => $this->runSequential($data),
         };
-    }
-
-    private function scheduleService(): ActionScheduleService
-    {
-        return $this->container->make(ActionScheduleService::class);
     }
 
     /**
@@ -187,7 +187,7 @@ final readonly class ActionOrchestratorService
         $cron = is_string($config['cron'] ?? null) ? (string) $config['cron'] : null;
         $timezone = is_string($config['timezone'] ?? null) ? (string) $config['timezone'] : null;
 
-        $schedule = $this->scheduleService()->upsert(
+        $schedule = $this->schedules->upsert(
             action: $action,
             enabled: true,
             cron: $cron,

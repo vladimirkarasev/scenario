@@ -9,7 +9,7 @@ use App\Http\Responses\ApiResponse;
 use Module\Projects\CurrentProject;
 use Module\Scenario\DTO\ScenarioFeedData;
 use Module\Scenario\Http\Requests\ScenarioFeedRequest;
-use Module\Scenario\Services\ScenarioFeedService;
+use Module\Scenario\Services\Catalog\ScenarioFeedService;
 
 final class ScenarioFeedController extends Controller
 {

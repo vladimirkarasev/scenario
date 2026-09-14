@@ -8,6 +8,17 @@ declare(strict_types=1);
  */
 
 return [
+    'categories' => [
+        'CATEGORY_MANAGE_FORBIDDEN' => [
+            'title' => 'Доступ запрещён',
+            'detail' => 'Недостаточно прав для управления разделами.',
+        ],
+        'CATEGORY_PARENT_CYCLE' => [
+            'title' => 'Некорректная иерархия',
+            'detail' => 'Раздел нельзя переместить внутрь собственного поддерева.',
+        ],
+    ],
+
     'users' => [
         'USER_NOT_FOUND' => [
             'title' => 'Пользователь не найден',
@@ -149,6 +160,10 @@ return [
     ],
 
     'actions' => [
+        'ACTION_MANAGE_FORBIDDEN' => [
+            'title' => 'Доступ запрещён',
+            'detail' => 'Недостаточно прав для управления действиями.',
+        ],
         'ACTION_CATEGORY_NOT_FOUND' => [
             'title' => 'Раздел не найден',
             'detail' => 'Раздел действий не найден в текущем проекте.',

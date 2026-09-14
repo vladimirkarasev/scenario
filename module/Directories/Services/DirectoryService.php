@@ -126,6 +126,14 @@ final readonly class DirectoryService
         return $this->find($directory->fresh() ?? $directory);
     }
 
+    public function delete(Directory $directory): void
+    {
+        $projectId = (string) $directory->project_id;
+        $this->directories->delete($directory);
+        DirectoryCache::forgetDirectory($directory->id);
+        DirectoryCache::forgetList($projectId);
+    }
+
     /** @return array<string, mixed> */
     public function listPayload(Directory $directory): array
     {

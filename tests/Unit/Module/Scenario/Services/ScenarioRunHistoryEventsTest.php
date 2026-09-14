@@ -16,8 +16,8 @@ use Module\Scenario\Models\ScenarioRunHistoryEvent;
 use Module\Scenario\Models\ScenarioVersion;
 use Module\Scenario\Services\Nodes\Condition\ConditionNodeHandler;
 use Module\Scenario\Services\Nodes\ScenarioLink\ScenarioLinkNodeHandler;
-use Module\Scenario\Services\ScenarioRunHistoryService;
-use Module\Scenario\Services\ScenarioRunStepManager;
+use Module\Scenario\Services\Runtime\ScenarioRunHistoryService;
+use Module\Scenario\Services\Runtime\ScenarioRunStepManager;
 use Tests\TestCase;
 
 /**
@@ -184,7 +184,7 @@ final class ScenarioRunHistoryEventsTest extends TestCase
             'data' => [
                 'mode' => 'manual',
                 'options' => [
-                    ['label' => 'Вправо', 'targetNodeId' => 'node_end'],
+                    ['label' => 'Вправо', 'condition' => 'true', 'targetNodeId' => 'node_end'],
                 ],
             ],
         ];

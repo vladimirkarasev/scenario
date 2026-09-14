@@ -45,10 +45,8 @@ final class ScenarioCategoryController extends CategoryController
     }
 
     #[\Override]
-    public function index(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $request = request();
-
         if ($request->boolean('filter.is_workspace')) {
             return CategoryResource::collection(
                 $this->scenarioCategories->workspaceForModel($this->modelClass(), $this->currentProjectId()),

@@ -32,6 +32,7 @@ use Module\Proxy\Gateway\Base\Transports\MockApiTransport;
 use Module\Proxy\Listeners\LogProxyGatewayRequest;
 use Module\Proxy\Listeners\LogProxyRequestStatus;
 use Module\Proxy\Listeners\PersistProxyContext;
+use Module\Proxy\Proxies\HandlerCatalog;
 
 final class ProxyServiceProvider extends ServiceProvider
 {
@@ -40,6 +41,13 @@ final class ProxyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ClientInterface::class, fn(): ClientInterface => new Client);
         $this->app->singleton(MockApiTransport::class);
+
+        $allowedHandlers = config('proxy.allowed_handlers', []);
+        $handlerClasses = [
+            ...HandlerCatalog::classes(),
+            ...(is_array($allowedHandlers) ? $allowedHandlers : []),
+        ];
+        $this->app->tag($handlerClasses, 'proxy.handlers');
     }
 
     /**

@@ -35,6 +35,11 @@ function asAction(value: unknown): ScenarioRenderedAction {
   return value as ScenarioRenderedAction
 }
 
+function isContentRendered(value: unknown): boolean {
+  const type = (value as Record<string, unknown> | null)?.type
+  return type === 'block' || type === 'question'
+}
+
 function conditionTitle(): string {
   return asCondition(props.entry.rendered).question || 'Условие'
 }
@@ -53,7 +58,7 @@ const pastActionStatuses = computed<Record<string, ActionStageStatus>>(() => {
 <template>
   <!-- Block timeline entry -->
   <div
-      v-if="entry.rendered && (entry.rendered as Record<string, unknown>).type === 'block'"
+      v-if="isContentRendered(entry.rendered)"
       class="past-entry"
   >
     <BlockRenderer

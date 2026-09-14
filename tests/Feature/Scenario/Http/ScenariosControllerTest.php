@@ -221,6 +221,58 @@ final class ScenariosControllerTest extends TestCase
         $this->assertDatabaseHas('scenarios', ['name' => 'Новый сценарий']);
     }
 
+    public function test_store_persists_scenario_type(): void
+    {
+        $user = $this->makeUser('scenario_create');
+
+        $this->actingAs($user)
+            ->postJson('/api/scenarios', [
+                'name' => 'Telegram-сценарий',
+                'type' => 'telegram',
+                'is_active' => true,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.type', 'telegram');
+
+        $this->assertDatabaseHas('scenarios', [
+            'name' => 'Telegram-сценарий',
+            'type' => 'telegram',
+        ]);
+    }
+
+    public function test_store_uses_colls_type_by_default(): void
+    {
+        $user = $this->makeUser('scenario_create');
+
+        $this->actingAs($user)
+            ->postJson('/api/scenarios', [
+                'name' => 'Сценарий по умолчанию',
+                'is_active' => true,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.type', 'colls');
+
+        $this->assertDatabaseHas('scenarios', [
+            'name' => 'Сценарий по умолчанию',
+            'type' => 'colls',
+        ]);
+    }
+
+    public function test_store_rejects_unknown_scenario_type(): void
+    {
+        $user = $this->makeUser('scenario_create');
+
+        $this->actingAs($user)
+            ->postJson('/api/scenarios', [
+                'name' => 'Неизвестный тип',
+                'type' => 'email',
+                'is_active' => true,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.0.code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.0.source.pointer', '/data/attributes/type');
+    }
+
     public function test_store_returns_403_without_permission(): void
     {
         $user = $this->makeUser('scenario_view');
@@ -253,6 +305,29 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonPath('data.name', 'Новое');
 
         $this->assertDatabaseHas('scenarios', ['id' => $scenario->id, 'name' => 'Новое']);
+    }
+
+    public function test_update_without_type_preserves_existing_scenario_type(): void
+    {
+        $user = $this->makeUser('scenario_create');
+        $scenario = Scenario::query()->create([
+            'name' => 'Telegram',
+            'type' => 'telegram',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->putJson("/api/scenarios/{$scenario->id}", [
+                'name' => 'Telegram обновлён',
+                'is_active' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.type', 'telegram');
+
+        $this->assertDatabaseHas('scenarios', [
+            'id' => $scenario->id,
+            'type' => 'telegram',
+        ]);
     }
 
     public function test_update_returns_403_without_permission(): void
@@ -298,6 +373,26 @@ final class ScenariosControllerTest extends TestCase
             ->assertJsonPath('data.name', 'Оригинал (копия)');
 
         $this->assertDatabaseHas('scenarios', ['name' => 'Оригинал (копия)']);
+    }
+
+    public function test_duplicate_preserves_scenario_type(): void
+    {
+        $user = $this->makeUser('scenario_create');
+        $scenario = Scenario::query()->create([
+            'name' => 'Бот',
+            'type' => 'call_bots',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->postJson("/api/scenarios/{$scenario->id}/duplicate")
+            ->assertCreated()
+            ->assertJsonPath('data.type', 'call_bots');
+
+        $this->assertDatabaseHas('scenarios', [
+            'name' => 'Бот (копия)',
+            'type' => 'call_bots',
+        ]);
     }
 
     public function test_duplicate_returns_403_without_permission(): void

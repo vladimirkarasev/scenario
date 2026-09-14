@@ -16,9 +16,12 @@ import {useSelectExpressionPreview} from '@/modules/scenario/composables/useSele
 import type {DirectorySchemaField} from '@/modules/directories/types/directory'
 import type {WebhookField} from '@/modules/proxy/types/webhook'
 import {
-  type VarLike, type SystemVariableGroup, SYSTEM_VARIABLE_GROUPS,
+  type VarLike,
   systemGroupRef, hasHints, isDateVar, isSelectVar, isPhoneVar, isSuggestVar, extractVarName,
 } from '@/modules/scenario/lib/scenario-variable-hints'
+import type {SystemVariableGroup} from '@/modules/scenario/types/scenario-system-variable'
+import {useScenarioSystemVariables} from '@/modules/scenario/composables/useScenarioSystemVariables'
+import {isContentNodeType} from '@/modules/scenario/lib/scenario-flow-document'
 
 interface BlockEntry {
   id: string
@@ -46,6 +49,12 @@ const props = withDefaults(defineProps<{
   hoverClass: 'hover:bg-slate-50',
 })
 
+const {
+  groups: systemVariableGroups,
+  loading: systemVariablesLoading,
+  error: systemVariablesError,
+} = useScenarioSystemVariables()
+
 const blocksWithVars = computed(() => {
   const varsByBlock = new Map<string, VarLike[]>()
   for (const v of props.variables) {
@@ -53,7 +62,7 @@ const blocksWithVars = computed(() => {
     varsByBlock.get(v.blockId)!.push(v)
   }
   return props.blocks
-      .filter((b) => b.type === 'block' && varsByBlock.has(b.id))
+      .filter((block) => isContentNodeType(block.type) && varsByBlock.has(block.id))
       .map((b) => ({block: b, vars: varsByBlock.get(b.id)!}))
 })
 
@@ -161,11 +170,16 @@ function onSysPopoverOpen(group: SystemVariableGroup, open: boolean): void {
 
 <template>
   <div class="space-y-3">
-    <!-- Системные переменные опроса (run/operator/project/call). Backend инжектит их всегда. -->
     <div class="space-y-0.5">
       <div class="mb-1.5 text-[10px] font-medium text-slate-400">Системные</div>
+      <div v-if="systemVariablesLoading" class="px-2 py-1 text-[10px] text-slate-400">
+        Загрузка…
+      </div>
+      <div v-else-if="systemVariablesError" class="px-2 py-1 text-[10px] text-rose-500">
+        {{ systemVariablesError }}
+      </div>
       <div
-          v-for="group in SYSTEM_VARIABLE_GROUPS"
+          v-for="group in systemVariableGroups"
           :key="`sys:${group.name}`"
           :class="['group flex w-full items-center rounded-lg pr-1.5 transition', hoverClass]"
       >

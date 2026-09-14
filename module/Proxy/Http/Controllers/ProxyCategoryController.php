@@ -10,22 +10,30 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 use Module\Categories\DTO\CategoryActionData;
 use Module\Categories\DTO\CategoryData;
 use Module\Categories\Http\Controllers\CategoryController;
 use Module\Categories\Http\Requests\CategoryRequest;
 use Module\Categories\Http\Resources\JsonApi\CategoryResource;
+use Module\Categories\Repositories\CategoryModelBindingRepository;
+use Module\Categories\Services\CategoryService;
+use Module\Projects\CurrentProject;
 use Module\Proxy\Enums\ProxyErrorCode;
 use Module\Proxy\Models\ProxyEndpoint;
 
 final class ProxyCategoryController extends CategoryController
 {
-    #[\Override]
-    public function index(): AnonymousResourceCollection
-    {
-        $request = request();
+    public function __construct(
+        CategoryService $categories,
+        CurrentProject $currentProject,
+        private readonly CategoryModelBindingRepository $bindings,
+    ) {
+        parent::__construct($categories, $currentProject);
+    }
 
+    #[\Override]
+    public function index(Request $request): AnonymousResourceCollection
+    {
         if ($request->has('filter.parent_id')) {
             $raw = $request->input('filter.parent_id');
             $parentId = ($raw === 'null' || $raw === '' || $raw === null)
@@ -47,14 +55,7 @@ final class ProxyCategoryController extends CategoryController
     {
         $category = $this->categories->create(CategoryData::fromRequest($request, canManageCatalog: true));
 
-        DB::table('model_has_categories')->insertOrIgnore([
-            'category_id' => $category->id,
-            'model_id' => $category->id,
-            'model_type' => $this->modelClass(),
-            'project_id' => $this->currentProjectId(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $this->bindings->attach($category, $this->modelClass(), $this->currentProjectId());
 
         return new CategoryResource($category);
     }
@@ -97,11 +98,11 @@ final class ProxyCategoryController extends CategoryController
 
     private function assertInCurrentProject(Category $category): void
     {
-        $belongsToProject = DB::table('model_has_categories')
-            ->where('category_id', $category->id)
-            ->where('model_type', $this->modelClass())
-            ->where('project_id', $this->currentProjectId())
-            ->exists();
+        $belongsToProject = $this->bindings->exists(
+            $category,
+            $this->modelClass(),
+            $this->currentProjectId(),
+        );
 
         if (!$belongsToProject) {
             throw NotFoundException::from(ProxyErrorCode::CategoryNotFound);

@@ -2,11 +2,8 @@ import {useUrlSearchParams} from '@vueuse/core'
 import {computed, ref, watch} from 'vue'
 import type {Ref} from 'vue'
 import {useLatestRequest} from '@/composables/useLatestRequest'
-import {
-    directoryFeedRepository,
-    type DirectoryFeedResponse,
-    type DirectoryFeedRow,
-} from '@/modules/directories/repositories/directoryFeedRepository'
+import {directoryFeedRepository} from '@/modules/directories/repositories/directoryFeedRepository'
+import type {DirectoryFeedResponse, DirectoryFeedRow} from '@/modules/directories/types/feed'
 
 const PAGE_SIZE = 20
 

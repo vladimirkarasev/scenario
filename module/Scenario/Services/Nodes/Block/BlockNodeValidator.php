@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace Module\Scenario\Services\Nodes\Block;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Contracts\Validation\Factory;
 use Module\Scenario\Services\Nodes\Block\Rules\GrzRule;
 use Module\Scenario\Services\Nodes\Block\Rules\MapPointRule;
 use Module\Scenario\Services\Nodes\Block\Rules\RouteRule;
 use Module\Scenario\Services\Nodes\Block\Rules\VinRule;
-use Module\Scenario\Services\Nodes\NodeHelpers;
+use Module\Scenario\Services\Nodes\NodeDataReader;
 
-final class BlockNodeValidator
+final readonly class BlockNodeValidator
 {
-    use NodeHelpers;
-
     private const array MESSAGES = [
         'required' => 'Поле обязательно для заполнения.',
         'accepted' => 'Поле обязательно для заполнения.',
@@ -24,6 +22,12 @@ final class BlockNodeValidator
         'date' => 'Введите корректную дату.',
         'max' => 'Превышено максимальное количество символов: :max.',
     ];
+
+    public function __construct(
+        private NodeDataReader $nodeData,
+        private Factory $validation,
+    ) {
+    }
 
     /**
      * @param  array<string, mixed>  $nodeData
@@ -37,7 +41,7 @@ final class BlockNodeValidator
             return;
         }
 
-        Validator::make($input, $rules, self::MESSAGES)->validate();
+        $this->validation->make($input, $rules, self::MESSAGES)->validate();
     }
 
     /**
@@ -48,12 +52,12 @@ final class BlockNodeValidator
     {
         $rules = [];
 
-        foreach ($this->arrayField($nodeData, 'fields') as $field) {
+        foreach ($this->nodeData->array($nodeData, 'fields') as $field) {
             if (!is_array($field)) {
                 continue;
             }
 
-            $name = $this->strField($field, 'name');
+            $name = $this->nodeData->string($field, 'name');
 
             if ($name === '') {
                 continue;
@@ -71,8 +75,8 @@ final class BlockNodeValidator
      */
     private function fieldRules(array $field): array
     {
-        $type = $this->strField($field, 'type', 'input');
-        $required = $this->boolField($field, 'required');
+        $type = $this->nodeData->string($field, 'type', 'input');
+        $required = $this->nodeData->boolean($field, 'required');
 
         if ($type === 'vin') {
             return [new VinRule($required)];
@@ -109,7 +113,7 @@ final class BlockNodeValidator
         }
 
         if ($type === 'textarea') {
-            $max = $this->intField($field, 'maxLength', 3000);
+            $max = $this->nodeData->integer($field, 'maxLength', 3000);
             $rules[] = "max:{$max}";
         }
 

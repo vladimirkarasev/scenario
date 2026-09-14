@@ -11,6 +11,8 @@ use Module\Scenario\Http\Controllers\ScenarioFieldPresetController;
 use Module\Scenario\Http\Controllers\ScenarioRunController;
 use Module\Scenario\Http\Controllers\ScenarioRunnerController;
 use Module\Scenario\Http\Controllers\ScenariosController;
+use Module\Scenario\Http\Controllers\ScenarioSystemVariablesController;
+use Module\Scenario\Http\Controllers\ScenarioNodeTypesController;
 use Module\Scenario\Http\Controllers\ScenariosVersionController;
 use Module\Scenario\Http\Controllers\SurveysController;
 use Module\Projects\Http\Middleware\RequireCurrentProject;
@@ -45,6 +47,8 @@ Route::middleware(RequireCurrentProject::class)->group(static function (): void 
 });
 
 Route::middleware('permission:scenario_view')->group(static function (): void {
+    Route::get('scenarios/system-variables', ScenarioSystemVariablesController::class);
+    Route::get('scenarios/node-types', ScenarioNodeTypesController::class);
     Route::get('scenarios/field-presets', [ScenarioFieldPresetController::class, 'index'])
         ->middleware(RequireCurrentProject::class);
     Route::get('scenarios/categories', [ScenarioCategoryController::class, 'index']);

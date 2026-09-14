@@ -18,8 +18,8 @@ use Module\Scenario\Http\Requests\ScenarioVersionSettingsRequest;
 use Module\Scenario\Http\Resources\JsonApi\ScenariosVersionResource;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioVersionService;
-use Module\Scenario\Services\ScenarioVersionViewService;
+use Module\Scenario\Services\Definition\ScenarioVersionService;
+use Module\Scenario\Services\Definition\ScenarioVersionViewService;
 
 final class ScenariosVersionController extends Controller
 {
@@ -66,7 +66,7 @@ final class ScenariosVersionController extends Controller
     public function store(ScenarioVersionRequest $request, Scenario $scenario): ApiResponse
     {
         return new ApiResponse(
-            $this->scenarioVersionService->create(ScenarioVersionData::fromRequest($request), $scenario),
+            $this->scenarioVersionService->create(ScenarioVersionData::fromRequest($request, $scenario->type), $scenario),
             201,
         );
     }
@@ -74,7 +74,7 @@ final class ScenariosVersionController extends Controller
     public function update(ScenarioVersionRequest $request, Scenario $scenario, ScenarioVersion $version): ApiResponse
     {
         return new ApiResponse(
-            $this->scenarioVersionService->update(ScenarioVersionData::fromRequest($request), $version),
+            $this->scenarioVersionService->update(ScenarioVersionData::fromRequest($request, $scenario->type), $version),
         );
     }
 

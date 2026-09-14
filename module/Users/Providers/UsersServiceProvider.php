@@ -24,7 +24,7 @@ use Module\Users\Services\ProjectUserCleanupService;
 
 final class UsersServiceProvider extends ServiceProvider
 {
-    public function boot(): void
+    public function boot(ProjectUserCleanupService $projectUserCleanup): void
     {
         PermissionRegistry::register(UserPermission::class, RolePermission::class);
 
@@ -33,8 +33,8 @@ final class UsersServiceProvider extends ServiceProvider
         Event::listen(UserDeleted::class, [LogUserAudit::class, 'deleted']);
         Event::listen(SecurityEvent::class, LogSecurityAudit::class);
 
-        Project::deleting(static function (Project $project): void {
-            app(ProjectUserCleanupService::class)->handle($project);
+        Project::deleting(static function (Project $project) use ($projectUserCleanup): void {
+            $projectUserCleanup->handle($project);
         });
 
         Route::middleware('web')

@@ -16,7 +16,7 @@ import DefaultInspector from '@/modules/scenario/components/flow/inspectors/Defa
 import EndInspector from '@/modules/scenario/components/flow/inspectors/EndInspector.vue'
 import ScenarioLinkInspector from '@/modules/scenario/components/flow/inspectors/ScenarioLinkInspector.vue'
 import {USER_VARIABLES, type FlowLogicalVariable} from '@/modules/scenario/lib/scenario-flow-constants'
-import type {ScenarioBlock, ScenarioBlockData} from '@/modules/scenario/lib/scenario-flow-document'
+import {isContentNodeType, type ScenarioBlock, type ScenarioBlockData} from '@/modules/scenario/lib/scenario-flow-document'
 import type {LinkedBlockEntry} from '@/modules/scenario/composables/useLinkedScenarioVariables'
 import type {VariableListBlock} from '@/modules/scenario/composables/useScenarioVariables'
 import type {VariableEntry} from '@/modules/scenario/types/scenario-variable-entry'
@@ -24,6 +24,7 @@ import type {ScenarioFlowEdge, ScenarioFlowNode} from '@/modules/scenario/types/
 
 interface ConditionPreviewOption {
   label: string
+  icon: string | null
   targetNodeId: string
 }
 
@@ -95,7 +96,7 @@ const actionEditorOpenModel = computed({
     <DrawerContent
         class="h-full"
         :class="selectedNode?.type === 'condition' || selectedNode?.type === 'end'
-          ? '!w-[45vw] !max-w-[45vw]'
+          ? '!w-[64vw] !max-w-[64vw]'
           : 'sm:max-w-md'"
         @pointer-down-outside="$event.preventDefault()"
         @focus-outside="$event.preventDefault()"
@@ -106,7 +107,7 @@ const actionEditorOpenModel = computed({
         <DrawerDescription class="sr-only">Condition editor</DrawerDescription>
 
         <div class="flex h-10 shrink-0 items-center justify-end border-b border-slate-200 px-3">
-          <Button type="button" variant="ghost" size="icon" @click="drawerOpenModel = false">
+          <Button type="button" variant="ghost" size="icon" @click="emit('cancelInspector')">
             <X class="size-4" />
           </Button>
         </div>
@@ -140,7 +141,7 @@ const actionEditorOpenModel = computed({
 
         <div v-else-if="selectedNode" class="space-y-4 overflow-y-auto px-4 py-4">
           <BlockInspector
-              v-if="selectedNode.type === 'block'"
+              v-if="isContentNodeType(selectedNode.type)"
               :node="selectedNode"
               :draft="inspectorDraft"
               :editable="editable"

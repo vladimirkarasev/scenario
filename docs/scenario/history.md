@@ -48,7 +48,7 @@ Module\Scenario\Models\ScenarioRunStep
 Менеджер:
 
 ```text
-Module\Scenario\Services\ScenarioRunStepManager
+Module\Scenario\Services\Runtime\ScenarioRunStepManager
 ```
 
 ## Lifecycle Шага

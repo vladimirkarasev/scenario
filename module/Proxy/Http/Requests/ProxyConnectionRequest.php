@@ -16,11 +16,11 @@ final class ProxyConnectionRequest extends FormRequest
     }
 
     /** @return array<string, mixed> */
-    public function rules(): array
+    public function rules(CredentialCatalog $credentials): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'credential_type' => ['required', 'string', Rule::in(CredentialCatalog::all())],
+            'credential_type' => ['required', 'string', Rule::in($credentials->all())],
             'values' => ['nullable', 'array'],
         ];
     }

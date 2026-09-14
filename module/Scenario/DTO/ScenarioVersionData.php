@@ -7,6 +7,7 @@ namespace Module\Scenario\DTO;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Module\Scenario\Enums\ScenarioNodeType;
+use Module\Scenario\Enums\ScenarioType;
 
 final readonly class ScenarioVersionData
 {
@@ -27,10 +28,10 @@ final readonly class ScenarioVersionData
     ) {
     }
 
-    public static function fromRequest(Request $request): self
+    public static function fromRequest(Request $request, ScenarioType $scenarioType): self
     {
         $schemaJson = (array)$request->input('schema_json', []);
-        $snapshot = self::normalizeSnapshot($schemaJson);
+        $snapshot = self::normalizeSnapshot($schemaJson, $scenarioType);
 
         return new self(
             schemaJson: $schemaJson,
@@ -75,7 +76,7 @@ final readonly class ScenarioVersionData
      * @param  array<array-key, mixed>  $schemaJson
      * @return array{nodes_json: array<int, array<string, mixed>>, edges_json: array<int, array<string, mixed>>, schema_version: int}
      */
-    private static function normalizeSnapshot(array $schemaJson): array
+    private static function normalizeSnapshot(array $schemaJson, ScenarioType $scenarioType): array
     {
         if (isset($schemaJson['nodes'], $schemaJson['edges']) && is_array($schemaJson['nodes']) && is_array(
                 $schemaJson['edges']
@@ -85,7 +86,7 @@ final readonly class ScenarioVersionData
             /** @var array<int, array<string, mixed>> $edges */
             $edges = array_values($schemaJson['edges']);
 
-            self::validateNodes($nodes);
+            self::validateNodes($nodes, $scenarioType);
             self::validateEdges($edges);
 
             $rawVersion = $schemaJson['schema_version'] ?? 1;
@@ -129,7 +130,7 @@ final readonly class ScenarioVersionData
             ];
         }, $connections);
 
-        self::validateNodes($nodes);
+        self::validateNodes($nodes, $scenarioType);
         self::validateEdges($edges);
 
         $rawVersion = $schemaJson['version'] ?? 1;
@@ -144,14 +145,14 @@ final readonly class ScenarioVersionData
     /**
      * @param  array<int, array<string, mixed>>  $nodes
      */
-    private static function validateNodes(array $nodes): void
+    private static function validateNodes(array $nodes, ScenarioType $scenarioType): void
     {
         validator(
             ['nodes' => $nodes],
             [
                 'nodes' => ['array'],
                 'nodes.*.id' => ['required', 'string'],
-                'nodes.*.type' => ['required', Rule::in(ScenarioNodeType::values())],
+                'nodes.*.type' => ['required', Rule::in($scenarioType->allowedNodeTypeValues())],
                 'nodes.*.data' => ['nullable', 'array'],
             ],
         )->validate();

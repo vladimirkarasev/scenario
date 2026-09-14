@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Scenario\DTO\CatalogIndexData;
 use Module\Scenario\Http\Resources\JsonApi\CatalogResource;
-use Module\Scenario\Services\CatalogService;
+use Module\Scenario\Services\Catalog\CatalogService;
 use Module\Users\Models\User;
 
 final class CatalogController extends Controller

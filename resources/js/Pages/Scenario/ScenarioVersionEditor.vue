@@ -4,6 +4,7 @@ import ScenarioVersionTabs from '@/modules/scenario/components/ScenarioVersionTa
 import {useDashboardNavigation} from '@/composables/useDashboardNavigation'
 import type {ScenarioFlowDocument} from '@/modules/scenario/lib/scenario-flow-document'
 import type {ScenarioFlowEditorExpose} from '@/modules/scenario/types/scenario-flow-editor'
+import type {ScenarioType} from '@/modules/scenario/types/scenario'
 import {scenarioRepository} from '@/modules/scenario/repositories/scenarioRepository'
 import {scenarioVersionRepository} from '@/modules/scenario/repositories/scenarioVersionRepository'
 import {Button} from '@/components/ui/button'
@@ -27,6 +28,7 @@ const saving = ref(false)
 const duplicating = ref(false)
 const dirty = ref(false)
 const scenarioName = ref('')
+const scenarioType = ref<ScenarioType>('colls')
 const versionName = ref('')
 const versionStatus = ref<'active' | 'draft' | 'archived'>('draft')
 const versionDocument = ref<ScenarioFlowDocument>({
@@ -63,6 +65,7 @@ onMounted(async () => {
       scenarioVersionRepository.editor(props.scenarioId, props.versionId),
     ])
     scenarioName.value = scenario.name
+    scenarioType.value = scenario.type
     versionName.value = version.name ?? ''
     versionStatus.value = version.status
     const document = version.schema_json
@@ -167,6 +170,7 @@ async function duplicate(): Promise<void> {
             ref="editorRef"
             :model-value="versionDocument"
             :scenarios="noScenarios"
+            :scenario-type="scenarioType"
             editable
             :scenario-id="scenarioId"
             :version-id="versionId"

@@ -9,7 +9,7 @@ use Module\Scenario\DTO\ScenarioRunContinueData;
 use Module\Scenario\DTO\ScenarioRunData;
 use Module\Scenario\Models\Scenario;
 use Module\Scenario\Models\ScenarioVersion;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use Tests\TestCase;
 
 final class ScenarioSuggestVariableTest extends TestCase

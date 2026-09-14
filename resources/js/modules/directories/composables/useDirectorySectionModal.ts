@@ -1,5 +1,6 @@
 import {useSectionModal} from '@/composables/useSectionModal'
-import {categoryRepository, type CategoryRef} from '@/modules/scenario/repositories/categoryRepository'
+import {categoryRepository} from '@/modules/scenario/repositories/categoryRepository'
+import type {CategoryRef} from '@/modules/scenario/types/category'
 import {directorySectionSchema} from '@/modules/directories/schemas/directorySectionSchema'
 
 export function useDirectorySectionModal(

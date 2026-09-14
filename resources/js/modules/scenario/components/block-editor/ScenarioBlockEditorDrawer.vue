@@ -425,7 +425,7 @@ watch(
 watch(blockDraft, () => {
   if (!isLoaded.value) return
   hasUnsavedChanges.value = true
-}, {deep: true})
+})
 
 function saveChanges(): void {
   if (!blockDraft.value) return

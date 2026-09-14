@@ -9,7 +9,7 @@ use App\Http\Responses\ApiResponse;
 use Module\Users\Models\User;
 use Module\Scenario\DTO\ScenarioDispatchData;
 use Module\Scenario\Http\Requests\DispatchScenarioRequest;
-use Module\Scenario\Services\ScenarioDispatchService;
+use Module\Scenario\Services\Runtime\ScenarioDispatchService;
 
 final class ScenarioDispatchController extends Controller
 {

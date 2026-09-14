@@ -74,8 +74,9 @@ final class DirectoryImportStatusUpdatedTest extends TestCase
             sourcesTotal: 1,
         );
 
-        (new LogDirectoryImportStatusUpdate())->handle($event);
-        (new PublishDirectoryImportStatusUpdate($centrifugo))->handle($event);
+        $this->app->instance(CentrifugoApiInterface::class, $centrifugo);
+        $this->app->make(LogDirectoryImportStatusUpdate::class)->handle($event);
+        $this->app->make(PublishDirectoryImportStatusUpdate::class)->handle($event);
 
         Log::shouldHaveReceived('info')
             ->once()

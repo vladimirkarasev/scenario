@@ -1,5 +1,6 @@
 import {destroyJson, getJson, sendJson} from '@/lib/http'
 import type {ActionCategory} from '@/modules/actions/types/action'
+import type {ActionCategoryPayload} from '@/modules/actions/types/category'
 
 interface JsonApiItem {
     id: string
@@ -27,12 +28,6 @@ function normalize(item: JsonApiItem): ActionCategory {
         created_at: item.attributes?.created_at ?? null,
         updated_at: item.attributes?.updated_at ?? null,
     }
-}
-
-export interface ActionCategoryPayload {
-    name: string
-    parent_id: string | null
-    is_active: boolean
 }
 
 export const actionCategoryRepository = {

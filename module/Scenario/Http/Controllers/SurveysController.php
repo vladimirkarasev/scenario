@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Module\Scenario\DTO\SurveyIndexData;
-use Module\Scenario\Services\SurveysService;
+use Module\Scenario\Services\Runtime\SurveysService;
 
 final class SurveysController extends Controller
 {

@@ -4,9 +4,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  FormActions, FormBody, FormError, FormInput, FormSection, FormTextarea,
+  FormActions, FormBody, FormError, FormInput, FormSection, FormSelect, FormTextarea,
 } from '@/components/form'
 import type {useScenarioCreateModal} from '@/modules/scenario/composables/useScenarioCreateModal'
+import {SCENARIO_TYPE_OPTIONS} from '@/modules/scenario/lib/scenario-types'
 
 defineProps<{
   modal: ReturnType<typeof useScenarioCreateModal>
@@ -32,6 +33,17 @@ defineProps<{
                 required
                 :error="modal.errors.name"
             />
+            <FormSelect
+                v-model="modal.form.type"
+                name="type"
+                label="Тип сценария"
+                required
+                :error="modal.errors.type"
+            >
+              <option v-for="item in SCENARIO_TYPE_OPTIONS" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
+            </FormSelect>
             <FormInput
                 v-model="modal.form.alias"
                 name="alias"

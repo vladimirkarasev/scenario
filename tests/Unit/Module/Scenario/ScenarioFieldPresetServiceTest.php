@@ -13,7 +13,7 @@ use Module\Projects\Models\Project;
 use Module\Scenario\DTO\ScenarioFieldPresetData;
 use Module\Scenario\Enums\BlockFieldType;
 use Module\Scenario\Models\ScenarioFieldPreset;
-use Module\Scenario\Services\ScenarioFieldPresetService;
+use Module\Scenario\Services\Definition\ScenarioFieldPresetService;
 use Tests\TestCase;
 
 final class ScenarioFieldPresetServiceTest extends TestCase

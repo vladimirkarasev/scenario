@@ -129,6 +129,7 @@ final readonly class CatalogService
             'description' => $scenario->description,
             'is_active' => $scenario->is_active,
             'status' => $scenario->status->value,
+            'type' => $scenario->type->value,
             'active_version_id' => $scenario->active_version_id,
             'alias' => $scenario->alias,
             'tags' => $scenario->tags ?? [],

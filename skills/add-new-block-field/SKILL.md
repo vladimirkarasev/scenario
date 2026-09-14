@@ -1,277 +1,86 @@
 ---
 name: add-new-block-field
-description: Add a new field type (or field group) to the scenario block editor — covers the TypeScript type layer, block editor palette + settings UI, player renderer, and PHP backend. Use when asked to add a new input type, display element, or field category to the block node editor.
+description: Add a new scenario block field type or palette group across the current Vue editor/player, PHP field Strategy/Factory, validation, presets, variables and tests. Use when asked to add an input, display element, map/directory field or field category to the block editor.
 ---
 
-# Add New Block Field Type
+# Add New Block Field
 
-## Overview
+Поле является сквозным контрактом. До изменений найти ближайший существующий тип с той же семантикой и обновить только применимые слои. Не копировать старую монолитную реализацию `BlockNodeHandler::renderField()` и не использовать удалённый `NodeHelpers`.
 
-A block field type exists at four layers that must all be updated:
+## Карта актуальных границ
 
-| Layer | What changes |
+| Слой | Основные файлы |
 |---|---|
-| **TypeScript types** | `scenario-block-fields.ts` — type union + interface + factory + normalizer |
-| **Block editor UI** | `field-settings/XxxFieldSettings.vue` + registration in `ScenarioBlockEditorDrawer.vue` |
-| **Player renderer** | `SurveyBlockRenderer.vue` — `v-else-if` branch for the new type |
-| **PHP backend** | `BlockNodeHandler::renderField()` — maps stored field data to API props |
-| **Project presets** | Snapshot normalization, cloning and backend `BlockFieldType` allow-list |
+| TypeScript contract/defaults/normalization | `resources/js/modules/scenario/lib/scenario-block-fields.ts` |
+| Settings и palette | `resources/js/modules/scenario/components/block-editor/field-settings/` и `ScenarioBlockEditorDrawer.vue` |
+| Player | `resources/js/modules/scenario/components/player/SurveyBlockRenderer.vue` или отдельный `SurveyXxxField.vue` |
+| PHP enum | `module/Scenario/Enums/BlockFieldType.php` |
+| PHP Strategy/Factory | `module/Scenario/Services/Nodes/Block/Fields/` |
+| Backend validation | `module/Scenario/Services/Nodes/Block/BlockNodeValidator.php` и `Rules/` |
+| Presets/variables | `types/field-preset.ts`, `types/scenario-variable-entry.ts` и связанные composables/tests |
 
-Key files:
-- `resources/js/modules/scenario/lib/scenario-block-fields.ts` — source of truth for all types
-- `resources/js/modules/scenario/components/ScenarioBlockEditorDrawer.vue` — palette + settings dispatch
-- `resources/js/modules/scenario/components/field-settings/` — one component per field type
-- `resources/js/modules/scenario/components/SurveyBlockRenderer.vue` — player-side renderer
-- `module/Scenario/Services/Nodes/BlockNodeHandler.php` — backend `renderField()`
-- `module/Scenario/Enums/BlockFieldType.php` — backend allow-list for field preset snapshots
+## TypeScript contract
 
-## Step-by-Step
+В `scenario-block-fields.ts`:
 
-### 1. TypeScript: add the type string
+1. Добавить строку в `BlockFieldType` и отдельный interface, расширяющий `BaseBlockField`.
+2. Добавить interface в discriminated union `BlockField`.
+3. Добавить полный default в `createScenarioBlockField()`.
+4. Добавить безопасную normalization-ветку для raw/stored JSON. Поддерживать legacy snake_case alias только при реальной обратной совместимости.
+5. Обновить `duplicateBlockFieldIds()` для всех принадлежащих полю nested ID и внутренних ссылок. Внешние directory/action/proxy ID не менять.
 
-File: `resources/js/modules/scenario/lib/scenario-block-fields.ts`
+Display-only поля не создают переменную и не участвуют в form validation. Input-поля получают устойчивые `name`/`varName`; конфликт имён разрешается существующим механизмом редактора.
 
-```ts
-export type BlockFieldType = 'input' | ... | 'my_field'
-```
+## Editor
 
-### 2. TypeScript: add the interface
+Создать `components/block-editor/field-settings/XxxFieldSettings.vue` по ближайшему аналогу:
 
-After the existing field interfaces:
+- `defineProps<{ field: XxxField; disabled?: boolean }>()`;
+- typed emit `update: [patch: Partial<XxxField>]`;
+- partial patch вместо мутации prop или отправки всего документа;
+- shadcn-vue controls и `lucide-vue-next`;
+- `fieldMeta` с `type`, русским `label` и icon.
 
-```ts
-export interface MyBlockField extends BaseBlockField {
-    type: 'my_field'
-    myProp: string
-    anotherProp: boolean
-}
-```
+В `ScenarioBlockEditorDrawer.vue` зарегистрировать meta в видимой группе либо в явно именованном списке временно скрытых полей, а settings component — в `fieldSettingsComponents`. Не добавлять watcher для синхронизации всего поля: изменения идут через явную команду/patch store.
 
-Always extend `BaseBlockField` which provides: `id`, `type`, `name`, `label`, `required`, `varName`, `validation?`.
+## Player
 
-Fields that don't collect user input and don't appear in the form (`rich_text`, `collapse`) set `varName: ''` and ignore `required`.
+Для небольшого стандартного input допустима typed ветка в `SurveyBlockRenderer.vue`. Сложное поле с собственными reads, состоянием, картой, таблицей или зависимыми фильтрами вынести в `components/player/SurveyXxxField.vue`.
 
-### 3. TypeScript: add to the union
+- Не вызывать HTTP из renderer/component; использовать repository через composable.
+- Для повторных reads применять `useLatestRequest` и инвалидировать pending state при unmount.
+- Писать значение только в `formData[fieldName]`; display-only поле его не меняет.
+- Отображать server validation error и disabled state по существующему контракту.
 
-```ts
-export type BlockField =
-    | InputBlockField
-    | ...
-    | MyBlockField
-```
+## PHP Strategy/Factory
 
-### 4. TypeScript: add factory default
+1. Добавить enum case в `BlockFieldType`.
+2. Создать `XxxBlockField` в `Services/Nodes/Block/Fields/`, реализующий `BlockFieldInterface` напрямую или через `AbstractBlockField`.
+3. Зарегистрировать type в `BlockFieldFactory::normalizedType()` и одну creation-ветку в `create()`.
+4. Передавать зависимости через constructor; не использовать `app()`, `resolve()` и `request()` внутри field/Factory.
 
-In `createScenarioBlockField()`, inside the `byType` record:
+`BlockFieldFactory` — единственная точка выбора Strategy. Создание stateful field value внутри Factory допустимо; container lookup и дублирование type-switch в handler запрещены.
 
-```ts
-my_field: {
-    id,
-    type: 'my_field',
-    name: `my_field_${n}`,
-    label: 'Моё поле',
-    required: false,
-    varName: labelToVarName('Моё поле'),
-    myProp: '',
-    anotherProp: false,
-},
-```
+Если поле собирает ввод, добавить правила в `BlockNodeValidator`. Для сложной проверки создать отдельный `ValidationRule`, а не расширять условную цепочку бизнес-логикой.
 
-### 5. TypeScript: add normalizer case
+## Presets и переменные
 
-In `normalizeScenarioBlockField()`, inside the `switch (type)` block:
+- Snapshot preset может не иметь top-level `id`; normalizer обязан восстановить runtime identity.
+- Две вставки preset не разделяют field/option/rule/action-item ID и внутренние ссылки.
+- Удалённый внешний ресурс обрабатывается settings UI без падения.
+- Для нового value shape обновить variable entry/accessor только если форма действительно публикует это значение.
 
-```ts
-case 'my_field':
-    return {
-        ...nb,
-        myProp: String(f.myProp ?? (base as MyBlockField).myProp),
-        anotherProp: Boolean(f.anotherProp ?? (base as MyBlockField).anotherProp),
-    } as MyBlockField
-```
+## Тесты и проверка
 
-`nb` is the normalized `BaseBlockField`. The normalizer reads from `f` (raw stored JSON) and falls back to `base` defaults. Always prefer camelCase keys from `f`; add snake_case aliases for backward compatibility if needed.
+Добавить релевантные frontend unit-тесты для defaults, normalization и duplicate IDs; backend unit-тест — для `BlockFieldFactory`/props и validation. Следовать [quick checklist](references/add-new-block-field-checklist.md).
 
-### 6. Create the settings component
-
-File: `resources/js/modules/scenario/components/field-settings/MyFieldSettings.vue`
-
-The component has two `<script>` blocks:
-
-```vue
-<script lang="ts">
-import { markRaw } from 'vue'
-import { SomeIcon } from 'lucide-vue-next'
-// fieldMeta is imported by ScenarioBlockEditorDrawer to build the palette
-export const fieldMeta = { type: 'my_field', label: 'Моё поле', icon: markRaw(SomeIcon) }
-</script>
-
-<script setup lang="ts">
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import type { MyBlockField } from '../../lib/scenario-block-fields'
-
-defineProps<{ field: MyBlockField; disabled?: boolean }>()
-const emit = defineEmits<{ update: [patch: Partial<MyBlockField>] }>()
-defineOptions({ inheritAttrs: false })
-</script>
-
-<template>
-    <div class="space-y-4">
-        <div class="space-y-1.5">
-            <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Моё свойство</Label>
-            <Input
-                :model-value="field.myProp"
-                :disabled="disabled"
-                class="h-9 text-sm"
-                @update:model-value="emit('update', { myProp: String($event) })"
-            />
-        </div>
-    </div>
-</template>
-```
-
-The `update` event emits a **partial patch** — only the changed keys. `ScenarioBlockEditorDrawer` merges it with the existing field object.
-
-Icons: use `lucide-vue-next` only. Browse at https://lucide.dev.
-
-For field types that reuse another field's settings UI, just `import` the shared component and delegate, like `InputFieldSettings.vue` does with `SimpleTextFieldSettings.vue`.
-
-### 7. Register in ScenarioBlockEditorDrawer
-
-File: `resources/js/modules/scenario/components/ScenarioBlockEditorDrawer.vue`
-
-**Import:**
-```ts
-import MyFieldSettings, { fieldMeta as myFieldMeta } from '@/modules/scenario/components/field-settings/MyFieldSettings.vue'
-```
-
-**Add to palette group** (in `fieldGroups`):
-
-```ts
-const fieldGroups = [
-    { title: 'Поля',    items: [inputMeta, ..., myFieldMeta] },   // ← or a new group:
-    { title: 'Моя группа', items: [myFieldMeta] },
-]
-```
-
-**Add settings component dispatch** (in `fieldSettingsComponents`):
-
-```ts
-const fieldSettingsComponents: Record<string, Component> = {
-    ...
-    my_field: markRaw(MyFieldSettings),
-}
-```
-
-That's it for the editor side. The `fieldTypeMap` computed is built automatically from `fieldGroups`, so label and icon are resolved without extra code.
-
-### 8. Add player renderer branch
-
-File: `resources/js/modules/scenario/components/SurveyBlockRenderer.vue`
-
-Add a `v-else-if` branch **before** the final `v-else` fallback:
-
-```vue
-<div v-else-if="block.type === 'my_field'" class="grid gap-1.5">
-    <Label class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-        {{ resolvedProps.label ?? fieldName }}
-        <span v-if="Boolean(resolvedProps.required)" class="ml-0.5 text-destructive">*</span>
-    </Label>
-    <!-- your input component here, bound to formData[fieldName] -->
-    <p v-if="hasError" class="text-[12px] text-destructive">{{ fieldError }}</p>
-</div>
-```
-
-Available inside the template:
-- `resolvedProps` — `field.props` with `{{ variable }}` expressions resolved from `context`
-- `formData[fieldName]` — reactive form state (mutate in place)
-- `fieldName`, `fieldError`, `hasError`, `disabled`
-
-If the field is display-only (no user input), omit `formData` binding and skip `fieldError`.
-
-### 9. PHP backend: add to renderField
-
-File: `module/Scenario/Services/Nodes/BlockNodeHandler.php`
-
-In `renderField()`, add the new type to the `$blockType = match ($type)` expression:
-
-```php
-$blockType = match ($type) {
-    'textarea', 'number', ..., 'my_field' => $type,
-    default => 'input',
-};
-```
-
-Then add a `match ($blockType)` arm in the `$props` assignment (or extend `default` if the standard props suffice):
-
-```php
-'my_field' => [
-    'name'      => $name,
-    'label'     => $this->strField($field, 'label', $name),
-    'required'  => $this->boolField($field, 'required'),
-    'myProp'    => $this->strField($field, 'myProp'),
-    'anotherProp' => $this->boolField($field, 'anotherProp'),
-],
-```
-
-Available `NodeHelpers` methods: `strField`, `boolField`, `intField`, `arrayField`.
-
-If the field collects user input, add validation in `BlockNodeValidator.php`.
-
-### 10. Keep project field presets compatible
-
-Every field type can be saved as a project-scoped reusable preset. Presets are snapshots, not live links to fields already placed in blocks.
-
-- Add the type to `module/Scenario/Enums/BlockFieldType.php`.
-- Ensure `normalizeScenarioBlockField()` accepts a stored snapshot without a top-level `id`.
-- Ensure `duplicateBlockFieldIds()` regenerates every runtime identity owned by the type. This includes nested option, validation-rule and action-item IDs, plus references such as `parentId`.
-- Keep external resource IDs such as directory or action identifiers unchanged. The field settings UI must handle a referenced resource that was later removed.
-- Never store a preset ID on an inserted field. `instantiateScenarioBlockField()` creates an independent copy and the editor makes `varName` unique.
-- Add a unit test proving that two insertions do not share IDs and that nested references are remapped correctly.
-
-## Field groups in the palette
-
-The palette in `ScenarioBlockEditorDrawer.vue` is organized as:
-
-```ts
-const fieldGroups = [
-    { title: 'Поля',                   items: [...] },  // interactive inputs
-    { title: 'Контент',                items: [...] },  // display-only
-    { title: 'Удалённые справочники',  items: [...] },  // data-bound
-]
-```
-
-To add a whole new group, append a new entry to `fieldGroups`. To add a field to an existing group, push `myFieldMeta` into that group's `items`.
-
-## Validation rules (optional)
-
-If the new field type supports configurable validation, register it in `AVAILABLE_VALIDATION_RULES`:
-
-```ts
-export const AVAILABLE_VALIDATION_RULES: Partial<Record<BlockFieldType, ValidationRuleType[]>> = {
-    ...
-    my_field: ['minLength', 'maxLength'],
-}
-```
-
-The `ValidationChainBuilder` component appears automatically in the settings dialog when this is set.
-
-## Verification
+Запускать только через Taskfile:
 
 ```bash
-npx tsc --noEmit
-npx eslint resources/js/modules/scenario/
-./vendor/bin/phpstan analyse module/Scenario --memory-limit=512M
+task test:frontend -- resources/js/modules/scenario/__tests__/<test>.test.ts
+task test:unit -- --filter=BlockField
+task typecheck
+task lint -- resources/js/modules/scenario
+task phpstan -- module/Scenario
+task build:frontend
 ```
-
-Then:
-1. Open the block editor, drag the new field from the palette onto a block.
-2. Open field settings — verify your settings component renders.
-3. Open the preview tab — verify it renders in the player preview.
-4. Run a scenario that hits the block — verify the API response includes the correct `type` and `props`.
-5. Save the field as a user preset, insert it twice, edit one copy and verify the preset and the other copy are unchanged.
-
-## References
-
-See [references/add-new-block-field-checklist.md](references/add-new-block-field-checklist.md) for the quick checklist.

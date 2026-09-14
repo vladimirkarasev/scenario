@@ -1,6 +1,6 @@
 ---
 name: scenario-variables
-description: Scenario variable system uses FLAT names ({{ varName }}, not {{ Block.varName }}) with last-wins conflict resolution. Value transformations go through ExpressionLanguage functions (dateFormat, addTime, upper, …), NOT proxy accessors like .year/.format:.... Apply when working with scenario expressions, variable rendering, or VariableEntry DTOs.
+description: Scenario variables use flat user names plus DI-registered system-variable providers per ScenarioType. Transform values through ExpressionLanguage functions, not proxy accessors. Apply when working with expressions, variable rendering, VariableEntry DTOs, system-variable groups or providers such as WhatsappSystemVariableProvider.
 ---
 
 # Scenario Variables — flat names + ExpressionLanguage functions
@@ -74,6 +74,29 @@ Frontend не интерпретирует ExpressionLanguage самостоят
 
 - `MainVariableEntry` — `isAccessor: false`, `fieldType: BlockFieldType`.
 - `AccessorVariableEntry` — типы остались, но фронту вероятно нужен апдейт под функции вместо аксессоров (TODO когда понадобится UI-помощник для подбора функций).
+
+## Системные переменные по типу сценария
+
+Актуальная архитектура находится в `module/Scenario/Services/Variables/System/`:
+
+- `ScenarioSystemVariableProvider` — Strategy с `supports(ScenarioType)` и `groups()`;
+- `ScenarioSystemVariableRegistry` — DI-реестр выбора Strategy;
+- `ScenarioSystemVariableCatalog` — объединяет common groups и provider выбранного типа;
+- `SystemVariableGroup`/`SystemVariableField` — readonly value objects ответа;
+- `WhatsappSystemVariableProvider.php` — provider для существующего `ScenarioType::Watsapp` (сохранять текущее spelling до отдельной миграции enum/API/данных).
+
+При добавлении системных переменных существующему типу изменять только его provider: добавить `SystemVariableGroup` и поля с реальными suffix из runtime context. Если нужен новый context root, добавить case в `ScenarioContextKey` и label; имя обязано начинаться с `_` и совпадать с ключом, который фактически строит runtime payload.
+
+При добавлении нового типа сценария:
+
+1. Создать `XxxSystemVariableProvider implements ScenarioSystemVariableProvider`.
+2. Зарегистрировать provider constructor DI в `ScenarioSystemVariableRegistry` и вернуть его из `providers()`.
+3. Не использовать `app()`, `resolve()` и статический service locator; providers без состояния остаются `final readonly`.
+4. Обновить API Feature-тест каталога и frontend `ScenarioType` contract, если тип новый.
+
+Common groups (`_run`, `_operator`, `_project`) изменять в `CommonSystemVariableProvider`, а не копировать в WhatsApp/Telegram/Calls. Provider может делегировать другому provider через DI, как `CallBotsSystemVariableProvider`, только если контракты реально совпадают.
+
+Обязательно проверить, что каждый advertised ref (`{{ _group.suffix }}`) присутствует в runtime context либо явно допускает отсутствие. Добавить тест каталога и тест разрешения значения в payload/expression. Frontend получает каталог через `scenarioSystemVariableRepository` → `useScenarioSystemVariables`; не хардкодить список подсказок в component.
 
 ## Где живёт логика
 

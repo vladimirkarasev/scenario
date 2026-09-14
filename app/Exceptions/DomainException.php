@@ -9,7 +9,7 @@ use RuntimeException;
 
 abstract class DomainException extends RuntimeException
 {
-    public function __construct(
+    final public function __construct(
         public readonly string $errorCode,
         public readonly string $errorTitle,
         string $detail,

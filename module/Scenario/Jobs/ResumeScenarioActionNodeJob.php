@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Event;
 use Module\Scenario\Enums\ScenarioContextKey;
 use Module\Scenario\Models\ScenarioRun;
 use Module\Scenario\Services\Nodes\Action\ActionStatus;
-use Module\Scenario\Services\ScenarioPlayerService;
+use Module\Scenario\Services\Runtime\ScenarioPlayerService;
 use App\Events\CentrifugoMessagePublished;
 
 final class ResumeScenarioActionNodeJob implements ShouldQueue

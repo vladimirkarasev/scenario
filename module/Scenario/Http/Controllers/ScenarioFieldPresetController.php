@@ -11,7 +11,7 @@ use Module\Scenario\DTO\ScenarioFieldPresetData;
 use Module\Scenario\Http\Requests\ScenarioFieldPresetRequest;
 use Module\Scenario\Http\Resources\ScenarioFieldPresetResource;
 use Module\Scenario\Models\ScenarioFieldPreset;
-use Module\Scenario\Services\ScenarioFieldPresetService;
+use Module\Scenario\Services\Definition\ScenarioFieldPresetService;
 
 final class ScenarioFieldPresetController extends Controller
 {

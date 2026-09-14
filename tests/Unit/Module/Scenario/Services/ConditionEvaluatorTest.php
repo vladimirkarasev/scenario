@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Module\Scenario\Services;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use Module\Scenario\Services\ConditionEvaluator;
+use Module\Scenario\Services\Nodes\Condition\ConditionEvaluator;
 use Tests\TestCase;
 
 final class ConditionEvaluatorTest extends TestCase

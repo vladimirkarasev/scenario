@@ -6,11 +6,12 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import {FormInput, FormRow, FormTagSearch, FormTextarea} from '@/components/form'
+import {FormInput, FormRow, FormSelect, FormTagSearch, FormTextarea} from '@/components/form'
 import SectionTreeSelect from '@/components/sections/SectionTreeSelect.vue'
 import {Check, GitBranch, Save, X} from 'lucide-vue-next'
 import type {ScenarioVersion} from '@/modules/scenario/types/scenario-version'
-import type {ScenarioCategory} from '@/modules/scenario/types/scenario'
+import type {ScenarioCategory, ScenarioType} from '@/modules/scenario/types/scenario'
+import {SCENARIO_TYPE_OPTIONS} from '@/modules/scenario/lib/scenario-types'
 
 type ScenarioStatus = 'active' | 'draft' | 'archived'
 
@@ -24,6 +25,7 @@ interface StatusConfig {
 defineProps<{
   form: {
     name: string
+    type: ScenarioType
     description: string
     alias: string
     tags: string
@@ -77,6 +79,18 @@ const STATUSES: ScenarioStatus[] = ['active', 'draft', 'archived']
               :error="errors.alias"
           />
         </FormRow>
+        <FormSelect
+            v-model="form.type"
+            name="type"
+            label="Тип сценария"
+            required
+            :disabled="!canEdit"
+            :error="errors.type"
+        >
+          <option v-for="item in SCENARIO_TYPE_OPTIONS" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </option>
+        </FormSelect>
         <FormTextarea
             v-model="form.description"
             label="Описание"

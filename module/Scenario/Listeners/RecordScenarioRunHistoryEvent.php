@@ -21,11 +21,6 @@ use Module\Scenario\Repositories\ScenarioRunHistoryEventRepository;
 
 final readonly class RecordScenarioRunHistoryEvent
 {
-    private const array TRANSITION_NODE_TYPES = [
-        ScenarioNodeType::Block->value,
-        ScenarioNodeType::Condition->value,
-    ];
-
     public function __construct(
         private ScenarioRunHistoryEventRepository $history,
     ) {}
@@ -63,7 +58,7 @@ final readonly class RecordScenarioRunHistoryEvent
     {
         $nodeType = $this->stringField($event->node, 'type');
 
-        if (!in_array($nodeType, self::TRANSITION_NODE_TYPES, true)) {
+        if (!$this->recordsTransition($nodeType)) {
             return;
         }
 
@@ -79,7 +74,7 @@ final readonly class RecordScenarioRunHistoryEvent
     {
         $nodeType = $this->stringField($event->node, 'type');
 
-        if ($nodeType !== ScenarioNodeType::Block->value || $event->input === []) {
+        if (!$this->isContentNodeType($nodeType) || $event->input === []) {
             return;
         }
 
@@ -176,6 +171,16 @@ final readonly class RecordScenarioRunHistoryEvent
         $value = $node[$key] ?? null;
 
         return is_string($value) ? $value : null;
+    }
+
+    private function recordsTransition(?string $nodeType): bool
+    {
+        return $this->isContentNodeType($nodeType) || $nodeType === ScenarioNodeType::Condition->value;
+    }
+
+    private function isContentNodeType(?string $nodeType): bool
+    {
+        return $nodeType !== null && ScenarioNodeType::tryFrom($nodeType)?->isContent() === true;
     }
 
     /**

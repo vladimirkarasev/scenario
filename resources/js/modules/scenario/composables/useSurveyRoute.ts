@@ -185,7 +185,6 @@ export function useSurveyRoute(options: SurveyRouteOptions) {
     watch(
         [waypoints, options.modalOpen, routeType],
         () => void rebuildRoute(),
-        {deep: true},
     )
     watch(options.modalOpen, (open) => {
         if (open) resetFromModel()

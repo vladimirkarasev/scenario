@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Module\Directories\Http\Resources\JsonApi\DirectoryDataItemResource;
 use Module\Directories\DTO\DirectoryQuery;
-use Module\Directories\Models\Directory;
 use Module\Directories\Models\DirectoryVersion;
+use Module\Directories\Repositories\DirectoryRepository;
 use Module\Directories\Services\DirectoryManager;
 use Module\Directories\Services\RelatedDirectoryFieldResolver;
 
@@ -19,15 +19,13 @@ final class DirectoryDataController extends Controller
     public function __construct(
         private readonly DirectoryManager $directories,
         private readonly RelatedDirectoryFieldResolver $relatedFieldResolver,
+        private readonly DirectoryRepository $directoryRepository,
     ) {
     }
 
     public function show(Request $request, string $code): AnonymousResourceCollection
     {
-        $directory = Directory::query()
-            ->where('slug', $code)
-            ->whereHas('activeVersion')
-            ->firstOrFail();
+        $directory = $this->directoryRepository->findActiveBySlugOrFail($code);
 
         $page = $this->directories->paginate($directory, DirectoryQuery::fromRequest($request));
 

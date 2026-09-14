@@ -24,7 +24,6 @@ final readonly class ScenarioFeedData
     {
         $filter = is_array($request->input('filter')) ? $request->array('filter') : [];
 
-        $parentSet = array_key_exists('parent_id', $filter);
         $parentRaw = $filter['parent_id'] ?? null;
         $parentId = is_string($parentRaw) && $parentRaw !== '' && $parentRaw !== 'null'
             ? $parentRaw
@@ -33,6 +32,7 @@ final readonly class ScenarioFeedData
         $search = isset($filter['search']) && is_string($filter['search']) && trim($filter['search']) !== ''
             ? trim($filter['search'])
             : null;
+        $parentSet = array_key_exists('parent_id', $filter) || $search === null;
 
         $status = isset($filter['status']) && is_string($filter['status']) && $filter['status'] !== ''
             ? $filter['status']
